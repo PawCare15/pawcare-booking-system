@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PAW WALKER GROOMING HOUSE</title>
+
+    <link rel="icon" href="image/logo.png" type="image/png">
+
+    <!-- ===== Bootstrap 5 ===== -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <!-- ===== Remixicon ===== -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
+
+    <!-- ===== Google Font (Poppins) ===== -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- ===== External CSS ===== -->
+    <link rel="stylesheet" href="login.css" />
+
+</head>
+
+    <!-- =========================================================
+    自定义可爱弹窗
+    ========================================================= -->
+    <div class="custom-popup-overlay" id="customPopup">
+        <div class="custom-popup">
+            <div class="popup-icon" id="popupIcon">😊</div>
+            <h3 class="popup-title" id="popupTitle">Title</h3>
+            <p class="popup-message" id="popupMessage">Message</p>
+            <button class="popup-btn" id="popupBtn">Got it!</button>
+        </div>
+    </div>
+
+<body>
+
+    <div class="login-wrapper">
+
+        <!-- =========================================================
+        LEFT PANEL — Branding
+        ========================================================= -->
+        <div class="login-brand" style="position: relative;">
+
+            <!-- 🏠 返回首页 Icon (Home Icon) -->
+            <a href="index.html" class="home-icon-btn" title="Back to Home" style="position: absolute; top: 20px; left: 20px; color: #8b5327; font-size: 1.6rem; text-decoration: none; display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 50%; transition: all 0.2s ease-in-out; z-index: 10;" onmouseover="this.style.transform='scale(1.15)'; this.style.color='#673b18';" onmouseout="this.style.transform='scale(1)'; this.style.color='#8b5327';">
+                <i class="ri-home-3-fill"></i>
+            </a>
+
+            <div class="logo-wrap">
+                <img src="image/logo.png" alt="Paw Walker Grooming House Logo">
+                <div class="brand-name">
+                    PAW CARE
+                    <small>Booking System</small>
+                </div>
+            </div>
+
+            <div class="brand-greeting">
+                <h1>Welcome Back,<br><span>Pet Lover</span></h1>
+                <div class="greeting-emoji">🐶</div>
+            </div>
+
+            <p class="brand-description">
+                Your pet's care journey starts here. Book, track, and manage everything effortlessly.
+            </p>
+
+            <!-- 特性卡片：2×2 小卡片 -->
+            <div class="brand-features">
+                <span class="feat-item">
+                    <i class="ri-calendar-check-fill"></i>
+                    <span>Easy Booking</span>
+                </span>
+                <span class="feat-item">
+                    <i class="ri-pulse-fill"></i>
+                    <span>Real‑time Updates</span>
+                </span>
+                <span class="feat-item">
+                    <i class="ri-user-heart-fill"></i>
+                    <span>Trusted Care</span>
+                </span>
+                <span class="feat-item">
+                    <i class="ri-time-fill"></i>
+                    <span>24/7 Access</span>
+                </span>
+            </div>
+
+        </div>
+
+        <!-- =========================================================
+        RIGHT PANEL — Login Form
+        ========================================================= -->
+        <div class="login-form-panel">
+
+            <div class="form-header">
+                <h2>Sign In</h2>
+                <p>Enter your credentials to access your account.</p>
+            </div>
+
+            <form class="login-form" id="loginForm" action="#" method="POST" novalidate>
+
+                <!-- Email / Username -->
+                <div class="form-group">
+                    <label for="loginEmail">Email Address <span class="required">*</span></label>
+                    <div class="input-group-custom">
+                        <input type="email" id="loginEmail" name="email" placeholder="petlover@example.com" required autofocus>
+                        <i class="ri-mail-line input-icon"></i>
+                    </div>
+                    <div class="invalid-feedback" id="emailError"></div>
+                </div>
+
+                <!-- Password -->
+                <div class="form-group">
+                    <label for="loginPassword">Password <span class="required">*</span></label>
+                    <div class="input-group-custom">
+                        <input type="password" id="loginPassword" name="password" placeholder="Enter your password" required>
+                        <i class="ri-lock-line input-icon"></i>
+                        <button type="button" class="toggle-password" id="togglePassword" aria-label="Toggle password visibility">
+                            <i class="ri-eye-line"></i>
+                        </button>
+                    </div>
+                    <!-- Password Policy Requirements -->
+                    <div class="password-requirements" id="passwordRequirements">
+                        <p class="requirements-title">Password must contain:</p>
+                        <ul class="requirements-list">
+                            <li id="req-length"><i class="ri-close-line"></i> 8–16 characters</li>
+                            <li id="req-lowercase"><i class="ri-close-line"></i> At least 1 lowercase letter</li>
+                            <li id="req-uppercase"><i class="ri-close-line"></i> At least 1 uppercase letter</li>
+                            <li id="req-number"><i class="ri-close-line"></i> At least 1 number</li>
+                            <li id="req-special"><i class="ri-close-line"></i> At least 1 special character (!@#$%^&*)</li>
+                        </ul>
+                    </div>
+                    <div class="invalid-feedback" id="passwordError"></div>
+                </div>
+
+                <!-- Options -->
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember"> Remember me
+                    </label>
+                    <a href="#" class="forgot-link">Forgot password?</a>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="btn-login" id="loginBtn">
+                    <i class="ri-login-circle-line"></i> Sign In
+                </button>
+
+                <!-- Divider -->
+                <div class="divider">or</div>
+
+                <!-- Register Link -->
+                <div class="register-link">
+                    Don't have an account? <a href="register.html" class="register-link-btn">Register</a>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+        <!-- =========================================================
+    OTP POPUP MODAL (美观版本)
+    ========================================================= -->
+    <div class="otp-overlay" id="otpOverlay">
+        <div class="otp-modal">
+            <div class="otp-modal-icon">📧</div>
+            <h3 class="otp-modal-title">Check Your Email</h3>
+            <p class="otp-modal-desc">
+                We've sent a password reset OTP to your registered email.
+                Please check your inbox and enter the code to reset your password.
+            </p>
+            <div class="otp-modal-email" id="otpEmailDisplay">
+                <i class="ri-mail-line"></i>
+                <span>user***@gmail.com</span>
+            </div>
+            <button class="otp-modal-btn" id="otpGotItBtn">Got it!</button>
+            <p class="otp-modal-resend">
+                Didn't receive the code? <a href="#" id="otpResendLink">Resend OTP</a>
+            </p>
+        </div>
+    </div>
+
+    <!-- =========================================================
+    BOOTSTRAP JS
+    ========================================================= -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js">
+    </script>
+
+    <!-- =========================================================
+    EXTERNAL JS
+    ========================================================= -->
+    <script src="login.js"></script>
+
+</body>
+
+</html>

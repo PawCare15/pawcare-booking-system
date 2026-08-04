@@ -1,0 +1,828 @@
+/* =========================================================
+   GLOBAL RESET & VARIABLES
+   ========================================================= */
+:root {
+    --primary-color: #f9f9dd;
+    --text-dark: #a75e31;
+    --text-light: #af7957;
+    --white: #ffffff;
+    --btn-green: #3b7a57;
+    --btn-green-hover: #2c5c41;
+    --shadow-soft: 0 12px 40px rgba(167, 94, 49, 0.12);
+    --shadow-hover: 0 20px 50px rgba(167, 94, 49, 0.20);
+    --radius-lg: 24px;
+    --radius-sm: 12px;
+    --requirement-met: #2e7d32;
+    --requirement-not-met: #d32f2f;
+    --glass-bg: rgba(255, 255, 255, 0.70);
+    --glass-border: rgba(167, 94, 49, 0.08);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background: var(--primary-color);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+}
+
+/* =========================================================
+   REGISTER CARD — MAIN CONTAINER
+   ========================================================= */
+.register-wrapper {
+    width: 100%;
+    max-width: 1100px;
+    background: var(--white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.register-wrapper:hover {
+    box-shadow: var(--shadow-hover);
+}
+
+/* =========================================================
+   LEFT PANEL — BRANDING
+   ========================================================= */
+.register-brand {
+    background: linear-gradient(160deg, #fdf8ee 0%, #f2edd6 50%, #e8e0c8 100%);
+    padding: 3rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.register-brand::before {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -20%;
+    width: 80%;
+    height: 80%;
+    background: radial-gradient(circle, rgba(167, 94, 49, 0.04) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.register-brand::after {
+    content: '🐾';
+    position: absolute;
+    font-size: 16rem;
+    right: -30px;
+    bottom: -40px;
+    opacity: 0.05;
+    transform: rotate(-6deg);
+    pointer-events: none;
+}
+
+/* ---- Logo ---- */
+.register-brand .logo-wrap {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 2rem;
+    position: relative;
+    z-index: 1;
+}
+
+.register-brand .logo-wrap img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(167, 94, 49, 0.10));
+}
+
+.register-brand .logo-wrap .brand-name {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-dark);
+    letter-spacing: -0.5px;
+    line-height: 1.2;
+}
+
+.register-brand .logo-wrap .brand-name small {
+    display: block;
+    font-size: 0.7rem;
+    font-weight: 500;
+    color: var(--text-light);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+/* ---- Greeting ---- */
+.register-brand .brand-greeting {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 0.75rem;
+    position: relative;
+    z-index: 1;
+}
+
+.register-brand .brand-greeting h1 {
+    font-size: 2.4rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    line-height: 1.2;
+    margin: 0;
+}
+
+.register-brand .brand-greeting h1 span {
+    color: var(--btn-green);
+}
+
+.register-brand .brand-greeting .greeting-emoji {
+    font-size: 2.6rem;
+    line-height: 1;
+    animation: wave 2s ease-in-out infinite;
+}
+
+@keyframes wave {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(8deg); }
+    75% { transform: rotate(-8deg); }
+}
+
+/* ---- Description ---- */
+.register-brand .brand-description {
+    font-size: 1rem;
+    color: var(--text-light);
+    max-width: 340px;
+    line-height: 1.7;
+    position: relative;
+    z-index: 1;
+    margin-bottom: 0;
+}
+
+/* =========================================================
+   BRAND FEATURES — 2×2 小卡片 (玻璃质感)
+   ========================================================= */
+.register-brand .brand-features {
+    margin-top: 2.2rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.9rem;
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 420px;
+}
+
+.register-brand .brand-features .feat-item {
+    background: var(--glass-bg);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 0.9rem 0.4rem;
+    border-radius: var(--radius-sm);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-dark);
+    box-shadow: 0 2px 12px rgba(167, 94, 49, 0.05);
+    border: 1px solid var(--glass-border);
+    transition: all 0.25s ease;
+    text-align: center;
+}
+
+.register-brand .brand-features .feat-item i {
+    color: var(--btn-green);
+    font-size: 1.5rem;
+    margin-bottom: 1px;
+}
+
+.register-brand .brand-features .feat-item:hover {
+    transform: translateY(-4px);
+    background: rgba(255, 255, 255, 0.90);
+    box-shadow: 0 8px 24px rgba(167, 94, 49, 0.12);
+    border-color: rgba(167, 94, 49, 0.15);
+}
+
+.register-brand .brand-features .feat-item:active {
+    transform: scale(0.95);
+}
+
+/* =========================================================
+   RIGHT PANEL — REGISTER FORM
+   ========================================================= */
+.register-form-panel {
+    padding: 3rem 2.8rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: var(--white);
+}
+
+.register-form-panel .form-header {
+    margin-bottom: 1.8rem;
+}
+
+.register-form-panel .form-header h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-dark);
+    margin-bottom: 0.2rem;
+}
+
+.register-form-panel .form-header p {
+    color: var(--text-light);
+    font-size: 0.95rem;
+}
+
+/* ---- Form Fields ---- */
+.register-form .form-group {
+    margin-bottom: 1.2rem;
+}
+
+.register-form .form-group label {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--text-dark);
+    margin-bottom: 0.35rem;
+    display: block;
+}
+
+.register-form .form-group label .required {
+    color: #d9534f;
+    margin-left: 2px;
+}
+
+.register-form .form-group label .optional {
+    color: var(--text-light);
+    font-weight: 400;
+    font-size: 0.78rem;
+}
+
+.register-form .input-group-custom {
+    position: relative;
+}
+
+.register-form .input-group-custom .input-icon {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-light);
+    font-size: 1.1rem;
+    pointer-events: none;
+    transition: color 0.3s ease;
+}
+
+.register-form .input-group-custom input {
+    width: 100%;
+    padding: 0.8rem 1rem 0.8rem 2.8rem;
+    border: 2px solid #ece6dc;
+    border-radius: var(--radius-sm);
+    font-size: 0.95rem;
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-dark);
+    background: #fcfaf7;
+    transition: all 0.3s ease;
+    outline: none;
+}
+
+.register-form .input-group-custom input:focus {
+    border-color: var(--text-dark);
+    background: var(--white);
+    box-shadow: 0 0 0 4px rgba(167, 94, 49, 0.06);
+}
+
+.register-form .input-group-custom input:focus+.input-icon,
+.register-form .input-group-custom input:focus~.input-icon {
+    color: var(--text-dark);
+}
+
+.register-form .input-group-custom input::placeholder {
+    color: #c4b8aa;
+    font-weight: 300;
+}
+
+/* ---- Password Toggle ---- */
+.register-form .input-group-custom .toggle-password {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--text-light);
+    font-size: 1.1rem;
+    cursor: pointer;
+    padding: 0;
+    transition: color 0.3s ease;
+}
+
+.register-form .input-group-custom .toggle-password:hover {
+    color: var(--text-dark);
+}
+
+/* ===== Password Requirements（平滑展开，无跳动） ===== */
+.password-requirements {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transition: max-height 0.35s ease, opacity 0.3s ease, visibility 0.3s ease, padding 0.35s ease, margin 0.35s ease, border-color 0.3s ease;
+    background: #f8f6f0;
+    border-radius: var(--radius-sm);
+    border: 1px solid transparent;
+    padding: 0 0.8rem;
+    margin-top: 0;
+}
+
+.password-requirements.show {
+    max-height: 200px;
+    opacity: 1;
+    visibility: visible;
+    border-color: #ece6dc;
+    padding: 0.6rem 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.password-requirements .requirements-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-light);
+    margin-bottom: 0.25rem;
+}
+
+.password-requirements .requirements-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 1rem;
+}
+
+.password-requirements .requirements-list li {
+    font-size: 0.75rem;
+    color: var(--text-light);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.3s ease;
+}
+
+.password-requirements .requirements-list li i {
+    font-size: 0.85rem;
+    transition: all 0.3s ease;
+}
+
+.password-requirements .requirements-list li.met {
+    color: var(--requirement-met);
+}
+
+.password-requirements .requirements-list li.met i {
+    color: var(--requirement-met);
+}
+
+.password-requirements .requirements-list li.not-met {
+    color: var(--requirement-not-met);
+}
+
+.password-requirements .requirements-list li.not-met i {
+    color: var(--requirement-not-met);
+}
+
+/* ---- Terms Checkbox ---- */
+.register-form .form-check-group {
+    margin-top: 0.2rem;
+}
+
+.register-form .terms-label {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.85rem;
+    color: var(--text-light);
+    cursor: pointer;
+    font-weight: 400;
+}
+
+.register-form .terms-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    margin-top: 1px;
+    accent-color: var(--btn-green);
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.register-form .terms-label .terms-link {
+    color: var(--text-dark);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.register-form .terms-label .terms-link:hover {
+    color: var(--btn-green);
+}
+
+/* ---- Submit Button ---- */
+.register-form .btn-register {
+    width: 100%;
+    padding: 0.85rem;
+    background: var(--btn-green);
+    border: none;
+    border-radius: 50px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    color: var(--white);
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(59, 122, 87, 0.25);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 0.3rem;
+}
+
+.register-form .btn-register:hover:not(:disabled) {
+    background: var(--btn-green-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(59, 122, 87, 0.35);
+}
+
+.register-form .btn-register:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.register-form .btn-register:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none;
+}
+
+/* ---- Login Link ---- */
+.register-form .login-link {
+    text-align: center;
+    margin-top: 1.6rem;
+    font-size: 0.92rem;
+    color: var(--text-light);
+}
+
+.register-form .login-link a {
+    color: var(--text-dark);
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    display: inline-block;
+}
+
+.register-form .login-link a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 2.5px;
+    background: var(--btn-green);
+    transition: width 0.35s ease;
+    border-radius: 2px;
+}
+
+.register-form .login-link a:hover {
+    color: var(--btn-green);
+    transform: translateY(-2px);
+}
+
+.register-form .login-link a:hover::after {
+    width: 100%;
+}
+
+/* ---- Divider ---- */
+.register-form .divider {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin: 1.4rem 0 0.8rem;
+    color: #c4b8aa;
+    font-size: 0.82rem;
+}
+
+.register-form .divider::before,
+.register-form .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #e8e0d6;
+}
+
+/* =========================================================
+   INVALID FEEDBACK
+   ========================================================= */
+.invalid-feedback {
+    display: none;
+    font-size: 0.78rem;
+    color: #d32f2f;
+    margin-top: 0.25rem;
+}
+
+.invalid-feedback.show {
+    display: block;
+}
+
+/* =========================================================
+   RESPONSIVE — 统一电脑和手机
+   ========================================================= */
+@media (max-width: 900px) {
+    .register-wrapper {
+        grid-template-columns: 1fr;
+        max-width: 520px;
+    }
+
+    .register-brand {
+        padding: 2.5rem 2rem 2rem;
+    }
+
+    .register-brand .logo-wrap {
+        flex-direction: row;
+        justify-content: center;
+        gap: 12px;
+    }
+
+    .register-brand .logo-wrap .brand-name small {
+        display: block;
+    }
+
+    .register-brand .brand-greeting h1 {
+        font-size: 2.2rem;
+    }
+
+    .register-brand .brand-greeting .greeting-emoji {
+        font-size: 2.2rem;
+    }
+
+    .register-brand .brand-description {
+        max-width: 100%;
+    }
+
+    .register-brand .brand-features {
+        max-width: 100%;
+    }
+
+    .register-brand::after {
+        font-size: 12rem;
+        right: -20px;
+        bottom: -30px;
+    }
+
+    .register-form-panel {
+        padding: 2.5rem 2rem;
+    }
+
+    .password-requirements .requirements-list {
+        flex-direction: column;
+        gap: 0.15rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .register-brand {
+        padding: 1.8rem 1.2rem 1.5rem;
+    }
+
+    .register-brand .logo-wrap {
+        gap: 10px;
+        margin-bottom: 1.5rem;
+    }
+
+    .register-brand .logo-wrap img {
+        width: 40px;
+        height: 40px;
+    }
+
+    .register-brand .logo-wrap .brand-name {
+        font-size: 1.1rem;
+        text-align: left;
+    }
+
+    .register-brand .logo-wrap .brand-name small {
+        font-size: 0.65rem;
+    }
+
+    .register-brand .brand-greeting {
+        gap: 8px;
+    }
+
+    .register-brand .brand-greeting h1 {
+        font-size: 1.8rem;
+    }
+
+    .register-brand .brand-greeting .greeting-emoji {
+        font-size: 1.8rem;
+    }
+
+    .register-brand .brand-description {
+        font-size: 0.9rem;
+    }
+
+    /* 手机端保持 2×2 网格，缩小间距 */
+    .register-brand .brand-features {
+        gap: 0.6rem;
+        margin-top: 1.6rem;
+    }
+
+    .register-brand .brand-features .feat-item {
+        padding: 0.65rem 0.3rem;
+        font-size: 0.7rem;
+    }
+
+    .register-brand .brand-features .feat-item i {
+        font-size: 1.2rem;
+    }
+
+    .register-form-panel {
+        padding: 1.8rem 1.2rem;
+    }
+
+    .register-form-panel .form-header h2 {
+        font-size: 1.6rem;
+    }
+
+    .register-form-panel .form-header p {
+        font-size: 0.88rem;
+    }
+
+    .register-form .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .register-form .input-group-custom input {
+        padding: 0.7rem 1rem 0.7rem 2.6rem;
+        font-size: 0.9rem;
+    }
+
+    .register-form .btn-register {
+        font-size: 0.95rem;
+        padding: 0.75rem;
+    }
+
+    .register-form .login-link {
+        font-size: 0.88rem;
+        margin-top: 1.4rem;
+    }
+
+    .register-form .divider {
+        margin: 1.2rem 0 0.6rem;
+        font-size: 0.78rem;
+    }
+
+    .password-requirements {
+        padding: 0.5rem 0.6rem;
+    }
+
+    .password-requirements .requirements-list li {
+        font-size: 0.7rem;
+    }
+}
+
+/* =========================================================
+   PHONE NUMBER ERROR
+   ========================================================= */
+#phoneError {
+    display: none;
+    font-size: 0.78rem;
+    color: #d32f2f;
+    margin-top: 0.25rem;
+}
+
+#phoneError.show {
+    display: block;
+}
+
+/* =========================================================
+   自定义可爱弹窗 — 参考 "Missing Info" 风格
+   ========================================================= */
+.custom-popup-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 99999;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    animation: popupFadeIn 0.3s ease;
+}
+
+.custom-popup-overlay.active {
+    display: flex;
+}
+
+@keyframes popupFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.custom-popup {
+    background: var(--white, #ffffff);
+    max-width: 400px;
+    width: 100%;
+    padding: 2.5rem 2rem 2rem;
+    border-radius: 24px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.20);
+    text-align: center;
+    animation: popupSlideUp 0.35s ease;
+}
+
+@keyframes popupSlideUp {
+    from { opacity: 0; transform: translateY(30px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.popup-icon {
+    font-size: 3.6rem;
+    margin-bottom: 0.2rem;
+    display: block;
+    line-height: 1.2;
+}
+
+.popup-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-dark, #a75e31);
+    margin-bottom: 0.5rem;
+}
+
+.popup-message {
+    font-size: 0.95rem;
+    color: var(--text-light, #af7957);
+    line-height: 1.7;
+    margin-bottom: 1.6rem;
+}
+
+.popup-btn {
+    width: 100%;
+    padding: 0.85rem;
+    background: var(--btn-green, #3b7a57);
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 16px rgba(59, 122, 87, 0.25);
+}
+
+.popup-btn:hover {
+    background: var(--btn-green-hover, #2c5c41);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 28px rgba(59, 122, 87, 0.35);
+}
+
+.popup-btn:active {
+    transform: scale(0.96);
+}
+
+/* 手机适配 */
+@media (max-width: 480px) {
+    .custom-popup {
+        padding: 2rem 1.5rem 1.8rem;
+        margin: 1rem;
+    }
+
+    .popup-icon {
+        font-size: 3rem;
+    }
+
+    .popup-title {
+        font-size: 1.2rem;
+    }
+
+    .popup-message {
+        font-size: 0.88rem;
+    }
+}

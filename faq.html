@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" rel="stylesheet"/>
+  <link href="styles.css" rel="stylesheet"/>
+  <link rel="icon" href="image/logo.png" type="image/png" class="logo"/>
+  <title>PAW WALKER GROOMING HOUSE</title>
+</head>
+
+<body>
+  <body id="home">
+  <nav>
+    <div class="nav__header">
+
+        <div class="nav__logo">
+            <a href="about.html">
+                <img src="image/logo.png" alt="Paw Walker Grooming House Logo" class="logo">
+                <span class="logo-text">PAW WALKER GROOMING HOUSE</span>
+            </a>
+        </div>
+
+        <div class="nav__menu__btn" id="menu-btn">
+            <i class="ri-menu-line"></i>
+        </div>
+
+    </div>
+
+    <ul class="nav__links" id="nav-links">
+      <li><a href="index.html">Home</a></li>
+      <li><a href="about.html">About Us</a></li>
+      <li><a href="service.html">Services</a></li>
+      <li><a href="faq.html" class="active">FAQ</a></li>
+      <li><a href="login.html" class="btn-book">Book Now</a></li>
+    </ul>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="faq-hero">
+    <div class="container">
+      <h1>Frequently Asked Questions</h1>
+      <p>Find answers to the most common questions about our grooming, boarding services, and booking system.</p>
+    </div>
+  </section>
+
+ <!-- Main Content Section: Center Container with Generous Side Margins -->
+  <section class="faq-section py-5">
+    <div class="container px-4 px-md-5 faq-container-box">
+      <div class="row g-4 g-xl-5 align-items-start">
+
+        <!-- Left Column: FAQ Accordion (~58% Width) -->
+        <div class="col-lg-7">
+
+          <!-- FAQ Accordion -->
+          <div class="accordion faq-accordion" id="faqAccordion">
+
+            <!-- Question 1 -->
+            <div class="accordion-item" data-category="booking">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q1">
+                  <i class="ri-calendar-check-line faq-icon me-2"></i>
+                  <span>1. How do I book a grooming or boarding service?</span>
+                </button>
+              </h2>
+              <div id="q1" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  Register an account, log in, choose your preferred service, select the booking date and time, then submit your booking.
+                </div>
+              </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="accordion-item" data-category="booking">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q2">
+                  <i class="ri-user-add-line faq-icon me-2"></i>
+                  <span>2. Do I need an account before booking?</span>
+                </button>
+              </h2>
+              <div id="q2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  Yes. You need an account to manage your bookings, pet profiles, and booking history.
+                </div>
+              </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="accordion-item" data-category="booking">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q3">
+                  <i class="ri-edit-line faq-icon me-2"></i>
+                  <span>3. Can I cancel or update my booking?</span>
+                </button>
+              </h2>
+              <div id="q3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  Yes. Simply log in and go to <strong>My Bookings</strong> to update or cancel your appointment before the scheduled date.
+                </div>
+              </div>
+            </div>
+
+            <!-- Question 4 -->
+            <div class="accordion-item" data-category="booking">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q4">
+                  <i class="ri-search-eye-line faq-icon me-2"></i>
+                  <span>4. How can I check my booking status?</span>
+                </button>
+              </h2>
+              <div id="q4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  You can view the latest booking status anytime from the <strong>My Bookings</strong> page in your dashboard.
+                </div>
+              </div>
+            </div>
+
+            <!-- Question 5 -->
+            <div class="accordion-item" data-category="pricing">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q5">
+                  <i class="ri-calculator-line faq-icon me-2"></i>
+                  <span>5. How is the service price calculated?</span>
+                </button>
+              </h2>
+              <div id="q5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  Prices are based on your pet's size, breed, selected service, and any special grooming requirements.
+                </div>
+              </div>
+            </div>
+
+            <!-- Question 6 -->
+            <div class="accordion-item" data-category="booking">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q6">
+                  <i class="ri-git-commit-line faq-icon me-2"></i>
+                  <span>6. Can I book for more than one pet?</span>
+                </button>
+              </h2>
+              <div id="q6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  Yes. You can create multiple pet profiles under your account and book services for each pet separately.
+                </div>
+              </div>
+            </div>
+
+            <!-- Question 7 -->
+            <div class="accordion-item" data-category="boarding">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q7">
+                  <i class="ri-suitcase-line faq-icon me-2"></i>
+                  <span>7. What should I bring for boarding?</span>
+                </button>
+              </h2>
+              <div id="q7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  Please bring your pet's regular food, any necessary medication, and their vaccination record if required.
+                </div>
+              </div>
+            </div>
+
+            <!-- Question 8 -->
+            <div class="accordion-item" data-category="pricing">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q8">
+                  <i class="ri-wallet-3-line faq-icon me-2"></i>
+                  <span>8. When do I make payment?</span>
+                </button>
+              </h2>
+              <div id="q8" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  Payment is made in person after the grooming or boarding service has been fully completed.
+                </div>
+              </div>
+            </div>
+
+            <!-- Question 9 -->
+            <div class="accordion-item" data-category="boarding">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q9">
+                  <i class="ri-alarm-warning-line faq-icon me-2"></i>
+                  <span>9. What happens if I miss my appointment?</span>
+                </button>
+              </h2>
+              <div id="q9" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  Please contact us as soon as possible to reschedule your appointment to another available time slot.
+                </div>
+              </div>
+            </div>
+
+            <!-- Question 10 -->
+            <div class="accordion-item" data-category="boarding">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q10">
+                  <i class="ri-customer-service-2-line faq-icon me-2"></i>
+                  <span>10. How can I contact Paw Walker Grooming House?</span>
+                </button>
+              </h2>
+              <div id="q10" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div class="accordion-body">
+                  You can reach us through our phone number and email for further assistance.
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Right Column: Question Form + Direct Contact Info (~42% Width) -->
+<div class="col-lg-5">
+  <section class="faq-form-section p-0 m-0">
+    <div class="faq-form-container w-100">
+      
+      <!-- Contact Form Card -->
+      <div class="faq-question-form-card p-4 rounded-4 shadow-sm bg-white border">
+        <div class="text-center mb-4">
+          <h3 class="fw-bold text-dark-custom fs-3">Still Have Questions?</h3>
+          <p class="text-light-custom fs-6 mb-1">Can't find the answer you are looking for? Send your question directly to us!</p>
+          <small class="text-muted"><i class="ri-time-line me-1"></i>We usually reply within 24 hours</small>
+        </div>
+
+        <form action="mailto:pawcare@gmail.com" method="post" enctype="text/plain" class="row g-3">
+          <div class="col-12">
+            <label for="custName" class="form-label fw-semibold text-dark-custom">Your Name</label>
+            <input type="text" class="form-control form-control-lg fs-6" id="custName" name="Customer Name" placeholder="e.g. John Doe" required>
+          </div>
+
+          <div class="col-12">
+            <label for="custEmail" class="form-label fw-semibold text-dark-custom">Your Email</label>
+            <input type="email" class="form-control form-control-lg fs-6" id="custEmail" name="Customer Email" placeholder="e.g. john@example.com" required>
+          </div>
+
+          <!-- NEW FIELD: Phone Number -->
+          <div class="col-12">
+            <label for="custPhone" class="form-label fw-semibold text-dark-custom">Phone / WhatsApp Number</label>
+            <input type="tel" class="form-control form-control-lg fs-6" id="custPhone" name="Phone Number" placeholder="e.g. +60 12-345 6789">
+          </div>
+
+          <!-- NEW FIELD: Inquiry Category Dropdown -->
+          <div class="col-12">
+            <label for="serviceType" class="form-label fw-semibold text-dark-custom">Service Inquiry</label>
+            <select class="form-select form-select-lg fs-6" id="serviceType" name="Service Type">
+              <option selected disabled>Select a topic...</option>
+              <option value="grooming">Pet Grooming</option>
+              <option value="boarding">Pet Boarding</option>
+              <option value="booking">Booking / Rescheduling</option>
+              <option value="other">Other / General Question</option>
+            </select>
+          </div>
+
+          <div class="col-12">
+            <label for="custQuestion" class="form-label fw-semibold text-dark-custom">Your Question</label>
+            <textarea class="form-control form-control-lg fs-6" id="custQuestion" name="Question" rows="4" placeholder="Type your question here..." required></textarea>
+          </div>
+
+          <div class="col-12 text-center mt-3">
+            <button type="submit" class="btn btn-submit-question py-3 w-100 fs-5 fw-semibold">
+              <i class="ri-send-plane-fill me-2"></i>Submit Question
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- NEW CARD: Direct Contact & Operating Hours Box Below Form -->
+      <div class="p-3 mt-3 rounded-4 border bg-light text-center">
+        <h6 class="fw-bold mb-2 text-dark"><i class="ri-phone-fill me-2"></i>Need Immediate Assistance?</h6>
+        <p class="small text-muted mb-1">Call/WhatsApp: <strong>+60 18-949 8913</strong></p>
+        <p class="small text-muted mb-0">Business Hours: <strong>Fri - Wed: 10:30 AM - 7:00 PM</strong></p>
+      </div>
+
+    </div>
+  </section>
+</div>
+
+      </div>
+    </div>
+  </section>
+
+<footer class="footer">
+  <div class="footer__container">
+    <!-- Left Column: Brand -->
+    <div class="footer__col">
+      <h2>Best Pet Care Agency For Your Favorite Pets</h2>
+      <div class="footer__socials">
+        <a href="https://www.facebook.com/share/18JxgBNATe/" target="_blank" rel="noopener noreferrer">
+          <i class="ri-facebook-fill"></i>
+        </a>
+        <a href="https://www.instagram.com/pawwalkergrooming" target="_blank" rel="noopener noreferrer">
+          <i class="ri-instagram-line"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- Middle Column: Contact -->
+    <div class="footer__col">
+      <h3>Contact</h3>
+      <p>pawcare@gmail.com</p>
+      <p>+60 18-949 8913</p>
+      <p>
+        Paw Walker Grooming House<br>
+        7460, TINGKAT BAWAH, Jln Bagan Lalang,<br>
+        13400 Butterworth, Penang
+      </p>
+    </div>
+
+    <!-- Right Column: Quick Links -->
+    <div class="footer__col">
+      <!-- Quick Link 区域 -->
+          <ul class="footer__links">
+             <h3>Quick Links</h3>
+            <li><a href="index.html">Home</a></li> 
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="service.html">Services</a></li>
+            <li><a href="faq.html">FAQ</a></li>
+            <li><a href="login.html">Book Now</a></li>
+          </ul>
+    </div>
+  </div>
+
+  <!-- Bottom Bar: Copyright only -->
+  <div class="footer__bottom">
+    <p>© 2025-2026 Paw Walker Grooming House</p>
+  </div>
+</footer>
+
+    <script src="https://unpkg.com/scrollreveal"></script>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="faq.js"></script>
+  </body>
+</html>
