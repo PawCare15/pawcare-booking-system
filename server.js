@@ -56,14 +56,31 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
+        console.log('🔐 登录尝试:', { email, password });
+
         const { data: customer, error } = await supabase
             .from('customer')
             .select('customer_id, full_name, email, password')
             .eq('email', email)
             .maybeSingle();
-        if (!customer) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+
+        if (!customer) {
+            console.log('❌ 用户不存在:', email);
+            return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+        }
+
+        console.log('✅ 用户找到:', customer.email);
+        console.log('📝 数据库密码哈希:', customer.password);
+
         const match = await bcrypt.compare(password, customer.password);
-        if (!match) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+        console.log('🔑 比对结果:', match);
+
+        if (!match) {
+            console.log('❌ 密码不匹配');
+            return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+        }
+
+        // ... 生成 token 的代码保持不变 ...
         const token = jwt.sign(
             { customer_id: customer.customer_id, email: customer.email },
             JWT_SECRET,
@@ -75,7 +92,7 @@ app.post('/api/login', async (req, res) => {
             customer: { id: customer.customer_id, name: customer.full_name, email: customer.email }
         });
     } catch (err) {
-        console.error(err);
+        console.error('登录错误:', err);
         res.status(500).json({ success: false, message: err.message });
     }
 });
