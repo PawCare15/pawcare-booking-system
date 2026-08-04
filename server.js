@@ -8,10 +8,13 @@ const emailjs = require('@emailjs/nodejs');
 const path = require('path');
 
 const app = express();
-app.use(cors({ origin: '*', methods: ['GET','POST','PUT','DELETE'], allowedHeaders: ['Content-Type','Authorization'] }));
-app.use(express.json());
 
-// 托管静态文件（所有 HTML/CSS/JS 图片）
+// ===== 增加请求体大小限制（解决 PayloadTooLargeError）=====
+app.use(cors({ origin: '*', methods: ['GET','POST','PUT','DELETE'], allowedHeaders: ['Content-Type','Authorization'] }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+
+// 托管静态文件
 app.use(express.static(path.join(__dirname, '.')));
 
 // ========== Supabase 初始化 ==========
@@ -56,31 +59,14 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        console.log('🔐 登录尝试:', { email, password });
-
         const { data: customer, error } = await supabase
             .from('customer')
             .select('customer_id, full_name, email, password')
             .eq('email', email)
             .maybeSingle();
-
-        if (!customer) {
-            console.log('❌ 用户不存在:', email);
-            return res.status(401).json({ success: false, message: 'Invalid credentials.' });
-        }
-
-        console.log('✅ 用户找到:', customer.email);
-        console.log('📝 数据库密码哈希:', customer.password);
-
+        if (!customer) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
         const match = await bcrypt.compare(password, customer.password);
-        console.log('🔑 比对结果:', match);
-
-        if (!match) {
-            console.log('❌ 密码不匹配');
-            return res.status(401).json({ success: false, message: 'Invalid credentials.' });
-        }
-
-        // ... 生成 token 的代码保持不变 ...
+        if (!match) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
         const token = jwt.sign(
             { customer_id: customer.customer_id, email: customer.email },
             JWT_SECRET,
@@ -92,7 +78,7 @@ app.post('/api/login', async (req, res) => {
             customer: { id: customer.customer_id, name: customer.full_name, email: customer.email }
         });
     } catch (err) {
-        console.error('登录错误:', err);
+        console.error(err);
         res.status(500).json({ success: false, message: err.message });
     }
 });
@@ -131,7 +117,7 @@ app.put('/api/profile', async (req, res) => {
     }
 });
 
-// ========== 5. 宠物 CRUD ==========
+// ========== 5. 宠物 CRUD（适配你的表结构）==========
 app.get('/api/pets', async (req, res) => {
     try {
         const customer_id = getCustomerId(req);
@@ -139,7 +125,7 @@ app.get('/api/pets', async (req, res) => {
             .from('pet')
             .select('*')
             .eq('customer_id', customer_id)
-            .order('created_at', { ascending: false });
+            .order('pet_id', { ascending: false });  // 用 pet_id 排序，因为 created_at 不存在
         if (error) throw error;
         res.json({ success: true, data });
     } catch (err) {
@@ -151,10 +137,20 @@ app.get('/api/pets', async (req, res) => {
 app.post('/api/pets', async (req, res) => {
     try {
         const customer_id = getCustomerId(req);
+        // 字段名映射：前端发送的 → 数据库字段
         const { name, breed, dob, gender, weight, notes, photo_url } = req.body;
         const { data, error } = await supabase
             .from('pet')
-            .insert([{ customer_id, name, breed, dob, gender, weight, notes, photo_url }])
+            .insert([{
+                customer_id,
+                pet_name: name,           // name → pet_name
+                breed,
+                date_of_birth: dob,       // dob → date_of_birth
+                gender,
+                weight,
+                special_notes: notes,     // notes → special_notes
+                pet_photo: photo_url      // photo_url → pet_photo
+            }])
             .select('*');
         if (error) throw error;
         res.status(201).json({ success: true, data: data[0] });
@@ -171,7 +167,15 @@ app.put('/api/pets/:pet_id', async (req, res) => {
         const { name, breed, dob, gender, weight, notes, photo_url } = req.body;
         const { error } = await supabase
             .from('pet')
-            .update({ name, breed, dob, gender, weight, notes, photo_url })
+            .update({
+                pet_name: name,
+                breed,
+                date_of_birth: dob,
+                gender,
+                weight,
+                special_notes: notes,
+                pet_photo: photo_url
+            })
             .eq('pet_id', pet_id)
             .eq('customer_id', customer_id);
         if (error) throw error;
@@ -205,7 +209,7 @@ app.get('/api/bookings', async (req, res) => {
         const customer_id = getCustomerId(req);
         const { data, error } = await supabase
             .from('booking')
-            .select('*, pet:pet_id (name, breed)')
+            .select('*, pet:pet_id (pet_name, breed)')
             .eq('customer_id', customer_id)
             .order('booking_date', { ascending: false });
         if (error) throw error;
@@ -266,7 +270,7 @@ app.get('/api/reviews', async (req, res) => {
         const { data, error } = await supabase
             .from('review')
             .select('*, customer:customer_id (full_name)')
-            .order('created_at', { ascending: false });
+            .order('review_date', { ascending: false });
         if (error) throw error;
         res.json({ success: true, data });
     } catch (err) {
@@ -281,7 +285,13 @@ app.post('/api/reviews', async (req, res) => {
         const { booking_id, rating, comment, service_type } = req.body;
         const { data, error } = await supabase
             .from('review')
-            .insert([{ customer_id, booking_id, rating, comment, service_type }])
+            .insert([{
+                customer_id,
+                booking_id,
+                rating,
+                comment,
+                service_type
+            }])
             .select('*');
         if (error) throw error;
         res.status(201).json({ success: true, data: data[0] });
@@ -292,20 +302,14 @@ app.post('/api/reviews', async (req, res) => {
 });
 
 // =========================================================
-// 生成 6 位 OTP
+// OTP 相关
 // =========================================================
 function generateOTP() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// =========================================================
-// 存储 OTP（内存缓存）
-// =========================================================
 const otpStore = new Map();
 
-// =========================================================
-// API: 发送 OTP (使用 EmailJS)
-// =========================================================
 app.post('/api/send-otp', async (req, res) => {
     const { email } = req.body;
     console.log(`📧 收到 OTP 发送请求: ${email}`);
@@ -319,20 +323,17 @@ app.post('/api/send-otp', async (req, res) => {
     otpStore.set(email, { otp, expiresAt });
     console.log(`💾 已存储 OTP: ${otp}`);
 
-    // 初始化 EmailJS（使用 Private Key 模式）
     emailjs.init({
         publicKey: process.env.EMAILJS_PUBLIC_KEY,
         privateKey: process.env.EMAILJS_PRIVATE_KEY,
     });
 
-    // 模板参数：包含 OTP 和收件人地址
     const templateParams = {
         otp_code: otp,
-        email: email,   // 收件人变量，须与模板中的变量名一致
+        email: email,
     };
 
     try {
-        // 发送邮件（不传第四个参数，收件人在模板参数中指定）
         const response = await emailjs.send(
             process.env.EMAILJS_SERVICE_ID,
             process.env.EMAILJS_TEMPLATE_ID,
@@ -341,18 +342,11 @@ app.post('/api/send-otp', async (req, res) => {
         console.log(`✅ EmailJS 发送成功: ${response.status}`);
         res.json({ success: true, message: 'OTP sent successfully.' });
     } catch (error) {
-        console.error('❌ EmailJS 错误:', {
-            status: error.status,
-            text: error.text,
-            message: error.message,
-        });
+        console.error('❌ EmailJS 错误:', error);
         res.status(500).json({ success: false, message: 'Failed to send OTP: ' + (error.text || error.message) });
     }
 });
 
-// =========================================================
-// API: 验证 OTP 并重置密码（含更新数据库）
-// =========================================================
 app.post('/api/reset-password', async (req, res) => {
     const { email, otp, newPassword } = req.body;
     console.log('🔍 重置尝试:', { email, otp });
@@ -361,7 +355,6 @@ app.post('/api/reset-password', async (req, res) => {
         return res.status(400).json({ success: false, message: 'All fields are required.' });
     }
 
-    // 从内存中获取 OTP
     const stored = otpStore.get(email);
     if (!stored) {
         return res.status(400).json({ success: false, message: 'OTP not found. Please request a new one.' });
@@ -376,7 +369,6 @@ app.post('/api/reset-password', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Invalid OTP. Please try again.' });
     }
 
-    // ✅ OTP 验证通过，更新数据库密码
     try {
         const hashedPassword = await bcrypt.hash(newPassword, 10);
         const { error } = await supabase
@@ -389,7 +381,6 @@ app.post('/api/reset-password', async (req, res) => {
             return res.status(500).json({ success: false, message: 'Failed to update password in database.' });
         }
 
-        // 删除 OTP，防止重复使用
         otpStore.delete(email);
         console.log(`✅ 密码重置成功: ${email}`);
         res.json({ success: true, message: 'Password reset successfully.' });

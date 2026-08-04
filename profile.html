@@ -10,8 +10,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- Supabase JS Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   
   <style>
     /* ===== RESET & BASE ===== */
@@ -170,7 +168,7 @@
     }
 
     /* ================================================================
-       TOP HEADER - 统一与 History 页面一致
+       TOP HEADER
        ================================================================ */
     .main-content {
       flex: 1;
@@ -283,11 +281,27 @@
       cursor: pointer;
     }
 
-    .user-profile img {
+    .user-profile .avatar-wrapper {
       width: 38px;
       height: 38px;
       border-radius: 50%;
+      overflow: hidden;
+      background: #FDF3E7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .user-profile .avatar-wrapper img {
+      width: 100%;
+      height: 100%;
       object-fit: cover;
+    }
+
+    .user-profile .avatar-wrapper .avatar-placeholder {
+      font-size: 20px;
+      color: #B0A090;
     }
 
     .user-info {
@@ -320,7 +334,7 @@
       width: 100%;
     }
 
-    /* ===== BACK LINK - 统一与 History 页面一致 ===== */
+    /* ===== BACK LINK ===== */
     .back-link {
       display: inline-block;
       margin-bottom: 18px;
@@ -402,14 +416,25 @@
     .profile-avatar-wrapper {
       position: relative;
       margin: 12px 0 16px 0;
-    }
-
-    .profile-avatar {
       width: 100px;
       height: 100px;
       border-radius: 50%;
+      background: #FDF3E7;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .profile-avatar-wrapper img {
+      width: 100%;
+      height: 100%;
       object-fit: cover;
-      border: 3px solid #FDF5E6;
+    }
+
+    .profile-avatar-wrapper .avatar-placeholder {
+      font-size: 48px;
+      color: #B0A090;
     }
 
     .camera-btn {
@@ -881,12 +906,12 @@
         font-size: 16px;
       }
 
-      .user-profile img {
+      .user-profile .avatar-wrapper {
         width: 32px;
         height: 32px;
       }
 
-      .profile-avatar {
+      .profile-avatar-wrapper {
         width: 80px;
         height: 80px;
       }
@@ -935,7 +960,7 @@
   ================================================================ -->
   <main class="main-content">
     
-    <!-- TOP HEADER - 统一与 History 页面一致 -->
+    <!-- TOP HEADER -->
     <header class="top-header">
       <div class="header-left">
         <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
@@ -953,9 +978,12 @@
           <span class="count">3</span>
         </div>
         <div class="user-profile" id="profileBtn">
-          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100" alt="Jenny Lee" id="headerAvatar">
+          <div class="avatar-wrapper" id="headerAvatarWrapper">
+            <img id="headerAvatarImg" src="" alt="Avatar" style="display:none;">
+            <span class="avatar-placeholder" id="headerAvatarPlaceholder">🐾</span>
+          </div>
           <div class="user-info">
-            <span class="name" id="headerName">Jenny Lee</span>
+            <span class="name" id="headerName">User</span>
             <span class="role">Customer</span>
           </div>
         </div>
@@ -965,7 +993,7 @@
     <!-- PROFILE CONTENT -->
     <div class="profile-container">
 
-      <!-- Back Link - 统一与 History 页面一致 -->
+      <!-- Back Link -->
       <a href="dashboard.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
 
       <!-- Page Title -->
@@ -984,15 +1012,16 @@
               <h3><i class="fa-regular fa-id-card"></i> Profile Summary</h3>
             </div>
             
-            <div class="profile-avatar-wrapper">
-              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300" alt="Avatar" class="profile-avatar" id="summaryAvatar" />
+            <div class="profile-avatar-wrapper" id="summaryAvatarWrapper">
+              <img id="summaryAvatarImg" src="" alt="Avatar" style="display:none;">
+              <span class="avatar-placeholder" id="summaryAvatarPlaceholder">🐾</span>
               <label for="avatarInput" class="camera-btn" title="Upload New Image">
                 <i class="fa-solid fa-camera"></i>
               </label>
               <input type="file" id="avatarInput" accept="image/*" />
             </div>
 
-            <h3 class="summary-name" id="summaryName">Jenny Lee</h3>
+            <h3 class="summary-name" id="summaryName">User</h3>
             <div class="badge-customer">
               <i class="fa-solid fa-paw"></i> Customer
             </div>
@@ -1002,7 +1031,7 @@
                 <i class="fa-regular fa-envelope"></i>
                 <div class="summary-detail-text">
                   <h5>Email</h5>
-                  <p id="summaryEmail">jennylee@gmail.com</p>
+                  <p id="summaryEmail">—</p>
                 </div>
               </div>
 
@@ -1010,7 +1039,7 @@
                 <i class="fa-solid fa-phone"></i>
                 <div class="summary-detail-text">
                   <h5>Phone</h5>
-                  <p id="summaryPhone">012-345 6789</p>
+                  <p id="summaryPhone">—</p>
                 </div>
               </div>
 
@@ -1018,7 +1047,7 @@
                 <i class="fa-solid fa-location-dot"></i>
                 <div class="summary-detail-text">
                   <h5>Address</h5>
-                  <p id="summaryAddress">123, Jalan Kenanga 1, 11900 Bayan Lepas, Penang.</p>
+                  <p id="summaryAddress">—</p>
                 </div>
               </div>
 
@@ -1026,7 +1055,7 @@
                 <i class="fa-regular fa-calendar-check"></i>
                 <div class="summary-detail-text">
                   <h5>Member Since</h5>
-                  <p id="summaryMemberSince">Loading...</p>
+                  <p id="summaryMemberSince">—</p>
                 </div>
               </div>
             </div>
@@ -1076,7 +1105,7 @@
               <label>Full Name (Read Only)</label>
               <div class="input-wrapper">
                 <i class="fa-regular fa-user"></i>
-                <input type="text" id="fullName" value="Jenny Lee" readonly />
+                <input type="text" id="fullName" value="" readonly />
               </div>
             </div>
 
@@ -1084,7 +1113,7 @@
               <label>Email Address (Read Only)</label>
               <div class="input-wrapper">
                 <i class="fa-regular fa-envelope"></i>
-                <input type="email" id="email" value="jennylee@gmail.com" readonly />
+                <input type="email" id="email" value="" readonly />
               </div>
             </div>
 
@@ -1092,7 +1121,7 @@
               <label>Phone Number</label>
               <div class="input-wrapper">
                 <i class="fa-solid fa-phone"></i>
-                <input type="tel" id="phone" value="012-345 6789" required />
+                <input type="tel" id="phone" value="" required />
               </div>
             </div>
 
@@ -1100,7 +1129,7 @@
               <label>Address</label>
               <div class="input-wrapper">
                 <i class="fa-solid fa-location-dot"></i>
-                <input type="text" id="address" value="123, Jalan Kenanga 1, 11900 Bayan Lepas, Penang." required />
+                <input type="text" id="address" value="" required />
               </div>
             </div>
 
@@ -1168,14 +1197,14 @@
                   Are you sure you want to logout?
               </p>
               <div class="modal-btn-group" style="display: flex; gap: 12px; justify-content: center;">
-                  <button class="modal-btn modal-btn-secondary" onclick="closeLogoutModal()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px; background: #EFECE6; color: #7A7A7A; border: 1px solid #E8E4DC; cursor: pointer; transition: all 0.25s;">Cancel</button>
-                  <button class="modal-btn" onclick="confirmLogout()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px; background: #DC2626; color: #fff; border: none; cursor: pointer; transition: all 0.25s; box-shadow: 0 4px 12px rgba(220,38,38,0.3);">Logout</button>
+                  <button class="btn btn-secondary" onclick="closeLogoutModal()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px; background: #EFECE6; color: #7A7A7A; border: 1px solid #E8E4DC; cursor: pointer; transition: all 0.25s;">Cancel</button>
+                  <button class="btn btn-danger" onclick="confirmLogout()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px; background: #DC2626; color: #fff; border: none; cursor: pointer; transition: all 0.25s; box-shadow: 0 4px 12px rgba(220,38,38,0.3);">Logout</button>
               </div>
           </div>
       </div>
 
       <!-- ================================================================
-      TERMS & CONDITIONS MODAL - 美化版
+      TERMS & CONDITIONS MODAL
       ================================================================ -->
       <div class="modal-overlay" id="termsModal">
           <div class="modal-box" style="max-width: 460px;">
@@ -1198,13 +1227,13 @@
                   </div>
               </div>
               <div class="modal-btn-group" style="margin-top: 0;">
-                  <button class="modal-btn modal-btn-primary" id="termsModalOkBtn" style="padding: 12px 48px; font-size: 14px; border-radius: 10px; min-width: 140px; background: #5A361A; color: #fff; border: none; box-shadow: 0 4px 12px rgba(90,54,26,0.25);">I Understand</button>
+                  <button class="btn btn-primary" id="termsModalOkBtn" style="padding: 12px 48px; font-size: 14px; border-radius: 10px; min-width: 140px;">I Understand</button>
               </div>
           </div>
       </div>
 
       <!-- ================================================================
-      ABOUT MODAL - 美化版
+      ABOUT MODAL
       ================================================================ -->
       <div class="modal-overlay" id="aboutModal">
           <div class="modal-box" style="max-width: 460px;">
@@ -1231,7 +1260,7 @@
                   </div>
               </div>
               <div class="modal-btn-group" style="margin-top: 0;">
-                  <button class="modal-btn modal-btn-primary" id="aboutModalOkBtn" style="padding: 12px 48px; font-size: 14px; border-radius: 10px; min-width: 140px; background: #5A361A; color: #fff; border: none; box-shadow: 0 4px 12px rgba(90,54,26,0.25);">OK</button>
+                  <button class="btn btn-primary" id="aboutModalOkBtn" style="padding: 12px 48px; font-size: 14px; border-radius: 10px; min-width: 140px;">OK</button>
               </div>
           </div>
       </div>

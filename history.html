@@ -153,6 +153,12 @@
       margin-top: auto;
       border-top: 1px solid rgba(255,255,255,0.08);
       padding-top: 16px;
+      color: #E8A87C;
+    }
+
+    .nav-item.logout:hover {
+      background-color: #8B3A3A;
+      color: #FFFFFF;
     }
 
     .main-content {
@@ -298,6 +304,21 @@
       display: flex;
       flex-direction: column;
       width: 100%;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 18px;
+      color: #5A361A;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    .back-link i {
+      margin-right: 6px;
+    }
+    .back-link:hover {
+      text-decoration: underline;
     }
 
     .page-header {
@@ -1213,6 +1234,9 @@
 
       <div class="history-container">
 
+        <!-- ===== BACK TO DASHBOARD ===== -->
+        <a href="dashboard.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
+
         <div class="page-header">
           <div class="page-header-left">
             <h1 class="page-title">
@@ -1302,7 +1326,7 @@
       </div>
 
       <!-- ================================================================
-      DETAILS MODAL - 预约详情弹窗 (修复图标)
+      DETAILS MODAL - 预约详情弹窗
       ================================================================ -->
       <div class="modal-overlay" id="detailsModal">
           <div class="modal-box" style="max-width: 460px;">

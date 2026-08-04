@@ -39,7 +39,7 @@ function unlockBodyScroll() {
 }
 
 // ================================================================
-// LOGOUT MODAL CONTROLS
+// LOGOUT MODAL CONTROLS (确保 logout 后无法回退到 dashboard)
 // ================================================================
 function showLogoutModal() {
     const modal = document.getElementById('logoutModal');
@@ -62,6 +62,7 @@ function confirmLogout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     closeLogoutModal();
+    // 使用 replace 替换历史记录，防止用户按后退键回到 dashboard
     window.location.replace('index.html');
 }
 
@@ -118,13 +119,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const addressInput = document.getElementById("address");
 
     const headerName = document.getElementById("headerName");
-    const headerAvatar = document.getElementById("headerAvatar");
+    const headerAvatarImg = document.getElementById("headerAvatarImg");
+    const headerAvatarPlaceholder = document.getElementById("headerAvatarPlaceholder");
+
     const summaryName = document.getElementById("summaryName");
     const summaryEmail = document.getElementById("summaryEmail");
     const summaryPhone = document.getElementById("summaryPhone");
     const summaryAddress = document.getElementById("summaryAddress");
     const summaryMemberSince = document.getElementById("summaryMemberSince");
-    const summaryAvatar = document.getElementById("summaryAvatar");
+    const summaryAvatarImg = document.getElementById("summaryAvatarImg");
+    const summaryAvatarPlaceholder = document.getElementById("summaryAvatarPlaceholder");
     const avatarInput = document.getElementById("avatarInput");
 
     const passwordModal = document.getElementById("passwordModal");
@@ -153,7 +157,32 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sidebarOverlay) sidebarOverlay.addEventListener("click", closeSidebar);
 
     // ==========================================
-    // 2. 从 API 加载用户资料
+    // 2. 辅助：更新头像显示 (图片或占位)
+    // ==========================================
+    function setAvatar(avatarUrl) {
+        // Header avatar
+        if (avatarUrl) {
+            headerAvatarImg.src = avatarUrl;
+            headerAvatarImg.style.display = 'block';
+            headerAvatarPlaceholder.style.display = 'none';
+        } else {
+            headerAvatarImg.style.display = 'none';
+            headerAvatarPlaceholder.style.display = 'inline';
+        }
+
+        // Summary avatar
+        if (avatarUrl) {
+            summaryAvatarImg.src = avatarUrl;
+            summaryAvatarImg.style.display = 'block';
+            summaryAvatarPlaceholder.style.display = 'none';
+        } else {
+            summaryAvatarImg.style.display = 'none';
+            summaryAvatarPlaceholder.style.display = 'inline';
+        }
+    }
+
+    // ==========================================
+    // 3. 从 API 加载用户资料
     // ==========================================
     async function loadUserProfile() {
         try {
@@ -168,19 +197,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderProfileData(data) {
+        // 基本信息
         if (fullNameInput) fullNameInput.value = data.full_name || '';
         if (emailInput) emailInput.value = data.email || '';
         if (phoneInput) phoneInput.value = data.phone_number || '';
         if (addressInput) addressInput.value = data.address || '';
 
         if (headerName) headerName.textContent = data.full_name || 'User';
-        if (headerAvatar && data.avatar_url) headerAvatar.src = data.avatar_url;
-
         if (summaryName) summaryName.textContent = data.full_name || 'User';
         if (summaryEmail) summaryEmail.textContent = data.email || 'Not provided';
         if (summaryPhone) summaryPhone.textContent = data.phone_number || 'Not provided';
         if (summaryAddress) summaryAddress.textContent = data.address || 'Not provided';
 
+        // 会员日期
         if (summaryMemberSince) {
             if (data.created_at) {
                 const dateObj = new Date(data.created_at);
@@ -193,10 +222,13 @@ document.addEventListener("DOMContentLoaded", () => {
                 summaryMemberSince.textContent = "Member";
             }
         }
+
+        // 头像 (优先显示用户上传的)
+        setAvatar(data.avatar_url || null);
     }
 
     // ==========================================
-    // 3. 保存个人资料 (发送到 API)
+    // 4. 保存个人资料 (发送到 API)
     // ==========================================
     if (profileForm) {
         profileForm.addEventListener("submit", async (e) => {
@@ -227,7 +259,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==========================================
-    // 4. AVATAR PREVIEW (local only, backend not implemented)
+    // 5. AVATAR UPLOAD PREVIEW (本地预览)
     // ==========================================
     if (avatarInput) {
         avatarInput.addEventListener("change", (e) => {
@@ -236,16 +268,17 @@ document.addEventListener("DOMContentLoaded", () => {
 
             const reader = new FileReader();
             reader.onload = (event) => {
-                if (summaryAvatar) summaryAvatar.src = event.target.result;
-                if (headerAvatar) headerAvatar.src = event.target.result;
-                showConfirmationModal("Profile picture preview updated!");
+                const dataUrl = event.target.result;
+                // 预览更新
+                setAvatar(dataUrl);
+                showConfirmationModal("Profile picture updated! (Preview only. Save to keep it.)");
             };
             reader.readAsDataURL(file);
         });
     }
 
     // ==========================================
-    // 5. CHANGE PASSWORD MODAL & LOGIC
+    // 6. CHANGE PASSWORD MODAL & LOGIC
     // ==========================================
     if (openChangePasswordModal) {
         openChangePasswordModal.addEventListener("click", (e) => {
@@ -283,7 +316,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 return;
             }
 
-            // 注意：此处未发送到后端，需要后端添加 /api/change-password 路由
+            // 此处可调用后端 API 更改密码，目前仅为前端模拟
             showConfirmationModal("Your password has been changed successfully!");
             changePasswordForm.reset();
             if (passwordModal) passwordModal.classList.remove("active");
@@ -291,24 +324,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==========================================
-    // 6. TERMS & ABOUT POP-UP BUTTONS
+    // 7. TERMS & ABOUT POP-UP BUTTONS
     // ==========================================
     if (termsBtn) {
         termsBtn.addEventListener("click", (e) => {
             e.preventDefault();
-            showTermsModal();
+            const modal = document.getElementById('termsModal');
+            if (modal) {
+                lockBodyScroll();
+                modal.classList.add('active');
+            }
         });
     }
 
     if (aboutBtn) {
         aboutBtn.addEventListener("click", (e) => {
             e.preventDefault();
-            showAboutModal();
+            const modal = document.getElementById('aboutModal');
+            if (modal) {
+                lockBodyScroll();
+                modal.classList.add('active');
+            }
         });
     }
 
     // ==========================================
-    // 7. VALIDATION MODAL CONTROLS
+    // 8. VALIDATION MODAL CONTROLS
     // ==========================================
     function showValidationModal(message) {
         const modal = document.getElementById('validationModal');
@@ -334,7 +375,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ==========================================
-    // 8. CONFIRMATION MODAL CONTROLS
+    // 9. CONFIRMATION MODAL CONTROLS
     // ==========================================
     function showConfirmationModal(message) {
         const modal = document.getElementById('confirmationModal');
@@ -360,56 +401,44 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ==========================================
-    // 9. TERMS & ABOUT MODAL CONTROLS
+    // 10. TERMS & ABOUT MODAL CLOSE
     // ==========================================
-    function showTermsModal() {
-        const modal = document.getElementById('termsModal');
-        if (modal) {
-            lockBodyScroll();
-            modal.classList.add('active');
-        }
-    }
-
-    function hideTermsModal() {
+    document.getElementById('termsModalOkBtn').addEventListener('click', function() {
         const modal = document.getElementById('termsModal');
         if (modal) {
             modal.classList.remove('active');
             unlockBodyScroll();
         }
-    }
-
-    document.getElementById('termsModalOkBtn').addEventListener('click', hideTermsModal);
+    });
     document.getElementById('termsModal').addEventListener('click', function(e) {
-        if (e.target === this) hideTermsModal();
+        if (e.target === this) {
+            this.classList.remove('active');
+            unlockBodyScroll();
+        }
     });
 
-    function showAboutModal() {
-        const modal = document.getElementById('aboutModal');
-        if (modal) {
-            lockBodyScroll();
-            modal.classList.add('active');
-        }
-    }
-
-    function hideAboutModal() {
+    document.getElementById('aboutModalOkBtn').addEventListener('click', function() {
         const modal = document.getElementById('aboutModal');
         if (modal) {
             modal.classList.remove('active');
             unlockBodyScroll();
         }
-    }
-
-    document.getElementById('aboutModalOkBtn').addEventListener('click', hideAboutModal);
+    });
     document.getElementById('aboutModal').addEventListener('click', function(e) {
-        if (e.target === this) hideAboutModal();
+        if (e.target === this) {
+            this.classList.remove('active');
+            unlockBodyScroll();
+        }
     });
 
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             hideValidationModal();
             hideConfirmationModal();
-            hideTermsModal();
-            hideAboutModal();
+            document.getElementById('termsModal')?.classList.remove('active');
+            document.getElementById('aboutModal')?.classList.remove('active');
+            document.getElementById('passwordModal')?.classList.remove('active');
+            unlockBodyScroll();
         }
     });
 
