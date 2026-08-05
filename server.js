@@ -5,6 +5,13 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 const emailjs = require('@emailjs/nodejs');
+
+// 显式全局初始化 Key，防止 Strict Mode 丢失私钥
+emailjs.init({
+  publicKey: process.env.EMAILJS_PUBLIC_KEY,
+  privateKey: process.env.EMAILJS_PRIVATE_KEY,
+});
+
 const multer = require('multer');
 const path = require('path');
 
@@ -715,7 +722,6 @@ app.post('/api/reviews', async (req, res) => {
 });
 
 // ========== 11. OTP 发送与重置密码（使用 Supabase 表）==========
-// 确保已创建 otp_codes 表：email, code, expires_at
 app.post('/api/send-otp', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ success: false, message: 'Email required.' });
@@ -734,16 +740,15 @@ app.post('/api/send-otp', async (req, res) => {
 
   // 发送邮件
   try {
-    // 关键修复：显式初始化 Private Key 解决 Strict Mode 权限问题
-    emailjs.init({
-      publicKey: process.env.EMAILJS_PUBLIC_KEY,
-      privateKey: process.env.EMAILJS_PRIVATE_KEY,
-    });
-
+    // 每次发送前确保 Key 已被传入，解决 Strict Mode 403 丢失 Key 的问题
     await emailjs.send(
       process.env.EMAILJS_SERVICE_ID,
       process.env.EMAILJS_TEMPLATE_ID,
-      { otp_code: otp, email }
+      { otp_code: otp, email },
+      {
+        publicKey: process.env.EMAILJS_PUBLIC_KEY,
+        privateKey: process.env.EMAILJS_PRIVATE_KEY
+      }
     );
     res.json({ success: true, message: 'OTP sent.' });
   } catch (err) {
