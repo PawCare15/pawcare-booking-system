@@ -78,6 +78,14 @@ document.querySelectorAll(".serviceSwiper").forEach((swiperEl) => {
             0: { slidesPerView: 1 },
             600: { slidesPerView: 2 },
             1024: { slidesPerView: 3 }
+        },
+        on: {
+            init: function() {
+                this.update();
+            },
+            resize: function() {
+                this.update();
+            }
         }
     });
 });

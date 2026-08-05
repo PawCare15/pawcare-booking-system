@@ -1,45 +1,44 @@
 // ================================================================
-// AUTH CHECK - 登录状态检查
+// AMBIL CUSTOMER ID DARI localStorage
 // ================================================================
-(function checkAuth() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.replace('index.html');
-        return;
+function getCustomerId() {
+    try {
+        const customerData = localStorage.getItem('customer');
+        if (customerData) {
+            const parsed = JSON.parse(customerData);
+            if (parsed && parsed.id) {
+                return parsed.id;
+            }
+        }
+        const customerId = localStorage.getItem('customerId');
+        if (customerId) {
+            return customerId;
+        }
+        return null;
+    } catch (e) {
+        console.error('Error getting customer ID:', e);
+        return null;
     }
-})();
+}
 
 // ================================================================
 // SCROLLBAR COMPENSATION
 // ================================================================
-let modalCount = 0;
-
-function getScrollbarWidth() {
-    return window.innerWidth - document.documentElement.clientWidth;
-}
-
 function lockBodyScroll() {
-    if (modalCount === 0) {
-        const scrollbarWidth = getScrollbarWidth();
-        if (scrollbarWidth > 0) {
-            document.body.style.paddingRight = scrollbarWidth + 'px';
-        }
-        document.body.style.overflow = 'hidden';
+    if (!document.body.classList.contains('no-scroll')) {
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        document.body.style.paddingRight = scrollbarWidth + 'px';
+        document.body.classList.add('no-scroll');
     }
-    modalCount++;
 }
 
 function unlockBodyScroll() {
-    modalCount--;
-    if (modalCount <= 0) {
-        modalCount = 0;
-        document.body.style.paddingRight = '';
-        document.body.style.overflow = '';
-    }
+    document.body.style.paddingRight = '';
+    document.body.classList.remove('no-scroll');
 }
 
 // ================================================================
-// LOGOUT MODAL CONTROLS (确保 logout 后无法回退到 dashboard)
+// LOGOUT
 // ================================================================
 function showLogoutModal() {
     const modal = document.getElementById('logoutModal');
@@ -58,55 +57,29 @@ function closeLogoutModal() {
 }
 
 function confirmLogout() {
-    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('customer');
+    localStorage.removeItem('customerId');
     localStorage.removeItem('token');
-    localStorage.removeItem('user');
+    localStorage.removeItem('isLoggedIn');
     closeLogoutModal();
-    // 使用 replace 替换历史记录，防止用户按后退键回到 dashboard
     window.location.replace('index.html');
-}
-
-document.addEventListener('click', function(e) {
-    const modal = document.getElementById('logoutModal');
-    if (e.target === modal) {
-        closeLogoutModal();
-    }
-});
-
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeLogoutModal();
-    }
-});
-
-// ================================================================
-// ===== 封装带 Token 的请求 =====
-// ================================================================
-async function authFetch(url, options = {}) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.href = 'login.html';
-        return;
-    }
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers
-    };
-    const response = await fetch(url, { ...options, headers });
-    if (response.status === 401) {
-        localStorage.clear();
-        window.location.href = 'login.html';
-        throw new Error('Unauthorized');
-    }
-    return response;
 }
 
 // ================================================================
 // DOM READY
 // ================================================================
-document.addEventListener("DOMContentLoaded", () => {
-    // --- DOM Elements ---
+document.addEventListener("DOMContentLoaded", async () => {
+    
+    // 再次检查 token（双重保险）
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.replace('index.html');
+        return;
+    }
+
+    // ==========================================
+    // DOM ELEMENTS
+    // ==========================================
     const sidebar = document.getElementById("sidebar");
     const sidebarOverlay = document.getElementById("sidebarOverlay");
     const menuToggle = document.getElementById("menuToggle");
@@ -140,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const aboutBtn = document.getElementById("aboutBtn");
 
     // ==========================================
-    // 1. SIDEBAR TOGGLE LOGIC
+    // 1. SIDEBAR TOGGLE
     // ==========================================
     function openSidebar() {
         if (sidebar) sidebar.classList.add("active");
@@ -157,39 +130,36 @@ document.addEventListener("DOMContentLoaded", () => {
     if (sidebarOverlay) sidebarOverlay.addEventListener("click", closeSidebar);
 
     // ==========================================
-    // 2. 辅助：更新头像显示 (图片或占位)
+    // 2. HELPER: SET AVATAR
     // ==========================================
     function setAvatar(avatarUrl) {
-        // Header avatar
         if (avatarUrl) {
             headerAvatarImg.src = avatarUrl;
             headerAvatarImg.style.display = 'block';
             headerAvatarPlaceholder.style.display = 'none';
-        } else {
-            headerAvatarImg.style.display = 'none';
-            headerAvatarPlaceholder.style.display = 'inline';
-        }
-
-        // Summary avatar
-        if (avatarUrl) {
             summaryAvatarImg.src = avatarUrl;
             summaryAvatarImg.style.display = 'block';
             summaryAvatarPlaceholder.style.display = 'none';
         } else {
+            headerAvatarImg.style.display = 'none';
+            headerAvatarPlaceholder.style.display = 'inline';
             summaryAvatarImg.style.display = 'none';
             summaryAvatarPlaceholder.style.display = 'inline';
         }
     }
 
     // ==========================================
-    // 3. 从 API 加载用户资料
+    // 3. LOAD PROFILE FROM API
     // ==========================================
-    async function loadUserProfile() {
+    async function loadCustomerProfile() {
         try {
             const res = await authFetch('/api/profile');
             const data = await res.json();
+
             if (data.success) {
                 renderProfileData(data.data);
+            } else {
+                console.error('Failed to load profile:', data.message);
             }
         } catch (err) {
             console.error('Error loading profile:', err);
@@ -197,7 +167,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function renderProfileData(data) {
-        // 基本信息
         if (fullNameInput) fullNameInput.value = data.full_name || '';
         if (emailInput) emailInput.value = data.email || '';
         if (phoneInput) phoneInput.value = data.phone_number || '';
@@ -208,8 +177,6 @@ document.addEventListener("DOMContentLoaded", () => {
         if (summaryEmail) summaryEmail.textContent = data.email || 'Not provided';
         if (summaryPhone) summaryPhone.textContent = data.phone_number || 'Not provided';
         if (summaryAddress) summaryAddress.textContent = data.address || 'Not provided';
-
-        // 会员日期
         if (summaryMemberSince) {
             if (data.created_at) {
                 const dateObj = new Date(data.created_at);
@@ -219,16 +186,15 @@ document.addEventListener("DOMContentLoaded", () => {
                     day: "numeric"
                 });
             } else {
-                summaryMemberSince.textContent = "Member";
+                summaryMemberSince.textContent = "Customer";
             }
         }
 
-        // 头像 (优先显示用户上传的)
-        setAvatar(data.avatar_url || null);
+        setAvatar(data.profile_photo || null);
     }
 
     // ==========================================
-    // 4. 保存个人资料 (发送到 API)
+    // 4. SAVE PROFILE (UPDATE API)
     // ==========================================
     if (profileForm) {
         profileForm.addEventListener("submit", async (e) => {
@@ -243,10 +209,24 @@ document.addEventListener("DOMContentLoaded", () => {
                     body: JSON.stringify({ phone_number, address })
                 });
                 const data = await res.json();
+
                 if (data.success) {
-                    // 更新摘要显示
                     if (summaryPhone) summaryPhone.textContent = phone_number || "Not provided";
                     if (summaryAddress) summaryAddress.textContent = address || "Not provided";
+
+                    // Update localStorage cache
+                    try {
+                        const customerData = localStorage.getItem('customer');
+                        if (customerData) {
+                            const parsed = JSON.parse(customerData);
+                            parsed.phone_number = phone_number;
+                            parsed.address = address;
+                            localStorage.setItem('customer', JSON.stringify(parsed));
+                        }
+                    } catch (err) {
+                        console.warn('Could not update localStorage:', err);
+                    }
+
                     showConfirmationModal("Profile changes saved successfully!");
                 } else {
                     showValidationModal(data.message || 'Failed to save profile.');
@@ -259,73 +239,142 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // ==========================================
-    // 5. AVATAR UPLOAD PREVIEW (本地预览)
+    // 5. AVATAR UPLOAD - using API
     // ==========================================
     if (avatarInput) {
-        avatarInput.addEventListener("change", (e) => {
+        avatarInput.addEventListener("change", async (e) => {
             const file = e.target.files[0];
             if (!file) return;
 
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const dataUrl = event.target.result;
-                // 预览更新
-                setAvatar(dataUrl);
-                showConfirmationModal("Profile picture updated! (Preview only. Save to keep it.)");
-            };
-            reader.readAsDataURL(file);
+            if (!file.type.startsWith('image/')) {
+                showValidationModal('Please upload an image file.');
+                return;
+            }
+
+            if (file.size > 2 * 1024 * 1024) {
+                showValidationModal('Image size must be less than 2MB.');
+                return;
+            }
+
+            try {
+                const formData = new FormData();
+                formData.append('avatar', file);
+
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/profile/avatar', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                const data = await res.json();
+
+                if (data.success) {
+                    setAvatar(data.avatar_url);
+                    showConfirmationModal("Profile picture updated successfully!");
+                } else {
+                    showValidationModal(data.message || 'Failed to upload avatar.');
+                }
+            } catch (err) {
+                console.error('Error uploading avatar:', err);
+                showValidationModal('Unable to upload avatar.');
+            }
         });
     }
 
     // ==========================================
-    // 6. CHANGE PASSWORD MODAL & LOGIC
+    // 6. CHANGE PASSWORD - using API
     // ==========================================
     if (openChangePasswordModal) {
         openChangePasswordModal.addEventListener("click", (e) => {
             e.preventDefault();
-            if (passwordModal) passwordModal.classList.add("active");
+            if (passwordModal) {
+                changePasswordForm.reset();
+                document.querySelectorAll('.error-message').forEach(el => {
+                    el.classList.remove('show');
+                });
+                passwordModal.classList.add('active');
+                lockBodyScroll();
+            }
         });
     }
 
     if (closePasswordModal) {
         closePasswordModal.addEventListener("click", () => {
-            if (passwordModal) passwordModal.classList.remove("active");
+            if (passwordModal) {
+                passwordModal.classList.remove('active');
+                unlockBodyScroll();
+            }
         });
     }
 
     window.addEventListener("click", (e) => {
         if (e.target === passwordModal) {
-            passwordModal.classList.remove("active");
+            passwordModal.classList.remove('active');
+            unlockBodyScroll();
         }
     });
 
     if (changePasswordForm) {
-        changePasswordForm.addEventListener("submit", (e) => {
+        changePasswordForm.addEventListener("submit", async (e) => {
             e.preventDefault();
 
+            const currentPassword = document.getElementById("currentPassword")?.value;
             const newPassword = document.getElementById("newPassword")?.value;
             const retypePassword = document.getElementById("retypePassword")?.value;
 
-            if (newPassword !== retypePassword) {
-                showValidationModal("New password and confirmation do not match!");
+            document.querySelectorAll('.error-message').forEach(el => {
+                el.classList.remove('show');
+            });
+
+            if (!currentPassword) {
+                document.getElementById('currentPasswordError').textContent = 'Please enter your current password.';
+                document.getElementById('currentPasswordError').classList.add('show');
                 return;
             }
 
             if (newPassword.length < 6) {
-                showValidationModal("Password must be at least 6 characters long.");
+                document.getElementById('newPasswordError').textContent = 'Password must be at least 6 characters.';
+                document.getElementById('newPasswordError').classList.add('show');
                 return;
             }
 
-            // 此处可调用后端 API 更改密码，目前仅为前端模拟
-            showConfirmationModal("Your password has been changed successfully!");
-            changePasswordForm.reset();
-            if (passwordModal) passwordModal.classList.remove("active");
+            if (newPassword !== retypePassword) {
+                document.getElementById('retypePasswordError').textContent = 'Passwords do not match.';
+                document.getElementById('retypePasswordError').classList.add('show');
+                return;
+            }
+
+            try {
+                const res = await authFetch('/api/profile/password', {
+                    method: 'PUT',
+                    body: JSON.stringify({ currentPassword, newPassword })
+                });
+                const data = await res.json();
+
+                if (data.success) {
+                    if (passwordModal) {
+                        passwordModal.classList.remove('active');
+                        unlockBodyScroll();
+                    }
+                    showConfirmationModal('Your password has been changed successfully!');
+                    changePasswordForm.reset();
+                } else {
+                    showValidationModal(data.message || 'Failed to update password.');
+                }
+            } catch (err) {
+                console.error('Error changing password:', err);
+                showValidationModal('Unable to update password. Please try again.');
+            }
         });
     }
 
     // ==========================================
-    // 7. TERMS & ABOUT POP-UP BUTTONS
+    // 7. MODALS (TERMS, ABOUT, VALIDATION, CONFIRMATION)
     // ==========================================
+    // --- Terms ---
     if (termsBtn) {
         termsBtn.addEventListener("click", (e) => {
             e.preventDefault();
@@ -337,6 +386,22 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
+    document.getElementById('termsModalOkBtn')?.addEventListener('click', function() {
+        const modal = document.getElementById('termsModal');
+        if (modal) {
+            modal.classList.remove('active');
+            unlockBodyScroll();
+        }
+    });
+
+    document.getElementById('termsModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('active');
+            unlockBodyScroll();
+        }
+    });
+
+    // --- About ---
     if (aboutBtn) {
         aboutBtn.addEventListener("click", (e) => {
             e.preventDefault();
@@ -348,9 +413,22 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     }
 
-    // ==========================================
-    // 8. VALIDATION MODAL CONTROLS
-    // ==========================================
+    document.getElementById('aboutModalOkBtn')?.addEventListener('click', function() {
+        const modal = document.getElementById('aboutModal');
+        if (modal) {
+            modal.classList.remove('active');
+            unlockBodyScroll();
+        }
+    });
+
+    document.getElementById('aboutModal')?.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('active');
+            unlockBodyScroll();
+        }
+    });
+
+    // --- Validation ---
     function showValidationModal(message) {
         const modal = document.getElementById('validationModal');
         const msgEl = document.getElementById('validationMessage');
@@ -369,14 +447,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    document.getElementById('validationOkBtn').addEventListener('click', hideValidationModal);
-    document.getElementById('validationModal').addEventListener('click', function(e) {
-        if (e.target === this) hideValidationModal();
-    });
-
-    // ==========================================
-    // 9. CONFIRMATION MODAL CONTROLS
-    // ==========================================
+    // --- Confirmation ---
     function showConfirmationModal(message) {
         const modal = document.getElementById('confirmationModal');
         const msgEl = document.getElementById('confirmationMessage');
@@ -395,42 +466,19 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    document.getElementById('confirmationOkBtn').addEventListener('click', hideConfirmationModal);
-    document.getElementById('confirmationModal').addEventListener('click', function(e) {
+    document.getElementById('validationOkBtn')?.addEventListener('click', hideValidationModal);
+    document.getElementById('validationModal')?.addEventListener('click', function(e) {
+        if (e.target === this) hideValidationModal();
+    });
+
+    document.getElementById('confirmationOkBtn')?.addEventListener('click', hideConfirmationModal);
+    document.getElementById('confirmationModal')?.addEventListener('click', function(e) {
         if (e.target === this) hideConfirmationModal();
     });
 
     // ==========================================
-    // 10. TERMS & ABOUT MODAL CLOSE
+    // CLOSE ALL MODALS WITH ESCAPE
     // ==========================================
-    document.getElementById('termsModalOkBtn').addEventListener('click', function() {
-        const modal = document.getElementById('termsModal');
-        if (modal) {
-            modal.classList.remove('active');
-            unlockBodyScroll();
-        }
-    });
-    document.getElementById('termsModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            this.classList.remove('active');
-            unlockBodyScroll();
-        }
-    });
-
-    document.getElementById('aboutModalOkBtn').addEventListener('click', function() {
-        const modal = document.getElementById('aboutModal');
-        if (modal) {
-            modal.classList.remove('active');
-            unlockBodyScroll();
-        }
-    });
-    document.getElementById('aboutModal').addEventListener('click', function(e) {
-        if (e.target === this) {
-            this.classList.remove('active');
-            unlockBodyScroll();
-        }
-    });
-
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             hideValidationModal();
@@ -442,6 +490,10 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    // Load profile data on page start
-    loadUserProfile();
+    // ==========================================
+    // LOAD PROFILE
+    // ==========================================
+    await loadCustomerProfile();
+
+    console.log('Profile page using backend API successfully!');
 });

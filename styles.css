@@ -676,6 +676,7 @@ img.header__image-bg {
 .service__section {
   padding: 6rem 8%;
   background: #ffffff;
+  overflow: visible !important;   /* 防止父容器裁剪 */
 }
 
 .service__section.grey {
@@ -696,25 +697,45 @@ img.header__image-bg {
   color: var(--text-light);
 }
 
+/* ===== 卡片 Swiper 容器 ===== */
 .serviceSwiper {
-  width: 100%;
-  padding: 2rem 2rem 4rem;
+    padding: 2rem 0 4rem;
+    overflow: visible !important;
+    height: auto !important;
 }
 
+/* 强制所有内部容器可见，不裁剪 */
+.serviceSwiper .swiper-wrapper,
 .serviceSwiper .swiper-slide {
-  height: auto;
+    overflow: visible !important;
 }
 
-/* Service Cards Layout */
+/* Swiper wrapper 宽度由 Swiper 自动管理，我们不干预 */
+.serviceSwiper .swiper-wrapper {
+    width: 100%;
+    overflow: visible !important;
+}
+
+/* 每个 slide 也是 flex 容器，高度自适应 */
+.serviceSwiper .swiper-slide {
+    display: flex;
+    height: auto !important;
+}
+
+/* ===== 卡片本身 ===== */
 .service__item {
-  height: 100%;
-  background: #ffffff;
-  padding: 2rem;
-  border-radius: 25px;
-  box-shadow: 0 15px 35px rgba(167, 94, 49, 0.12);
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
+    max-width: 100%;
+    word-wrap: break-word;
+    box-sizing: border-box;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100% !important;           /* 占满 slide 高度 */
+    padding: 1.5rem;
+    background: #ffffff;
+    border-radius: 25px;
+    box-shadow: 0 15px 35px rgba(167, 94, 49, 0.12);
+    transition: all 0.3s ease;
 }
 
 .service__item:hover {
@@ -723,25 +744,25 @@ img.header__image-bg {
 }
 
 .service__item img {
-  width: 100%;
-  height: 240px;
-  object-fit: cover;
-  border-radius: 20px;
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 20px;
 }
 
 .service__item h3 {
-  margin-top: 1.5rem;
-  font-size: 1.9rem;
-  font-weight: 700;
-  color: var(--text-dark);
+    margin-top: 1rem;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--text-dark);
 }
 
 .service__item p {
-  margin: 1rem 0 1.5rem 0; 
-  flex-grow: 1;
-  font-size: 1.2rem;
-  line-height: 1.8rem;
-  color: var(--text-light);
+    flex: 1;
+    margin: 0.8rem 0 1rem;
+    font-size: 1rem;
+    line-height: 1.6rem;
+    color: var(--text-light);
 }
 
 .service__item h4 {
@@ -755,47 +776,34 @@ img.header__image-bg {
   font-size: 1.15rem;
   font-weight: 600;
   color: var(--text-light);
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .service__item .book-btn {
-  margin-top: auto; 
-  width: 100%; 
+  margin-top: auto;
+  width: 100%;
 }
 
-/* Service Disclaimer */
-.service-disclaimer {
-  text-align: center;
-  font-size: 1.1rem;
-  font-weight: 600;        
-  color: var(--text-dark); 
-  font-style: italic;      
-  margin-top: 15px;        
-  margin-bottom: 40px;     
-  padding: 0 20px;
-  line-height: 1.5;
-}
-
-/* Price Tags */
+/* ===== 价格标签 ===== */
 .price-group {
-  display: grid; 
+  display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 8px;
-  margin-bottom: 15px;
+  margin-bottom: 0.8rem;
   width: 100%;
 }
 
 .price-item {
   background-color: #f7f5ed;
-  color: var(--text-dark); 
+  color: var(--text-dark);
   font-size: 0.85rem;
   font-weight: 600;
   padding: 8px 4px;
-  border-radius: 50px; 
+  border-radius: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px; 
+  gap: 4px;
   text-align: center;
   line-height: 1.2;
   white-space: normal;
@@ -805,7 +813,20 @@ img.header__image-bg {
   font-size: 1.1rem;
 }
 
-/* Swiper Controls & Hover Effects */
+/* ===== 服务说明 ===== */
+.service-disclaimer {
+  text-align: center;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  font-style: italic;
+  margin-top: 15px;
+  margin-bottom: 40px;
+  padding: 0 20px;
+  line-height: 1.5;
+}
+
+/* ===== Swiper 导航按钮与分页 ===== */
 .swiper-button-next,
 .swiper-button-prev {
   color: var(--text-dark) !important;

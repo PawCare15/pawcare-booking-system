@@ -153,12 +153,6 @@
       margin-top: auto;
       border-top: 1px solid rgba(255,255,255,0.08);
       padding-top: 16px;
-      color: #E8A87C;
-    }
-
-    .nav-item.logout:hover {
-      background-color: #8B3A3A;
-      color: #FFFFFF;
     }
 
     .main-content {
@@ -250,19 +244,7 @@
     }
 
     .notification-badge .count {
-      position: absolute;
-      top: -6px;
-      right: -8px;
-      background-color: #D97706;
-      color: white;
-      font-size: 10px;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
+      display: none;
     }
 
     .user-profile {
@@ -272,11 +254,27 @@
       cursor: pointer;
     }
 
-    .user-profile img {
+    .user-profile .avatar-wrapper {
       width: 38px;
       height: 38px;
       border-radius: 50%;
+      overflow: hidden;
+      background: #FDF3E7;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .user-profile .avatar-wrapper img {
+      width: 100%;
+      height: 100%;
       object-fit: cover;
+    }
+
+    .user-profile .avatar-wrapper .avatar-placeholder {
+      font-size: 20px;
+      color: #B0A090;
     }
 
     .user-info {
@@ -637,64 +635,48 @@
       align-items: center;
     }
 
-    .btn-action {
-      padding: 5px 10px;
+    .btn {
+      padding: 14px 36px;
       border: none;
-      border-radius: 6px;
-      font-size: 11px;
-      font-weight: 500;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 600;
       cursor: pointer;
       transition: all 0.25s;
-      font-family: 'Poppins', sans-serif;
-      white-space: nowrap;
       display: inline-flex;
       align-items: center;
-      gap: 3px;
+      gap: 10px;
+      font-family: 'Poppins', sans-serif;
     }
 
-    .btn-view {
-      background: transparent;
-      border: 1.5px solid #D3C4B8;
-      color: #7A7A7A;
-      padding: 4px 12px;
-      font-size: 11px;
+    .btn-primary {
+        background: #5A361A;
+        color: #fff;
+        box-shadow: 0 4px 12px rgba(90,54,26,0.25);
+    }
+      .btn-primary:hover {
+        background: #402410;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 18px rgba(90,54,26,0.3);
     }
 
-    .btn-view:hover {
-      background: #F5F0EB;
-      border-color: #5A361A;
-      color: #5A361A;
-      transform: translateY(-1px);
+    .btn-secondary {
+       background: #EFECE6;
+       color: #7A7A7A;
     }
 
-    .btn-reschedule {
-      background: #FFF3E0;
-      border: 1.5px solid #D97706;
-      color: #D97706;
-      padding: 4px 12px;
-      font-size: 11px;
+    .btn-secondary:hover {
+      background: #E0D9D0;
     }
 
-    .btn-reschedule:hover {
-      background: #D97706;
-      color: #FFFFFF;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(217,119,6,0.3);
-    }
-
-    .btn-cancel {
-      background: #FCE8E6;
-      border: 1.5px solid #DC2626;
-      color: #DC2626;
-      padding: 4px 12px;
-      font-size: 11px;
-    }
-
-    .btn-cancel:hover {
+    .btn-danger {
       background: #DC2626;
-      color: #FFFFFF;
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(220,38,38,0.3);
+      color: #fff;
+    }
+
+    .btn-danger:hover {
+      background: #B91C1C;
+      transform: translateY(-2px);
     }
 
     .pagination-section {
@@ -1208,27 +1190,30 @@
       
       <header class="top-header">
         <div class="header-left">
-          <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
-          <a href="dashboard.html" class="brand-header">
+            <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
+            <a href="dashboard.html" class="brand-header">
             <i class="fa-solid fa-paw brand-icon"></i>
             <div class="brand-text">
-              <h2>PawCare</h2>
-              <span>Booking System</span>
+                <h2>PawCare</h2>
+                <span>Booking System</span>
             </div>
-          </a>
+            </a>
         </div>
         <div class="header-right">
-          <div class="notification-badge">
+            <div class="notification-badge" id="notificationBtn">
             <i class="fa-regular fa-bell"></i>
-            <span class="count">3</span>
-          </div>
-          <div class="user-profile">
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=100" alt="Jenny Lee">
-            <div class="user-info">
-              <span class="name">Jenny Lee</span>
-              <span class="role">Customer</span>
+            <span class="count">0</span>
             </div>
-          </div>
+            <div class="user-profile" id="profileBtn">
+            <div class="avatar-wrapper" id="headerAvatarWrapper">
+                <img id="headerAvatarImg" src="" alt="Avatar" style="display:none;">
+                <span class="avatar-placeholder" id="headerAvatarPlaceholder">🐾</span>
+            </div>
+            <div class="user-info">
+                <span class="name" id="headerName">Loading...</span>
+                <span class="role">Customer</span>
+            </div>
+            </div>
         </div>
       </header>
 
@@ -1357,8 +1342,8 @@
                   Are you sure you want to logout?
               </p>
               <div class="modal-btn-group" style="display: flex; gap: 12px; justify-content: center;">
-                  <button class="modal-btn modal-btn-secondary" onclick="closeLogoutModal()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px; background: #EFECE6; color: #7A7A7A; border: 1px solid #E8E4DC; cursor: pointer; transition: all 0.25s;">Cancel</button>
-                  <button class="modal-btn" onclick="confirmLogout()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px; background: #DC2626; color: #fff; border: none; cursor: pointer; transition: all 0.25s; box-shadow: 0 4px 12px rgba(220,38,38,0.3);">Logout</button>
+                  <button class="btn btn-secondary" onclick="closeLogoutModal()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px;">Cancel</button>
+                  <button class="btn btn-danger" onclick="confirmLogout()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px;">Logout</button>
               </div>
           </div>
       </div>
@@ -1373,7 +1358,7 @@
 
   <script>
     // ================================================================
-    // AUTH CHECK - 登录状态检查
+    // AUTH CHECK - 立即执行，防止后退访问
     // ================================================================
     (function checkAuth() {
         const token = localStorage.getItem('token');
@@ -1383,6 +1368,29 @@
         }
     })();
 
+    // ================================================================
+    // ===== 封装带 Token 的请求 =====
+    // ================================================================
+    async function authFetch(url, options = {}) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            ...options.headers
+        };
+        const response = await fetch(url, { ...options, headers });
+        if (response.status === 401) {
+            localStorage.clear();
+            window.location.href = 'login.html';
+            throw new Error('Unauthorized');
+        }
+        return response;
+    }
+    
     // ================================================================
     // SCROLLBAR COMPENSATION
     // ================================================================
@@ -1412,9 +1420,20 @@
         }
     }
 
+    // ==========================================
+    // NOTIFICATION
+    // ==========================================
+    const notificationBtn = document.getElementById('notificationBtn');
+    if (notificationBtn) {
+    notificationBtn.addEventListener('click', function() {
+        alert('No new notifications.');
+    });
+    }
+
     // ================================================================
     // LOGOUT MODAL CONTROLS
     // ================================================================
+    // Function to show the logout modal
     function showLogoutModal() {
         const modal = document.getElementById('logoutModal');
         if (modal) {
@@ -1423,6 +1442,7 @@
         }
     }
 
+    // Function to close the logout modal
     function closeLogoutModal() {
         const modal = document.getElementById('logoutModal');
         if (modal) {
@@ -1431,14 +1451,17 @@
         }
     }
 
+    // Function to execute logout actions
     function confirmLogout() {
-        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('customer');
+        localStorage.removeItem('customerId');
         localStorage.removeItem('token');
-        localStorage.removeItem('user');
+        localStorage.removeItem('isLoggedIn');
         closeLogoutModal();
         window.location.replace('index.html');
     }
 
+    // Close logout modal when clicking on backdrop or pressing Escape key
     document.addEventListener('click', function(e) {
         const modal = document.getElementById('logoutModal');
         if (e.target === modal) {
@@ -1451,29 +1474,6 @@
             closeLogoutModal();
         }
     });
-
-    // ================================================================
-    // ===== 封装带 Token 的请求 =====
-    // ================================================================
-    async function authFetch(url, options = {}) {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = 'login.html';
-            return;
-        }
-        const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            ...options.headers
-        };
-        const response = await fetch(url, { ...options, headers });
-        if (response.status === 401) {
-            localStorage.clear();
-            window.location.href = 'login.html';
-            throw new Error('Unauthorized');
-        }
-        return response;
-    }
 
     // ================================================================
     // DOM READY
@@ -1533,28 +1533,33 @@
         // ================================================================
         // LOAD BOOKINGS FROM API
         // ================================================================
+        // ==== 修改点：适配新的 services 数组 ====
         async function loadBookings() {
             try {
                 const res = await authFetch('/api/bookings');
                 const data = await res.json();
                 if (data.success) {
                     bookings = data.data || [];
-                    // 转换数据格式以匹配原有渲染逻辑
-                    bookings = bookings.map(b => ({
-                        id: parseInt(b.booking_id) || Math.random(),
-                        petName: b.pet ? b.pet.name : 'Unknown',
-                        petBreed: b.pet ? b.pet.breed : 'Unknown',
-                        petInitials: b.pet ? b.pet.name.substring(0, 2).toUpperCase() : 'UN',
-                        service: b.service_type || 'Unknown',
-                        serviceDesc: b.service_type || 'Unknown',
-                        date: new Date(b.booking_date).toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' }),
-                        time: b.booking_time || 'N/A',
-                        price: b.total_price || 0,
-                        isFixed: false,
-                        status: b.status || 'pending',
-                        statusClass: b.status || 'pending',
-                        booking_id: b.booking_id
-                    }));
+                    bookings = bookings.map(b => {
+                        const services = b.services || [];
+                        const serviceNames = services.map(s => s.service_name).join(', ');
+                        return {
+                            id: parseInt(b.booking_id) || Math.random(),
+                            petName: b.pet ? b.pet.name : 'Unknown',
+                            petBreed: b.pet ? b.pet.breed : 'Unknown',
+                            petInitials: b.pet ? b.pet.name.substring(0, 2).toUpperCase() : 'UN',
+                            service: serviceNames || 'Unknown',
+                            serviceDesc: serviceNames || 'Unknown',
+                            date: new Date(b.booking_date).toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' }),
+                            time: b.booking_time || 'N/A',
+                            price: b.total_price || 0,
+                            isFixed: false,
+                            status: b.status || 'pending',
+                            statusClass: b.status || 'pending',
+                            booking_id: b.booking_id,
+                            services: services // 保留原始数据
+                        };
+                    });
                     renderBookings();
                 }
             } catch (err) {
@@ -1626,14 +1631,22 @@
         // ================================================================
         // DETAILS MODAL CONTROLS
         // ================================================================
+        // ==== 修改点：显示所有服务 ====
         function showDetailsModal(booking) {
             const modal = document.getElementById('detailsModal');
             const content = document.getElementById('detailsContent');
-            
             if (!modal || !content) return;
 
             const statusTag = `<span class="status-tag ${booking.statusClass}">${booking.status}</span>`;
-            
+            let servicesHtml = '';
+            if (booking.services && booking.services.length > 0) {
+                servicesHtml = booking.services.map(s => 
+                    `<span style="display:block; font-size:13px;">${s.service_name} - RM ${s.estimated_price}</span>`
+                ).join('');
+            } else {
+                servicesHtml = booking.service || '—';
+            }
+
             content.innerHTML = `
                 <div class="modal-detail-row">
                     <div class="detail-icon"><i class="fa-solid fa-paw"></i></div>
@@ -1642,8 +1655,8 @@
                 </div>
                 <div class="modal-detail-row">
                     <div class="detail-icon"><i class="fa-solid fa-scissors"></i></div>
-                    <div class="detail-label">Service</div>
-                    <div class="detail-value"><strong>${booking.service}</strong> <span style="color:#7A7A7A; font-weight:400; font-size:12px;">${booking.serviceDesc}</span></div>
+                    <div class="detail-label">Services</div>
+                    <div class="detail-value">${servicesHtml}</div>
                 </div>
                 <div class="modal-detail-row">
                     <div class="detail-icon"><i class="fa-regular fa-calendar"></i></div>
@@ -1753,14 +1766,11 @@
                     };
                     const statusIcon = statusIcons[booking.statusClass] || 'fa-regular fa-circle';
 
-                    const serviceIcons = {
-                        'Grooming': 'fa-solid fa-scissors',
-                        'Boarding': 'fa-solid fa-house',
-                        'Vaccination': 'fa-solid fa-syringe',
-                        'Nail Cut': 'fa-solid fa-cut',
-                        'Herb Spa': 'fa-solid fa-spa'
-                    };
-                    const serviceIcon = serviceIcons[booking.service] || 'fa-solid fa-paw';
+                    // ==== 修改点：服务名称显示所有服务 ====
+                    const serviceNames = booking.services && booking.services.length > 0 
+                        ? booking.services.map(s => s.service_name).join(', ') 
+                        : booking.service;
+                    const serviceIcon = 'fa-solid fa-paw'; // 统一图标
 
                     return `
                     <tr>
@@ -1777,7 +1787,7 @@
                         </td>
                         <td>
                             <div class="service-cell">
-                                <span class="service-name"><i class="${serviceIcon}"></i> ${booking.service}</span>
+                                <span class="service-name"><i class="${serviceIcon}"></i> ${serviceNames}</span>
                                 <span class="service-desc">${booking.serviceDesc}</span>
                             </div>
                         </td>
@@ -1922,7 +1932,7 @@
         console.log('PawCare Booking History loaded successfully!');
 
         });
-    </script>
+  </script>
 
 </body>
 </html>

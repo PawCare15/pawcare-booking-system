@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="image/logo.png" type="image/png" class="logo"/>
   <title>PAWCARE BOOKING SYSTEM</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -259,19 +262,7 @@
     }
 
     .notification-badge .count {
-      position: absolute;
-      top: -6px;
-      right: -8px;
-      background-color: #D97706;
-      color: white;
-      font-size: 10px;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 600;
+      display: none;
     }
 
     .user-profile {
@@ -334,7 +325,6 @@
       width: 100%;
     }
 
-    /* ===== BACK LINK ===== */
     .back-link {
       display: inline-block;
       margin-bottom: 18px;
@@ -350,7 +340,6 @@
       text-decoration: underline;
     }
 
-    /* ===== PAGE TITLE ===== */
     .page-title {
       font-size: 26px;
       font-weight: 700;
@@ -364,7 +353,6 @@
       color: #D97706;
     }
 
-    /* ===== PROFILE GRID ===== */
     .profile-grid {
       display: grid;
       grid-template-columns: 1fr 1.2fr;
@@ -405,7 +393,6 @@
       color: #D97706;
     }
 
-    /* ===== PROFILE SUMMARY CARD ===== */
     .summary-card {
       text-align: center;
       display: flex;
@@ -520,7 +507,6 @@
       word-break: break-word;
     }
 
-    /* ===== ACCOUNT MENU CARD ===== */
     .account-card {
       margin-top: 24px;
     }
@@ -568,7 +554,6 @@
       font-size: 12px;
     }
 
-    /* ===== FORM STYLING ===== */
     .form-group {
       margin-bottom: 18px;
     }
@@ -592,6 +577,7 @@
       left: 14px;
       color: #7A7A7A;
       font-size: 14px;
+      z-index: 1;
     }
 
     .input-wrapper input, 
@@ -654,6 +640,28 @@
       box-shadow: 0 6px 18px rgba(90,54,26,0.3);
     }
 
+    .btn-secondary {
+      background: #EFECE6;
+      color: #7A7A7A;
+      border: 1px solid #E8E4DC;
+    }
+
+    .btn-secondary:hover {
+      background: #E0D9D0;
+    }
+
+    .btn-danger {
+      background: #DC2626;
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(220,38,38,0.25);
+    }
+
+    .btn-danger:hover {
+      background: #B91C1C;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(220,38,38,0.3);
+    }
+
     .form-footer-note {
       display: flex;
       align-items: center;
@@ -668,7 +676,7 @@
     }
 
     /* ================================================================
-       MODAL
+       MODAL STYLES - FIXED
        ================================================================ */
     .modal-overlay {
       display: none;
@@ -682,6 +690,7 @@
       z-index: 2000;
       align-items: center;
       justify-content: center;
+      padding: 20px;
     }
 
     .modal-overlay.active {
@@ -698,6 +707,14 @@
       position: relative;
       animation: slideUp 0.3s ease;
       border: 1px solid rgba(0,0,0,0.03);
+      max-height: 90vh;
+      overflow-y: auto;
+      text-align: center;
+    }
+
+    #passwordModal .modal-box {
+      max-width: 460px;
+      text-align: left;
     }
 
     @keyframes slideUp {
@@ -813,6 +830,103 @@
       flex-wrap: wrap;
     }
 
+    /* ===== CHANGE PASSWORD MODAL - FIXED EYE ICONS ===== */
+    .password-input-group {
+      margin-bottom: 16px;
+      text-align: left;
+    }
+
+    .password-input-group label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: #333333;
+      margin-bottom: 6px;
+    }
+
+    .password-input-group .input-wrapper {
+      position: relative;
+      width: 100%;
+      display: flex;
+      align-items: center;
+    }
+
+    .password-input-group .input-wrapper .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #7A7A7A;
+      font-size: 14px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .password-input-group .input-wrapper input {
+      width: 100%;
+      padding: 10px 42px 10px 40px; /* Right padding ensures text doesn't overlap the eye icon */
+      border: 1.5px solid #EFECE6;
+      border-radius: 10px;
+      font-size: 13px;
+      color: #333333;
+      outline: none;
+      background: #FAFAFA;
+      transition: border-color 0.2s;
+      font-family: 'Poppins', sans-serif;
+      box-sizing: border-box;
+    }
+
+    .password-input-group .input-wrapper input:focus {
+      border-color: #5A361A;
+      box-shadow: 0 0 0 3px rgba(90,54,26,0.08);
+      background: #FFFFFF;
+    }
+
+    .password-input-group .input-wrapper .toggle-password {
+      position: absolute;
+      right: 28px; /* Pulls the icon 14px inside the right border of the input box */
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      color: #7A7A7A;
+      cursor: pointer;
+      font-size: 15px;
+      padding: 4px;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .password-input-group .input-wrapper .toggle-password:hover {
+      color: #333333;
+    }
+
+    .error-message {
+      color: #DC2626;
+      font-size: 12px;
+      margin-top: 4px;
+      display: none;
+      text-align: left;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    /* ================================================================
+       PREVENT BODY SCROLL JUMP
+       ================================================================ */
+    body.no-scroll {
+      overflow: hidden !important;
+      position: fixed;
+      width: 100%;
+      top: 0;
+      left: 0;
+      height: 100%;
+    }
+
     /* ================================================================
        FOOTER
        ================================================================ */
@@ -831,7 +945,7 @@
     }
 
     /* ================================================================
-       RESPONSIVE
+       RESPONSIVE - FIXED
        ================================================================ */
     @media (max-width: 992px) {
       .profile-grid {
@@ -841,12 +955,12 @@
 
     @media (max-width: 768px) {
       .main-content {
-        padding: 0 15px 15px;
+        padding: 0 10px 10px;
       }
 
       .top-header {
-        margin: 0 -15px;
-        padding: 12px 15px;
+        margin: 0 -10px;
+        padding: 12px 10px;
         flex-wrap: wrap;
       }
 
@@ -859,7 +973,7 @@
       }
 
       .profile-container {
-        padding: 0 14px;
+        padding: 0 10px;
         margin: 20px auto;
       }
 
@@ -872,26 +986,46 @@
       }
 
       .modal-box {
-        padding: 24px 20px;
-        margin: 0 16px;
+        padding: 24px 16px;
+        margin: 0 10px;
       }
 
-      .modal-btn {
-        width: 100%;
-        justify-content: center;
-        min-width: unset;
+      #passwordModal .modal-box {
+        padding: 20px 16px;
       }
 
       .modal-btn-group {
         flex-direction: column;
         width: 100%;
       }
+
+      .modal-btn-group .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .form-actions {
+        flex-direction: column;
+      }
+
+      .form-actions .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .modal-title {
+        font-size: 18px;
+      }
+
+      .modal-subtitle {
+        font-size: 13px;
+      }
     }
 
     @media (max-width: 480px) {
       .top-header {
-        padding: 10px 12px;
-        margin: 0 -12px;
+        padding: 10px 8px;
+        margin: 0 -8px;
       }
 
       .brand-header .brand-text h2 {
@@ -920,6 +1054,28 @@
         width: 28px;
         height: 28px;
         font-size: 12px;
+      }
+
+      .summary-name {
+        font-size: 16px;
+      }
+
+      .modal-box {
+        padding: 16px 12px;
+        margin: 0 8px;
+      }
+
+      #passwordModal .modal-box {
+        padding: 16px 12px;
+      }
+
+      .password-input-group .input-wrapper input {
+        font-size: 14px;
+        padding: 8px 36px 8px 36px;
+      }
+
+      .page-title {
+        font-size: 18px;
       }
     }
   </style>
@@ -975,7 +1131,7 @@
       <div class="header-right">
         <div class="notification-badge" id="notificationBtn">
           <i class="fa-regular fa-bell"></i>
-          <span class="count">3</span>
+          <span class="count">0</span>
         </div>
         <div class="user-profile" id="profileBtn">
           <div class="avatar-wrapper" id="headerAvatarWrapper">
@@ -983,7 +1139,7 @@
             <span class="avatar-placeholder" id="headerAvatarPlaceholder">🐾</span>
           </div>
           <div class="user-info">
-            <span class="name" id="headerName">User</span>
+            <span class="name" id="headerName">Loading...</span>
             <span class="role">Customer</span>
           </div>
         </div>
@@ -1021,7 +1177,7 @@
               <input type="file" id="avatarInput" accept="image/*" />
             </div>
 
-            <h3 class="summary-name" id="summaryName">User</h3>
+            <h3 class="summary-name" id="summaryName">Loading...</h3>
             <div class="badge-customer">
               <i class="fa-solid fa-paw"></i> Customer
             </div>
@@ -1031,7 +1187,7 @@
                 <i class="fa-regular fa-envelope"></i>
                 <div class="summary-detail-text">
                   <h5>Email</h5>
-                  <p id="summaryEmail">—</p>
+                  <p id="summaryEmail">Loading...</p>
                 </div>
               </div>
 
@@ -1039,7 +1195,7 @@
                 <i class="fa-solid fa-phone"></i>
                 <div class="summary-detail-text">
                   <h5>Phone</h5>
-                  <p id="summaryPhone">—</p>
+                  <p id="summaryPhone">Not provided</p>
                 </div>
               </div>
 
@@ -1047,7 +1203,7 @@
                 <i class="fa-solid fa-location-dot"></i>
                 <div class="summary-detail-text">
                   <h5>Address</h5>
-                  <p id="summaryAddress">—</p>
+                  <p id="summaryAddress">Not provided</p>
                 </div>
               </div>
 
@@ -1055,7 +1211,7 @@
                 <i class="fa-regular fa-calendar-check"></i>
                 <div class="summary-detail-text">
                   <h5>Member Since</h5>
-                  <p id="summaryMemberSince">—</p>
+                  <p id="summaryMemberSince">Customer</p>
                 </div>
               </div>
             </div>
@@ -1105,7 +1261,7 @@
               <label>Full Name (Read Only)</label>
               <div class="input-wrapper">
                 <i class="fa-regular fa-user"></i>
-                <input type="text" id="fullName" value="" readonly />
+                <input type="text" id="fullName" value="Loading..." readonly />
               </div>
             </div>
 
@@ -1113,7 +1269,7 @@
               <label>Email Address (Read Only)</label>
               <div class="input-wrapper">
                 <i class="fa-regular fa-envelope"></i>
-                <input type="email" id="email" value="" readonly />
+                <input type="email" id="email" value="Loading..." readonly />
               </div>
             </div>
 
@@ -1121,7 +1277,7 @@
               <label>Phone Number</label>
               <div class="input-wrapper">
                 <i class="fa-solid fa-phone"></i>
-                <input type="tel" id="phone" value="" required />
+                <input type="tel" id="phone" value="" placeholder="Enter your phone number" />
               </div>
             </div>
 
@@ -1129,12 +1285,12 @@
               <label>Address</label>
               <div class="input-wrapper">
                 <i class="fa-solid fa-location-dot"></i>
-                <input type="text" id="address" value="" required />
+                <input type="text" id="address" value="" placeholder="Enter your address" />
               </div>
             </div>
 
             <div class="form-actions">
-              <button type="submit" class="btn btn-primary">
+              <button type="submit" class="btn btn-primary" id="saveProfileBtn">
                 <i class="fa-regular fa-floppy-disk"></i> Save Changes
               </button>
             </div>
@@ -1185,29 +1341,68 @@
       </div>
 
       <!-- ================================================================
-      LOGOUT CONFIRM MODAL
+      CHANGE PASSWORD MODAL - FIXED EYE ICONS
       ================================================================ -->
-      <div class="modal-overlay" id="logoutModal">
-          <div class="modal-box" style="max-width: 420px; text-align: center; padding: 36px 40px 32px;">
-              <div class="modal-icon-circle warning" style="margin: 0 auto 16px; background: #FEF7E0; border-color: #FDE68A; width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #FDE68A;">
-                  <i class="fa-solid fa-sign-out-alt" style="color: #D97706; font-size: 30px;"></i>
-              </div>
-              <h2 class="modal-title" style="margin-bottom: 8px;">Confirm Logout</h2>
-              <p class="modal-subtitle" style="margin-bottom: 24px;">
-                  Are you sure you want to logout?
-              </p>
-              <div class="modal-btn-group" style="display: flex; gap: 12px; justify-content: center;">
-                  <button class="btn btn-secondary" onclick="closeLogoutModal()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px; background: #EFECE6; color: #7A7A7A; border: 1px solid #E8E4DC; cursor: pointer; transition: all 0.25s;">Cancel</button>
-                  <button class="btn btn-danger" onclick="confirmLogout()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px; background: #DC2626; color: #fff; border: none; cursor: pointer; transition: all 0.25s; box-shadow: 0 4px 12px rgba(220,38,38,0.3);">Logout</button>
-              </div>
+      <div class="modal-overlay" id="passwordModal">
+        <div class="modal-box" style="max-width: 460px; text-align: left;">
+          <div class="modal-header">
+            <h3><i class="fa-solid fa-key"></i> Change Password</h3>
+            <button class="modal-close" id="closePasswordModal">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
           </div>
+          
+          <form id="changePasswordForm">
+            <div class="password-input-group">
+              <label>Current Password</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-lock input-icon"></i>
+                <input type="password" id="currentPassword" placeholder="Enter your current password" required />
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('currentPassword', this)">
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+              </div>
+              <div class="error-message" id="currentPasswordError">Please enter your current password.</div>
+            </div>
+
+            <div class="password-input-group">
+              <label>New Password</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-key input-icon"></i>
+                <input type="password" id="newPassword" placeholder="Enter your new password" required />
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('newPassword', this)">
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+              </div>
+              <div class="error-message" id="newPasswordError">Password must be at least 6 characters.</div>
+            </div>
+
+            <div class="password-input-group">
+              <label>Confirm New Password</label>
+              <div class="input-wrapper">
+                <i class="fa-solid fa-check-double input-icon"></i>
+                <input type="password" id="retypePassword" placeholder="Confirm your new password" required />
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility('retypePassword', this)">
+                  <i class="fa-regular fa-eye"></i>
+                </button>
+              </div>
+              <div class="error-message" id="retypePasswordError">Passwords do not match.</div>
+            </div>
+
+            <div class="form-actions" style="margin-top: 20px;">
+              <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
+                <i class="fa-solid fa-key"></i> Update Password
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
 
       <!-- ================================================================
       TERMS & CONDITIONS MODAL
       ================================================================ -->
       <div class="modal-overlay" id="termsModal">
-          <div class="modal-box" style="max-width: 460px;">
+          <div class="modal-box" style="max-width: 460px; text-align: center;">
               <div class="modal-icon-circle" style="background: #FFF8E1; border-color: #FDD835; width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 2px solid #FDD835;">
                   <i class="fa-solid fa-file-contract" style="color: #F9A825; font-size: 30px;"></i>
               </div>
@@ -1236,7 +1431,7 @@
       ABOUT MODAL
       ================================================================ -->
       <div class="modal-overlay" id="aboutModal">
-          <div class="modal-box" style="max-width: 460px;">
+          <div class="modal-box" style="max-width: 460px; text-align: center;">
               <div class="modal-icon-circle" style="background: #E3F2FD; border-color: #64B5F6; width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 2px solid #64B5F6;">
                   <i class="fa-solid fa-circle-info" style="color: #1A73E8; font-size: 30px;"></i>
               </div>
@@ -1265,6 +1460,25 @@
           </div>
       </div>
 
+      <!-- ================================================================
+      LOGOUT CONFIRM MODAL
+      ================================================================ -->
+      <div class="modal-overlay" id="logoutModal">
+          <div class="modal-box" style="max-width: 420px; text-align: center; padding: 36px 40px 32px;">
+              <div class="modal-icon-circle warning" style="margin: 0 auto 16px; background: #FEF7E0; border-color: #FDE68A; width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #FDE68A;">
+                  <i class="fa-solid fa-sign-out-alt" style="color: #D97706; font-size: 30px;"></i>
+              </div>
+              <h2 class="modal-title" style="margin-bottom: 8px;">Confirm Logout</h2>
+              <p class="modal-subtitle" style="margin-bottom: 24px;">
+                  Are you sure you want to logout?
+              </p>
+              <div class="modal-btn-group" style="display: flex; gap: 12px; justify-content: center;">
+                  <button class="btn btn-secondary" onclick="closeLogoutModal()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px;">Cancel</button>
+                  <button class="btn btn-danger" onclick="confirmLogout()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px;">Logout</button>
+              </div>
+          </div>
+      </div>
+
       <!-- FOOTER -->
       <footer class="footer">
         <p><i class="fa-solid fa-paw"></i> © 2026 PawCare Booking System — Paw Walker Grooming House</p>
@@ -1275,49 +1489,387 @@
   </main>
 
   <!-- ================================================================
-  CHANGE PASSWORD MODAL
+  JAVASCRIPT - All Functions
   ================================================================ -->
-  <div class="modal-overlay" id="passwordModal">
-    <div class="modal-box">
-      <div class="modal-header">
-        <h3><i class="fa-solid fa-key"></i> Change Password</h3>
-        <button class="modal-close" id="closePasswordModal"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <form id="changePasswordForm">
-        <div class="form-group">
-          <label>Current Password</label>
-          <div class="input-wrapper">
-            <i class="fa-solid fa-lock"></i>
-            <input type="password" id="currentPassword" placeholder="Enter current password" required />
-          </div>
-        </div>
+  <script>
+    // ================================================================
+    // AUTH CHECK - 立即执行，防止后退访问
+    // ================================================================
+    (function checkAuth() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.replace('index.html');
+            return;
+        }
+    })();
 
-        <div class="form-group">
-          <label>New Password</label>
-          <div class="input-wrapper">
-            <i class="fa-solid fa-key"></i>
-            <input type="password" id="newPassword" placeholder="Enter new password" required />
-          </div>
-        </div>
+    // ================================================================
+    // ===== 封装带 Token 的请求 =====
+    // ================================================================
+    async function authFetch(url, options = {}) {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = 'login.html';
+            return;
+        }
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+            ...options.headers
+        };
+        const response = await fetch(url, { ...options, headers });
+        if (response.status === 401) {
+            localStorage.clear();
+            window.location.href = 'login.html';
+            throw new Error('Unauthorized');
+        }
+        return response;
+    }
+    
+    // ==========================================
+    // TOGGLE PASSWORD VISIBILITY
+    // ==========================================
+    function togglePasswordVisibility(inputId, button) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      
+      const icon = button.querySelector('i');
+      if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-regular fa-eye-slash';
+      } else {
+        input.type = 'password';
+        icon.className = 'fa-regular fa-eye';
+      }
+    }
 
-        <div class="form-group">
-          <label>Confirm New Password</label>
-          <div class="input-wrapper">
-            <i class="fa-solid fa-check-double"></i>
-            <input type="password" id="retypePassword" placeholder="Confirm new password" required />
-          </div>
-        </div>
+    // ==========================================
+    // SIDEBAR TOGGLE
+    // ==========================================
+    document.addEventListener('DOMContentLoaded', function() {
+      
+      // Sidebar
+      const menuToggle = document.getElementById('menuToggle');
+      const sidebar = document.getElementById('sidebar');
+      const sidebarClose = document.getElementById('sidebarClose');
+      const sidebarOverlay = document.getElementById('sidebarOverlay');
 
-        <div class="form-actions" style="margin-top: 20px;">
-          <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">Update Password</button>
-        </div>
-      </form>
-    </div>
-  </div>
+      if (menuToggle) {
+        menuToggle.addEventListener('click', function() {
+          sidebar.classList.toggle('active');
+          sidebarOverlay.classList.toggle('active');
+        });
+      }
 
-  <!-- ================================================================
-  JAVASCRIPT
-  ================================================================ -->
+      if (sidebarClose) {
+        sidebarClose.addEventListener('click', function() {
+          sidebar.classList.remove('active');
+          sidebarOverlay.classList.remove('active');
+        });
+      }
+
+      if (sidebarOverlay) {
+        sidebarOverlay.addEventListener('click', function() {
+          sidebar.classList.remove('active');
+          sidebarOverlay.classList.remove('active');
+        });
+      }
+
+      // ==========================================
+      // NOTIFICATION
+      // ==========================================
+      const notificationBtn = document.getElementById('notificationBtn');
+      if (notificationBtn) {
+        notificationBtn.addEventListener('click', function() {
+          alert('No new notifications.');
+        });
+      }
+
+      // ==========================================
+      // SCROLL LOCK FUNCTIONS
+      // ==========================================
+      function lockBodyScroll() {
+        if (!document.body.classList.contains('no-scroll')) {
+          const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+          document.body.style.paddingRight = scrollbarWidth + 'px';
+          document.body.classList.add('no-scroll');
+        }
+      }
+
+      function unlockBodyScroll() {
+        document.body.style.paddingRight = '';
+        document.body.classList.remove('no-scroll');
+      }
+
+      // ==========================================
+      // LOGOUT MODAL
+      // ==========================================
+      window.showLogoutModal = function() {
+        const modal = document.getElementById('logoutModal');
+        if (modal) {
+          modal.classList.add('active');
+          lockBodyScroll();
+        }
+      };
+
+      window.closeLogoutModal = function() {
+        const modal = document.getElementById('logoutModal');
+        if (modal) {
+          modal.classList.remove('active');
+          unlockBodyScroll();
+        }
+      };
+
+      window.confirmLogout = function() {
+        localStorage.removeItem('customer');
+        localStorage.removeItem('customerId');
+        localStorage.removeItem('token');
+        localStorage.removeItem('isLoggedIn');
+        window.closeLogoutModal();
+        window.location.replace('index.html');
+      };
+
+      const logoutModal = document.getElementById('logoutModal');
+      if (logoutModal) {
+        logoutModal.addEventListener('click', function(e) {
+          if (e.target === this) {
+            window.closeLogoutModal();
+          }
+        });
+      }
+
+      // ==========================================
+      // TERMS MODAL
+      // ==========================================
+      const termsBtn = document.getElementById('termsBtn');
+      const termsModal = document.getElementById('termsModal');
+      const termsModalOkBtn = document.getElementById('termsModalOkBtn');
+
+      if (termsBtn) {
+        termsBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (termsModal) {
+            termsModal.classList.add('active');
+            lockBodyScroll();
+          }
+        });
+      }
+
+      if (termsModalOkBtn) {
+        termsModalOkBtn.addEventListener('click', function() {
+          termsModal.classList.remove('active');
+          unlockBodyScroll();
+        });
+      }
+
+      if (termsModal) {
+        termsModal.addEventListener('click', function(e) {
+          if (e.target === this) {
+            this.classList.remove('active');
+            unlockBodyScroll();
+          }
+        });
+      }
+
+      // ==========================================
+      // ABOUT MODAL
+      // ==========================================
+      const aboutBtn = document.getElementById('aboutBtn');
+      const aboutModal = document.getElementById('aboutModal');
+      const aboutModalOkBtn = document.getElementById('aboutModalOkBtn');
+
+      if (aboutBtn) {
+        aboutBtn.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (aboutModal) {
+            aboutModal.classList.add('active');
+            lockBodyScroll();
+          }
+        });
+      }
+
+      if (aboutModalOkBtn) {
+        aboutModalOkBtn.addEventListener('click', function() {
+          aboutModal.classList.remove('active');
+          unlockBodyScroll();
+        });
+      }
+
+      if (aboutModal) {
+        aboutModal.addEventListener('click', function(e) {
+          if (e.target === this) {
+            this.classList.remove('active');
+            unlockBodyScroll();
+          }
+        });
+      }
+
+      // ==========================================
+      // CHANGE PASSWORD MODAL
+      // ==========================================
+      const openChangePasswordModal = document.getElementById('openChangePasswordModal');
+      const passwordModal = document.getElementById('passwordModal');
+      const closePasswordModal = document.getElementById('closePasswordModal');
+      const changePasswordForm = document.getElementById('changePasswordForm');
+
+      if (openChangePasswordModal) {
+        openChangePasswordModal.addEventListener('click', function(e) {
+          e.preventDefault();
+          if (passwordModal) {
+            changePasswordForm.reset();
+            document.querySelectorAll('.error-message').forEach(el => {
+              el.classList.remove('show');
+            });
+            passwordModal.classList.add('active');
+            lockBodyScroll();
+          }
+        });
+      }
+
+      if (closePasswordModal) {
+        closePasswordModal.addEventListener('click', function() {
+          passwordModal.classList.remove('active');
+          unlockBodyScroll();
+        });
+      }
+
+      if (passwordModal) {
+        passwordModal.addEventListener('click', function(e) {
+          if (e.target === this) {
+            this.classList.remove('active');
+            unlockBodyScroll();
+          }
+        });
+      }
+
+      // ==========================================
+      // CHANGE PASSWORD FORM SUBMIT
+      // ==========================================
+      if (changePasswordForm) {
+        changePasswordForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+
+          const currentPassword = document.getElementById('currentPassword').value;
+          const newPassword = document.getElementById('newPassword').value;
+          const retypePassword = document.getElementById('retypePassword').value;
+
+          document.querySelectorAll('.error-message').forEach(el => {
+            el.classList.remove('show');
+          });
+
+          if (!currentPassword) {
+            document.getElementById('currentPasswordError').textContent = 'Please enter your current password.';
+            document.getElementById('currentPasswordError').classList.add('show');
+            return;
+          }
+
+          if (newPassword.length < 6) {
+            document.getElementById('newPasswordError').textContent = 'Password must be at least 6 characters.';
+            document.getElementById('newPasswordError').classList.add('show');
+            return;
+          }
+
+          if (newPassword !== retypePassword) {
+            document.getElementById('retypePasswordError').textContent = 'Passwords do not match.';
+            document.getElementById('retypePasswordError').classList.add('show');
+            return;
+          }
+
+          // Close password modal
+          passwordModal.classList.remove('active');
+          unlockBodyScroll();
+
+          // Show success
+          document.getElementById('confirmationMessage').textContent = 'Your password has been changed successfully!';
+          document.getElementById('confirmationModal').classList.add('active');
+          lockBodyScroll();
+
+          changePasswordForm.reset();
+        });
+      }
+
+      // ==========================================
+      // VALIDATION MODAL
+      // ==========================================
+      const validationModal = document.getElementById('validationModal');
+      const validationOkBtn = document.getElementById('validationOkBtn');
+
+      if (validationOkBtn) {
+        validationOkBtn.addEventListener('click', function() {
+          validationModal.classList.remove('active');
+          unlockBodyScroll();
+        });
+      }
+
+      if (validationModal) {
+        validationModal.addEventListener('click', function(e) {
+          if (e.target === this) {
+            this.classList.remove('active');
+            unlockBodyScroll();
+          }
+        });
+      }
+
+      // ==========================================
+      // CONFIRMATION MODAL
+      // ==========================================
+      const confirmationModal = document.getElementById('confirmationModal');
+      const confirmationOkBtn = document.getElementById('confirmationOkBtn');
+
+      if (confirmationOkBtn) {
+        confirmationOkBtn.addEventListener('click', function() {
+          confirmationModal.classList.remove('active');
+          unlockBodyScroll();
+        });
+      }
+
+      if (confirmationModal) {
+        confirmationModal.addEventListener('click', function(e) {
+          if (e.target === this) {
+            this.classList.remove('active');
+            unlockBodyScroll();
+          }
+        });
+      }
+
+      // ==========================================
+      // SAVE PROFILE - FIXED POPUP
+      // ==========================================
+      const profileForm = document.getElementById('profileForm');
+      if (profileForm) {
+        profileForm.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          // Show confirmation popup
+          document.getElementById('confirmationMessage').textContent = 'Profile changes saved successfully!';
+          document.getElementById('confirmationModal').classList.add('active');
+          lockBodyScroll();
+          
+          // Update summary
+          const phone = document.getElementById('phone').value;
+          const address = document.getElementById('address').value;
+          document.getElementById('summaryPhone').textContent = phone || 'Not provided';
+          document.getElementById('summaryAddress').textContent = address || 'Not provided';
+        });
+      }
+
+      // ==========================================
+      // CLOSE ALL MODALS WITH ESCAPE
+      // ==========================================
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          document.querySelectorAll('.modal-overlay.active').forEach(modal => {
+            modal.classList.remove('active');
+          });
+          unlockBodyScroll();
+        }
+      });
+
+      console.log('All functions are working!');
+    });
+  </script>
+
+  <!-- Profile Script -->
   <script src="profile.js"></script>
 
 </body>
