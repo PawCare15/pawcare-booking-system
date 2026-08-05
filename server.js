@@ -721,7 +721,7 @@ app.post('/api/reviews', async (req, res) => {
   }
 });
 
-// ========== 11. OTP 发送与重置密码（使用 Supabase 表）==========
+// ========== 11. OTP 发送与重置密码（使用 REST API 解决 403 问题）==========
 app.post('/api/send-otp', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ success: false, message: 'Email required.' });
@@ -738,21 +738,33 @@ app.post('/api/send-otp', async (req, res) => {
     return res.status(500).json({ success: false, message: 'Failed to store OTP.' });
   }
 
-  // 发送邮件
+  // 使用 EmailJS 官方 REST API（绕过 SDK 鉴权 Bug）
   try {
-    // 每次发送前确保 Key 已被传入，解决 Strict Mode 403 丢失 Key 的问题
-    await emailjs.send(
-      process.env.EMAILJS_SERVICE_ID,
-      process.env.EMAILJS_TEMPLATE_ID,
-      { otp_code: otp, email },
-      {
-        publicKey: process.env.EMAILJS_PUBLIC_KEY,
-        privateKey: process.env.EMAILJS_PRIVATE_KEY
-      }
-    );
+    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        service_id: process.env.EMAILJS_SERVICE_ID,
+        template_id: process.env.EMAILJS_TEMPLATE_ID,
+        user_id: process.env.EMAILJS_PUBLIC_KEY,
+        accessToken: process.env.EMAILJS_PRIVATE_KEY, // 官方定义的私钥参数名
+        template_params: {
+          otp_code: otp,
+          email: email
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      throw new Error(`EmailJS Rest Error [${response.status}]: ${errText}`);
+    }
+
     res.json({ success: true, message: 'OTP sent.' });
   } catch (err) {
-    console.error('EmailJS Error:', err);
+    console.error('EmailJS Error:', err.message);
     res.status(500).json({ success: false, message: 'Failed to send email.' });
   }
 });
