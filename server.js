@@ -23,6 +23,7 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // 安全托管静态文件（前端放 public 目录）
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname)); // <-- 只需在此处加这一行
 
 // ========== Supabase 初始化 ==========
 const supabase = createClient(
