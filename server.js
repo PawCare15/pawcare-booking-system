@@ -734,21 +734,23 @@ app.post('/api/send-otp', async (req, res) => {
 
   // 发送邮件
   try {
+    // 关键修复：显式初始化 Private Key 解决 Strict Mode 权限问题
+    emailjs.init({
+      publicKey: process.env.EMAILJS_PUBLIC_KEY,
+      privateKey: process.env.EMAILJS_PRIVATE_KEY,
+    });
+
     await emailjs.send(
       process.env.EMAILJS_SERVICE_ID,
       process.env.EMAILJS_TEMPLATE_ID,
-      { otp_code: otp, email },
-      {
-        publicKey: process.env.EMAILJS_PUBLIC_KEY,
-        privateKey: process.env.EMAILJS_PRIVATE_KEY,
-      }
+      { otp_code: otp, email }
     );
     res.json({ success: true, message: 'OTP sent.' });
   } catch (err) {
     console.error('EmailJS Error:', err);
     res.status(500).json({ success: false, message: 'Failed to send email.' });
   }
-}); // <-- 刚才这里漏掉了闭合符号！
+});
 
 app.post('/api/reset-password', async (req, res) => {
   const { email, otp, newPassword } = req.body;
