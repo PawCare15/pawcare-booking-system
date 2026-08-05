@@ -665,33 +665,53 @@
       box-shadow: 0 6px 18px rgba(220,38,38,0.3);
     }
 
-    /* ===== SERVICE STATS ===== */
+    /* ===== SERVICE STATS - 改进样式 ===== */
     .service-stats-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 12px;
+      gap: 16px;
     }
 
     .service-stat-item {
       background: #FAF7F2;
-      padding: 12px 16px;
-      border-radius: 10px;
+      padding: 16px 12px;
+      border-radius: 12px;
+      border: 1px solid #EFECE6;
+      text-align: center;
+      transition: all 0.2s ease;
       display: flex;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .service-stat-item:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+      border-color: #D3C4B8;
+    }
+
+    .service-stat-item .s-icon {
+      font-size: 28px;
+      line-height: 1.2;
     }
 
     .service-stat-item .s-name {
-      font-weight: 500;
-      font-size: 13px;
-      flex: 1;
+      font-weight: 600;
+      font-size: 14px;
+      color: #333333;
     }
 
     .service-stat-item .s-rating {
-      color: #F59E0B;
-      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
       font-size: 14px;
+      color: #F59E0B;
+    }
+
+    .service-stat-item .s-rating i {
+      color: #F59E0B;
     }
 
     .service-stat-item .s-count {
@@ -1344,8 +1364,7 @@
           <div class="form-group">
             <label><i class="fa-solid fa-tags"></i> Select Service (Optional)</label>
             <select class="form-control" id="reviewService">
-              <option value="">Choose a service you used</option>
-              <!-- 由 JavaScript 动态加载 -->
+              <option value="">Loading services...</option>
             </select>
           </div>
 
@@ -1366,50 +1385,74 @@
       </div>
 
       <!-- ============================================================
-      MOST REVIEWED SERVICES
+      MOST REVIEWED SERVICES - 美化版
       ============================================================ -->
       <div class="card">
         <div class="card-title"><i class="fa-solid fa-chart-pie"></i> Most Reviewed Services</div>
         <div class="service-stats-grid">
           <div class="service-stat-item">
-            <div class="s-name">🐾 Bath & Blow Dry</div>
-            <div class="s-rating"><i class="fa-solid fa-star"></i> 4.7</div>
-            <div class="s-count">(24 reviews)</div>
+            <div class="s-icon">🐾</div>
+            <div class="s-name">Bath & Blow Dry</div>
+            <div class="s-rating">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.7
+            </div>
+            <div class="s-count">24 reviews</div>
           </div>
           <div class="service-stat-item">
-            <div class="s-name">✂️ Full Grooming</div>
-            <div class="s-rating"><i class="fa-solid fa-star"></i> 4.9</div>
-            <div class="s-count">(42 reviews)</div>
+            <div class="s-icon">✂️</div>
+            <div class="s-name">Full Grooming</div>
+            <div class="s-rating">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i> 4.9
+            </div>
+            <div class="s-count">42 reviews</div>
           </div>
           <div class="service-stat-item">
-            <div class="s-name">💇 Haircut & Styling</div>
-            <div class="s-rating"><i class="fa-solid fa-star"></i> 4.8</div>
-            <div class="s-count">(31 reviews)</div>
+            <div class="s-icon">💇</div>
+            <div class="s-name">Haircut & Styling</div>
+            <div class="s-rating">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i> 4.8
+            </div>
+            <div class="s-count">31 reviews</div>
           </div>
           <div class="service-stat-item">
-            <div class="s-name">🧴 De-shedding</div>
-            <div class="s-rating"><i class="fa-solid fa-star"></i> 4.6</div>
-            <div class="s-count">(18 reviews)</div>
+            <div class="s-icon">🧴</div>
+            <div class="s-name">De-shedding</div>
+            <div class="s-rating">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6
+            </div>
+            <div class="s-count">18 reviews</div>
           </div>
           <div class="service-stat-item">
-            <div class="s-name">✂️ Nail Care</div>
-            <div class="s-rating"><i class="fa-solid fa-star"></i> 4.5</div>
-            <div class="s-count">(27 reviews)</div>
+            <div class="s-icon">✂️</div>
+            <div class="s-name">Nail Care</div>
+            <div class="s-rating">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.5
+            </div>
+            <div class="s-count">27 reviews</div>
           </div>
           <div class="service-stat-item">
-            <div class="s-name">🏠 Boarding</div>
-            <div class="s-rating"><i class="fa-solid fa-star"></i> 4.6</div>
-            <div class="s-count">(62 reviews)</div>
+            <div class="s-icon">🏠</div>
+            <div class="s-name">Boarding</div>
+            <div class="s-rating">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.6
+            </div>
+            <div class="s-count">62 reviews</div>
           </div>
           <div class="service-stat-item">
-            <div class="s-name">🚐 Pet Transport</div>
-            <div class="s-rating"><i class="fa-solid fa-star"></i> 4.7</div>
-            <div class="s-count">(35 reviews)</div>
+            <div class="s-icon">🚐</div>
+            <div class="s-name">Pet Transport</div>
+            <div class="s-rating">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i> 4.7
+            </div>
+            <div class="s-count">35 reviews</div>
           </div>
           <div class="service-stat-item">
-            <div class="s-name">🌸 Herb Spa</div>
-            <div class="s-rating"><i class="fa-solid fa-star"></i> 4.5</div>
-            <div class="s-count">(18 reviews)</div>
+            <div class="s-icon">🌸</div>
+            <div class="s-name">Herb Spa</div>
+            <div class="s-rating">
+              <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star-half-stroke"></i> 4.5
+            </div>
+            <div class="s-count">18 reviews</div>
           </div>
         </div>
       </div>
@@ -1851,27 +1894,39 @@
         // ================================================================
         async function loadServicesForReview() {
             try {
+                console.log('📡 正在加载服务列表...');
                 const res = await authFetch('/api/services');
+                console.log('📡 响应状态:', res.status);
+                
                 const data = await res.json();
-                if (data.success) {
-                    const select = document.getElementById('reviewService');
+                console.log('📡 服务数据:', data);
+                
+                const select = document.getElementById('reviewService');
+                
+                if (data.success && data.data && data.data.length > 0) {
                     select.innerHTML = '<option value="">Choose a service (optional)</option>';
                     data.data.forEach(svc => {
-                        select.innerHTML += `<option value="${svc.service_id}">${svc.service_name}</option>`;
+                        // 确保 service_id 和 service_name 存在
+                        const id = svc.service_id || '';
+                        const name = svc.service_name || 'Unnamed Service';
+                        select.innerHTML += `<option value="${id}">${name}</option>`;
                     });
+                    console.log(`✅ 已加载 ${data.data.length} 个服务`);
+                } else {
+                    select.innerHTML = '<option value="">No services available</option>';
+                    console.warn('⚠️ 服务列表为空:', data);
                 }
             } catch (err) {
-                console.error('Error loading services for review:', err);
+                console.error('❌ 加载服务失败:', err);
+                document.getElementById('reviewService').innerHTML = '<option value="">Failed to load services</option>';
             }
         }
 
         // ================================================================
         // LOAD REVIEWS FROM API
-        // ==== 修改点：使用 authFetch ====
         // ================================================================
         async function loadReviews() {
             try {
-                // 改用 authFetch 携带认证 Token
                 const res = await authFetch('/api/reviews');
                 const data = await res.json();
                 if (data.success) {

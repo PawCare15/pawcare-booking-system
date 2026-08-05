@@ -1524,7 +1524,7 @@
         let isBoardingSelected = false;
         let pets = [];
         let filteredPets = [];
-        let servicesList = []; // 存储从API加载的服务
+        let servicesList = [];
 
         // ================================================================
         // 从 API 加载宠物列表
@@ -1535,7 +1535,6 @@
                 const data = await res.json();
                 if (data.success) {
                     pets = data.data || [];
-                    // 确保每个宠物有 species 字段
                     pets = pets.map(pet => {
                         if (!pet.species) {
                             pet.species = inferPetType(pet.breed);
@@ -1711,7 +1710,6 @@
         // ================================================================
         // CHECK FOR BOARDING SELECTION
         // ================================================================
-        // ==== 修改点：通过 data-category 属性检测 boarding ====
         function checkBoardingSelection() {
             const boardingCheckbox = document.querySelector('.service-checkbox-item input[data-category="boarding"]');
             if (boardingCheckbox) {
@@ -1759,6 +1757,8 @@
                     const dogPrice = svc.price_dog ? `RM ${svc.price_dog}` : '—';
                     const catPrice = svc.price_cat ? `RM ${svc.price_cat}` : '—';
                     const icon = 'fa-solid fa-paw';
+                    // 检查 category 是否包含 boarding（不区分大小写）
+                    const isBoardingCategory = svc.category && svc.category.toLowerCase() === 'boarding';
                     html += `
                         <label class="service-checkbox-item" data-service-id="${svc.service_id}">
                             <input type="checkbox" name="services" value="${svc.service_id}" data-price-dog="${svc.price_dog || 0}" data-price-cat="${svc.price_cat || 0}" data-name="${svc.service_name}" data-category="${svc.category || ''}" />
@@ -1791,7 +1791,6 @@
                     });
                 });
 
-                // 恢复已选状态（如果有）
                 if (selectedServices.length > 0) {
                     document.querySelectorAll('.service-checkbox-item input[type="checkbox"]').forEach(cb => {
                         if (selectedServices.includes(cb.value)) {
@@ -1826,8 +1825,7 @@
             let total = 0;
             document.querySelectorAll('.service-checkbox-item input[type="checkbox"]:checked').forEach(cb => {
                 const price = species === 'dog' ? parseFloat(cb.dataset.priceDog) || 0 : parseFloat(cb.dataset.priceCat) || 0;
-                // 检测 boarding 通过 data-category
-                const isBoarding = cb.dataset.category === 'boarding';
+                const isBoarding = cb.dataset.category && cb.dataset.category.toLowerCase() === 'boarding';
                 if (isBoarding && isBoardingSelected) {
                     const checkIn = checkInDate.value;
                     const checkOut = checkOutDate.value;
@@ -1854,7 +1852,7 @@
             const names = [];
             document.querySelectorAll('.service-checkbox-item input[type="checkbox"]:checked').forEach(cb => {
                 const name = cb.dataset.name || cb.value;
-                const isBoarding = cb.dataset.category === 'boarding';
+                const isBoarding = cb.dataset.category && cb.dataset.category.toLowerCase() === 'boarding';
                 if (isBoarding && isBoardingSelected) {
                     const checkIn = checkInDate.value;
                     const checkOut = checkOutDate.value;
@@ -2073,9 +2071,9 @@
                 return;
             }
 
-            // 收集选中的 service_ids
+            // 收集选中的 service_ids（直接传字符串，因为 service_id 是 SER0001 格式）
             const checked = document.querySelectorAll('.service-checkbox-item input[type="checkbox"]:checked');
-            const service_ids = Array.from(checked).map(cb => parseInt(cb.value));
+            const service_ids = Array.from(checked).map(cb => cb.value);
             if (service_ids.length === 0) {
                 showValidationModal('Please select at least one service.');
                 return;
@@ -2127,7 +2125,6 @@
                         month: 'short',
                         year: 'numeric'
                     });
-                    // 从返回的数据中获取服务名称和总价（后端计算）
                     const servicesListStr = data.data.services ? data.data.services.map(s => s.service_name).join(', ') : service_ids.join(', ');
                     const totalPrice = data.data.total_price || 0;
                     showModal(
@@ -2206,7 +2203,7 @@
         console.log('Services loaded from API: /api/services');
 
         // ================================================================
-        // ==== 修改点：暴露全局函数供 HTML onclick 调用 ====
+        // 暴露全局函数供 HTML onclick 调用
         // ================================================================
         window.showLogoutModal = showLogoutModal;
         window.closeLogoutModal = closeLogoutModal;
