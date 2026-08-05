@@ -733,30 +733,22 @@ app.post('/api/send-otp', async (req, res) => {
   }
 
   // 发送邮件
-  emailjs.init({
-    publicKey: process.env.EMAILJS_PUBLIC_KEY,
-    privateKey: process.env.EMAILJS_PRIVATE_KEY,
-  });
-  // 修改前：
-// emailjs.init({ ... });
-// await emailjs.send(...);
-
-// 修改后：直接在 send 的第四个参数传入 Key
-try {
-  await emailjs.send(
-    process.env.EMAILJS_SERVICE_ID,
-    process.env.EMAILJS_TEMPLATE_ID,
-    { otp_code: otp, email },
-    {
-      publicKey: process.env.EMAILJS_PUBLIC_KEY,
-      privateKey: process.env.EMAILJS_PRIVATE_KEY,
-    }
-  );
-  res.json({ success: true, message: 'OTP sent.' });
-} catch (err) {
-  console.error('EmailJS Error:', err); // 增加日志输出，方便调试
-  res.status(500).json({ success: false, message: 'Failed to send email.' });
-}
+  try {
+    await emailjs.send(
+      process.env.EMAILJS_SERVICE_ID,
+      process.env.EMAILJS_TEMPLATE_ID,
+      { otp_code: otp, email },
+      {
+        publicKey: process.env.EMAILJS_PUBLIC_KEY,
+        privateKey: process.env.EMAILJS_PRIVATE_KEY,
+      }
+    );
+    res.json({ success: true, message: 'OTP sent.' });
+  } catch (err) {
+    console.error('EmailJS Error:', err);
+    res.status(500).json({ success: false, message: 'Failed to send email.' });
+  }
+}); // <-- 刚才这里漏掉了闭合符号！
 
 app.post('/api/reset-password', async (req, res) => {
   const { email, otp, newPassword } = req.body;
