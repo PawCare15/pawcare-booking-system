@@ -5,13 +5,6 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 const emailjs = require('@emailjs/nodejs');
-
-// 显式全局初始化 Key，防止 Strict Mode 丢失私钥
-emailjs.init({
-  publicKey: process.env.EMAILJS_PUBLIC_KEY,
-  privateKey: process.env.EMAILJS_PRIVATE_KEY,
-});
-
 const multer = require('multer');
 const path = require('path');
 
@@ -30,7 +23,6 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // 安全托管静态文件（前端放 public 目录）
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.static(__dirname)); // <-- 只需在此处加这一行
 
 // ========== Supabase 初始化 ==========
 const supabase = createClient(
@@ -88,7 +80,6 @@ const upload = multer({
 app.post('/api/register', async (req, res) => {
   try {
     const { full_name, email, password, phone_number, address } = req.body;
-    // 验证密码强度
     if (!isPasswordValid(password)) {
       return res.status(400).json({ success: false, message: 'Password does not meet complexity requirements.' });
     }
@@ -151,7 +142,11 @@ app.get('/api/profile', async (req, res) => {
     res.json({ success: true, data });
   } catch (err) {
     console.error(err);
-    res.status(401).json({ success: false, message: err.message });
+    // ==== 修改点：认证错误返回 401 ====
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
 });
 
@@ -168,6 +163,10 @@ app.put('/api/profile', async (req, res) => {
     res.json({ success: true, message: 'Profile updated.' });
   } catch (err) {
     console.error(err);
+    // ==== 修改点：认证错误返回 401 ====
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
 });
@@ -207,6 +206,10 @@ app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
     res.json({ success: true, avatar_url: avatarUrl });
   } catch (err) {
     console.error(err);
+    // ==== 修改点：认证错误返回 401 ====
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
     if (err instanceof multer.MulterError) {
       return res.status(400).json({ success: false, message: err.message });
     }
@@ -246,6 +249,10 @@ app.put('/api/profile/password', async (req, res) => {
     res.json({ success: true, message: 'Password updated successfully.' });
   } catch (err) {
     console.error(err);
+    // ==== 修改点：认证错误返回 401 ====
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
 });
@@ -269,11 +276,15 @@ app.get('/api/pets', async (req, res) => {
       weight: pet.weight,
       notes: pet.special_notes,
       photo_url: pet.pet_photo,
-      species: pet.species // 新增字段，用于价格计算
+      species: pet.species
     }));
     res.json({ success: true, data: mapped });
   } catch (err) {
     console.error(err);
+    // ==== 修改点：认证错误返回 401 ====
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
 });
@@ -293,7 +304,7 @@ app.post('/api/pets', async (req, res) => {
         weight,
         special_notes: notes,
         pet_photo: photo_url,
-        species: species || 'dog' // 默认狗
+        species: species || 'dog'
       }])
       .select('*');
     if (error) throw error;
@@ -312,6 +323,10 @@ app.post('/api/pets', async (req, res) => {
     res.status(201).json({ success: true, data: mapped });
   } catch (err) {
     console.error(err);
+    // ==== 修改点：认证错误返回 401 ====
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
 });
@@ -339,6 +354,10 @@ app.put('/api/pets/:pet_id', async (req, res) => {
     res.json({ success: true, message: 'Pet updated.' });
   } catch (err) {
     console.error(err);
+    // ==== 修改点：认证错误返回 401 ====
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
 });
@@ -348,7 +367,6 @@ app.delete('/api/pets/:pet_id', async (req, res) => {
     const customer_id = getCustomerId(req);
     const { pet_id } = req.params;
 
-    // 检查是否有未完成的预约
     const { data: bookings, error: checkError } = await supabase
       .from('booking')
       .select('booking_id')
@@ -368,6 +386,10 @@ app.delete('/api/pets/:pet_id', async (req, res) => {
     res.json({ success: true, message: 'Pet deleted.' });
   } catch (err) {
     console.error(err);
+    // ==== 修改点：认证错误返回 401 ====
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
 });
@@ -390,7 +412,6 @@ app.get('/api/services', async (req, res) => {
         )
       `);
     if (error) throw error;
-    // 整理格式，方便前端使用
     const services = data.map(s => {
       const prices = s.service_price || [];
       const dogPrice = prices.find(p => p.species === 'dog')?.starting_price || null;
@@ -413,7 +434,6 @@ app.get('/api/services', async (req, res) => {
 });
 
 // ========== 9. 预约 CRUD ==========
-// GET /api/bookings
 app.get('/api/bookings', async (req, res) => {
   try {
     const customer_id = getCustomerId(req);
@@ -466,22 +486,23 @@ app.get('/api/bookings', async (req, res) => {
     res.json({ success: true, data: bookings });
   } catch (err) {
     console.error(err);
+    // ==== 修改点：认证错误返回 401 ====
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
 });
 
-// POST /api/bookings
 app.post('/api/bookings', async (req, res) => {
   try {
     const customer_id = getCustomerId(req);
     const { pet_id, service_ids, booking_date, booking_time, check_in_date, check_out_date, special_notes } = req.body;
 
-    // 1. 验证日期（周四不可预约）
     if (isThursday(booking_date)) {
       return res.status(400).json({ success: false, message: 'We are closed on Thursdays.' });
     }
 
-    // 2. 获取宠物信息
     const { data: pet, error: petError } = await supabase
       .from('pet')
       .select('species, weight')
@@ -490,7 +511,6 @@ app.post('/api/bookings', async (req, res) => {
     if (petError) throw petError;
     const species = pet.species || 'dog';
 
-    // 3. 获取所有服务的价格
     const { data: services, error: svcError } = await supabase
       .from('service')
       .select('service_id, service_name, category')
@@ -500,11 +520,9 @@ app.post('/api/bookings', async (req, res) => {
       return res.status(400).json({ success: false, message: 'No valid services selected.' });
     }
 
-    // 4. 计算每个服务的 estimated_price 和总价
     let total_price = 0;
     const bookingServices = [];
     for (const svc of services) {
-      // 从 service_price 获取对应物种的起始价
       const { data: priceData, error: priceError } = await supabase
         .from('service_price')
         .select('starting_price')
@@ -514,11 +532,10 @@ app.post('/api/bookings', async (req, res) => {
       if (priceError) throw priceError;
       let price = priceData ? priceData.starting_price : 0;
 
-      // 特殊处理 boarding（根据天数计算）
       if (svc.category === 'boarding' && check_in_date && check_out_date) {
         const nights = Math.ceil((new Date(check_out_date) - new Date(check_in_date)) / (1000*60*60*24));
         if (nights > 0) {
-          price = price * nights; // 假设 price 是每晚价格
+          price = price * nights;
         } else {
           price = 0;
         }
@@ -531,7 +548,6 @@ app.post('/api/bookings', async (req, res) => {
       total_price += price;
     }
 
-    // 5. 插入 booking
     const { data: booking, error: insertError } = await supabase
       .from('booking')
       .insert([{
@@ -550,7 +566,6 @@ app.post('/api/bookings', async (req, res) => {
     if (insertError) throw insertError;
     const booking_id = booking.booking_id;
 
-    // 6. 插入 booking_service
     const bookingServiceRecords = bookingServices.map(bs => ({
       booking_id,
       service_id: bs.service_id,
@@ -561,7 +576,6 @@ app.post('/api/bookings', async (req, res) => {
       .insert(bookingServiceRecords);
     if (bsError) throw bsError;
 
-    // 7. 返回完整预约信息
     const { data: fullBooking, error: fetchError } = await supabase
       .from('booking')
       .select(`
@@ -609,11 +623,14 @@ app.post('/api/bookings', async (req, res) => {
     res.status(201).json({ success: true, data: result });
   } catch (err) {
     console.error(err);
+    // ==== 修改点：认证错误返回 401 ====
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
 });
 
-// PUT /api/bookings/:booking_id/cancel
 app.put('/api/bookings/:booking_id/cancel', async (req, res) => {
   try {
     const customer_id = getCustomerId(req);
@@ -640,6 +657,10 @@ app.put('/api/bookings/:booking_id/cancel', async (req, res) => {
     res.json({ success: true, message: 'Booking cancelled.' });
   } catch (err) {
     console.error(err);
+    // ==== 修改点：认证错误返回 401 ====
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
 });
@@ -687,7 +708,6 @@ app.post('/api/reviews', async (req, res) => {
     const customer_id = getCustomerId(req);
     const { booking_id, service_id, rating, comment, review_photo } = req.body;
 
-    // 验证预约属于该用户且状态为 completed
     const { data: booking, error: checkError } = await supabase
       .from('booking')
       .select('status')
@@ -701,7 +721,6 @@ app.post('/api/reviews', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Only completed bookings can be reviewed.' });
     }
 
-    // 如果 service_id 为空，允许整体评价（设置 service_id = null）
     const { data, error } = await supabase
       .from('review')
       .insert([{
@@ -717,19 +736,37 @@ app.post('/api/reviews', async (req, res) => {
     res.status(201).json({ success: true, data: data[0] });
   } catch (err) {
     console.error(err);
+    // ==== 修改点：认证错误返回 401 ====
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
 });
 
-// ========== 11. OTP 发送与重置密码（使用 REST API 解决 403 问题）==========
+// ========== 11. OTP 发送与重置密码 ==========
+// ==== 修改点：发送 OTP 前验证邮箱是否存在 ====
 app.post('/api/send-otp', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ success: false, message: 'Email required.' });
 
+  // 验证邮箱是否已注册
+  const { data: user, error: userError } = await supabase
+    .from('customer')
+    .select('email')
+    .eq('email', email)
+    .maybeSingle();
+  if (userError) {
+    console.error(userError);
+    return res.status(500).json({ success: false, message: 'Database error.' });
+  }
+  if (!user) {
+    return res.status(404).json({ success: false, message: 'Email not registered.' });
+  }
+
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
-  // 存入 Supabase
   const { error } = await supabase
     .from('otp_codes')
     .upsert({ email, code: otp, expires_at: expiresAt }, { onConflict: 'email' });
@@ -738,33 +775,19 @@ app.post('/api/send-otp', async (req, res) => {
     return res.status(500).json({ success: false, message: 'Failed to store OTP.' });
   }
 
-  // 使用 EmailJS 官方 REST API（绕过 SDK 鉴权 Bug）
+  emailjs.init({
+    publicKey: process.env.EMAILJS_PUBLIC_KEY,
+    privateKey: process.env.EMAILJS_PRIVATE_KEY,
+  });
   try {
-    const response = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        service_id: process.env.EMAILJS_SERVICE_ID,
-        template_id: process.env.EMAILJS_TEMPLATE_ID,
-        user_id: process.env.EMAILJS_PUBLIC_KEY,
-        accessToken: process.env.EMAILJS_PRIVATE_KEY, // 官方定义的私钥参数名
-        template_params: {
-          otp_code: otp,
-          email: email
-        }
-      })
-    });
-
-    if (!response.ok) {
-      const errText = await response.text();
-      throw new Error(`EmailJS Rest Error [${response.status}]: ${errText}`);
-    }
-
+    await emailjs.send(
+      process.env.EMAILJS_SERVICE_ID,
+      process.env.EMAILJS_TEMPLATE_ID,
+      { otp_code: otp, email }
+    );
     res.json({ success: true, message: 'OTP sent.' });
   } catch (err) {
-    console.error('EmailJS Error:', err.message);
+    console.error(err);
     res.status(500).json({ success: false, message: 'Failed to send email.' });
   }
 });
@@ -778,7 +801,6 @@ app.post('/api/reset-password', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Password does not meet complexity requirements.' });
   }
 
-  // 查询 OTP
   const { data, error } = await supabase
     .from('otp_codes')
     .select('code, expires_at')
@@ -795,7 +817,6 @@ app.post('/api/reset-password', async (req, res) => {
     return res.status(400).json({ success: false, message: 'Invalid OTP.' });
   }
 
-  // 更新密码
   const hashed = await bcrypt.hash(newPassword, 10);
   const { error: updateError } = await supabase
     .from('customer')
@@ -806,7 +827,6 @@ app.post('/api/reset-password', async (req, res) => {
     return res.status(500).json({ success: false, message: 'Failed to update password.' });
   }
 
-  // 删除使用的 OTP
   await supabase.from('otp_codes').delete().eq('email', email);
 
   res.json({ success: true, message: 'Password reset successful.' });

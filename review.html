@@ -1849,7 +1849,6 @@
         // ================================================================
         // LOAD SERVICES FOR REVIEW DROPDOWN
         // ================================================================
-        // ==== 修改点：加载服务列表到下拉框 ====
         async function loadServicesForReview() {
             try {
                 const res = await authFetch('/api/services');
@@ -1868,11 +1867,12 @@
 
         // ================================================================
         // LOAD REVIEWS FROM API
+        // ==== 修改点：使用 authFetch ====
         // ================================================================
-        // ==== 修改点：显示服务名称 ====
         async function loadReviews() {
             try {
-                const res = await fetch('/api/reviews');
+                // 改用 authFetch 携带认证 Token
+                const res = await authFetch('/api/reviews');
                 const data = await res.json();
                 if (data.success) {
                     const reviewList = document.getElementById('reviewList');
@@ -1937,14 +1937,13 @@
         // ================================================================
         // SUBMIT REVIEW - 发送到后端 API
         // ================================================================
-        // ==== 修改点：提交 service_id ====
         const reviewForm = document.getElementById('reviewForm');
         reviewForm.addEventListener('submit', async function(e) {
             e.preventDefault();
 
             const rating = parseInt(ratingInput.value);
             const text = document.getElementById('reviewText').value.trim();
-            const serviceId = document.getElementById('reviewService').value; // 可能为空
+            const serviceId = document.getElementById('reviewService').value;
 
             if (rating === 0) {
                 showValidationModal('Please select a star rating.');
@@ -1962,7 +1961,7 @@
                         rating: rating,
                         comment: text,
                         service_id: serviceId || null,
-                        booking_id: null // 暂不关联 booking
+                        booking_id: null
                     })
                 });
                 const data = await res.json();
