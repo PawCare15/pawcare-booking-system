@@ -1,23 +1,34 @@
-// --- 公共逻辑 (Navbar & Buttons) ---
+// --- MOBILE MENU / HAMBURGER NAVIGATION TOGGLE ---
 const menuBtn = document.getElementById("menu-btn");
 const navLinks = document.getElementById("nav-links");
-const menuBtnIcon = menuBtn ? menuBtn.querySelector("i") : null;
 
 if (menuBtn && navLinks) {
+    const menuBtnIcon = menuBtn.querySelector("i");
+
     menuBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
         navLinks.classList.toggle("open");
         const isOpen = navLinks.classList.contains("open");
-        menuBtnIcon.setAttribute("class", isOpen ? "ri-close-line" : "ri-menu-line");
+        
+        if (menuBtnIcon) {
+            menuBtnIcon.setAttribute("class", isOpen ? "ri-close-line" : "ri-menu-line");
+        }
     });
 
     navLinks.addEventListener("click", (e) => {
-        navLinks.classList.remove("open");
-        menuBtnIcon.setAttribute("class", "ri-menu-line");
+        if (e.target.tagName === "A") {
+            navLinks.classList.remove("open");
+            if (menuBtnIcon) {
+                menuBtnIcon.setAttribute("class", "ri-menu-line");
+            }
+        }
     });
 }
 
+// ROUTING FOR BOOK NOW BUTTONS
 document.querySelectorAll(".book-btn, .service__btn").forEach((btn) => {
     btn.addEventListener("click", function (e) {
+        if (this.getAttribute("href") === "login.html") return;
         e.preventDefault(); 
         window.location.href = "login.html"; 
     });

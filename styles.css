@@ -128,6 +128,8 @@ nav {
   font-size: 1.5rem;
   color: var(--text-dark);
   cursor: pointer;
+  margin-right: 15px; 
+  flex-shrink: 0;
 }
 
 .nav__links {
@@ -534,9 +536,36 @@ img.header__image-bg {
 }
 
 .swiper-slide {
+  min-width: 0 !important; 
   width: 100%;
-  max-width: 100%;
   height: auto;
+}
+
+/* ELAK TEKS DARI TERKELUAR DARI KOTAK KAD */
+.swiper-slide h3,
+.swiper-slide h2 {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+/* ELAK LENCANA HARGA (BADGES) TERKELUAR DARI KAD */
+.swiper-slide .badge,
+.swiper-slide div[class*="price"],
+.swiper-slide span[class*="badge"] {
+  max-width: 100%;           /* Menghalang badge melebihi lebar kad */
+  box-sizing: border-box;    /* Memastikan padding dikira dalam saiz asal */
+  white-space: normal;       /* Membenarkan teks dalam badge turun baris jika sempit */
+  word-break: break-word;
+}
+
+/* Membenarkan bekas lencana disusun turun bawah jika ruang tepi tidak cukup */
+.swiper-slide .price-container,
+.swiper-slide .badges-wrapper,
+.swiper-slide div:has(> .badge) {
+  display: flex;
+  flex-wrap: wrap;           /* Susun ke bawah secara automatik jika ruang tidak muat */
+  gap: 8px;                  /* Jarak antara lencana */
+  max-width: 100%;
 }
 
 .client__card {
@@ -1658,3 +1687,16 @@ img.header__image-bg {
     margin-right: auto;
   }
 }
+
+/* MOBILE NAVBAR TOGGLE DISPLAY */
+@media (max-width: 768px) {
+  .nav__links {
+    display: none; /* Asal tersembunyi pada skrin telefon */
+  }
+  
+  .nav__links.open {
+    display: flex !important; /* Muncul apabila hamburger ditekan */
+    flex-direction: column;
+  }
+}
+

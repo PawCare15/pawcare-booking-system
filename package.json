@@ -1,25 +1,21 @@
 {
-  "name": "backend",
+  "name": "pawcare-booking-system",
   "version": "1.0.0",
   "description": "",
-  "main": "server.js",
+  "main": "main.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
-    "@emailjs/nodejs": "^5.0.2",
-    "@supabase/supabase-js": "^2.112.0",
+    "@supabase/supabase-js": "^2.111.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "jsonwebtoken": "^9.0.3",
-    "multer": "^2.2.0",
-    "nodemailer": "^9.0.3"
+    "jsonwebtoken": "^9.0.3"
   }
 }

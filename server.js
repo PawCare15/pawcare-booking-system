@@ -395,21 +395,43 @@ app.delete('/api/pets/:pet_id', async (req, res) => {
 });
 
 // ========== 8. 服务列表 ==========
+// ========== 8. 服务列表 ==========
 app.get('/api/services', async (req, res) => {
   try {
-    // 1. 获取所有服务
-    const { data: services, error: svcError } = await supabase
+    // 1. 从请求头中提取前端的 Bearer Token
+    const authHeader = req.headers.authorization;
+    let token = null;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      token = authHeader.split(' ')[1];
+    }
+
+    // 2. 创建一个拥有 Token 的 Supabase 客户端实例，专门用来过 RLS 验证
+    const authedSupabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_KEY,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+          detectSessionInUrl: false
+        }
+      }
+    );
+    if (token) {
+      await authedSupabase.auth.setAuth(token); // 注入用户身份！
+    }
+
+    // 3. 使用带有 Token 的 authedSupabase 来查数据（而不是全局的 supabase）
+    const { data: services, error: svcError } = await authedSupabase
       .from('service')
       .select('service_id, service_name, category, duration, description');
     if (svcError) throw svcError;
 
-    // 2. 获取所有价格
-    const { data: prices, error: priceError } = await supabase
+    const { data: prices, error: priceError } = await authedSupabase
       .from('service_price')
       .select('service_id, species, starting_price');
     if (priceError) throw priceError;
 
-    // 3. 合并
     const result = services.map(svc => {
       const svcPrices = prices.filter(p => p.service_id === svc.service_id);
       const dogPrice = svcPrices.find(p => p.species?.toLowerCase() === 'dog')?.starting_price || null;
@@ -425,7 +447,7 @@ app.get('/api/services', async (req, res) => {
       };
     });
 
-    console.log('Services result:', result); // 打印查看
+    console.log('Services result:', result);
     res.json({ success: true, data: result });
   } catch (err) {
     console.error(err);
