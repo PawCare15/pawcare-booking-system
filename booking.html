@@ -1752,7 +1752,16 @@
                     return;
                 }
                 servicesList = data.data || [];
+
+                // 👇【添加这个处理空数据的逻辑】
+                if (servicesList.length === 0) {
+                    serviceGroup.innerHTML = `<div style="padding:20px; text-align:center; color:#7A7A7A;"><i class="fa-solid fa-circle-info"></i> No services available. Please contact the administrator to add services.</div>`;
+                    return;
+                }
+                // 👆 添加结束
+
                 let html = '';
+                // ... 后面原本的 forEach 循环保持不变 ...
                 servicesList.forEach(svc => {
                     const dogPrice = svc.price_dog ? `RM ${svc.price_dog}` : '—';
                     const catPrice = svc.price_cat ? `RM ${svc.price_cat}` : '—';

@@ -3,6 +3,36 @@ emailjs.init({
     publicKey: "JEjxrjixU6-925dt6"
 });
 
+// MOBILE NAVIGATION / HAMBURGER MENU HANDLER
+const menuBtn = document.getElementById("menu-btn");
+const navLinks = document.getElementById("nav-links");
+const menuBtnIcon = menuBtn ? menuBtn.querySelector("i") : null;
+
+// CHECK IF NAVIGATION ELEMENTS EXIST IN THE DOM
+if (menuBtn && navLinks) {
+
+    // TOGGLE MENU DISPLAY WHEN HAMBURGER BUTTON IS CLICKED
+    menuBtn.addEventListener("click", () => {
+        navLinks.classList.toggle("open");
+        const isOpen = navLinks.classList.contains("open");
+
+        // SWITCH ICON BETWEEN HAMBURGER AND CLOSE (X) ICON
+        if (menuBtnIcon) {
+            menuBtnIcon.setAttribute("class", isOpen ? "ri-close-line" : "ri-menu-line");
+        }
+    });
+
+    // CLOSE NAVIGATION MENU WHEN A NAVIGATION LINK IS CLICKED
+    navLinks.addEventListener("click", () => {
+        navLinks.classList.remove("open");
+
+        // RESET ICON BACK TO HAMBURGER ICON
+        if (menuBtnIcon) {
+            menuBtnIcon.setAttribute("class", "ri-menu-line");
+        }
+    });
+}
+
 // WAIT UNTIL THE PAGE IS FULLY LOADED
 document.addEventListener("DOMContentLoaded", () => {
 

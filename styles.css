@@ -534,7 +534,8 @@ img.header__image-bg {
 }
 
 .swiper-slide {
-  min-width: 375px;
+  width: 100%;
+  max-width: 100%;
   height: auto;
 }
 

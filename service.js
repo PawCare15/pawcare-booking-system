@@ -63,8 +63,8 @@ if (document.querySelector(".service__hero")) {
 
 document.querySelectorAll(".serviceSwiper").forEach((swiperEl) => {
     new Swiper(swiperEl, {
-        slidesPerView: 3,
-        spaceBetween: 30,
+        slidesPerView: 1, /* Default 1 kad untuk skrin kecil */
+        spaceBetween: 20,
         loop: false,
         pagination: {
             el: swiperEl.querySelector(".swiper-pagination"),
@@ -75,9 +75,18 @@ document.querySelectorAll(".serviceSwiper").forEach((swiperEl) => {
             prevEl: swiperEl.querySelector(".swiper-button-prev"),
         },
         breakpoints: {
-            0: { slidesPerView: 1 },
-            600: { slidesPerView: 2 },
-            1024: { slidesPerView: 3 }
+            0: { 
+                slidesPerView: 1,
+                spaceBetween: 15
+            },
+            640: { 
+                slidesPerView: 2,
+                spaceBetween: 20
+            },
+            1024: { 
+                slidesPerView: 3,
+                spaceBetween: 30
+            }
         }
     });
 });

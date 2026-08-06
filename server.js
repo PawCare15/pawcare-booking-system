@@ -412,8 +412,8 @@ app.get('/api/services', async (req, res) => {
     // 3. 合并
     const result = services.map(svc => {
       const svcPrices = prices.filter(p => p.service_id === svc.service_id);
-      const dogPrice = svcPrices.find(p => p.species === 'dog')?.starting_price || null;
-      const catPrice = svcPrices.find(p => p.species === 'cat')?.starting_price || null;
+      const dogPrice = svcPrices.find(p => p.species?.toLowerCase() === 'dog')?.starting_price || null;
+      const catPrice = svcPrices.find(p => p.species?.toLowerCase() === 'cat')?.starting_price || null;
       return {
         service_id: svc.service_id,
         service_name: svc.service_name,
