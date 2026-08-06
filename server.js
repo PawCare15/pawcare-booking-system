@@ -535,8 +535,10 @@ app.post('/api/bookings', async (req, res) => {
       if (priceError) throw priceError;
       let price = priceData ? priceData.starting_price : 0;
 
-      if (svc.category === 'boarding' && check_in_datetime && check_out_datetime) {
-        const nights = Math.ceil((new Date(check_out_datetime) - new Date(check_in_datetime)) / (1000*60*60*24));
+      // 统一转换为小写判断 category
+      const categoryLower = (svc.category || '').toLowerCase();
+      if (categoryLower === 'boarding' && check_in_datetime && check_out_datetime) {
+        const nights = Math.ceil((new Date(check_out_datetime) - new Date(check_in_datetime)) / (1000 * 60 * 60 * 24));
         if (nights > 0) {
           price = price * nights;
         } else {
@@ -798,6 +800,7 @@ app.post('/api/reset-password', async (req, res) => {
   if (!email || !otp || !newPassword) {
     return res.status(400).json({ success: false, message: 'All fields required.' });
   }
+  // 👇 补充密码策略校验
   if (!isPasswordValid(newPassword)) {
     return res.status(400).json({ success: false, message: 'Password does not meet complexity requirements.' });
   }

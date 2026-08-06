@@ -1551,6 +1551,25 @@
             }
         }
 
+        async function loadHeaderProfile() {
+            try {
+                const res = await authFetch('/api/profile');
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('headerName').textContent = data.data.full_name || 'Customer';
+                    if (data.data.profile_photo) {
+                        const img = document.getElementById('headerAvatarImg');
+                        img.src = data.data.profile_photo;
+                        img.style.display = 'block';
+                        document.getElementById('headerAvatarPlaceholder').style.display = 'none';
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading profile:', err);
+            }
+        }
+        // 在初始化（INIT）末尾加上： loadHeaderProfile();
+
         // ================================================================
         // 从 Breed 推断宠物类型（备用）
         // ================================================================
@@ -1690,6 +1709,11 @@
             validateSingleDate();
             updateSummary();
         });
+
+        const todayStr = new Date().toISOString().split('T')[0];
+        bookingDateInput.min = todayStr;
+        checkInDate.min = todayStr;
+
         checkInDate.addEventListener('change', function() {
             validateCheckInDate();
             if (this.value) {
@@ -1735,6 +1759,9 @@
                     setTimeout(validateSingleDate, 100);
                 } else {
                     boardingDateRange.classList.remove('active');
+                    // 👇【新增】：取消寄养时清空日期，避免残留数据影响计算
+                    checkInDate.value = '';
+                    checkOutDate.value = '';
                 }
                 updateSummary();
             }
@@ -2109,6 +2136,7 @@
                 }
             }
 
+            // 准备发送给后端的数据对象
             const bookingData = {
                 pet_id: petId,
                 service_ids: service_ids,
@@ -2116,8 +2144,12 @@
                 booking_time: bookingTime.value,
                 special_notes: specialNotes.value.trim() || ''
             };
-            if (checkIn) bookingData.check_in_datetime = checkIn;
-            if (checkOut) bookingData.check_out_datetime = checkOut;
+
+            // 如果勾选了寄养服务，将入住和退房日期带上
+            if (isBoardingSelected) {
+                bookingData.check_in_datetime = checkIn;
+                bookingData.check_out_datetime = checkOut;
+            }
 
             try {
                 const res = await authFetch('/api/bookings', {
@@ -2188,7 +2220,15 @@
         // ================================================================
         // INIT
         // ================================================================
+        // ================================================================
+        // INIT
+        // ================================================================
         const today = new Date().toISOString().split('T')[0];
+
+        // 👇【新增】：动态限制可选的最小日期为今天（防止硬编码 2026-08-01 导致日期失效）
+        bookingDateInput.min = today;
+        checkInDate.min = today;
+
         bookingDateInput.value = today;
         checkInDate.value = today;
         const tomorrow = new Date();
