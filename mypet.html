@@ -1044,98 +1044,25 @@
                             <input type="text" class="form-control" id="petName" placeholder="e.g. Buddy" required />
                         </div>
 
+                        <!-- 宠物类型 -->
+                        <div class="form-group">
+                            <label><i class="fa-solid fa-paw"></i> Pet Type <span style="color:#DC2626;">*</span></label>
+                            <div style="display: flex; gap: 20px; margin-top: 4px;">
+                                <label style="font-weight: 400; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                    <input type="radio" name="petType" value="dog" checked /> 🐕 Dog
+                                </label>
+                                <label style="font-weight: 400; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                                    <input type="radio" name="petType" value="cat" /> 🐈 Cat
+                                </label>
+                            </div>
+                        </div>
+
                         <div class="form-group">
                             <label><i class="fa-solid fa-paw"></i> Breed</label>
                             <div class="breed-select-wrapper">
                                 <select class="form-control" id="petBreedSelect">
                                     <option value="">Select breed...</option>
-                                    <!-- Dogs -->
-                                    <option value="Affenpinscher">Affenpinscher</option>
-                                    <option value="Afghan Hound">Afghan Hound</option>
-                                    <option value="Airedale Terrier">Airedale Terrier</option>
-                                    <option value="Akita">Akita</option>
-                                    <option value="Alaskan Malamute">Alaskan Malamute</option>
-                                    <option value="American Bulldog">American Bulldog</option>
-                                    <option value="American Eskimo Dog">American Eskimo Dog</option>
-                                    <option value="American Staffordshire Terrier">American Staffordshire Terrier</option>
-                                    <option value="Australian Cattle Dog">Australian Cattle Dog</option>
-                                    <option value="Australian Shepherd">Australian Shepherd</option>
-                                    <option value="Beagle">Beagle</option>
-                                    <option value="Bichon Frise">Bichon Frise</option>
-                                    <option value="Border Collie">Border Collie</option>
-                                    <option value="Border Terrier">Border Terrier</option>
-                                    <option value="Boston Terrier">Boston Terrier</option>
-                                    <option value="Boxer">Boxer</option>
-                                    <option value="Bulldog">Bulldog</option>
-                                    <option value="Bullmastiff">Bullmastiff</option>
-                                    <option value="Cavalier King Charles Spaniel">Cavalier King Charles Spaniel</option>
-                                    <option value="Chihuahua">Chihuahua</option>
-                                    <option value="Chinese Crested">Chinese Crested</option>
-                                    <option value="Chow Chow">Chow Chow</option>
-                                    <option value="Cocker Spaniel">Cocker Spaniel</option>
-                                    <option value="Collie">Collie</option>
-                                    <option value="Corgi">Corgi</option>
-                                    <option value="Dachshund">Dachshund</option>
-                                    <option value="Dalmatian">Dalmatian</option>
-                                    <option value="Doberman Pinscher">Doberman Pinscher</option>
-                                    <option value="English Setter">English Setter</option>
-                                    <option value="English Springer Spaniel">English Springer Spaniel</option>
-                                    <option value="French Bulldog">French Bulldog</option>
-                                    <option value="German Shepherd">German Shepherd</option>
-                                    <option value="Golden Retriever">Golden Retriever</option>
-                                    <option value="Great Dane">Great Dane</option>
-                                    <option value="Greyhound">Greyhound</option>
-                                    <option value="Husky">Husky</option>
-                                    <option value="Jack Russell Terrier">Jack Russell Terrier</option>
-                                    <option value="Labrador Retriever">Labrador Retriever</option>
-                                    <option value="Lhasa Apso">Lhasa Apso</option>
-                                    <option value="Maltese">Maltese</option>
-                                    <option value="Mastiff">Mastiff</option>
-                                    <option value="Newfoundland">Newfoundland</option>
-                                    <option value="Pekingese">Pekingese</option>
-                                    <option value="Pomeranian">Pomeranian</option>
-                                    <option value="Poodle">Poodle</option>
-                                    <option value="Pug">Pug</option>
-                                    <option value="Rottweiler">Rottweiler</option>
-                                    <option value="Saint Bernard">Saint Bernard</option>
-                                    <option value="Samoyed">Samoyed</option>
-                                    <option value="Schnauzer">Schnauzer</option>
-                                    <option value="Shetland Sheepdog">Shetland Sheepdog</option>
-                                    <option value="Shih Tzu">Shih Tzu</option>
-                                    <option value="Staffordshire Bull Terrier">Staffordshire Bull Terrier</option>
-                                    <option value="Vizsla">Vizsla</option>
-                                    <option value="Weimaraner">Weimaraner</option>
-                                    <option value="Welsh Corgi">Welsh Corgi</option>
-                                    <option value="West Highland Terrier">West Highland Terrier</option>
-                                    <option value="Whippet">Whippet</option>
-                                    <option value="Yorkshire Terrier">Yorkshire Terrier</option>
-                                    <!-- Cats -->
-                                    <option value="Abyssinian">Abyssinian</option>
-                                    <option value="American Shorthair">American Shorthair</option>
-                                    <option value="Bengal">Bengal</option>
-                                    <option value="Birman">Birman</option>
-                                    <option value="British Shorthair">British Shorthair</option>
-                                    <option value="Burmese">Burmese</option>
-                                    <option value="Cornish Rex">Cornish Rex</option>
-                                    <option value="Devon Rex">Devon Rex</option>
-                                    <option value="Egyptian Mau">Egyptian Mau</option>
-                                    <option value="Havana Brown">Havana Brown</option>
-                                    <option value="Himalayan">Himalayan</option>
-                                    <option value="Japanese Bobtail">Japanese Bobtail</option>
-                                    <option value="Maine Coon">Maine Coon</option>
-                                    <option value="Manx">Manx</option>
-                                    <option value="Norwegian Forest">Norwegian Forest</option>
-                                    <option value="Ocicat">Ocicat</option>
-                                    <option value="Persian">Persian</option>
-                                    <option value="Ragdoll">Ragdoll</option>
-                                    <option value="Russian Blue">Russian Blue</option>
-                                    <option value="Scottish Fold">Scottish Fold</option>
-                                    <option value="Siamese">Siamese</option>
-                                    <option value="Siberian">Siberian</option>
-                                    <option value="Sphynx">Sphynx</option>
-                                    <option value="Tonkinese">Tonkinese</option>
-                                    <option value="Turkish Angora">Turkish Angora</option>
-                                    <option value="Other">Other</option>
+                                    <!-- 由 JS 动态填充 -->
                                 </select>
                                 <div class="custom-breed-input" id="customBreedContainer">
                                     <input type="text" class="form-control" id="customBreed" placeholder="Enter breed name..." />
@@ -1463,7 +1390,75 @@
         let photoDataURL = null;
 
         // ================================================================
-        // BREED SELECT LOGIC
+        // BREED DYNAMIC FILTER – NEW LOGIC
+        // ================================================================
+        const dogBreeds = [
+            'Affenpinscher', 'Afghan Hound', 'Airedale Terrier', 'Akita',
+            'Alaskan Malamute', 'American Bulldog', 'American Eskimo Dog',
+            'American Staffordshire Terrier', 'Australian Cattle Dog',
+            'Australian Shepherd', 'Beagle', 'Bichon Frise', 'Border Collie',
+            'Border Terrier', 'Boston Terrier', 'Boxer', 'Bulldog', 'Bullmastiff',
+            'Cavalier King Charles Spaniel', 'Chihuahua', 'Chinese Crested',
+            'Chow Chow', 'Cocker Spaniel', 'Collie', 'Corgi', 'Dachshund',
+            'Dalmatian', 'Doberman Pinscher', 'English Setter',
+            'English Springer Spaniel', 'French Bulldog', 'German Shepherd',
+            'Golden Retriever', 'Great Dane', 'Greyhound', 'Husky',
+            'Jack Russell Terrier', 'Labrador Retriever', 'Lhasa Apso',
+            'Maltese', 'Mastiff', 'Newfoundland', 'Pekingese', 'Pomeranian',
+            'Poodle', 'Pug', 'Rottweiler', 'Saint Bernard', 'Samoyed',
+            'Schnauzer', 'Shetland Sheepdog', 'Shih Tzu',
+            'Staffordshire Bull Terrier', 'Vizsla', 'Weimaraner',
+            'Welsh Corgi', 'West Highland Terrier', 'Whippet', 'Yorkshire Terrier'
+        ];
+
+        const catBreeds = [
+            'Abyssinian', 'American Shorthair', 'Bengal', 'Birman',
+            'British Shorthair', 'Burmese', 'Cornish Rex', 'Devon Rex',
+            'Egyptian Mau', 'Havana Brown', 'Himalayan', 'Japanese Bobtail',
+            'Maine Coon', 'Manx', 'Norwegian Forest', 'Ocicat', 'Persian',
+            'Ragdoll', 'Russian Blue', 'Scottish Fold', 'Siamese', 'Siberian',
+            'Sphynx', 'Tonkinese', 'Turkish Angora'
+        ];
+
+        function populateBreeds(species) {
+            const select = document.getElementById('petBreedSelect');
+            const selectedValue = select.value; // remember current selection
+            select.innerHTML = '<option value="">Select breed...</option>';
+
+            const breedList = species === 'dog' ? dogBreeds : catBreeds;
+            breedList.forEach(breed => {
+                const option = document.createElement('option');
+                option.value = breed;
+                option.textContent = breed;
+                select.appendChild(option);
+            });
+
+            // Add "Other" option
+            const otherOption = document.createElement('option');
+            otherOption.value = 'Other';
+            otherOption.textContent = 'Other';
+            select.appendChild(otherOption);
+
+            // Restore selected value if it exists in the new list or is 'Other'
+            if (selectedValue && (breedList.includes(selectedValue) || selectedValue === 'Other')) {
+                select.value = selectedValue;
+            } else {
+                select.value = '';
+            }
+        }
+
+        // Listen to Pet Type radio changes
+        const petTypeRadios = document.querySelectorAll('input[name="petType"]');
+        petTypeRadios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.checked) {
+                    populateBreeds(this.value);
+                }
+            });
+        });
+
+        // ================================================================
+        // BREED SELECT LOGIC (custom "Other" handling)
         // ================================================================
         const breedSelect = document.getElementById('petBreedSelect');
         const customBreedContainer = document.getElementById('customBreedContainer');
@@ -1496,19 +1491,15 @@
                 return;
             }
 
-            const options = breedSelect.options;
-            let found = false;
-            for (let i = 0; i < options.length; i++) {
-                if (options[i].value === value) {
-                    breedSelect.value = value;
-                    found = true;
-                    customBreedContainer.classList.remove('active');
-                    customBreedInput.value = '';
-                    break;
-                }
-            }
+            // Determine current species to check if value exists in list
+            const species = document.querySelector('input[name="petType"]:checked').value;
+            const breedList = species === 'dog' ? dogBreeds : catBreeds;
 
-            if (!found) {
+            if (breedList.includes(value)) {
+                breedSelect.value = value;
+                customBreedContainer.classList.remove('active');
+                customBreedInput.value = '';
+            } else {
                 breedSelect.value = 'Other';
                 customBreedContainer.classList.add('active');
                 customBreedInput.value = value;
@@ -1643,6 +1634,9 @@
                 return;
             }
 
+            // Get selected pet type
+            const species = document.querySelector('input[name="petType"]:checked').value;
+
             const petData = {
                 name: name,
                 breed: breed,
@@ -1650,7 +1644,8 @@
                 gender: document.getElementById('petGender').value,
                 weight: document.getElementById('petWeight').value,
                 notes: document.getElementById('petNotes').value.trim(),
-                photo_url: photoDataURL || null
+                photo_url: photoDataURL || null,
+                species: species
             };
 
             try {
@@ -1703,7 +1698,15 @@
             editIndex = index;
             document.getElementById('editIndex').value = index;
             document.getElementById('petName').value = pet.name || '';
+
+            // Set pet type radio
+            const species = pet.species || 'dog';
+            document.querySelector(`input[name="petType"][value="${species}"]`).checked = true;
+            // Populate breed list based on species
+            populateBreeds(species);
+            // Set breed
             setBreed(pet.breed || '');
+
             document.getElementById('petDob').value = pet.dob || '';
             document.getElementById('petGender').value = pet.gender || 'Male';
             document.getElementById('petWeight').value = pet.weight || '';
@@ -1775,6 +1778,9 @@
             photoPreview.innerHTML = `<span class="placeholder"><i class="fa-solid fa-camera"></i></span>`;
             removePhotoBtn.style.display = 'none';
 
+            // Reset pet type to Dog and populate breed list
+            document.querySelector('input[name="petType"][value="dog"]').checked = true;
+            populateBreeds('dog');
             breedSelect.value = '';
             customBreedContainer.classList.remove('active');
             customBreedInput.value = '';
@@ -1884,6 +1890,10 @@
         // ================================================================
         // INIT
         // ================================================================
+        // Initially set dog as default and populate breeds
+        document.querySelector('input[name="petType"][value="dog"]').checked = true;
+        populateBreeds('dog');
+
         loadPets();
 
         console.log('PawCare My Pets page loaded successfully!');
