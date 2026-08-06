@@ -411,6 +411,11 @@ app.get('/api/services', async (req, res) => {
           starting_price
         )
       `);
+
+        // 🔍 添加日志
+    console.log('Services data:', data);
+    console.log('Services error:', error);
+
     if (error) throw error;
     const services = data.map(s => {
       const prices = s.service_price || [];

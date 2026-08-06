@@ -14,9 +14,9 @@
 
 <body>
   <body id="home">
+   <!-- NAVIGATION BAR -->
   <nav>
     <div class="nav__header">
-
         <div class="nav__logo">
             <a href="about.html">
                 <img src="image/logo.png" alt="Paw Walker Grooming House Logo" class="logo">
@@ -24,12 +24,14 @@
             </a>
         </div>
 
+        <!-- MOBILE MENU BUTTON -->
         <div class="nav__menu__btn" id="menu-btn">
             <i class="ri-menu-line"></i>
         </div>
 
     </div>
 
+    <!-- NAVIGATION LINKS -->
     <ul class="nav__links" id="nav-links">
       <li><a href="index.html">Home</a></li>
       <li><a href="about.html">About Us</a></li>
@@ -39,7 +41,7 @@
     </ul>
   </nav>
 
-  <!-- Hero Section -->
+  <!-- HERO SECTION - FAQ PAGE BANNER-->
   <section class="faq-hero">
     <div class="container">
       <h1>Frequently Asked Questions</h1>
@@ -47,18 +49,16 @@
     </div>
   </section>
 
- <!-- Main Content Section: Center Container with Generous Side Margins -->
+ <!-- MAIN CONTENT - FAQ ACCORDION & FORM -->
   <section class="faq-section py-5">
     <div class="container px-4 px-md-5 faq-container-box">
       <div class="row g-4 g-xl-5 align-items-start">
 
-        <!-- Left Column: FAQ Accordion (~58% Width) -->
+        <!-- LEFT COLUMN - FAQ ACCORDIAN -->
         <div class="col-lg-7">
-
-          <!-- FAQ Accordion -->
           <div class="accordion faq-accordion" id="faqAccordion">
 
-            <!-- Question 1 -->
+            <!-- FAQ Q1 -->
             <div class="accordion-item" data-category="booking">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q1">
@@ -73,7 +73,7 @@
               </div>
             </div>
 
-            <!-- Question 2 -->
+            <!-- FAQ Q2 -->
             <div class="accordion-item" data-category="booking">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q2">
@@ -88,7 +88,7 @@
               </div>
             </div>
 
-            <!-- Question 3 -->
+            <!-- FAQ Q3 -->
             <div class="accordion-item" data-category="booking">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q3">
@@ -102,8 +102,8 @@
                 </div>
               </div>
             </div>
-
-            <!-- Question 4 -->
+            
+            <!-- FAQ Q4 -->
             <div class="accordion-item" data-category="booking">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q4">
@@ -118,7 +118,7 @@
               </div>
             </div>
 
-            <!-- Question 5 -->
+            <!-- FAQ Q5 -->
             <div class="accordion-item" data-category="pricing">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q5">
@@ -132,8 +132,8 @@
                 </div>
               </div>
             </div>
-
-            <!-- Question 6 -->
+            
+            <!-- FAQ Q6 -->
             <div class="accordion-item" data-category="booking">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q6">
@@ -148,7 +148,7 @@
               </div>
             </div>
 
-            <!-- Question 7 -->
+            <!-- FAQ Q7 -->
             <div class="accordion-item" data-category="boarding">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q7">
@@ -163,7 +163,7 @@
               </div>
             </div>
 
-            <!-- Question 8 -->
+            <!-- FAQ Q8 -->
             <div class="accordion-item" data-category="pricing">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q8">
@@ -178,7 +178,7 @@
               </div>
             </div>
 
-            <!-- Question 9 -->
+            <!-- FAQ Q9 -->
             <div class="accordion-item" data-category="boarding">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q9">
@@ -193,7 +193,7 @@
               </div>
             </div>
 
-            <!-- Question 10 -->
+            <!-- FAQ Q10 -->
             <div class="accordion-item" data-category="boarding">
               <h2 class="accordion-header">
                 <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q10">
@@ -211,127 +211,165 @@
           </div>
         </div>
 
-        <!-- Right Column: Question Form + Direct Contact Info (~42% Width) -->
-<div class="col-lg-5">
-  <section class="faq-form-section p-0 m-0">
-    <div class="faq-form-container w-100">
-      
-      <!-- Contact Form Card -->
-      <div class="faq-question-form-card p-4 rounded-4 shadow-sm bg-white border">
-        <div class="text-center mb-4">
-          <h3 class="fw-bold text-dark-custom fs-3">Still Have Questions?</h3>
-          <p class="text-light-custom fs-6 mb-1">Can't find the answer you are looking for? Send your question directly to us!</p>
-          <small class="text-muted"><i class="ri-time-line me-1"></i>We usually reply within 24 hours</small>
+        <!-- RIGHT COLUMN - QUESTION FORM -->
+        <div class="col-lg-5">
+          <section class="faq-form-section p-0 m-0">
+            <div class="faq-form-container w-100">
+              
+              <!-- FAQ QUESTION FORM CARD -->
+              <div class="faq-question-form-card p-4 rounded-4 shadow-sm bg-white border">
+                <div class="text-center mb-4">
+
+                  <!-- CARD HEADER -->
+                  <h3 class="fw-bold text-dark-custom fs-3">Still Have Questions?</h3>
+                  <p class="text-light-custom fs-6 mb-1">Can't find the answer you are looking for? Send your question directly to us!</p>
+                  <small class="text-muted"><i class="ri-time-line me-1"></i>We usually reply within 24 hours</small>
+                </div>
+
+                <!-- QUESTION FORM -->
+                <form id="questionForm" class="row g-3" novalidate>
+
+                  <!-- FULL NAME -->
+                  <div class="col-12">
+                    <label for="custName" class="form-label fw-semibold text-dark-custom">
+                      Your Name <span class="required-star">*</span>
+                    </label>
+                    <input type="text" class="form-control form-control-lg fs-6" 
+                           id="custName" 
+                           name="Customer Name" 
+                           placeholder="Enter your full name (letters only)" 
+                           required>
+                  </div>
+                  
+                  <!-- EMAIL -->
+                  <div class="col-12">
+                    <label for="custEmail" class="form-label fw-semibold text-dark-custom">
+                      Your Email <span class="required-star">*</span>
+                    </label>
+                    <input type="email" class="form-control form-control-lg fs-6" 
+                           id="custEmail" 
+                           name="Customer Email" 
+                           placeholder="Enter your Gmail address (e.g. name@gmail.com)" 
+                           required>
+                  </div>
+
+                  <!-- PHONE NUMBER -->
+                  <div class="col-12">
+                    <label for="custPhone" class="form-label fw-semibold text-dark-custom">
+                      Phone / WhatsApp Number <span class="required-star">*</span>
+                    </label>
+                    <input type="tel" class="form-control form-control-lg fs-6" 
+                           id="custPhone" 
+                           name="Phone Number" 
+                           placeholder="Enter 10 or 11 digits (e.g. 0123456789)" 
+                           maxlength="11"
+                           required>
+                  </div>
+
+                  <!-- SERVICE TYPE -->
+                  <div class="col-12">
+                    <label for="serviceType" class="form-label fw-semibold text-dark-custom">
+                      Service Inquiry <span class="required-star">*</span>
+                    </label>
+                    <select class="form-select form-select-lg fs-6" id="serviceType" name="Service Type" required>
+                      <option value="">Select a topic...</option>
+                      <option value="grooming">Pet Grooming</option>
+                      <option value="boarding">Pet Boarding</option>
+                      <option value="booking">Booking / Rescheduling</option>
+                      <option value="other">Other / General Question</option>
+                    </select>
+                  </div>
+
+                  <!-- QUESTION -->
+                  <div class="col-12">
+                    <label for="custQuestion" class="form-label fw-semibold text-dark-custom">
+                      Your Question <span class="required-star">*</span>
+                    </label>
+                    <textarea class="form-control form-control-lg fs-6" 
+                              id="custQuestion" 
+                              name="Question" 
+                              rows="4" 
+                              placeholder="Type your question here (minimum 10 characters)" 
+                              required></textarea>
+                  </div>
+
+                  <!-- SUBMIT BUTTON -->
+                  <div class="col-12 text-center mt-3">
+                    <button type="submit" class="btn btn-submit-question py-3 w-100 fs-5 fw-semibold" id="submitBtn">
+                      <i class="ri-send-plane-fill me-2"></i>Submit Question
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- CONTACT & BUSINESS HOURS -->
+              <div class="p-3 mt-3 rounded-4 border bg-light text-center">
+                <h6 class="fw-bold mb-2 text-dark"><i class="ri-phone-fill me-2"></i>Need Immediate Assistance?</h6>
+                <p class="small text-muted mb-1">Call/WhatsApp: <strong>+60 18-949 8913</strong></p>
+                <p class="small text-muted mb-0">Business Hours: <strong>Fri - Wed: 10:30 AM - 7:00 PM</strong></p>
+              </div>
+
+            </div>
+          </section>
         </div>
 
-        <form action="mailto:pawcare@gmail.com" method="post" enctype="text/plain" class="row g-3">
-          <div class="col-12">
-            <label for="custName" class="form-label fw-semibold text-dark-custom">Your Name</label>
-            <input type="text" class="form-control form-control-lg fs-6" id="custName" name="Customer Name" placeholder="e.g. John Doe" required>
-          </div>
-
-          <div class="col-12">
-            <label for="custEmail" class="form-label fw-semibold text-dark-custom">Your Email</label>
-            <input type="email" class="form-control form-control-lg fs-6" id="custEmail" name="Customer Email" placeholder="e.g. john@example.com" required>
-          </div>
-
-          <!-- NEW FIELD: Phone Number -->
-          <div class="col-12">
-            <label for="custPhone" class="form-label fw-semibold text-dark-custom">Phone / WhatsApp Number</label>
-            <input type="tel" class="form-control form-control-lg fs-6" id="custPhone" name="Phone Number" placeholder="e.g. +60 12-345 6789">
-          </div>
-
-          <!-- NEW FIELD: Inquiry Category Dropdown -->
-          <div class="col-12">
-            <label for="serviceType" class="form-label fw-semibold text-dark-custom">Service Inquiry</label>
-            <select class="form-select form-select-lg fs-6" id="serviceType" name="Service Type">
-              <option selected disabled>Select a topic...</option>
-              <option value="grooming">Pet Grooming</option>
-              <option value="boarding">Pet Boarding</option>
-              <option value="booking">Booking / Rescheduling</option>
-              <option value="other">Other / General Question</option>
-            </select>
-          </div>
-
-          <div class="col-12">
-            <label for="custQuestion" class="form-label fw-semibold text-dark-custom">Your Question</label>
-            <textarea class="form-control form-control-lg fs-6" id="custQuestion" name="Question" rows="4" placeholder="Type your question here..." required></textarea>
-          </div>
-
-          <div class="col-12 text-center mt-3">
-            <button type="submit" class="btn btn-submit-question py-3 w-100 fs-5 fw-semibold">
-              <i class="ri-send-plane-fill me-2"></i>Submit Question
-            </button>
-          </div>
-        </form>
-      </div>
-
-      <!-- NEW CARD: Direct Contact & Operating Hours Box Below Form -->
-      <div class="p-3 mt-3 rounded-4 border bg-light text-center">
-        <h6 class="fw-bold mb-2 text-dark"><i class="ri-phone-fill me-2"></i>Need Immediate Assistance?</h6>
-        <p class="small text-muted mb-1">Call/WhatsApp: <strong>+60 18-949 8913</strong></p>
-        <p class="small text-muted mb-0">Business Hours: <strong>Fri - Wed: 10:30 AM - 7:00 PM</strong></p>
-      </div>
-
-    </div>
-  </section>
-</div>
-
       </div>
     </div>
   </section>
 
-<footer class="footer">
-  <div class="footer__container">
-    <!-- Left Column: Brand -->
-    <div class="footer__col">
-      <h2>Best Pet Care Agency For Your Favorite Pets</h2>
-      <div class="footer__socials">
-        <a href="https://www.facebook.com/share/18JxgBNATe/" target="_blank" rel="noopener noreferrer">
-          <i class="ri-facebook-fill"></i>
-        </a>
-        <a href="https://www.instagram.com/pawwalkergrooming" target="_blank" rel="noopener noreferrer">
-          <i class="ri-instagram-line"></i>
-        </a>
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__container">
+      <!-- SOCIAL MEDIA LINKS -->
+      <div class="footer__col">
+        <h2>Best Pet Care Agency For Your Favorite Pets</h2>
+        <div class="footer__socials">
+          <a href="https://www.facebook.com/share/18JxgBNATe/" target="_blank" rel="noopener noreferrer">
+            <i class="ri-facebook-fill"></i>
+          </a>
+          <a href="https://www.instagram.com/pawwalkergrooming" target="_blank" rel="noopener noreferrer">
+            <i class="ri-instagram-line"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- CONTACT & ADDRESS -->
+      <div class="footer__col">
+        <h3>Contact</h3>
+        <p>pawcare@gmail.com</p>
+        <p>+60 18-949 8913</p>
+        <p>
+          Paw Walker Grooming House<br>
+          7460, TINGKAT BAWAH, Jln Bagan Lalang,<br>
+          13400 Butterworth, Penang
+        </p>
+      </div>
+
+      <!-- QUICK LINKS -->
+      <div class="footer__col">
+        <ul class="footer__links">
+          <h3>Quick Links</h3>
+          <li><a href="index.html">Home</a></li> 
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="service.html">Services</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="login.html">Book Now</a></li>
+        </ul>
       </div>
     </div>
 
-    <!-- Middle Column: Contact -->
-    <div class="footer__col">
-      <h3>Contact</h3>
-      <p>pawcare@gmail.com</p>
-      <p>+60 18-949 8913</p>
-      <p>
-        Paw Walker Grooming House<br>
-        7460, TINGKAT BAWAH, Jln Bagan Lalang,<br>
-        13400 Butterworth, Penang
-      </p>
+    <!-- COPYRIGHT -->
+    <div class="footer__bottom">
+      <p>© 2025-2026 Paw Walker Grooming House</p>
     </div>
+  </footer>
 
-    <!-- Right Column: Quick Links -->
-    <div class="footer__col">
-      <!-- Quick Link 区域 -->
-          <ul class="footer__links">
-             <h3>Quick Links</h3>
-            <li><a href="index.html">Home</a></li> 
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="service.html">Services</a></li>
-            <li><a href="faq.html">FAQ</a></li>
-            <li><a href="login.html">Book Now</a></li>
-          </ul>
-    </div>
-  </div>
-
-  <!-- Bottom Bar: Copyright only -->
-  <div class="footer__bottom">
-    <p>© 2025-2026 Paw Walker Grooming House</p>
-  </div>
-</footer>
-
-    <script src="https://unpkg.com/scrollreveal"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="faq.js"></script>
-    <script src="index.js"></script>
-  </body>
+  <!-- JAVASCRIPT LIBRARIES & CUSTOM SCRIPTS -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script src="https://unpkg.com/scrollreveal"></script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="faq.js"></script>
+</body>
 </html>
