@@ -2116,8 +2116,8 @@
                 booking_time: bookingTime.value,
                 special_notes: specialNotes.value.trim() || ''
             };
-            if (checkIn) bookingData.check_in_date = checkIn;
-            if (checkOut) bookingData.check_out_date = checkOut;
+            if (checkIn) bookingData.check_in_datetime = checkIn;
+            if (checkOut) bookingData.check_out_datetime = checkOut;
 
             try {
                 const res = await authFetch('/api/bookings', {
