@@ -1,4 +1,5 @@
 require('dotenv').config();
+const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcrypt');
@@ -556,6 +557,7 @@ app.post('/api/bookings', async (req, res) => {
     const { data: booking, error: insertError } = await supabaseAdmin
       .from('booking')
       .insert([{
+        booking_id: crypto.randomUUID(),
         customer_id,
         pet_id,
         booking_date,
