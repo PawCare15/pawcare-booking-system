@@ -29,6 +29,11 @@ const supabase = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_KEY
 );
+// 👇 新增这行！专门用来绕过 RLS 的安全查询
+const supabaseAdmin = createClient(
+  process.env.SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_KEY
+);
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // ========== 辅助函数 ==========
@@ -261,7 +266,7 @@ app.put('/api/profile/password', async (req, res) => {
 app.get('/api/pets', async (req, res) => {
   try {
     const customer_id = getCustomerId(req);
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('pet')
       .select('*')
       .eq('customer_id', customer_id)
@@ -293,7 +298,7 @@ app.post('/api/pets', async (req, res) => {
   try {
     const customer_id = getCustomerId(req);
     const { name, breed, dob, gender, weight, notes, photo_url, species } = req.body;
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('pet')
       .insert([{
         customer_id,
@@ -336,7 +341,7 @@ app.put('/api/pets/:pet_id', async (req, res) => {
     const customer_id = getCustomerId(req);
     const { pet_id } = req.params;
     const { name, breed, dob, gender, weight, notes, photo_url, species } = req.body;
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('pet')
       .update({
         pet_name: name,
@@ -367,7 +372,7 @@ app.delete('/api/pets/:pet_id', async (req, res) => {
     const customer_id = getCustomerId(req);
     const { pet_id } = req.params;
 
-    const { data: bookings, error: checkError } = await supabase
+    const { data: bookings, error: checkError } = await supabaseAdmin
       .from('booking')
       .select('booking_id')
       .eq('pet_id', pet_id)
@@ -377,7 +382,7 @@ app.delete('/api/pets/:pet_id', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Cannot delete pet with pending or upcoming bookings.' });
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('pet')
       .delete()
       .eq('pet_id', pet_id)
@@ -395,39 +400,16 @@ app.delete('/api/pets/:pet_id', async (req, res) => {
 });
 
 // ========== 8. 服务列表 ==========
-// ========== 8. 服务列表 ==========
 app.get('/api/services', async (req, res) => {
   try {
-    // 1. 从请求头中提取前端的 Bearer Token
-    const authHeader = req.headers.authorization;
-    let token = null;
-    if (authHeader && authHeader.startsWith('Bearer ')) {
-      token = authHeader.split(' ')[1];
-    }
 
-    // 2. 创建一个拥有 Token 的 Supabase 客户端实例，专门用来过 RLS 验证
-    const authedSupabase = createClient(
-      process.env.SUPABASE_URL,
-      process.env.SUPABASE_KEY,
-      {
-        auth: {
-          autoRefreshToken: false,
-          persistSession: false,
-          detectSessionInUrl: false
-        }
-      }
-    );
-    if (token) {
-      await authedSupabase.auth.setAuth(token); // 注入用户身份！
-    }
-
-    // 3. 使用带有 Token 的 authedSupabase 来查数据（而不是全局的 supabase）
-    const { data: services, error: svcError } = await authedSupabase
+    // 使用 supabaseAdmin 绕过 RLS 读取服务列表
+    const { data: services, error: svcError } = await supabaseAdmin
       .from('service')
       .select('service_id, service_name, category, duration, description');
     if (svcError) throw svcError;
 
-    const { data: prices, error: priceError } = await authedSupabase
+    const { data: prices, error: priceError } = await supabaseAdmin
       .from('service_price')
       .select('service_id, species, starting_price');
     if (priceError) throw priceError;
@@ -459,7 +441,7 @@ app.get('/api/services', async (req, res) => {
 app.get('/api/bookings', async (req, res) => {
   try {
     const customer_id = getCustomerId(req);
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('booking')
       .select(`
         booking_id,
@@ -524,7 +506,7 @@ app.post('/api/bookings', async (req, res) => {
       return res.status(400).json({ success: false, message: 'We are closed on Thursdays.' });
     }
 
-    const { data: pet, error: petError } = await supabase
+    const { data: pet, error: petError } = await supabaseAdmin
       .from('pet')
       .select('species, weight')
       .eq('pet_id', pet_id)
@@ -532,7 +514,7 @@ app.post('/api/bookings', async (req, res) => {
     if (petError) throw petError;
     const species = pet.species || 'dog';
 
-    const { data: services, error: svcError } = await supabase
+    const { data: services, error: svcError } = await supabaseAdmin
       .from('service')
       .select('service_id, service_name, category')
       .in('service_id', service_ids);
@@ -544,7 +526,7 @@ app.post('/api/bookings', async (req, res) => {
     let total_price = 0;
     const bookingServices = [];
     for (const svc of services) {
-      const { data: priceData, error: priceError } = await supabase
+      const { data: priceData, error: priceError } = await supabaseAdmin
         .from('service_price')
         .select('starting_price')
         .eq('service_id', svc.service_id)
@@ -569,7 +551,7 @@ app.post('/api/bookings', async (req, res) => {
       total_price += price;
     }
 
-    const { data: booking, error: insertError } = await supabase
+    const { data: booking, error: insertError } = await supabaseAdmin
       .from('booking')
       .insert([{
         customer_id,
@@ -591,12 +573,12 @@ app.post('/api/bookings', async (req, res) => {
       service_id: bs.service_id,
       estimated_price: bs.estimated_price
     }));
-    const { error: bsError } = await supabase
+    const { error: bsError } = await supabaseAdmin
       .from('booking_service')
       .insert(bookingServiceRecords);
     if (bsError) throw bsError;
 
-    const { data: fullBooking, error: fetchError } = await supabase
+    const { data: fullBooking, error: fetchError } = await supabaseAdmin
       .from('booking')
       .select(`
         booking_id,
@@ -655,7 +637,7 @@ app.put('/api/bookings/:booking_id/cancel', async (req, res) => {
     const customer_id = getCustomerId(req);
     const { booking_id } = req.params;
 
-    const { data: booking, error: fetchError } = await supabase
+    const { data: booking, error: fetchError } = await supabaseAdmin
       .from('booking')
       .select('status')
       .eq('booking_id', booking_id)
@@ -668,7 +650,7 @@ app.put('/api/bookings/:booking_id/cancel', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Only pending or upcoming bookings can be cancelled.' });
     }
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from('booking')
       .update({ status: 'cancelled' })
       .eq('booking_id', booking_id);
@@ -687,7 +669,7 @@ app.put('/api/bookings/:booking_id/cancel', async (req, res) => {
 // ========== 10. 评价 ==========
 app.get('/api/reviews', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('review')
       .select(`
         review_id,
@@ -727,7 +709,7 @@ app.post('/api/reviews', async (req, res) => {
     const customer_id = getCustomerId(req);
     const { booking_id, service_id, rating, comment, review_photo } = req.body;
 
-    const { data: booking, error: checkError } = await supabase
+    const { data: booking, error: checkError } = await supabaseAdmin
       .from('booking')
       .select('status')
       .eq('booking_id', booking_id)
@@ -740,7 +722,7 @@ app.post('/api/reviews', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Only completed bookings can be reviewed.' });
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from('review')
       .insert([{
         customer_id,
