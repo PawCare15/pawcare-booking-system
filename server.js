@@ -443,8 +443,8 @@ app.get('/api/bookings', async (req, res) => {
         booking_id,
         booking_date,
         booking_time,
-        check_in_date,
-        check_out_date,
+        check_in_datetime,  
+        check_out_datetime,
         status,
         total_price,
         special_notes,
@@ -465,8 +465,8 @@ app.get('/api/bookings', async (req, res) => {
         booking_id: b.booking_id,
         booking_date: b.booking_date,
         booking_time: b.booking_time,
-        check_in_date: b.check_in_date,
-        check_out_date: b.check_out_date,
+        check_in_datetime: b.check_in_datetime,   // 👈 改成读取这个
+        check_out_datetime: b.check_out_datetime,
         status: b.status,
         total_price: b.total_price,
         special_notes: b.special_notes,
@@ -497,7 +497,7 @@ app.get('/api/bookings', async (req, res) => {
 app.post('/api/bookings', async (req, res) => {
   try {
     const customer_id = getCustomerId(req);
-    const { pet_id, service_ids, booking_date, booking_time, check_in_date, check_out_date, special_notes } = req.body;
+    const { pet_id, service_ids, booking_date, booking_time, check_in_datetime, check_out_datetime, special_notes } = req.body;
 
     if (isThursday(booking_date)) {
       return res.status(400).json({ success: false, message: 'We are closed on Thursdays.' });
@@ -532,8 +532,8 @@ app.post('/api/bookings', async (req, res) => {
       if (priceError) throw priceError;
       let price = priceData ? priceData.starting_price : 0;
 
-      if (svc.category === 'boarding' && check_in_date && check_out_date) {
-        const nights = Math.ceil((new Date(check_out_date) - new Date(check_in_date)) / (1000*60*60*24));
+      if (svc.category === 'boarding' && check_in_datetime && check_out_datetime) {
+        const nights = Math.ceil((new Date(check_out_datetime) - new Date(check_in_datetime)) / (1000*60*60*24));
         if (nights > 0) {
           price = price * nights;
         } else {
@@ -555,8 +555,8 @@ app.post('/api/bookings', async (req, res) => {
         pet_id,
         booking_date,
         booking_time,
-        check_in_date,
-        check_out_date,
+        check_in_datetime,   
+        check_out_datetime,
         total_price,
         special_notes,
         status: 'pending'
@@ -582,8 +582,8 @@ app.post('/api/bookings', async (req, res) => {
         booking_id,
         booking_date,
         booking_time,
-        check_in_date,
-        check_out_date,
+        check_in_datetime,   
+        check_out_datetime,
         status,
         total_price,
         special_notes,
@@ -602,8 +602,8 @@ app.post('/api/bookings', async (req, res) => {
       booking_id: fullBooking.booking_id,
       booking_date: fullBooking.booking_date,
       booking_time: fullBooking.booking_time,
-      check_in_date: fullBooking.check_in_date,
-      check_out_date: fullBooking.check_out_date,
+      check_in_datetime: fullBooking.check_in_datetime,
+      check_out_datetime: fullBooking.check_out_datetime,
       status: fullBooking.status,
       total_price: fullBooking.total_price,
       special_notes: fullBooking.special_notes,
