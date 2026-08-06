@@ -397,44 +397,39 @@ app.delete('/api/pets/:pet_id', async (req, res) => {
 // ========== 8. 服务列表 ==========
 app.get('/api/services', async (req, res) => {
   try {
-    const { data, error } = await supabase
+    // 1. 获取所有服务
+    const { data: services, error: svcError } = await supabase
       .from('service')
-      .select(`
-        service_id,
-        service_name,
-        category,
-        duration,
-        description,
-        service_price (
-          price_id,
-          species,
-          starting_price
-        )
-      `);
+      .select('service_id, service_name, category, duration, description');
+    if (svcError) throw svcError;
 
-        // 🔍 添加日志
-    console.log('Services data:', data);
-    console.log('Services error:', error);
+    // 2. 获取所有价格
+    const { data: prices, error: priceError } = await supabase
+      .from('service_price')
+      .select('service_id, species, starting_price');
+    if (priceError) throw priceError;
 
-    if (error) throw error;
-    const services = data.map(s => {
-      const prices = s.service_price || [];
-      const dogPrice = prices.find(p => p.species === 'dog')?.starting_price || null;
-      const catPrice = prices.find(p => p.species === 'cat')?.starting_price || null;
+    // 3. 合并
+    const result = services.map(svc => {
+      const svcPrices = prices.filter(p => p.service_id === svc.service_id);
+      const dogPrice = svcPrices.find(p => p.species === 'dog')?.starting_price || null;
+      const catPrice = svcPrices.find(p => p.species === 'cat')?.starting_price || null;
       return {
-        service_id: s.service_id,
-        service_name: s.service_name,
-        category: s.category,
-        duration: s.duration,
-        description: s.description,
+        service_id: svc.service_id,
+        service_name: svc.service_name,
+        category: svc.category,
+        duration: svc.duration,
+        description: svc.description,
         price_dog: dogPrice,
         price_cat: catPrice
       };
     });
-    res.json({ success: true, data: services });
+
+    console.log('Services result:', result); // 打印查看
+    res.json({ success: true, data: result });
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
