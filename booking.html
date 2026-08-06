@@ -1770,7 +1770,7 @@
                     const isBoardingCategory = svc.category && svc.category.toLowerCase() === 'boarding';
                     html += `
                         <label class="service-checkbox-item" data-service-id="${svc.service_id}">
-                            <input type="checkbox" name="services" value="${svc.service_id}" data-price-dog="${svc.price_dog || 0}" data-price-cat="${svc.price_cat || 0}" data-name="${svc.service_name}" data-category="${svc.category || ''}" />
+                            <input type="checkbox" name="services" value="${svc.service_id}" data-price-dog="${svc.price_dog || 0}" data-price-cat="${svc.price_cat || 0}" data-name="${svc.service_name}" data-category="${(svc.category || '').toLowerCase()}" />
                             <div class="service-info">
                                 <span class="service-name"><i class="${icon}"></i> ${svc.service_name}</span>
                                 <span class="service-desc">${svc.description || ''}</span>
