@@ -162,12 +162,6 @@
       margin-top: auto;
       border-top: 1px solid rgba(255,255,255,0.08);
       padding-top: 16px;
-      color: #E8A87C;
-    }
-
-    .nav-item.logout:hover {
-      background-color: #8B3A3A;
-      color: #FFFFFF;
     }
 
     /* ================================================================
@@ -313,12 +307,13 @@
     }
 
     /* ================================================================
-       DASHBOARD CONTENT (原有样式保持不变)
+       DASHBOARD CONTENT
        ================================================================ */
     .welcome-banner {
       background: linear-gradient(135deg, #FDF5E6 0%, #F5E8D8 100%);
       border-radius: 16px;
       padding: 30px 36px;
+      margin-top: 20px;
       margin-bottom: 28px;
       border: 1px solid #EFECE6;
     }
@@ -522,11 +517,22 @@
     .btn-secondary {
       background: #EFECE6;
       color: #7A7A7A;
-      border: 1px solid #E8E4DC;
     }
 
     .btn-secondary:hover {
       background: #E0D9D0;
+    }
+
+    .btn-danger {
+      background: #DC2626;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(220,38,38,0.25);
+    }
+
+    .btn-danger:hover {
+      background: #B91C1C;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(220,38,38,0.3);
     }
 
     .btn-sm {
@@ -651,6 +657,12 @@
       text-align: center;
       padding: 30px 20px;
       color: #B0A090;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      grid-column: 1 / -1;
+      min-height: 120px;
     }
 
     .empty-pets i {
@@ -1211,7 +1223,6 @@
     </div>
 
     <nav class="nav-menu">
-      <!-- ✅ Dashboard 项为 active -->
       <a href="dashboard.html" class="nav-item active"><i class="fa-solid fa-house"></i> Dashboard</a>
       <a href="mypet.html" class="nav-item"><i class="fa-solid fa-paw"></i> My Pets</a>
       <a href="booking.html" class="nav-item"><i class="fa-regular fa-calendar-plus"></i> Book Appointment</a>
@@ -1352,43 +1363,8 @@
                   <th>Status</th>
                 </tr>
               </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <div class="table-pet">
-                      <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=50" alt="Buddy">
-                      Buddy
-                    </div>
-                  </td>
-                  <td>Grooming</td>
-                  <td>12 Jul 2026</td>
-                  <td>10:00 AM</td>
-                  <td><span class="status-pill success">Completed</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="table-pet">
-                      <img src="https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&q=80&w=50" alt="Luna">
-                      Luna
-                    </div>
-                  </td>
-                  <td>Nail Cut</td>
-                  <td>25 Jun 2026</td>
-                  <td>11:00 AM</td>
-                  <td><span class="status-pill success">Completed</span></td>
-                </tr>
-                <tr>
-                  <td>
-                    <div class="table-pet">
-                      <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=50" alt="Buddy">
-                      Buddy
-                    </div>
-                  </td>
-                  <td>Check-up</td>
-                  <td>10 Jun 2026</td>
-                  <td>09:30 AM</td>
-                  <td><span class="status-pill danger">Cancelled</span></td>
-                </tr>
+              <tbody id="recentBookingsBody">
+                <!-- 由 JavaScript 动态渲染 -->
               </tbody>
             </table>
           </div>
@@ -1400,32 +1376,11 @@
         <div class="card full-height">
           <div class="card-header flex-between">
             <h3><i class="fa-regular fa-bell card-title-icon"></i> Notifications</h3>
+            <a href="history.html" class="view-all">View All</a>
           </div>
           
-          <div class="notification-list">
-            <div class="notification-item">
-              <div class="notif-icon"><i class="fa-regular fa-calendar"></i></div>
-              <div class="notif-content">
-                <p>Your appointment for <strong>Buddy</strong> is tomorrow at 2:00 PM.</p>
-              </div>
-              <span class="time">1h ago</span>
-            </div>
-
-            <div class="notification-item">
-              <div class="notif-icon"><i class="fa-solid fa-syringe"></i></div>
-              <div class="notif-content">
-                <p><strong>Luna's vaccination</strong> is due next week. Please book an appointment.</p>
-              </div>
-              <span class="time">1d ago</span>
-            </div>
-
-            <div class="notification-item">
-              <div class="notif-icon"><i class="fa-solid fa-bullhorn"></i></div>
-              <div class="notif-content">
-                <p>Check out our new grooming packages! Book now and give your pet the best care.</p>
-              </div>
-              <span class="time">3d ago</span>
-            </div>
+          <div class="notification-list" id="notificationList">
+            <!-- 由 JavaScript 动态渲染 -->
           </div>
 
           <div class="dashed-info-box">
@@ -1435,7 +1390,6 @@
               <p>You will be notified after your booking is confirmed.</p>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -1539,11 +1493,11 @@
   </main>
 
   <!-- ================================================================
-  JAVASCRIPT - All Functions（完全保留原有逻辑，不做任何修改）
+  JAVASCRIPT - All Functions
   ================================================================ -->
   <script>
     // ================================================================
-    // AUTH CHECK - 立即执行，防止后退访问
+    // AUTH CHECK - 防止后退访问已登出页面
     // ================================================================
     (function checkAuth() {
         const token = localStorage.getItem('token');
@@ -1553,29 +1507,16 @@
         }
     })();
 
-    // ================================================================
-    // ===== 封装带 Token 的请求 =====
-    // ================================================================
-    async function authFetch(url, options = {}) {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = 'login.html';
-            return;
+    // 检测后退按钮从缓存加载页面
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            const tokenCheck = localStorage.getItem('token');
+            if (!tokenCheck) {
+                window.location.replace('index.html');
+            }
         }
-        const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            ...options.headers
-        };
-        const response = await fetch(url, { ...options, headers });
-        if (response.status === 401) {
-            localStorage.clear();
-            window.location.href = 'login.html';
-            throw new Error('Unauthorized');
-        }
-        return response;
-    }
-
+    });
+    
     // ================================================================
     // SCROLLBAR COMPENSATION
     // ================================================================
@@ -1721,16 +1662,26 @@
     }
 
     async function renderRecentBookings() {
+        const tableBody = document.getElementById('recentBookingsBody');
+        if (!tableBody) return;
+
         try {
             const res = await authFetch('/api/bookings');
             const data = await res.json();
-            if (!data.success) return;
+            if (!data.success) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align:center; color:#7A7A7A; padding:20px;">
+                            Unable to load bookings.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
 
             const bookings = data.data || [];
-            const tableBody = document.querySelector('.booking-table tbody');
-            if (!tableBody) return;
-
             const recent = bookings.slice(0, 3);
+
             if (recent.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
@@ -1744,9 +1695,29 @@
 
             let html = '';
             recent.forEach(b => {
-                const statusClass = b.status === 'completed' ? 'success' : 
-                                  b.status === 'cancelled' ? 'danger' : 'warning';
+                let statusClass = 'warning';
+                let statusText = b.status || 'pending';
+                if (b.status === 'completed') {
+                    statusClass = 'success';
+                } else if (b.status === 'cancelled') {
+                    statusClass = 'danger';
+                }
+
                 const petName = b.pet ? b.pet.name : 'Unknown';
+                
+                let serviceName = 'N/A';
+                if (b.services && b.services.length > 0) {
+                    serviceName = b.services.map(s => s.service_name).join(', ');
+                } else if (b.service_type) {
+                    serviceName = b.service_type;
+                }
+
+                const formattedDate = new Date(b.booking_date).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+
                 html += `
                     <tr>
                         <td>
@@ -1754,16 +1725,142 @@
                                 <span style="font-weight:500;">${petName}</span>
                             </div>
                         </td>
-                        <td>${b.service_type || 'N/A'}</td>
-                        <td>${new Date(b.booking_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' })}</td>
+                        <td>${serviceName}</td>
+                        <td>${formattedDate}</td>
                         <td>${b.booking_time || 'N/A'}</td>
-                        <td><span class="status-pill ${statusClass}">${b.status || 'pending'}</span></td>
+                        <td><span class="status-pill ${statusClass}">${statusText}</span></td>
                     </tr>
                 `;
             });
             tableBody.innerHTML = html;
         } catch (err) {
             console.error('Error loading bookings:', err);
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="5" style="text-align:center; color:#7A7A7A; padding:20px;">
+                        Unable to load bookings.
+                    </td>
+                </tr>
+            `;
+        }
+    }
+
+    // ================================================================
+    // RENDER NOTIFICATIONS
+    // ================================================================
+    async function renderNotifications() {
+        const container = document.getElementById('notificationList');
+        if (!container) return;
+
+        try {
+            const res = await authFetch('/api/bookings');
+            const data = await res.json();
+            if (!data.success) {
+                container.innerHTML = `
+                    <div style="text-align:center; color:#7A7A7A; padding:20px; font-size:13px;">
+                        <i class="fa-regular fa-bell"></i> Unable to load notifications.
+                    </div>
+                `;
+                return;
+            }
+
+            const bookings = data.data || [];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            // 计算明天的日期
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            const tomorrowStr = tomorrow.toISOString().split('T')[0];
+
+            // 筛选明天的预约
+            const tomorrowBookings = bookings.filter(b => {
+                const bookingDate = new Date(b.booking_date);
+                bookingDate.setHours(0, 0, 0, 0);
+                return bookingDate.getTime() === tomorrow.getTime() && b.status !== 'cancelled';
+            });
+
+            // 筛选即将到来的预约（未来3天内）
+            const threeDaysLater = new Date(today);
+            threeDaysLater.setDate(threeDaysLater.getDate() + 3);
+            
+            const upcomingBookings = bookings.filter(b => {
+                const bookingDate = new Date(b.booking_date);
+                bookingDate.setHours(0, 0, 0, 0);
+                return bookingDate >= today && 
+                       bookingDate <= threeDaysLater && 
+                       b.status !== 'cancelled' &&
+                       bookingDate.getTime() !== tomorrow.getTime();
+            });
+
+            let html = '';
+
+            // 如果有明天的预约，显示提醒
+            if (tomorrowBookings.length > 0) {
+                tomorrowBookings.forEach(b => {
+                    const petName = b.pet ? b.pet.name : 'Unknown';
+                    const time = b.booking_time || 'N/A';
+                    html += `
+                        <div class="notification-item" style="background: #FEF7E0; border-radius: 8px; padding: 10px 14px; border: 1px solid #FDE68A;">
+                            <div class="notif-icon" style="background: #FDE68A;"><i class="fa-solid fa-clock" style="color: #D97706;"></i></div>
+                            <div class="notif-content">
+                                <p><strong>⏰ Tomorrow!</strong> Your appointment for <strong>${petName}</strong> is at <strong>${time}</strong>.</p>
+                                <div style="font-size: 11px; color: #B06000; margin-top: 2px;">
+                                    <i class="fa-regular fa-calendar"></i> ${tomorrow.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })}
+                                </div>
+                            </div>
+                            <span class="time" style="font-weight: 600; color: #D97706;">Tomorrow</span>
+                        </div>
+                    `;
+                });
+            }
+
+            // 显示其他即将到来的预约
+            if (upcomingBookings.length > 0) {
+                upcomingBookings.slice(0, 3).forEach(b => {
+                    const petName = b.pet ? b.pet.name : 'Unknown';
+                    const date = new Date(b.booking_date);
+                    const dateDisplay = date.toLocaleDateString('en-GB', { 
+                        weekday: 'long', 
+                        day: '2-digit', 
+                        month: 'short' 
+                    });
+                    const daysUntil = Math.ceil((date - today) / (1000 * 60 * 60 * 24));
+                    let timeDisplay = '';
+                    if (daysUntil === 0) timeDisplay = 'Today';
+                    else if (daysUntil === 1) timeDisplay = 'Tomorrow';
+                    else timeDisplay = `In ${daysUntil} days`;
+                    
+                    html += `
+                        <div class="notification-item">
+                            <div class="notif-icon"><i class="fa-regular fa-calendar"></i></div>
+                            <div class="notif-content">
+                                <p>Upcoming appointment for <strong>${petName}</strong> on <strong>${dateDisplay}</strong>.</p>
+                            </div>
+                            <span class="time">${timeDisplay}</span>
+                        </div>
+                    `;
+                });
+            }
+
+            // 如果没有即将到来的预约
+            if (!html) {
+                html = `
+                    <div style="text-align:center; color:#7A7A7A; padding:30px 10px; font-size:13px;">
+                        <i class="fa-regular fa-bell" style="font-size: 32px; color: #D3C4B8; display: block; margin-bottom: 8px;"></i>
+                        No upcoming appointments.<br>Book a new appointment to get started!
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        } catch (err) {
+            console.error('Error loading notifications:', err);
+            container.innerHTML = `
+                <div style="text-align:center; color:#7A7A7A; padding:20px; font-size:13px;">
+                    <i class="fa-regular fa-bell"></i> Unable to load notifications.
+                </div>
+            `;
         }
     }
 
@@ -1809,16 +1906,10 @@
             }
         });
 
-        // 检查 token
-        const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = 'login.html';
-            return;
-        }
-
         // 加载数据
         await renderDashboardPets();
         await renderRecentBookings();
+        await renderNotifications();
 
         console.log('PawCare Dashboard loaded successfully!');
     });

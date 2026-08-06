@@ -1,8 +1,7 @@
+// WAIT FOR DOM TO BE FULLY LOADED
 document.addEventListener('DOMContentLoaded', function() {
 
-    // =========================================================
-    // 自定义弹窗函数
-    // =========================================================
+    // CUSTOM POPUP FUNCTION
     function showPopup(icon, title, message, btnText = 'Got it!') {
         const overlay = document.getElementById('customPopup');
         const iconEl = document.getElementById('popupIcon');
@@ -31,9 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // =========================================================
     // DOM REFERENCES
-    // =========================================================
     const toggleBtn = document.getElementById('togglePassword');
     const toggleConfirmBtn = document.getElementById('toggleConfirmPassword');
     const passwordInput = document.getElementById('regPassword');
@@ -58,9 +55,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const reqNumber = document.getElementById('req-number');
     const reqSpecial = document.getElementById('req-special');
 
-    // =========================================================
     // PASSWORD POLICY
-    // =========================================================
     const passwordPolicy = {
         minLength: 8,
         maxLength: 16,
@@ -70,10 +65,12 @@ document.addEventListener('DOMContentLoaded', function() {
         hasSpecial: /[!@#$%^&*]/,
     };
 
+    // VALIDATE SINGLE REQUIREMENT
     function validateRequirement(value, regex) {
         return regex.test(value);
     }
 
+    // CHECK IF PASSWORD MEETS ALL REQUIREMENTS
     function isPasswordValid(password) {
         const checks = {
             length: password.length >= passwordPolicy.minLength && password.length <= passwordPolicy.maxLength,
@@ -85,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return checks.length && checks.lowercase && checks.uppercase && checks.number && checks.special;
     }
 
+    // UPDATE PASSWORD REQUIREMENTS UI
     function updatePasswordRequirements(password) {
         const checks = {
             length: password.length >= passwordPolicy.minLength && password.length <= passwordPolicy.maxLength,
@@ -118,22 +116,26 @@ document.addEventListener('DOMContentLoaded', function() {
         return checks.length && checks.lowercase && checks.uppercase && checks.number && checks.special;
     }
 
+    // VALIDATE EMAIL FORMAT
     function isValidEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     }
 
+    // VALIDATE NAME - LETTERS AND SPACES ONLY
     function isValidName(name) {
         const nameRegex = /^[A-Za-z\s]+$/;
         return name.trim().length >= 2 && nameRegex.test(name);
     }
 
+    // VALIDATE MALAYSIAN PHONE NUMBER
     function isValidMalaysianPhone(phone) {
         if (!phone || phone.length === 0) return true;
         const phoneRegex = /^0[0-9]{8,10}$/;
         return phoneRegex.test(phone);
     }
 
+    // UPDATE REGISTER BUTTON STATE
     function updateRegisterButton() {
         const name = nameInput.value.trim();
         const email = emailInput.value.trim();
@@ -187,10 +189,8 @@ document.addEventListener('DOMContentLoaded', function() {
         registerBtn.disabled = !(nameOk && emailOk && passwordOk && confirmOk && phoneOk && termsOk);
     }
 
-    // =========================================================
     // EVENTS
-    // =========================================================
-
+    // TOGGLE PASSWORD VISIBILITY
     if (toggleBtn && passwordInput) {
         toggleBtn.addEventListener('click', function() {
             const isPassword = passwordInput.getAttribute('type') === 'password';
@@ -200,6 +200,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // TOGGLE CONFIRM PASSWORD VISIBILITY
     if (toggleConfirmBtn && confirmInput) {
         toggleConfirmBtn.addEventListener('click', function() {
             const isPassword = confirmInput.getAttribute('type') === 'password';
@@ -209,6 +210,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // PASSWORD INPUT EVENT
     passwordInput.addEventListener('input', function() {
         const password = this.value;
         updatePasswordRequirements(password);
@@ -227,19 +229,23 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+     // CONFIRM PASSWORD INPUT EVENT
     confirmInput.addEventListener('input', function() {
         updateRegisterButton();
     });
 
+    // NAME INPUT EVENT - ONLY LETTERS AND SPACES
     nameInput.addEventListener('input', function() {
         this.value = this.value.replace(/[^A-Za-z\s]/g, '');
         updateRegisterButton();
     });
 
+    // EMAIL INPUT EVENT
     emailInput.addEventListener('input', function() {
         updateRegisterButton();
     });
 
+    // PHONE INPUT EVENT - ONLY DIGITS, MAX 11 CHARACTERS
     phoneInput.addEventListener('input', function() {
         this.value = this.value.replace(/[^0-9]/g, '');
         if (this.value.length > 11) {
@@ -248,14 +254,13 @@ document.addEventListener('DOMContentLoaded', function() {
         updateRegisterButton();
     });
 
+    // TERMS CHECKBOX CHANGE EVENT
     termsCheck.addEventListener('change', function() {
         this.dirty = true;
         updateRegisterButton();
     });
 
-    // =========================================================
-    // 注册表单提交 - 替换原来那一段
-    // =========================================================
+    // REGISTER FORM SUBMISSION
     if (registerForm) {
         registerForm.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -267,7 +272,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const phone = phoneInput.value.trim();
             const address = document.getElementById('regAddress').value.trim(); // 确保获取地址
 
-            // 1. 前端格式验证（保留）
+            // FRONTEND VALIDATION
             if (!isValidName(name)) {
                 nameError.textContent = 'Please enter a valid name (letters only).';
                 nameError.classList.add('show');
@@ -312,12 +317,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 2. 禁用按钮防止重复提交
+            // DISABLE BUTTON TO PREVENT DOUBLE SUBMISSION
             registerBtn.disabled = true;
             registerBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Creating Account...';
 
             try {
-                // 3. 发送真正的注册请求到后端 API
+
+                // SEND REGISTRATION REQUEST TO BACKEND API
                 const response = await fetch('/api/register', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -333,13 +339,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
 
                 if (data.success) {
-                    // ✅ 注册成功 → 显示成功弹窗，跳转登录页并带上邮箱参数
+
+                    // REGISTRATION SUCCESSFUL
                     showPopup('🎉', 'Account Created!', 'Your account has been created successfully. Redirecting to login...');
                     setTimeout(() => {
                         window.location.replace('login.html?email=' + encodeURIComponent(email));
                     }, 1500);
                 } else {
-                    // ❌ 注册失败（例如邮箱已被占用）
+
+                    // REGISTRATION FAILED
                     showPopup('😅', 'Registration Failed', data.message || 'Something went wrong. Please try again.');
                 }
 
@@ -347,16 +355,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Registration error:', error);
                 showPopup('❌', 'Network Error', 'Unable to connect to the server. Please check your internet connection.');
             } finally {
-                // 恢复按钮状态
+                
+                // RESTORE BUTTON STATE
                 registerBtn.disabled = false;
                 registerBtn.innerHTML = '<i class="ri-user-add-line"></i> Create Account';
             }
         });
     }
 
-    // =========================================================
-    // INIT — 默认隐藏密码提示
-    // =========================================================
+    // INIT - HIDE PASSWORD REQUIREMENTS BY DEFAULT
     if (reqContainer) {
         reqContainer.classList.remove('show');
     }

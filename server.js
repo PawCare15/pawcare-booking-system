@@ -446,7 +446,6 @@ app.get('/api/bookings', async (req, res) => {
         check_in_datetime,  
         check_out_datetime,
         status,
-        total_price,
         special_notes,
         pet:pet_id (pet_name, breed, species),
         booking_service (
@@ -468,7 +467,7 @@ app.get('/api/bookings', async (req, res) => {
         check_in_datetime: b.check_in_datetime,   // 👈 改成读取这个
         check_out_datetime: b.check_out_datetime,
         status: b.status,
-        total_price: b.total_price,
+        total_price: (b.booking_service || []).reduce((sum, s) => sum + (s.estimated_price || 0), 0),
         special_notes: b.special_notes,
         pet: b.pet ? {
           name: b.pet.pet_name,
@@ -557,7 +556,6 @@ app.post('/api/bookings', async (req, res) => {
         booking_time,
         check_in_datetime,   
         check_out_datetime,
-        total_price,
         special_notes,
         status: 'pending'
       }])
@@ -585,7 +583,6 @@ app.post('/api/bookings', async (req, res) => {
         check_in_datetime,   
         check_out_datetime,
         status,
-        total_price,
         special_notes,
         pet:pet_id (pet_name, breed, species),
         booking_service (
@@ -605,7 +602,7 @@ app.post('/api/bookings', async (req, res) => {
       check_in_datetime: fullBooking.check_in_datetime,
       check_out_datetime: fullBooking.check_out_datetime,
       status: fullBooking.status,
-      total_price: fullBooking.total_price,
+      total_price: (fullBooking.booking_service || []).reduce((sum, s) => sum + (s.estimated_price || 0), 0),
       special_notes: fullBooking.special_notes,
       pet: fullBooking.pet ? {
         name: fullBooking.pet.pet_name,

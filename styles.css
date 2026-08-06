@@ -9,7 +9,7 @@
   --text-light: #af7957cc;
   --white: #ffffff;
   --max-width: 1200px;
-  
+   
   /* Brand accents */
   --btn-green: #3b7a57;
   --btn-green-hover: #2c5c41;
@@ -34,6 +34,8 @@ body {
 
 body {
   font-family: "Poppins", sans-serif;
+  overflow-x: hidden;
+  max-width: 100vw;
 }
 
 img {
@@ -676,7 +678,6 @@ img.header__image-bg {
 .service__section {
   padding: 6rem 8%;
   background: #ffffff;
-  overflow: visible !important;   /* 防止父容器裁剪 */
 }
 
 .service__section.grey {
@@ -697,45 +698,28 @@ img.header__image-bg {
   color: var(--text-light);
 }
 
-/* ===== 卡片 Swiper 容器 ===== */
 .serviceSwiper {
-    padding: 2rem 0 4rem;
-    overflow: visible !important;
-    height: auto !important;
+  width: 100%;
+  padding: 2rem 2rem 4rem;
 }
 
-/* 强制所有内部容器可见，不裁剪 */
-.serviceSwiper .swiper-wrapper,
 .serviceSwiper .swiper-slide {
-    overflow: visible !important;
+  height: auto;
 }
 
-/* Swiper wrapper 宽度由 Swiper 自动管理，我们不干预 */
-.serviceSwiper .swiper-wrapper {
-    width: 100%;
-    overflow: visible !important;
-}
+/* =========================================================
+   SERVICE CARDS LAYOUT (已修复对齐与溢出问题)
+   ========================================================= */
 
-/* 每个 slide 也是 flex 容器，高度自适应 */
-.serviceSwiper .swiper-slide {
-    display: flex;
-    height: auto !important;
-}
-
-/* ===== 卡片本身 ===== */
 .service__item {
-    max-width: 100%;
-    word-wrap: break-word;
-    box-sizing: border-box;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100% !important;           /* 占满 slide 高度 */
-    padding: 1.5rem;
-    background: #ffffff;
-    border-radius: 25px;
-    box-shadow: 0 15px 35px rgba(167, 94, 49, 0.12);
-    transition: all 0.3s ease;
+  height: 100%; /* 确保高度填满 Swiper Slide */
+  background: #ffffff;
+  padding: 2rem;
+  border-radius: 25px;
+  box-shadow: 0 15px 35px rgba(167, 94, 49, 0.12);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column; /* 垂直排布 */
 }
 
 .service__item:hover {
@@ -744,25 +728,26 @@ img.header__image-bg {
 }
 
 .service__item img {
-    width: 100%;
-    height: 200px;
-    object-fit: cover;
-    border-radius: 20px;
+  width: 100%;
+  height: 240px;
+  object-fit: cover;
+  border-radius: 20px;
 }
 
 .service__item h3 {
-    margin-top: 1rem;
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: var(--text-dark);
+  margin-top: 1.5rem;
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: var(--text-dark);
 }
 
+/* 核心魔法：让简介段落占据剩余的全部空白，把下方元素挤到底部 */
 .service__item p {
-    flex: 1;
-    margin: 0.8rem 0 1rem;
-    font-size: 1rem;
-    line-height: 1.6rem;
-    color: var(--text-light);
+  margin: 1rem 0 1.5rem 0; 
+  flex-grow: 1; /* 替代原来的 min-height，自动弹性拉伸 */
+  font-size: 1.2rem;
+  line-height: 1.8rem;
+  color: var(--text-light);
 }
 
 .service__item h4 {
@@ -776,57 +761,67 @@ img.header__image-bg {
   font-size: 1.15rem;
   font-weight: 600;
   color: var(--text-light);
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
-.service__item .book-btn {
-  margin-top: auto;
-  width: 100%;
+/* =========================================================
+   SERVICE DISCLAIMER (服务区块底部价格注释 - 字体放大版)
+   ========================================================= */
+.service-disclaimer {
+  text-align: center;
+  font-size: 1.1rem;       /* 核心修改：从0.95rem调大到了1.1rem */
+  font-weight: 600;        
+  color: var(--text-dark); 
+  font-style: italic;      
+  margin-top: 15px;        
+  margin-bottom: 40px;     
+  padding: 0 20px;
+  line-height: 1.5;
 }
 
-/* ===== 价格标签 ===== */
+/* =========================================================
+   PRICE TAGS (网格平分，防止过长文字撑破卡片)
+   ========================================================= */
 .price-group {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 0.8rem;
+  display: grid; 
+  grid-template-columns: 1fr 1fr; /* 绝对平分为两等份 */
+  gap: 8px; /* 标签中间的缝隙 */
+  margin-bottom: 15px; /* 与下方元素的距离 */
   width: 100%;
 }
 
 .price-item {
   background-color: #f7f5ed;
-  color: var(--text-dark);
-  font-size: 0.85rem;
+  color: var(--text-dark); 
+  font-size: 0.85rem; /* 稍微调小一点字体，确保长价格能塞下 */
   font-weight: 600;
-  padding: 8px 4px;
-  border-radius: 50px;
+  padding: 8px 4px; /* 减小左右内边距 */
+  border-radius: 50px; 
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 4px; 
   text-align: center;
   line-height: 1.2;
-  white-space: normal;
+  white-space: normal; /* 允许极端情况下换行，绝不超出卡片边缘 */
 }
 
 .pet-icon {
   font-size: 1.1rem;
 }
 
-/* ===== 服务说明 ===== */
-.service-disclaimer {
-  text-align: center;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--text-dark);
-  font-style: italic;
-  margin-top: 15px;
-  margin-bottom: 40px;
-  padding: 0 20px;
-  line-height: 1.5;
+/* 确保按钮在最底部填满 */
+.service__item .book-btn {
+  margin-top: auto; 
+  width: 100%; 
 }
 
-/* ===== Swiper 导航按钮与分页 ===== */
+/* 确保 Swiper 的每一页高度统一撑开 */
+.swiper-slide {
+  height: auto; 
+}
+
+/* Swiper Controls & Hover Effects */
 .swiper-button-next,
 .swiper-button-prev {
   color: var(--text-dark) !important;
@@ -891,13 +886,32 @@ img.header__image-bg {
 }
 
 .carousel-img {
-  height: 500px;
+  width: 100%;
+  max-height: 500px;          /* ✅ 桌面端限制最大高度为 500px */
+  height: auto;
+  aspect-ratio: 16 / 9;
   object-fit: cover;
   border-radius: 1rem;
+  background-color: #f0f0f0;
+}
+
+.carousel-caption {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  padding: 0 15px;
+  text-align: center;
+  display: block !important;
 }
 
 .caption-box {
   max-width: 650px;
+  margin: 0 auto;
+  background: rgba(0, 0, 0, 0.55) !important;
+  padding: 12px 20px;
+  border-radius: 30px;
+  backdrop-filter: blur(2px);
 }
 
 .carousel-caption h5,
@@ -910,7 +924,7 @@ img.header__image-bg {
   color: rgba(255, 255, 255, 0.75) !important;
 }
 
-/* Card Features */
+/* Card Features - 保持原样 */
 .card-icon-circle {
   width: 55px;
   height: 55px;
@@ -951,6 +965,29 @@ img.header__image-bg {
 .about-card p strong,
 .about-card .text-muted {
   color: var(--text-light) !important;
+}
+
+/* 移动端适配：图片高度调大 */
+@media (max-width: 768px) {
+  .carousel-img {
+    height: 400px;
+    max-height: none;          /* 手机端不受 max-height 限制 */
+    object-fit: cover;
+    aspect-ratio: auto;
+  }
+  .carousel-caption {
+    bottom: 10px;
+  }
+  .caption-box {
+    padding: 10px 15px;
+    border-radius: 20px;
+  }
+  .carousel-caption h5 {
+    font-size: 1.2rem;  /* 稍微放大 */
+  }
+  .carousel-caption p {
+    font-size: 0.9rem;
+  }
 }
 
 /* =========================================================

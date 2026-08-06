@@ -12,8 +12,8 @@
   <title>PAW WALKER GROOMING HOUSE</title>
 </head>
 
-<body>
-  <body id="home">
+<body id="home">  <!-- 修复：删掉多余的 <body>，只保留一个并加 id -->
+
   <nav>
     <div class="nav__header">
 
@@ -39,7 +39,8 @@
     </ul>
   </nav>
 
-  <section class="about-hero-wrapper">
+  <!-- ===== 修改点 1：标题区域增加更大的顶部内边距，避开固定导航 ===== -->
+  <section class="about-hero-wrapper" style="padding-top: 7rem;">
     <div class="container text-center pt-5 pb-4" id="about">
       <span class="text-primary text-uppercase small d-block mb-1">Get To Know Us</span>
       <h1 class="fw-bold mb-2">ABOUT US</h1>
@@ -93,7 +94,7 @@
     </main>
   </section>
 
-  <!-- Cards Section -->
+  <!-- Cards Section（完全保持原状，未改动） -->
   <section class="container my-5">
     <div class="row g-4">
       <div class="col-md-6">
@@ -122,7 +123,7 @@
     </div>
   </section>
 
-  <!-- Mission, Vision & Values Section -->
+  <!-- Mission, Vision & Values（完全保持原状，未改动） -->
   <section class="container my-5">
     <div class="text-center mb-5">
       <span class="text-primary text-uppercase small d-block mb-1">Our Foundation</span>
@@ -131,7 +132,6 @@
     </div>
 
     <div class="row g-4 justify-content-center">
-      <!-- Mission Card -->
       <div class="col-lg-4 col-md-6">
         <div class="card mission-card h-100 shadow-sm rounded-4 text-center bg-white p-4">
           <div class="d-flex justify-content-center mb-3">
@@ -147,7 +147,6 @@
         </div>
       </div>
 
-      <!-- Vision Card -->
       <div class="col-lg-4 col-md-6">
         <div class="card vision-card h-100 shadow-sm rounded-4 text-center bg-white p-4">
           <div class="d-flex justify-content-center mb-3">
@@ -163,7 +162,6 @@
         </div>
       </div>
 
-      <!-- Values Card -->
       <div class="col-lg-4 col-md-6">
         <div class="card values-card h-100 shadow-sm rounded-4 text-center bg-white p-4">
           <div class="d-flex justify-content-center mb-3">
@@ -181,7 +179,7 @@
     </div>
   </section>
 
-  <!-- Google Maps Location Section -->
+  <!-- Google Maps Location（完全保持原状，未改动） -->
   <section class="container my-5">
     <div class="text-center mb-4">
       <span class="text-primary text-uppercase small d-block mb-1">Visit Us</span>
@@ -247,56 +245,55 @@
     </div>
   </section>
 
-<footer class="footer">
-  <div class="footer__container">
-    <!-- Left Column: Brand -->
-    <div class="footer__col">
-      <h2>Best Pet Care Agency For Your Favorite Pets</h2>
-      <div class="footer__socials">
-        <a href="https://www.facebook.com/share/18JxgBNATe/" target="_blank" rel="noopener noreferrer">
-          <i class="ri-facebook-fill"></i>
-        </a>
-        <a href="https://www.instagram.com/pawwalkergrooming" target="_blank" rel="noopener noreferrer">
-          <i class="ri-instagram-line"></i>
-        </a>
+  <footer class="footer">
+    <div class="footer__container">
+      <!-- Left Column: Brand -->
+      <div class="footer__col">
+        <h2>Best Pet Care Agency For Your Favorite Pets</h2>
+        <div class="footer__socials">
+          <a href="https://www.facebook.com/share/18JxgBNATe/" target="_blank" rel="noopener noreferrer">
+            <i class="ri-facebook-fill"></i>
+          </a>
+          <a href="https://www.instagram.com/pawwalkergrooming" target="_blank" rel="noopener noreferrer">
+            <i class="ri-instagram-line"></i>
+          </a>
+        </div>
+      </div>
+
+      <!-- Middle Column: Contact -->
+      <div class="footer__col">
+        <h3>Contact</h3>
+        <p>pawcare@gmail.com</p>
+        <p>+60 18-949 8913</p>
+        <p>
+          Paw Walker Grooming House<br>
+          7460, TINGKAT BAWAH, Jln Bagan Lalang,<br>
+          13400 Butterworth, Penang
+        </p>
+      </div>
+
+      <!-- Right Column: Quick Links -->
+      <div class="footer__col">
+        <ul class="footer__links">
+          <h3>Quick Links</h3>
+          <li><a href="index.html">Home</a></li> 
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="service.html">Services</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="login.html">Book Now</a></li>
+        </ul>
       </div>
     </div>
 
-    <!-- Middle Column: Contact -->
-    <div class="footer__col">
-      <h3>Contact</h3>
-      <p>pawcare@gmail.com</p>
-      <p>+60 18-949 8913</p>
-      <p>
-        Paw Walker Grooming House<br>
-        7460, TINGKAT BAWAH, Jln Bagan Lalang,<br>
-        13400 Butterworth, Penang
-      </p>
+    <!-- Bottom Bar: Copyright only -->
+    <div class="footer__bottom">
+      <p>© 2025-2026 Paw Walker Grooming House</p>
     </div>
+  </footer>
 
-    <!-- Right Column: Quick Links -->
-    <div class="footer__col">
-      <!-- Quick Link 区域 -->
-          <ul class="footer__links">
-            <h3>Quick Links</h3>
-            <li><a href="index.html">Home</a></li> 
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="service.html">Services</a></li>
-            <li><a href="faq.html">FAQ</a></li>
-            <li><a href="login.html">Book Now</a></li>
-          </ul>
-    </div>
-  </div>
-
-  <!-- Bottom Bar: Copyright only -->
-  <div class="footer__bottom">
-    <p>© 2025-2026 Paw Walker Grooming House</p>
-  </div>
-</footer>
-
-    <script src="https://unpkg.com/scrollreveal"></script>
-    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="index.js"></script>
-  </body>
+  <script src="https://unpkg.com/scrollreveal"></script>
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="index.js"></script>
+</body>
 </html>

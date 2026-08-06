@@ -162,12 +162,6 @@
       margin-top: auto;
       border-top: 1px solid rgba(255,255,255,0.08);
       padding-top: 16px;
-      color: #E8A87C;
-    }
-
-    .nav-item.logout:hover {
-      background-color: #8B3A3A;
-      color: #FFFFFF;
     }
 
     /* ================================================================
@@ -1493,7 +1487,7 @@
   ================================================================ -->
   <script>
     // ================================================================
-    // AUTH CHECK - 立即执行，防止后退访问
+    // AUTH CHECK - 防止后退访问已登出页面
     // ================================================================
     (function checkAuth() {
         const token = localStorage.getItem('token');
@@ -1503,28 +1497,16 @@
         }
     })();
 
-    // ================================================================
-    // ===== 封装带 Token 的请求 =====
-    // ================================================================
-    async function authFetch(url, options = {}) {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = 'login.html';
-            return;
+    // 检测后退按钮从缓存加载页面
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            const tokenCheck = localStorage.getItem('token');
+            if (!tokenCheck) {
+                window.location.replace('index.html');
+            }
         }
-        const headers = {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`,
-            ...options.headers
-        };
-        const response = await fetch(url, { ...options, headers });
-        if (response.status === 401) {
-            localStorage.clear();
-            window.location.href = 'login.html';
-            throw new Error('Unauthorized');
-        }
-        return response;
-    }
+    });
+    
     
     // ==========================================
     // TOGGLE PASSWORD VISIBILITY

@@ -1,8 +1,7 @@
+// WAIT FOR DOM TO BE FULLY LOADED
 document.addEventListener('DOMContentLoaded', function() {
 
-    // =========================================================
-    // 自定义弹窗函数
-    // =========================================================
+    // CUSTOM POPUP FUNCTION
     function showPopup(icon, title, message, btnText = 'Got it!') {
         const overlay = document.getElementById('customPopup');
         const iconEl = document.getElementById('popupIcon');
@@ -31,9 +30,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // =========================================================
     // DOM REFERENCES
-    // =========================================================
     const toggleBtn = document.getElementById('togglePassword');
     const passwordInput = document.getElementById('loginPassword');
     const emailInput = document.getElementById('loginEmail');
@@ -49,9 +46,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const reqSpecial = document.getElementById('req-special');
     const reqContainer = document.getElementById('passwordRequirements');
 
-    // =========================================================
     // PASSWORD POLICY
-    // =========================================================
     const passwordPolicy = {
         minLength: 8,
         maxLength: 16,
@@ -61,10 +56,12 @@ document.addEventListener('DOMContentLoaded', function() {
         hasSpecial: /[!@#$%^&*]/,
     };
 
+    // VALIDATE SINGLE REQUIREMENT
     function validateRequirement(value, regex) {
         return regex.test(value);
     }
 
+    // CHECK IF PASSWORD MEETS ALL REQUIREMENTS
     function isPasswordValid(password) {
         const checks = {
             length: password.length >= passwordPolicy.minLength && password.length <= passwordPolicy.maxLength,
@@ -76,6 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return checks.length && checks.lowercase && checks.uppercase && checks.number && checks.special;
     }
 
+    // UPDATE PASSWORD REQUIREMENTS UI
     function updatePasswordRequirements(password) {
         const checks = {
             length: password.length >= passwordPolicy.minLength && password.length <= passwordPolicy.maxLength,
@@ -109,11 +107,13 @@ document.addEventListener('DOMContentLoaded', function() {
         return checks.length && checks.lowercase && checks.uppercase && checks.number && checks.special;
     }
 
+    // VALIDATE EMAIL FORMAT
     function isValidEmail(email) {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         return emailRegex.test(email);
     }
 
+    // UPDATE LOGIN BUTTON STATE
     function updateLoginButton() {
         const email = emailInput.value.trim();
         const password = passwordInput.value;
@@ -131,24 +131,21 @@ document.addEventListener('DOMContentLoaded', function() {
         loginBtn.disabled = !(emailOk && passwordOk);
     }
 
-    // =========================================================
-    // 自动填充 URL 参数中的邮箱（注册后跳转回来）
-    // =========================================================
+    // AUTO FILL EMAIL FROM URL PARAMETER
     const urlParams = new URLSearchParams(window.location.search);
     const emailFromUrl = urlParams.get('email');
     if (emailFromUrl) {
         const emailInput = document.getElementById('loginEmail');
         if (emailInput) {
             emailInput.value = emailFromUrl;
-            // 触发验证更新
+            
+            // TRIGGER VALIDATION UPDATE
             emailInput.dispatchEvent(new Event('input'));
         }
     }
 
-    // =========================================================
-    // REMEMBER ME 功能
-    // =========================================================
-
+    // REMEMBER ME FUNCTIONALITY
+    // LOAD SAVED CREDENTIALS FROM LOCALSTORAGE
     function loadRememberedCredentials() {
         const savedEmail = localStorage.getItem('rememberedEmail');
         const savedPassword = localStorage.getItem('rememberedPassword');
@@ -167,16 +164,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // SAVE CREDENTIALS TO LOCALSTORAGE
     function saveCredentials(email, password) {
         localStorage.setItem('rememberedEmail', email);
         localStorage.setItem('rememberedPassword', password);
     }
 
+    // CLEAR SAVED CREDENTIALS
     function clearCredentials() {
         localStorage.removeItem('rememberedEmail');
         localStorage.removeItem('rememberedPassword');
     }
 
+    // HANDLE REMEMBER ME CHECKBOX
     function handleRememberMe(email, password) {
         if (rememberCheckbox && rememberCheckbox.checked) {
             saveCredentials(email, password);
@@ -185,6 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // REMEMBER ME CHECKBOX CHANGE EVENT
     if (rememberCheckbox) {
         rememberCheckbox.addEventListener('change', function() {
             if (!this.checked) {
@@ -192,10 +193,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-
-    // =========================================================
+    
     // EVENTS
-    // =========================================================
+    // PASSWORD INPUT EVENT
     passwordInput.addEventListener('input', function() {
         const password = this.value;
         updatePasswordRequirements(password);
@@ -210,10 +210,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // EMAIL INPUT EVENT
     emailInput.addEventListener('input', function() {
         updateLoginButton();
     });
 
+    // TOGGLE PASSWORD VISIBILITY
     if (toggleBtn && passwordInput) {
         toggleBtn.addEventListener('click', function() {
             const isPassword = passwordInput.getAttribute('type') === 'password';
@@ -223,9 +225,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // =========================================================
-    // 登录表单提交 - 替换原来那一段
-    // =========================================================
+    // LOGIN FORM SUBMISSION
     if (loginForm) {
         loginForm.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const email = emailInput.value.trim();
             const password = passwordInput.value;
 
-            // 1. 前端格式验证（保留，提升用户体验）
+            // FRONTEND VALIDATION
             if (!isValidEmail(email)) {
                 emailError.textContent = 'Please enter a valid email address.';
                 emailError.classList.add('show');
@@ -250,12 +250,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // 2. 禁用按钮防止重复提交
+            // DISABLE BUTTON TO PREVENT DOUBLE SUBMISSION
             loginBtn.disabled = true;
             loginBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Logging in...';
 
             try {
-                // 3. 发送请求到后端 API 验证
+
+                // SEND REQUEST TO BACKEND API
                 const response = await fetch('/api/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -265,12 +266,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
 
                 if (data.success) {
-                    // ✅ 4. 只有后端验证通过，才存储登录状态
+                    
+                    // STORE LOGIN STATE
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.customer));
                     localStorage.setItem('isLoggedIn', 'true');
 
-                    // 5. 处理 “记住我” (只存邮箱密码用于自动填充，不用于验证)
+                    // HANDLE REMEMBER ME
                     if (rememberCheckbox && rememberCheckbox.checked) {
                         localStorage.setItem('rememberedEmail', email);
                         localStorage.setItem('rememberedPassword', password);
@@ -286,7 +288,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }, 800);
 
                 } else {
-                    // ❌ 登录失败（密码错误 / 用户不存在）
+
+                    // LOGIN FAILED
                     showPopup('😅', 'Login Failed', data.message || 'Invalid email or password.');
                 }
 
@@ -294,21 +297,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Login error:', error);
                 showPopup('❌', 'Network Error', 'Unable to connect to the server. Please try again.');
             } finally {
-                // 恢复按钮状态
+                // RESTORE BUTTON STATE
                 loginBtn.disabled = false;
                 loginBtn.innerHTML = '<i class="ri-login-circle-line"></i> Sign In';
             }
         });
     }
-
-    // =========================================================
+   
     // OTP POPUP LOGIC
-    // =========================================================
     const otpOverlay = document.getElementById('otpOverlay');
     const otpGotItBtn = document.getElementById('otpGotItBtn');
     const otpEmailDisplay = document.getElementById('otpEmailDisplay').querySelector('span');
     const resendLink = document.getElementById('otpResendLink');
 
+    // MASK EMAIL FOR DISPLAY
     function getMaskedEmail(email) {
         if (!email) return 'user***@gmail.com';
         const parts = email.split('@');
@@ -318,6 +320,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return `${name.substring(0, 3)}***@${domain}`;
     }
 
+    // SHOW OTP POPUP
     function showOtpPopup(email) {
         const masked = getMaskedEmail(email);
         otpEmailDisplay.textContent = masked;
@@ -325,11 +328,13 @@ document.addEventListener('DOMContentLoaded', function() {
         document.body.style.overflow = 'hidden';
     }
 
+    // HIDE OTP POPUP
     function hideOtpPopup() {
         otpOverlay.classList.remove('active');
         document.body.style.overflow = '';
     }
 
+    // SEND OTP EMAIL VIA API
     async function sendOtpEmail(email) {
         try {
             const response = await fetch('/api/send-otp', {
@@ -354,9 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // =========================================================
-    // Forgot Password 点击（带反馈）
-    // =========================================================
+    // FORGOT PASSWORD CLICK HANDLER 
     document.querySelector('.forgot-link')?.addEventListener('click', function(e) {
         e.preventDefault();
 
@@ -399,9 +402,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     });
 
-    // =========================================================
-    // Got it! 按钮 → 跳转到重置密码页面
-    // =========================================================
+    // GOT IT BUTTON - REDIRECT TO RESET PASSWORD
     otpGotItBtn.addEventListener('click', function() {
         hideOtpPopup();
 
@@ -414,18 +415,15 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // =========================================================
-    // 点击弹窗外关闭
-    // =========================================================
+   
+    // CLOSE POPUP WHEN CLICKING OUTSIDE
     otpOverlay.addEventListener('click', function(e) {
         if (e.target === this) {
             hideOtpPopup();
         }
     });
 
-    // =========================================================
-    // Resend OTP
-    // =========================================================
+    // RESEND OTP
     resendLink.addEventListener('click', function(e) {
         e.preventDefault();
         const email = document.getElementById('loginEmail').value.trim();
@@ -453,9 +451,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // =========================================================
-    // INIT — 加载保存的凭证（默认隐藏密码提示）
-    // =========================================================
+    // INIT - LOAD SAVED CREDENTIALS
     if (reqContainer) {
         reqContainer.classList.remove('show');
     }
