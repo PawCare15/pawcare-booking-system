@@ -1790,25 +1790,30 @@
                 let html = '';
                 // ... 后面原本的 forEach 循环保持不变 ...
                 servicesList.forEach(svc => {
-                    const dogPrice = svc.price_dog ? `RM ${svc.price_dog}` : '—';
-                    const catPrice = svc.price_cat ? `RM ${svc.price_cat}` : '—';
-                    const icon = 'fa-solid fa-paw';
-                    // 检查 category 是否包含 boarding（不区分大小写）
-                    const isBoardingCategory = svc.category && svc.category.toLowerCase() === 'boarding';
-                    html += `
-                        <label class="service-checkbox-item" data-service-id="${svc.service_id}">
-                            <input type="checkbox" name="services" value="${svc.service_id}" data-price-dog="${svc.price_dog || 0}" data-price-cat="${svc.price_cat || 0}" data-name="${svc.service_name}" data-category="${(svc.category || '').toLowerCase()}" />
-                            <div class="service-info">
-                                <span class="service-name"><i class="${icon}"></i> ${svc.service_name}</span>
-                                <span class="service-desc">${svc.description || ''}</span>
-                                <span style="font-size:12px; color:#7A7A7A;">
-                                    🐕 ${dogPrice} &nbsp;|&nbsp; 🐈 ${catPrice}
-                                </span>
-                            </div>
-                            <span class="service-price">From ${svc.price_dog || svc.price_cat || 0}</span>
-                        </label>
-                    `;
-                });
+                // 根据当前 petType 选择对应的价格
+                const currentPrice = petType === 'dog' ? svc.price_dog : svc.price_cat;
+                const priceDisplay = currentPrice ? `RM ${currentPrice}` : '—';
+                const icon = 'fa-solid fa-paw';
+                // 显示当前宠物类型的图标
+                const petIcon = petType === 'dog' ? '🐕' : '🐈';
+                html += `
+                    <label class="service-checkbox-item" data-service-id="${svc.service_id}">
+                        <input type="checkbox" name="services" value="${svc.service_id}" 
+                            data-price-dog="${svc.price_dog || 0}" 
+                            data-price-cat="${svc.price_cat || 0}" 
+                            data-name="${svc.service_name}" 
+                            data-category="${(svc.category || '').toLowerCase()}" />
+                        <div class="service-info">
+                            <span class="service-name"><i class="${icon}"></i> ${svc.service_name}</span>
+                            <span class="service-desc">${svc.description || ''}</span>
+                            <span style="font-size:12px; color:#7A7A7A;">
+                                ${petIcon} ${priceDisplay}
+                            </span>
+                        </div>
+                        <span class="service-price">${priceDisplay}</span>
+                    </label>
+                `;
+            });
                 serviceGroup.innerHTML = html;
 
                 document.querySelectorAll('.service-checkbox-item').forEach(item => {
