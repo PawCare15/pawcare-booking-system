@@ -1791,32 +1791,33 @@
                 // 👆 添加结束
 
                 let html = '';
-                // ... 后面原本的 forEach 循环保持不变 ...
                 servicesList.forEach(svc => {
-                // 根据当前 petType 选择对应的价格
-                const currentPrice = petType === 'dog' ? svc.price_dog : svc.price_cat;
-                const priceDisplay = currentPrice ? `RM ${currentPrice}` : '—';
-                const icon = 'fa-solid fa-paw';
-                // 显示当前宠物类型的图标
-                const petIcon = petType === 'dog' ? '🐕' : '🐈';
-                html += `
-                    <label class="service-checkbox-item" data-service-id="${svc.service_id}">
-                        <input type="checkbox" name="services" value="${svc.service_id}" 
-                            data-price-dog="${svc.price_dog || 0}" 
-                            data-price-cat="${svc.price_cat || 0}" 
-                            data-name="${svc.service_name}" 
-                            data-category="${(svc.category || '').toLowerCase()}" />
-                        <div class="service-info">
-                            <span class="service-name"><i class="${icon}"></i> ${svc.service_name}</span>
-                            <span class="service-desc">${svc.description || ''}</span>
-                            <span style="font-size:12px; color:#7A7A7A;">
-                                ${petIcon} ${priceDisplay}
-                            </span>
-                        </div>
-                        <span class="service-price">${priceDisplay}</span>
-                    </label>
-                `;
-            });
+                    // 根据当前 petType 选择对应的价格
+                    const currentPrice = petType === 'dog' ? svc.price_dog : svc.price_cat;
+                    // 价格显示：如果有价格则显示 "From RM XX"，否则显示 "—"
+                    let priceDisplay = currentPrice ? `From RM ${currentPrice}` : '—';
+                    const icon = 'fa-solid fa-paw';
+                    // 显示当前宠物类型的图标（用于左下角小字）
+                    const petIcon = petType === 'dog' ? '🐕' : '🐈';
+                    html += `
+                        <label class="service-checkbox-item" data-service-id="${svc.service_id}">
+                            <input type="checkbox" name="services" value="${svc.service_id}" 
+                                data-price-dog="${svc.price_dog || 0}" 
+                                data-price-cat="${svc.price_cat || 0}" 
+                                data-name="${svc.service_name}" 
+                                data-category="${(svc.category || '').toLowerCase()}" />
+                            <div class="service-info">
+                                <span class="service-name"><i class="${icon}"></i> ${svc.service_name}</span>
+                                <span class="service-desc">${svc.description || ''}</span>
+                                <!-- 只显示宠物图标，不重复显示价格 -->
+                                <span style="font-size:12px; color:#7A7A7A;">
+                                    ${petIcon}
+                                </span>
+                            </div>
+                            <span class="service-price">${priceDisplay}</span>
+                        </label>
+                    `;
+                });
                 serviceGroup.innerHTML = html;
 
                 document.querySelectorAll('.service-checkbox-item').forEach(item => {
@@ -2093,6 +2094,37 @@
         });
 
         // ================================================================
+        // FORM RESET FUNCTION (extracted)
+        // ================================================================
+        function resetBookingForm() {
+            setPetType('dog');
+            petSelect.value = '';
+            const today = new Date().toISOString().split('T')[0];
+            bookingDateInput.value = today;
+            checkInDate.value = today;
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            checkOutDate.value = tomorrow.toISOString().split('T')[0];
+            bookingTime.value = '10:00 AM';
+            specialNotes.value = '';
+            document.getElementById('dateWarning').classList.remove('active');
+            document.getElementById('checkInWarning').classList.remove('active');
+            document.getElementById('checkOutWarning').classList.remove('active');
+            bookingDateInput.classList.remove('disabled-date');
+            checkInDate.classList.remove('disabled-date');
+            checkOutDate.classList.remove('disabled-date');
+            boardingDateRange.classList.remove('active');
+            document.querySelectorAll('.service-checkbox-item input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+                cb.closest('.service-checkbox-item').classList.remove('selected');
+            });
+            selectedServices = [];
+            isBoardingSelected = false;
+            setTimeout(validateSingleDate, 100);
+            setTimeout(updateSummary, 50);
+        }
+
+        // ================================================================
         // FORM SUBMIT - 发送到后端 API
         // ================================================================
         document.getElementById('bookingForm').addEventListener('submit', async function(e) {
@@ -2184,6 +2216,8 @@
                         dateDisplay,
                         bookingTime.value
                     );
+                    // 成功预约后清空表单
+                    resetBookingForm();
                 } else {
                     showValidationModal(data.message || 'Failed to create booking. Please try again.');
                 }
@@ -2194,40 +2228,13 @@
         });
 
         // ================================================================
-        // RESET FORM
+        // RESET BUTTON - now calls the extracted function
         // ================================================================
         document.getElementById('resetBtn').addEventListener('click', function(e) {
             e.preventDefault();
-            setPetType('dog');
-            petSelect.value = '';
-            const today = new Date().toISOString().split('T')[0];
-            bookingDateInput.value = today;
-            checkInDate.value = today;
-            const tomorrow = new Date();
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            checkOutDate.value = tomorrow.toISOString().split('T')[0];
-            bookingTime.value = '10:00 AM';
-            specialNotes.value = '';
-            document.getElementById('dateWarning').classList.remove('active');
-            document.getElementById('checkInWarning').classList.remove('active');
-            document.getElementById('checkOutWarning').classList.remove('active');
-            bookingDateInput.classList.remove('disabled-date');
-            checkInDate.classList.remove('disabled-date');
-            checkOutDate.classList.remove('disabled-date');
-            boardingDateRange.classList.remove('active');
-            document.querySelectorAll('.service-checkbox-item input[type="checkbox"]').forEach(cb => {
-                cb.checked = false;
-                cb.closest('.service-checkbox-item').classList.remove('selected');
-            });
-            selectedServices = [];
-            isBoardingSelected = false;
-            setTimeout(validateSingleDate, 100);
-            setTimeout(updateSummary, 50);
+            resetBookingForm();
         });
 
-        // ================================================================
-        // INIT
-        // ================================================================
         // ================================================================
         // INIT
         // ================================================================
