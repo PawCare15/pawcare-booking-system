@@ -2211,7 +2211,7 @@
                     showModal(
                         currentPetType,
                         servicesListStr,
-                        `RM ${totalPrice}`,
+                        totalPrice > 0 ? `From RM ${totalPrice}` : 'RM 0',
                         petName || petId,
                         dateDisplay,
                         bookingTime.value
