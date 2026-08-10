@@ -713,24 +713,32 @@ app.post('/api/reviews', async (req, res) => {
     const customer_id = getCustomerId(req);
     const { booking_id, service_id, rating, comment, review_photo } = req.body;
 
-    const { data: booking, error: checkError } = await supabaseAdmin
-      .from('booking')
-      .select('status')
-      .eq('booking_id', booking_id)
-      .eq('customer_id', customer_id)
-      .single();
-    if (checkError || !booking) {
-      return res.status(404).json({ success: false, message: 'Booking not found.' });
+    // 如果传了 booking_id，则必须存在且状态为 completed
+    if (booking_id) {
+      const { data: booking, error: checkError } = await supabaseAdmin
+        .from('booking')
+        .select('status')
+        .eq('booking_id', booking_id)
+        .eq('customer_id', customer_id)
+        .single();
+      if (checkError || !booking) {
+        return res.status(404).json({ success: false, message: 'Booking not found.' });
+      }
+      if (booking.status !== 'completed') {
+        return res.status(400).json({ success: false, message: 'Only completed bookings can be reviewed.' });
+      }
     }
-    if (booking.status !== 'completed') {
-      return res.status(400).json({ success: false, message: 'Only completed bookings can be reviewed.' });
+
+    // 必须提供至少一个可识别的目标（service_id 或 booking_id）
+    if (!service_id && !booking_id) {
+      return res.status(400).json({ success: false, message: 'Please provide a service or booking to review.' });
     }
 
     const { data, error } = await supabaseAdmin
       .from('review')
       .insert([{
         customer_id,
-        booking_id,
+        booking_id: booking_id || null,
         service_id: service_id || null,
         rating,
         comment,
@@ -741,7 +749,6 @@ app.post('/api/reviews', async (req, res) => {
     res.status(201).json({ success: true, data: data[0] });
   } catch (err) {
     console.error(err);
-    // ==== 修改点：认证错误返回 401 ====
     if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
