@@ -1929,7 +1929,7 @@
         // ================================================================
         // LOAD REVIEWS FROM API
         // ================================================================
-        async function loadReviews() {
+                async function loadReviews() {
             try {
                 const res = await authFetch('/api/reviews');
                 const data = await res.json();
@@ -1957,6 +1957,11 @@
                         });
                         const serviceName = review.service_name || 'General';
 
+                        // ---- 新增：检查是否有图片 ----
+                        const photoHtml = review.review_photo 
+                            ? `<div style="margin-top:10px;"><img src="${review.review_photo}" alt="Review photo" style="max-width:100%; max-height:200px; border-radius:8px; border:1px solid #EFECE6;"></div>` 
+                            : '';
+
                         const item = document.createElement('div');
                         item.className = 'review-item';
                         item.dataset.service = serviceName;
@@ -1978,6 +1983,7 @@
                             </div>
                             <div class="review-body">
                                 <p class="r-text">${review.comment || 'No comment provided.'}</p>
+                                ${photoHtml}
                                 <div class="r-service"><i class="fa-solid fa-tag"></i> ${serviceName}</div>
                                 <div class="r-actions">
                                     <button class="reply-btn"><i class="fa-regular fa-comment"></i> Reply</button>
@@ -2003,6 +2009,7 @@
             const rating = parseInt(ratingInput.value);
             const text = document.getElementById('reviewText').value.trim();
             const serviceId = document.getElementById('reviewService').value;
+            const photoFiles = document.getElementById('reviewPhotoInput').files;
 
             if (rating === 0) {
                 showValidationModal('Please select a star rating.');
@@ -2013,15 +2020,27 @@
                 return;
             }
 
+            // 构建 FormData
+            const formData = new FormData();
+            formData.append('rating', rating);
+            formData.append('comment', text);
+            formData.append('service_id', serviceId || '');
+            formData.append('booking_id', ''); // 或 null，根据后端要求
+
+            // 如果有照片，取第一张（目前只支持单张，因为 review_photo 是单字段）
+            if (photoFiles.length > 0) {
+                formData.append('review_photo', photoFiles[0]);
+            }
+
             try {
-                const res = await authFetch('/api/reviews', {
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/reviews', {
                     method: 'POST',
-                    body: JSON.stringify({
-                        rating: rating,
-                        comment: text,
-                        service_id: serviceId || null,
-                        booking_id: null
-                    })
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                        // 注意：不要设置 Content-Type，浏览器会自动用 multipart/form-data 边界
+                    },
+                    body: formData
                 });
                 const data = await res.json();
 

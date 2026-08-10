@@ -82,6 +82,18 @@ const upload = multer({
   }
 });
 
+// 评价照片上传（单张）
+const reviewUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Only image files are allowed'), false);
+    }
+    cb(null, true);
+  }
+});
+
 // ========== 1. 注册 ==========
 app.post('/api/register', async (req, res) => {
   try {
@@ -708,12 +720,35 @@ app.get('/api/reviews', async (req, res) => {
   }
 });
 
-app.post('/api/reviews', async (req, res) => {
+app.post('/api/reviews', reviewUpload.single('review_photo'), async (req, res) => {
   try {
     const customer_id = getCustomerId(req);
-    const { booking_id, service_id, rating, comment, review_photo } = req.body;
+    const { booking_id, service_id, rating, comment } = req.body;
+    let review_photo_url = null;
 
-    // 如果传了 booking_id，则必须存在且状态为 completed
+    // 如果有上传照片，先上传到 Supabase Storage
+    if (req.file) {
+      const file = req.file;
+      const fileExt = file.originalname.split('.').pop();
+      const fileName = `review_${Date.now()}.${fileExt}`;
+      const filePath = `review_photos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('review_photos')  // 需要先创建 bucket
+        .upload(filePath, file.buffer, {
+          contentType: file.mimetype,
+          cacheControl: '3600',
+          upsert: false
+        });
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from('review_photos')
+        .getPublicUrl(filePath);
+      review_photo_url = urlData.publicUrl;
+    }
+
+    // 如果传了 booking_id，验证
     if (booking_id) {
       const { data: booking, error: checkError } = await supabaseAdmin
         .from('booking')
@@ -729,28 +764,33 @@ app.post('/api/reviews', async (req, res) => {
       }
     }
 
-    // 必须提供至少一个可识别的目标（service_id 或 booking_id）
     if (!service_id && !booking_id) {
       return res.status(400).json({ success: false, message: 'Please provide a service or booking to review.' });
     }
 
+    // 插入评价，包含 review_photo URL
     const { data, error } = await supabaseAdmin
       .from('review')
       .insert([{
         customer_id,
         booking_id: booking_id || null,
         service_id: service_id || null,
-        rating,
+        rating: parseInt(rating),
         comment,
-        review_photo
+        review_photo: review_photo_url,
+        review_date: new Date().toISOString()  // 确保有值，避免 not-null 约束
       }])
       .select('*');
     if (error) throw error;
+
     res.status(201).json({ success: true, data: data[0] });
   } catch (err) {
     console.error(err);
     if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    if (err instanceof multer.MulterError) {
+      return res.status(400).json({ success: false, message: err.message });
     }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
