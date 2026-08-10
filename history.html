@@ -1651,39 +1651,32 @@
                     showConfirmationModal('✅ ' + data.message);
                     await loadBookings(); // 刷新列表
                 } else {
-                    showConfirmationModal('❌ ' + (data.message || 'Failed to submit request.'), 'error');
+                    showConfirmationModal('❌ ' + (data.message || 'Failed to submit request.'));
                 }
             } catch (err) {
                 console.error(err);
-                showConfirmationModal('❌ Unable to connect to server.', 'error');
+                showConfirmationModal('❌ Unable to connect to server.');
             }
         });
 
         // ================================================================
         // CONFIRMATION MODAL CONTROLS
         // ================================================================
-        function showConfirmationModal(message, type) {
+        function showConfirmationModal(message) {
             const modal = document.getElementById('confirmationModal');
             const msgEl = document.getElementById('confirmationMessage');
-            const iconCircle = modal.querySelector('.modal-icon-circle');
-            const titleEl = modal.querySelector('.modal-title');
-            
             if (modal && msgEl) {
                 msgEl.textContent = message;
-                
-                // 根据类型设置图标和标题
-                if (type === 'error') {
-                    iconCircle.className = 'modal-icon-circle danger';
-                    iconCircle.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
-                    titleEl.textContent = 'Oops!';
-                } else {
-                    iconCircle.className = 'modal-icon-circle success';
-                    iconCircle.innerHTML = '<i class="fa-solid fa-check-circle"></i>';
-                    titleEl.textContent = 'Success!';
-                }
-                
                 lockBodyScroll();
                 modal.classList.add('active');
+            }
+        }
+
+        function hideConfirmationModal() {
+            const modal = document.getElementById('confirmationModal');
+            if (modal) {
+                modal.classList.remove('active');
+                unlockBodyScroll();
             }
         }
 
