@@ -1288,7 +1288,7 @@
       </div>
 
       <!-- ================================================================
-      CONFIRMATION MODAL - 成功/错误弹窗
+      CONFIRMATION MODAL - 成功弹窗
       ================================================================ -->
       <div class="modal-overlay" id="confirmationModal">
           <div class="modal-box">
@@ -1636,7 +1636,7 @@
             const newDate = document.getElementById('newDateInput').value;
             const newTime = document.getElementById('newTimeSelect').value;
             if (!newDate) {
-                showConfirmationModal('Please select a new date.', 'error');
+                alert('Please select a new date.');
                 return;
             }
             try {
@@ -1648,8 +1648,8 @@
                 if (data.success) {
                     document.getElementById('rescheduleRequestModal').classList.remove('active');
                     unlockBodyScroll();
-                    showConfirmationModal('✅ ' + data.message, 'success');
-                    await loadBookings();
+                    showConfirmationModal('✅ ' + data.message);
+                    await loadBookings(); // 刷新列表
                 } else {
                     showConfirmationModal('❌ ' + (data.message || 'Failed to submit request.'), 'error');
                 }
@@ -2013,13 +2013,13 @@
                             booking.status = 'Cancelled';
                             booking.statusClass = 'cancelled';
                             renderBookings();
-                            showConfirmationModal('✅ Booking has been cancelled successfully.', 'success');
+                            showConfirmationModal('✅ Booking has been cancelled successfully.');
                         } else {
-                            showConfirmationModal('❌ Failed to cancel booking: ' + (data.message || 'Unknown error'), 'error');
+                            showConfirmationModal('❌ Failed to cancel booking: ' + (data.message || 'Unknown error'));
                         }
                     } catch (err) {
                         console.error('Error cancelling booking:', err);
-                        showConfirmationModal('❌ Unable to connect to server.', 'error');
+                        showConfirmationModal('❌ Unable to connect to server.');
                     }
                 }
             );
