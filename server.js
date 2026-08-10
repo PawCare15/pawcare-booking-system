@@ -733,8 +733,9 @@ app.post('/api/reviews', reviewUpload.single('review_photo'), async (req, res) =
       const fileName = `review_${Date.now()}.${fileExt}`;
       const filePath = `review_photos/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('review_photos')  // 需要先创建 bucket
+      // 👇 改用 supabaseAdmin 来上传，绕过 RLS
+      const { error: uploadError } = await supabaseAdmin.storage
+        .from('review_photos')
         .upload(filePath, file.buffer, {
           contentType: file.mimetype,
           cacheControl: '3600',
