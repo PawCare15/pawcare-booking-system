@@ -10,6 +10,7 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    /* ... 所有样式保持不变，但为了完整性我保留全部 ... */
     * {
       margin: 0;
       padding: 0;
@@ -630,9 +631,67 @@
 
     .action-cell {
       display: flex;
-      gap: 4px;
+      gap: 6px;
       flex-wrap: nowrap;
       align-items: center;
+    }
+
+    .btn-action {
+      padding: 6px 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-family: 'Poppins', sans-serif;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      text-decoration: none;
+      background: #F5F0EB;
+      color: #5A361A;
+    }
+
+    .btn-action i {
+      font-size: 12px;
+    }
+
+    .btn-action:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .btn-action:active {
+      transform: translateY(0);
+    }
+
+    .btn-view {
+      background: #E8F0FE;
+      color: #1A56DB;
+    }
+    .btn-view:hover {
+      background: #D1E2FC;
+      box-shadow: 0 4px 12px rgba(26,86,219,0.15);
+    }
+
+    .btn-reschedule {
+      background: #FEF7E0;
+      color: #B06000;
+    }
+    .btn-reschedule:hover {
+      background: #FDE68A;
+      box-shadow: 0 4px 12px rgba(176,96,0,0.15);
+    }
+
+    .btn-cancel {
+      background: #FCE8E6;
+      color: #B91C1C;
+    }
+    .btn-cancel:hover {
+      background: #FCA5A5;
+      box-shadow: 0 4px 12px rgba(185,28,28,0.15);
     }
 
     .btn {
@@ -772,9 +831,6 @@
       margin-top: 4px;
     }
 
-    /* ================================================================
-       MODAL STYLES
-       ================================================================ */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -1050,14 +1106,14 @@
         padding: 10px 8px;
       }
 
-      .btn-action {
-        font-size: 10px;
-        padding: 3px 8px;
-      }
-
       .action-cell {
         justify-content: center;
         flex-wrap: wrap;
+      }
+
+      .btn-action {
+        font-size: 10px;
+        padding: 4px 10px;
       }
 
       .pet-avatar {
@@ -1143,6 +1199,16 @@
         flex-direction: column;
         width: 100%;
       }
+
+      .action-cell {
+        flex-wrap: wrap;
+        gap: 4px;
+      }
+
+      .btn-action {
+        font-size: 10px;
+        padding: 4px 8px;
+      }
     }
 
     @media (max-width: 480px) {
@@ -1166,6 +1232,16 @@
       .user-profile img {
         width: 32px;
         height: 32px;
+      }
+
+      .btn-action {
+        font-size: 9px;
+        padding: 3px 6px;
+        gap: 3px;
+      }
+
+      .btn-action i {
+        font-size: 10px;
       }
     }
   </style>
@@ -1233,7 +1309,6 @@
 
       <div class="history-container">
 
-        <!-- ===== BACK TO DASHBOARD ===== -->
         <a href="dashboard.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
 
         <div class="page-header">
@@ -1343,7 +1418,9 @@
           </div>
       </div>
 
-      <!-- 位于 history.html 的 modal 区域 -->
+      <!-- ================================================================
+      RESCHEDULE REQUEST MODAL
+      ================================================================ -->
       <div class="modal-overlay" id="rescheduleRequestModal">
           <div class="modal-box">
               <h2 class="modal-title" style="display:flex; align-items:center; gap:10px; justify-content:center;">
@@ -1403,6 +1480,7 @@
   </div>
 
   <script>
+
     // ================================================================
     // AUTH CHECK - 防止后退访问已登出页面
     // ================================================================
@@ -1489,7 +1567,6 @@
     // ================================================================
     // LOGOUT MODAL CONTROLS
     // ================================================================
-    // Function to show the logout modal
     function showLogoutModal() {
         const modal = document.getElementById('logoutModal');
         if (modal) {
@@ -1498,7 +1575,6 @@
         }
     }
 
-    // Function to close the logout modal
     function closeLogoutModal() {
         const modal = document.getElementById('logoutModal');
         if (modal) {
@@ -1507,7 +1583,6 @@
         }
     }
 
-    // Function to execute logout actions
     function confirmLogout() {
         localStorage.removeItem('customer');
         localStorage.removeItem('customerId');
@@ -1517,7 +1592,6 @@
         window.location.replace('index.html');
     }
 
-    // Close logout modal when clicking on backdrop or pressing Escape key
     document.addEventListener('click', function(e) {
         const modal = document.getElementById('logoutModal');
         if (e.target === modal) {
@@ -1589,7 +1663,6 @@
         // ================================================================
         // LOAD BOOKINGS FROM API
         // ================================================================
-        // ==== 修改点：适配新的 services 数组 ====
         async function loadBookings() {
             try {
                 const res = await authFetch('/api/bookings');
@@ -1614,7 +1687,7 @@
                             statusClass: b.status || 'pending',
                             booking_id: b.booking_id,
                             services: services,
-                            reschedule_status: b.reschedule_status || null   // 👈 这行必须有逗号
+                            reschedule_status: b.reschedule_status || null
                         };
                     });
                     renderBookings();
@@ -1632,54 +1705,29 @@
             unlockBodyScroll();
         });
 
-        document.getElementById('rescheduleRequestSubmitBtn').addEventListener('click', async function() {
-            const newDate = document.getElementById('newDateInput').value;
-            const newTime = document.getElementById('newTimeSelect').value;
-            if (!newDate) {
-                showConfirmationModal('Please select a new date.', 'error');
-                return;
-            }
-            try {
-                const res = await authFetch(`/api/bookings/${rescheduleBookingId}/reschedule-request`, {
-                    method: 'POST',
-                    body: JSON.stringify({ new_date: newDate, new_time: newTime })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    document.getElementById('rescheduleRequestModal').classList.remove('active');
-                    unlockBodyScroll();
-                    showConfirmationModal('✅ ' + data.message, 'success');
-                    await loadBookings();
-                } else {
-                    showConfirmationModal('❌ ' + (data.message || 'Failed to submit request.'), 'error');
-                }
-            } catch (err) {
-                console.error(err);
-                showConfirmationModal('❌ Unable to connect to server.', 'error');
-            }
-        });
-
         // ================================================================
-        // CONFIRMATION MODAL CONTROLS
+        // CONFIRMATION MODAL - 支持成功/错误两种状态
         // ================================================================
-        function showConfirmationModal(message, type) {
+        function showConfirmationModal(message, type = 'success') {
             const modal = document.getElementById('confirmationModal');
             const msgEl = document.getElementById('confirmationMessage');
             const iconCircle = modal.querySelector('.modal-icon-circle');
-            const titleEl = modal.querySelector('.modal-title');
+            const icon = iconCircle.querySelector('i');
+            const title = modal.querySelector('.modal-title');
             
             if (modal && msgEl) {
                 msgEl.textContent = message;
                 
-                // 根据类型设置图标和标题
                 if (type === 'error') {
+                    // 错误状态 - Oops!
                     iconCircle.className = 'modal-icon-circle danger';
-                    iconCircle.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
-                    titleEl.textContent = 'Oops!';
+                    icon.className = 'fa-solid fa-circle-exclamation';
+                    title.textContent = 'Oops!';
                 } else {
+                    // 成功状态 - Success!
                     iconCircle.className = 'modal-icon-circle success';
-                    iconCircle.innerHTML = '<i class="fa-solid fa-check-circle"></i>';
-                    titleEl.textContent = 'Success!';
+                    icon.className = 'fa-solid fa-check-circle';
+                    title.textContent = 'Success!';
                 }
                 
                 lockBodyScroll();
@@ -1687,9 +1735,51 @@
             }
         }
 
+        function hideConfirmationModal() {
+            const modal = document.getElementById('confirmationModal');
+            if (modal) {
+                modal.classList.remove('active');
+                unlockBodyScroll();
+            }
+        }
+
         document.getElementById('confirmationOkBtn').addEventListener('click', hideConfirmationModal);
         document.getElementById('confirmationModal').addEventListener('click', function(e) {
             if (e.target === this) hideConfirmationModal();
+        });
+
+        // 修改：提交 Reschedule 请求 - 错误时显示 Oops! 弹窗在最上层
+        document.getElementById('rescheduleRequestSubmitBtn').addEventListener('click', async function() {
+            const newDate = document.getElementById('newDateInput').value;
+            const newTime = document.getElementById('newTimeSelect').value;
+            
+            // 验证日期是否为空
+            if (!newDate) {
+                showConfirmationModal('❌ Please select a new date.', 'error');
+                return;
+            }
+            
+            try {
+                const res = await authFetch(`/api/bookings/${rescheduleBookingId}/reschedule-request`, {
+                    method: 'POST',
+                    body: JSON.stringify({ new_date: newDate, new_time: newTime })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    // 成功：关闭 reschedule 模态框，显示成功消息
+                    document.getElementById('rescheduleRequestModal').classList.remove('active');
+                    unlockBodyScroll();
+                    showConfirmationModal('✅ ' + data.message, 'success');
+                    await loadBookings();
+                } else {
+                    // 错误：显示 Oops! 模态框（如 "We are closed on Thursdays"）
+                    showConfirmationModal('❌ ' + (data.message || 'Failed to submit request.'), 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showConfirmationModal('❌ Unable to connect to server.', 'error');
+            }
         });
 
         // ================================================================
@@ -1730,7 +1820,6 @@
         // ================================================================
         // DETAILS MODAL CONTROLS
         // ================================================================
-        // ==== 修改点：显示所有服务 ====
         function showDetailsModal(booking) {
             const modal = document.getElementById('detailsModal');
             const content = document.getElementById('detailsContent');
@@ -1865,11 +1954,10 @@
                     };
                     const statusIcon = statusIcons[booking.statusClass] || 'fa-regular fa-circle';
 
-                    // ==== 修改点：服务名称显示所有服务 ====
                     const serviceNames = booking.services && booking.services.length > 0 
                         ? booking.services.map(s => s.service_name).join(', ') 
                         : booking.service;
-                    const serviceIcon = 'fa-solid fa-paw'; // 统一图标
+                    const serviceIcon = 'fa-solid fa-paw';
 
                     return `
                     <tr>
@@ -1980,16 +2068,14 @@
             }
         };
 
-        let rescheduleBookingId = null; // 存储当前操作预约 ID
+        let rescheduleBookingId = null;
 
         window.reschedule = function(id) {
             const booking = bookings.find(b => b.id === id);
             if (!booking) return;
-            rescheduleBookingId = booking.booking_id; // 保存真实 booking_id
-            // 弹出模态框
+            rescheduleBookingId = booking.booking_id;
             const modal = document.getElementById('rescheduleRequestModal');
             if (modal) {
-                // 清空输入
                 document.getElementById('newDateInput').value = '';
                 document.getElementById('newTimeSelect').value = '10:30 AM';
                 lockBodyScroll();
@@ -2049,6 +2135,7 @@
         console.log('PawCare Booking History loaded successfully!');
 
         });
+
   </script>
 
 </body>
