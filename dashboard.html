@@ -2034,16 +2034,15 @@
             if (data.success) {
                 document.getElementById('rescheduleRequestModal').classList.remove('active');
                 unlockBodyScroll();
-                alert('✅ ' + data.message);
-                // 刷新数据
+                showDashboardMessage('✅ ' + data.message, true);
                 await renderRecentBookings();
                 await renderNotifications();
             } else {
-                alert('❌ ' + (data.message || 'Failed to submit request.'));
+                showDashboardMessage('❌ ' + (data.message || 'Failed to submit request.'), false);
             }
         } catch (err) {
             console.error(err);
-            alert('❌ Unable to connect to server.');
+            showDashboardMessage('❌ Unable to connect to server.', false);
         }
     });
 
@@ -2054,6 +2053,60 @@
             unlockBodyScroll();
         }
     });
+
+        // ================================================================
+    // 显示消息模态框（替代 alert）
+    // ================================================================
+    function showDashboardMessage(message, isSuccess) {
+        // 创建临时模态框
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay active';
+        overlay.style.display = 'flex';
+        
+        const box = document.createElement('div');
+        box.className = 'modal-box';
+        
+        const icon = document.createElement('div');
+        icon.className = 'modal-icon-circle ' + (isSuccess ? 'success' : 'danger');
+        icon.innerHTML = `<i class="fa-solid ${isSuccess ? 'fa-check-circle' : 'fa-circle-exclamation'}"></i>`;
+        
+        const title = document.createElement('h2');
+        title.className = 'modal-title';
+        title.textContent = isSuccess ? 'Success!' : 'Oops!';
+        
+        const msg = document.createElement('p');
+        msg.className = 'modal-subtitle';
+        msg.textContent = message;
+        
+        const btnGroup = document.createElement('div');
+        btnGroup.className = 'modal-btn-group';
+        const btn = document.createElement('button');
+        btn.className = 'modal-btn modal-btn-primary';
+        btn.textContent = 'OK';
+        btn.addEventListener('click', function() {
+            document.body.removeChild(overlay);
+            unlockBodyScroll();
+        });
+        btnGroup.appendChild(btn);
+        
+        box.appendChild(icon);
+        box.appendChild(title);
+        box.appendChild(msg);
+        box.appendChild(btnGroup);
+        overlay.appendChild(box);
+        
+        document.body.appendChild(overlay);
+        lockBodyScroll();
+        
+        // 点击背景关闭
+        overlay.addEventListener('click', function(e) {
+            if (e.target === overlay) {
+                document.body.removeChild(overlay);
+                unlockBodyScroll();
+            }
+        });
+    }
+    
   </script>
 
 </body>
