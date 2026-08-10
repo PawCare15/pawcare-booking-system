@@ -1343,6 +1343,38 @@
           </div>
       </div>
 
+      <!-- 位于 history.html 的 modal 区域 -->
+      <div class="modal-overlay" id="rescheduleRequestModal">
+          <div class="modal-box">
+              <h2 class="modal-title" style="display:flex; align-items:center; gap:10px; justify-content:center;">
+                  <i class="fa-regular fa-calendar-plus" style="color:#D97706;"></i> Request Reschedule
+              </h2>
+              <p class="modal-subtitle">Select your preferred new date and time.</p>
+              <div style="margin-bottom:16px;">
+                  <label style="font-size:13px; font-weight:500; color:#7A7A7A; display:block; margin-bottom:4px;">📅 New Date</label>
+                  <input type="date" id="newDateInput" class="form-control" style="width:100%; padding:10px 14px; border:1.5px solid #EFECE6; border-radius:10px; font-family:'Poppins',sans-serif;">
+              </div>
+              <div style="margin-bottom:20px;">
+                  <label style="font-size:13px; font-weight:500; color:#7A7A7A; display:block; margin-bottom:4px;">🕐 New Time</label>
+                  <select id="newTimeSelect" class="form-control" style="width:100%; padding:10px 14px; border:1.5px solid #EFECE6; border-radius:10px; font-family:'Poppins',sans-serif;">
+                      <option value="10:00 AM">10:00 AM</option>
+                      <option value="10:30 AM">10:30 AM</option>
+                      <option value="11:30 AM">11:30 AM</option>
+                      <option value="01:00 PM">01:00 PM</option>
+                      <option value="02:00 PM">02:00 PM</option>
+                      <option value="03:00 PM">03:00 PM</option>
+                      <option value="04:00 PM">04:00 PM</option>
+                      <option value="05:00 PM">05:00 PM</option>
+                      <option value="06:00 PM">06:00 PM</option>
+                  </select>
+              </div>
+              <div class="modal-btn-group">
+                  <button class="modal-btn modal-btn-secondary" id="rescheduleRequestCancelBtn">Cancel</button>
+                  <button class="modal-btn modal-btn-primary" id="rescheduleRequestSubmitBtn">Submit Request</button>
+              </div>
+          </div>
+      </div>
+
       <!-- ================================================================
       LOGOUT CONFIRM MODAL
       ================================================================ -->
@@ -1392,7 +1424,7 @@
         }
     });
 
-        // ================================================================
+    // ================================================================
     // ===== 封装带 Token 的请求 =====
     // ================================================================
     async function authFetch(url, options = {}) {
@@ -1581,7 +1613,8 @@
                             status: b.status || 'pending',
                             statusClass: b.status || 'pending',
                             booking_id: b.booking_id,
-                            services: services // 保留原始数据
+                            services: services,
+                            reschedule_status: b.reschedule_status || null   // 👈 这行必须有逗号
                         };
                     });
                     renderBookings();
@@ -1590,6 +1623,41 @@
                 console.error('Error loading bookings:', err);
             }
         }
+
+        // ================================================================
+        // RESCHEDULE REQUEST MODAL EVENTS
+        // ================================================================
+        document.getElementById('rescheduleRequestCancelBtn').addEventListener('click', function() {
+            document.getElementById('rescheduleRequestModal').classList.remove('active');
+            unlockBodyScroll();
+        });
+
+        document.getElementById('rescheduleRequestSubmitBtn').addEventListener('click', async function() {
+            const newDate = document.getElementById('newDateInput').value;
+            const newTime = document.getElementById('newTimeSelect').value;
+            if (!newDate) {
+                alert('Please select a new date.');
+                return;
+            }
+            try {
+                const res = await authFetch(`/api/bookings/${rescheduleBookingId}/reschedule-request`, {
+                    method: 'POST',
+                    body: JSON.stringify({ new_date: newDate, new_time: newTime })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    document.getElementById('rescheduleRequestModal').classList.remove('active');
+                    unlockBodyScroll();
+                    showConfirmationModal('✅ ' + data.message);
+                    await loadBookings(); // 刷新列表
+                } else {
+                    showConfirmationModal('❌ ' + (data.message || 'Failed to submit request.'));
+                }
+            } catch (err) {
+                console.error(err);
+                showConfirmationModal('❌ Unable to connect to server.');
+            }
+        });
 
         // ================================================================
         // CONFIRMATION MODAL CONTROLS
@@ -1822,7 +1890,12 @@
                             </div>
                         </td>
                         <td class="price-cell">${priceDisplay}</td>
-                        <td><span class="status-badge ${booking.statusClass}"><i class="${statusIcon}"></i> ${booking.status}</span></td>
+                        <td>
+                            <span class="status-badge ${booking.statusClass}"><i class="${statusIcon}"></i> ${booking.status}</span>
+                            ${booking.reschedule_status === 'pending' ? '<span style="display:inline-block; background:#FEF7E0; color:#B06000; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">⏳ Pending</span>' : ''}
+                            ${booking.reschedule_status === 'approved' ? '<span style="display:inline-block; background:#E6F4EA; color:#137333; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">✅ Approved</span>' : ''}
+                            ${booking.reschedule_status === 'rejected' ? '<span style="display:inline-block; background:#FCE8E6; color:#C5221F; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">❌ Rejected</span>' : ''}
+                        </td>
                         <td>
                             <div class="action-cell">
                                 <button class="btn-action btn-view" onclick="viewDetails(${booking.id})"><i class="fa-regular fa-eye"></i> View</button>
@@ -1900,8 +1973,21 @@
             }
         };
 
+        let rescheduleBookingId = null; // 存储当前操作预约 ID
+
         window.reschedule = function(id) {
-            showConfirmationModal('📅 Reschedule requested.\nWe will contact you shortly to confirm the new date and time.');
+            const booking = bookings.find(b => b.id === id);
+            if (!booking) return;
+            rescheduleBookingId = booking.booking_id; // 保存真实 booking_id
+            // 弹出模态框
+            const modal = document.getElementById('rescheduleRequestModal');
+            if (modal) {
+                // 清空输入
+                document.getElementById('newDateInput').value = '';
+                document.getElementById('newTimeSelect').value = '10:30 AM';
+                lockBodyScroll();
+                modal.classList.add('active');
+            }
         };
 
         window.cancelBooking = function(id) {

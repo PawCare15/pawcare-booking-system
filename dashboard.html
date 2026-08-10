@@ -1449,19 +1449,35 @@
     </div>
 
     <!-- ================================================================
-    RESCHEDULE MODAL
+    RESCHEDULE REQUEST MODAL - 申请重预约
     ================================================================ -->
-    <div class="modal-overlay" id="rescheduleModal">
+    <div class="modal-overlay" id="rescheduleRequestModal">
         <div class="modal-box">
-            <div class="modal-icon-circle warning">
-                <i class="fa-solid fa-clock"></i>
+            <h2 class="modal-title" style="display:flex; align-items:center; gap:10px; justify-content:center;">
+                <i class="fa-regular fa-calendar-plus" style="color:#D97706;"></i> Request Reschedule
+            </h2>
+            <p class="modal-subtitle">Select your preferred new date and time.</p>
+            <div style="margin-bottom:16px;">
+                <label style="font-size:13px; font-weight:500; color:#7A7A7A; display:block; margin-bottom:4px;">📅 New Date</label>
+                <input type="date" id="dashboardNewDateInput" class="form-control" style="width:100%; padding:10px 14px; border:1.5px solid #EFECE6; border-radius:10px; font-family:'Poppins',sans-serif;">
             </div>
-            <h2 class="modal-title">Reschedule Requested</h2>
-            <p class="modal-subtitle">
-                We will contact you shortly to confirm the new date and time.
-            </p>
+            <div style="margin-bottom:20px;">
+                <label style="font-size:13px; font-weight:500; color:#7A7A7A; display:block; margin-bottom:4px;">🕐 New Time</label>
+                <select id="dashboardNewTimeSelect" class="form-control" style="width:100%; padding:10px 14px; border:1.5px solid #EFECE6; border-radius:10px; font-family:'Poppins',sans-serif;">
+                    <option value="10:00 AM">10:00 AM</option>
+                    <option value="10:30 AM">10:30 AM</option>
+                    <option value="11:30 AM">11:30 AM</option>
+                    <option value="01:00 PM">01:00 PM</option>
+                    <option value="02:00 PM">02:00 PM</option>
+                    <option value="03:00 PM">03:00 PM</option>
+                    <option value="04:00 PM">04:00 PM</option>
+                    <option value="05:00 PM">05:00 PM</option>
+                    <option value="06:00 PM">06:00 PM</option>
+                </select>
+            </div>
             <div class="modal-btn-group">
-                <button class="modal-btn modal-btn-primary" onclick="closeRescheduleModal()">OK</button>
+                <button class="modal-btn modal-btn-secondary" id="dashboardRescheduleCancelBtn">Cancel</button>
+                <button class="modal-btn modal-btn-primary" id="dashboardRescheduleSubmitBtn">Submit Request</button>
             </div>
         </div>
     </div>
@@ -1703,6 +1719,7 @@
             }
 
             const bookings = data.data || [];
+            window.dashboardBookings = bookings; 
             const recent = bookings.slice(0, 3);
 
             if (recent.length === 0) {
@@ -1964,35 +1981,77 @@
     });
 
     // ================================================================
-    // RESCHEDULE MODAL CONTROLS
+    // RESCHEDULE MODAL CONTROLS - 申请重预约
     // ================================================================
+    let dashboardRescheduleBookingId = null;
+
+    // 显示模态框（由 Reschedule 按钮调用）
     function showRescheduleModal() {
-        const modal = document.getElementById('rescheduleModal');
+        // 从最近加载的 bookings 中查找第一个 pending 或 upcoming 的预约
+        if (window.dashboardBookings && window.dashboardBookings.length > 0) {
+            const upcoming = window.dashboardBookings.find(b => b.status === 'pending' || b.status === 'upcoming');
+            if (upcoming) {
+                dashboardRescheduleBookingId = upcoming.booking_id;
+            } else {
+                alert('No upcoming bookings to reschedule.');
+                return;
+            }
+        } else {
+            alert('No bookings loaded.');
+            return;
+        }
+
+        // 弹出模态框
+        const modal = document.getElementById('rescheduleRequestModal');
         if (modal) {
+            document.getElementById('dashboardNewDateInput').value = '';
+            document.getElementById('dashboardNewTimeSelect').value = '10:30 AM';
             lockBodyScroll();
             modal.classList.add('active');
         }
     }
 
-    function closeRescheduleModal() {
-        const modal = document.getElementById('rescheduleModal');
-        if (modal) {
-            modal.classList.remove('active');
-            unlockBodyScroll();
-        }
-    }
+    // 取消按钮
+    document.getElementById('dashboardRescheduleCancelBtn').addEventListener('click', function() {
+        document.getElementById('rescheduleRequestModal').classList.remove('active');
+        unlockBodyScroll();
+    });
 
-    document.addEventListener('click', function(e) {
-        const modal = document.getElementById('rescheduleModal');
-        if (e.target === modal) {
-            closeRescheduleModal();
+    // 提交按钮
+    document.getElementById('dashboardRescheduleSubmitBtn').addEventListener('click', async function() {
+        const newDate = document.getElementById('dashboardNewDateInput').value;
+        const newTime = document.getElementById('dashboardNewTimeSelect').value;
+        if (!newDate) {
+            alert('Please select a new date.');
+            return;
+        }
+        try {
+            const res = await authFetch(`/api/bookings/${dashboardRescheduleBookingId}/reschedule-request`, {
+                method: 'POST',
+                body: JSON.stringify({ new_date: newDate, new_time: newTime })
+            });
+            const data = await res.json();
+            if (data.success) {
+                document.getElementById('rescheduleRequestModal').classList.remove('active');
+                unlockBodyScroll();
+                alert('✅ ' + data.message);
+                // 刷新数据
+                await renderRecentBookings();
+                await renderNotifications();
+            } else {
+                alert('❌ ' + (data.message || 'Failed to submit request.'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('❌ Unable to connect to server.');
         }
     });
 
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            closeAppointmentModal();
-            closeRescheduleModal();
+    // 点击背景关闭模态框
+    document.getElementById('rescheduleRequestModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('active');
+            unlockBodyScroll();
         }
     });
   </script>

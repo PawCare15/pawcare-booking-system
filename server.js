@@ -464,6 +464,7 @@ app.get('/api/bookings', async (req, res) => {
         check_out_datetime,
         status,
         special_notes,
+        reschedule_status, 
         pet:pet_id (pet_name, breed, species),
         booking_service (
           service_id,
@@ -510,137 +511,54 @@ app.get('/api/bookings', async (req, res) => {
   }
 });
 
-app.post('/api/bookings', async (req, res) => {
+app.post('/api/bookings/:booking_id/reschedule-request', async (req, res) => {
   try {
     const customer_id = getCustomerId(req);
-    const { pet_id, service_ids, booking_date, booking_time, check_in_datetime, check_out_datetime, special_notes } = req.body;
+    const { booking_id } = req.params;
+    const { new_date, new_time } = req.body;
 
-    if (isThursday(booking_date)) {
-      return res.status(400).json({ success: false, message: 'We are closed on Thursdays.' });
+    if (!new_date || !new_time) {
+      return res.status(400).json({ success: false, message: 'New date and time are required.' });
     }
 
-    const { data: pet, error: petError } = await supabaseAdmin
-      .from('pet')
-      .select('species, weight')
-      .eq('pet_id', pet_id)
-      .single();
-    if (petError) throw petError;
-    const species = pet.species || 'dog';
-
-    const { data: services, error: svcError } = await supabaseAdmin
-      .from('service')
-      .select('service_id, service_name, category')
-      .in('service_id', service_ids);
-    if (svcError) throw svcError;
-    if (!services || services.length === 0) {
-      return res.status(400).json({ success: false, message: 'No valid services selected.' });
-    }
-
-    let total_price = 0;
-    const bookingServices = [];
-    for (const svc of services) {
-      const { data: priceData, error: priceError } = await supabaseAdmin
-        .from('service_price')
-        .select('starting_price')
-        .eq('service_id', svc.service_id)
-        .eq('species', species)
-        .maybeSingle();
-      if (priceError) throw priceError;
-      let price = priceData ? priceData.starting_price : 0;
-
-      // 统一转换为小写判断 category
-      const categoryLower = (svc.category || '').toLowerCase();
-      if (categoryLower === 'boarding' && check_in_datetime && check_out_datetime) {
-        const nights = Math.ceil((new Date(check_out_datetime) - new Date(check_in_datetime)) / (1000 * 60 * 60 * 24));
-        if (nights > 0) {
-          price = price * nights;
-        } else {
-          price = 0;
-        }
-      }
-
-      bookingServices.push({
-        service_id: svc.service_id,
-        estimated_price: price
-      });
-      total_price += price;
-    }
-
-    const { data: booking, error: insertError } = await supabaseAdmin
+    // 验证预约是否存在且属于当前用户，且状态为 pending 或 upcoming
+    const { data: booking, error: fetchError } = await supabaseAdmin
       .from('booking')
-      .insert([{
-        booking_id: crypto.randomUUID(),
-        customer_id,
-        pet_id,
-        booking_date,
-        booking_time,
-        check_in_datetime,   
-        check_out_datetime,
-        special_notes,
-        status: 'pending'
-      }])
-      .select('booking_id')
-      .single();
-    if (insertError) throw insertError;
-    const booking_id = booking.booking_id;
-
-    const bookingServiceRecords = bookingServices.map(bs => ({
-      booking_id,
-      service_id: bs.service_id,
-      estimated_price: bs.estimated_price
-    }));
-    const { error: bsError } = await supabaseAdmin
-      .from('booking_service')
-      .insert(bookingServiceRecords);
-    if (bsError) throw bsError;
-
-    const { data: fullBooking, error: fetchError } = await supabaseAdmin
-      .from('booking')
-      .select(`
-        booking_id,
-        booking_date,
-        booking_time,
-        check_in_datetime,   
-        check_out_datetime,
-        status,
-        special_notes,
-        pet:pet_id (pet_name, breed, species),
-        booking_service (
-          service_id,
-          estimated_price,
-          service:service_id (service_name, category)
-        )
-      `)
+      .select('status, booking_date, booking_time')
       .eq('booking_id', booking_id)
+      .eq('customer_id', customer_id)
       .single();
-    if (fetchError) throw fetchError;
 
-    const result = {
-      booking_id: fullBooking.booking_id,
-      booking_date: fullBooking.booking_date,
-      booking_time: fullBooking.booking_time,
-      check_in_datetime: fullBooking.check_in_datetime,
-      check_out_datetime: fullBooking.check_out_datetime,
-      status: fullBooking.status,
-      total_price: (fullBooking.booking_service || []).reduce((sum, s) => sum + (s.estimated_price || 0), 0),
-      special_notes: fullBooking.special_notes,
-      pet: fullBooking.pet ? {
-        name: fullBooking.pet.pet_name,
-        breed: fullBooking.pet.breed,
-        species: fullBooking.pet.species
-      } : null,
-      services: fullBooking.booking_service.map(s => ({
-        service_id: s.service_id,
-        service_name: s.service?.service_name,
-        category: s.service?.category,
-        estimated_price: s.estimated_price
-      }))
-    };
+    if (fetchError || !booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found.' });
+    }
 
-    res.status(201).json({ success: true, data: result });
+    if (!['pending', 'upcoming'].includes(booking.status)) {
+      return res.status(400).json({ success: false, message: 'Only pending or upcoming bookings can be rescheduled.' });
+    }
+
+    // 检查新日期是否为周四（闭店日）
+    if (isThursday(new_date)) {
+      return res.status(400).json({ success: false, message: 'We are closed on Thursdays. Please choose another date.' });
+    }
+
+    // 更新 booking 表，记录请求
+    const { error: updateError } = await supabaseAdmin
+      .from('booking')
+      .update({
+        reschedule_requested_date: new_date,
+        reschedule_requested_time: new_time,
+        reschedule_status: 'pending'
+      })
+      .eq('booking_id', booking_id);
+
+    if (updateError) throw updateError;
+
+    // （可选）发送通知给 Admin（例如通过邮件或系统通知，此处略）
+
+    res.json({ success: true, message: 'Reschedule request submitted. Waiting for admin approval.' });
   } catch (err) {
     console.error(err);
-    // ==== 修改点：认证错误返回 401 ====
     if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
@@ -648,36 +566,60 @@ app.post('/api/bookings', async (req, res) => {
   }
 });
 
-app.put('/api/bookings/:booking_id/cancel', async (req, res) => {
+app.put('/api/bookings/:booking_id/reschedule-approve', async (req, res) => {
   try {
-    const customer_id = getCustomerId(req);
+    // 此处应该验证当前用户是否为 Admin，暂略
     const { booking_id } = req.params;
+    const { action } = req.body; // 'approve' 或 'reject'
 
+    if (!['approve', 'reject'].includes(action)) {
+      return res.status(400).json({ success: false, message: 'Invalid action.' });
+    }
+
+    // 查询当前预约的请求状态
     const { data: booking, error: fetchError } = await supabaseAdmin
       .from('booking')
-      .select('status')
+      .select('reschedule_status, reschedule_requested_date, reschedule_requested_time, booking_date, booking_time, status')
       .eq('booking_id', booking_id)
-      .eq('customer_id', customer_id)
       .single();
+
     if (fetchError || !booking) {
       return res.status(404).json({ success: false, message: 'Booking not found.' });
     }
-    if (booking.status !== 'pending' && booking.status !== 'upcoming') {
-      return res.status(400).json({ success: false, message: 'Only pending or upcoming bookings can be cancelled.' });
+
+    if (booking.reschedule_status !== 'pending') {
+      return res.status(400).json({ success: false, message: 'No pending reschedule request for this booking.' });
     }
 
-    const { error } = await supabaseAdmin
-      .from('booking')
-      .update({ status: 'cancelled' })
-      .eq('booking_id', booking_id);
-    if (error) throw error;
-    res.json({ success: true, message: 'Booking cancelled.' });
+    if (action === 'approve') {
+      // 更新实际预约日期和时间，并将 status 改为 'rescheduled'（或保持 'upcoming'）
+      const newDate = booking.reschedule_requested_date;
+      const newTime = booking.reschedule_requested_time;
+      // 可选：保留原日期在备注中，或者记录变更历史
+
+      const { error: updateError } = await supabaseAdmin
+        .from('booking')
+        .update({
+          booking_date: newDate,
+          booking_time: newTime,
+          reschedule_status: 'approved',
+          status: 'upcoming'  // 或 'rescheduled'
+        })
+        .eq('booking_id', booking_id);
+
+      if (updateError) throw updateError;
+      res.json({ success: true, message: 'Reschedule request approved. Booking updated.' });
+    } else { // reject
+      const { error: updateError } = await supabaseAdmin
+        .from('booking')
+        .update({ reschedule_status: 'rejected' })
+        .eq('booking_id', booking_id);
+
+      if (updateError) throw updateError;
+      res.json({ success: true, message: 'Reschedule request rejected.' });
+    }
   } catch (err) {
     console.error(err);
-    // ==== 修改点：认证错误返回 401 ====
-    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
-    }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
 });
