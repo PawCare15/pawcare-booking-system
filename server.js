@@ -567,9 +567,11 @@ app.post('/api/bookings', async (req, res) => {
         }
 
         // ===== 4. 创建 booking 主记录 =====
+        const booking_id = crypto.randomUUID();
         const { data: booking, error: bookingError } = await supabaseAdmin
             .from('booking')
             .insert([{
+                booking_id,  
                 customer_id,
                 pet_id,
                 booking_date,
