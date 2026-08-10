@@ -1,13 +1,51 @@
-// ================================================================
-// AMBIL CUSTOMER ID DARI localStorage
-// ================================================================
+// AUTH CHECK - PREVENT BACK NAVIGATION AFTER LOGOUT
+(function checkAuth() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.replace('index.html');
+        return;
+    }
+})();
+
+// DETECT BACK BUTTON NAVIGATION FROM CACHED PAGE
+window.addEventListener('pageshow', function(event) {
+    if (event.persisted) {
+        const tokenCheck = localStorage.getItem('token');
+        if (!tokenCheck) {
+            window.location.replace('index.html');
+        }
+    }
+});
+
+// WRAPPER FOR API CALLS WITH TOKEN
+async function authFetch(url, options = {}) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...options.headers
+    };
+    const response = await fetch(url, { ...options, headers });
+    if (response.status === 401) {
+        localStorage.clear();
+        window.location.href = 'login.html';
+        throw new Error('Unauthorized');
+    }
+    return response;
+}
+
+// GET CUSTOMER ID FROM LOCALSTORAGE
 function getCustomerId() {
     try {
         const customerData = localStorage.getItem('customer');
         if (customerData) {
             const parsed = JSON.parse(customerData);
-            if (parsed && parsed.id) {
-                return parsed.id;
+            if (parsed && parsed.customer_id) {
+                return parsed.customer_id;
             }
         }
         const customerId = localStorage.getItem('customerId');
@@ -21,9 +59,7 @@ function getCustomerId() {
     }
 }
 
-// ================================================================
-// SCROLLBAR COMPENSATION
-// ================================================================
+// SCROLLBAR COMPENSATION FOR MODALS
 function lockBodyScroll() {
     if (!document.body.classList.contains('no-scroll')) {
         const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -37,9 +73,7 @@ function unlockBodyScroll() {
     document.body.classList.remove('no-scroll');
 }
 
-// ================================================================
-// LOGOUT
-// ================================================================
+// LOGOUT FUNCTIONS
 function showLogoutModal() {
     const modal = document.getElementById('logoutModal');
     if (modal) {
@@ -65,21 +99,96 @@ function confirmLogout() {
     window.location.replace('index.html');
 }
 
-// ================================================================
-// DOM READY
-// ================================================================
+// TOGGLE PASSWORD VISIBILITY
+function togglePasswordVisibility(inputId, button) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    
+    const icon = button.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.className = 'fa-regular fa-eye-slash';
+    } else {
+        input.type = 'password';
+        icon.className = 'fa-regular fa-eye';
+    }
+}
+
+// PASSWORD VALIDATION FUNCTIONS
+const passwordPolicy = {
+    minLength: 8,
+    maxLength: 16,
+    hasLowercase: /[a-z]/,
+    hasUppercase: /[A-Z]/,
+    hasNumber: /[0-9]/,
+    hasSpecial: /[!@#$%^&*]/,
+};
+
+function validateRequirement(value, regex) {
+    return regex.test(value);
+}
+
+function isPasswordValid(password) {
+    const checks = {
+        length: password.length >= passwordPolicy.minLength && password.length <= passwordPolicy.maxLength,
+        lowercase: validateRequirement(password, passwordPolicy.hasLowercase),
+        uppercase: validateRequirement(password, passwordPolicy.hasUppercase),
+        number: validateRequirement(password, passwordPolicy.hasNumber),
+        special: validateRequirement(password, passwordPolicy.hasSpecial),
+    };
+    return checks.length && checks.lowercase && checks.uppercase && checks.number && checks.special;
+}
+
+function updatePasswordRequirements(password) {
+    const checks = {
+        length: password.length >= passwordPolicy.minLength && password.length <= passwordPolicy.maxLength,
+        lowercase: validateRequirement(password, passwordPolicy.hasLowercase),
+        uppercase: validateRequirement(password, passwordPolicy.hasUppercase),
+        number: validateRequirement(password, passwordPolicy.hasNumber),
+        special: validateRequirement(password, passwordPolicy.hasSpecial),
+    };
+
+    const reqLength = document.getElementById('req-length');
+    const reqLowercase = document.getElementById('req-lowercase');
+    const reqUppercase = document.getElementById('req-uppercase');
+    const reqNumber = document.getElementById('req-number');
+    const reqSpecial = document.getElementById('req-special');
+
+    const requirementMap = [
+        { element: reqLength, met: checks.length },
+        { element: reqLowercase, met: checks.lowercase },
+        { element: reqUppercase, met: checks.uppercase },
+        { element: reqNumber, met: checks.number },
+        { element: reqSpecial, met: checks.special },
+    ];
+
+    requirementMap.forEach(({ element, met }) => {
+        const icon = element.querySelector('i');
+        if (met) {
+            element.classList.remove('not-met');
+            element.classList.add('met');
+            icon.className = 'ri-check-line';
+        } else {
+            element.classList.remove('met');
+            element.classList.add('not-met');
+            icon.className = 'ri-close-line';
+        }
+    });
+
+    return checks.length && checks.lowercase && checks.uppercase && checks.number && checks.special;
+}
+
+// DOM CONTENT LOADED - MAIN APPLICATION
 document.addEventListener("DOMContentLoaded", async () => {
     
-    // 再次检查 token（双重保险）
+    // DOUBLE CHECK TOKEN FOR SECURITY
     const token = localStorage.getItem('token');
     if (!token) {
         window.location.replace('index.html');
         return;
     }
 
-    // ==========================================
-    // DOM ELEMENTS
-    // ==========================================
+    // DOM ELEMENTS REFERENCES
     const sidebar = document.getElementById("sidebar");
     const sidebarOverlay = document.getElementById("sidebarOverlay");
     const menuToggle = document.getElementById("menuToggle");
@@ -112,9 +221,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const termsBtn = document.getElementById("termsBtn");
     const aboutBtn = document.getElementById("aboutBtn");
 
-    // ==========================================
-    // 1. SIDEBAR TOGGLE
-    // ==========================================
+    // PASSWORD REQUIREMENTS DOM REFERENCES
+    const reqContainer = document.getElementById('passwordRequirements');
+    const newPasswordInput = document.getElementById('newPassword');
+
+    // SIDEBAR TOGGLE FUNCTIONALITY
     function openSidebar() {
         if (sidebar) sidebar.classList.add("active");
         if (sidebarOverlay) sidebarOverlay.classList.add("active");
@@ -129,9 +240,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (sidebarClose) sidebarClose.addEventListener("click", closeSidebar);
     if (sidebarOverlay) sidebarOverlay.addEventListener("click", closeSidebar);
 
-    // ==========================================
-    // 2. HELPER: SET AVATAR
-    // ==========================================
+    // SET AVATAR IMAGE
     function setAvatar(avatarUrl) {
         if (avatarUrl) {
             headerAvatarImg.src = avatarUrl;
@@ -148,9 +257,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // ==========================================
-    // 3. LOAD PROFILE FROM API
-    // ==========================================
+    // LOAD PROFILE FROM API
     async function loadCustomerProfile() {
         try {
             const res = await authFetch('/api/profile');
@@ -166,18 +273,26 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
+    // RENDER PROFILE DATA TO UI
     function renderProfileData(data) {
+
+        // UPDATE FORM FIELDS - MATCH DATABASE COLUMN NAMES
         if (fullNameInput) fullNameInput.value = data.full_name || '';
         if (emailInput) emailInput.value = data.email || '';
         if (phoneInput) phoneInput.value = data.phone_number || '';
         if (addressInput) addressInput.value = data.address || '';
 
+        // UPDATE HEADER USERNAME
         if (headerName) headerName.textContent = data.full_name || 'User';
+
+        // UPDATE PROFILE SUMMARY
         if (summaryName) summaryName.textContent = data.full_name || 'User';
         if (summaryEmail) summaryEmail.textContent = data.email || 'Not provided';
         if (summaryPhone) summaryPhone.textContent = data.phone_number || 'Not provided';
         if (summaryAddress) summaryAddress.textContent = data.address || 'Not provided';
         if (summaryMemberSince) {
+
+            // USE CREATED_AT OR FALLBACK TO CURRENT DATE IF NOT AVAILABLE
             if (data.created_at) {
                 const dateObj = new Date(data.created_at);
                 summaryMemberSince.textContent = dateObj.toLocaleDateString("en-US", {
@@ -193,9 +308,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         setAvatar(data.profile_photo || null);
     }
 
-    // ==========================================
-    // 4. SAVE PROFILE (UPDATE API)
-    // ==========================================
+    // SAVE PROFILE - UPDATE API
     if (profileForm) {
         profileForm.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -211,10 +324,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const data = await res.json();
 
                 if (data.success) {
+
+                    // UPDATE SUMMARY DISPLAY
                     if (summaryPhone) summaryPhone.textContent = phone_number || "Not provided";
                     if (summaryAddress) summaryAddress.textContent = address || "Not provided";
 
-                    // Update localStorage cache
+                    // UPDATE LOCALSTORAGE CACHE
                     try {
                         const customerData = localStorage.getItem('customer');
                         if (customerData) {
@@ -238,9 +353,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // ==========================================
-    // 5. AVATAR UPLOAD - using API
-    // ==========================================
+    // AVATAR UPLOAD - API
     if (avatarInput) {
         avatarInput.addEventListener("change", async (e) => {
             const file = e.target.files[0];
@@ -284,9 +397,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // ==========================================
-    // 6. CHANGE PASSWORD - using API
-    // ==========================================
+    // CHANGE PASSWORD - API WITH PASSWORD REQUIREMENTS
     if (openChangePasswordModal) {
         openChangePasswordModal.addEventListener("click", (e) => {
             e.preventDefault();
@@ -295,6 +406,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                 document.querySelectorAll('.error-message').forEach(el => {
                     el.classList.remove('show');
                 });
+                // HIDE PASSWORD REQUIREMENTS
+                if (reqContainer) {
+                    reqContainer.classList.remove('show');
+                }
                 passwordModal.classList.add('active');
                 lockBodyScroll();
             }
@@ -317,6 +432,69 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
+    // PASSWORD INPUT EVENT - UPDATE REQUIREMENTS
+    if (newPasswordInput) {
+        newPasswordInput.addEventListener('input', function() {
+            const password = this.value;
+            const isValid = updatePasswordRequirements(password);
+
+            if (reqContainer) {
+                if (password.length > 0) {
+                    reqContainer.classList.add('show');
+                } else {
+                    reqContainer.classList.remove('show');
+                }
+            }
+
+            // UPDATE NEW PASSWORD ERROR
+            const newPasswordError = document.getElementById('newPasswordError');
+            if (password.length > 0 && !isValid) {
+                if (newPasswordError) {
+                    newPasswordError.textContent = 'Password must meet all requirements above.';
+                    newPasswordError.classList.add('show');
+                }
+            } else {
+                if (newPasswordError) {
+                    newPasswordError.classList.remove('show');
+                }
+            }
+
+            // CHECK CONFIRM PASSWORD MATCH
+            const retypePassword = document.getElementById('retypePassword')?.value;
+            const retypeError = document.getElementById('retypePasswordError');
+            if (retypePassword && password !== retypePassword) {
+                if (retypeError) {
+                    retypeError.textContent = 'Passwords do not match.';
+                    retypeError.classList.add('show');
+                }
+            } else {
+                if (retypeError) {
+                    retypeError.classList.remove('show');
+                }
+            }
+        });
+    }
+
+    // CONFIRM PASSWORD INPUT EVENT
+    const retypePasswordInput = document.getElementById('retypePassword');
+    if (retypePasswordInput) {
+        retypePasswordInput.addEventListener('input', function() {
+            const newPassword = document.getElementById('newPassword')?.value || '';
+            const retypeError = document.getElementById('retypePasswordError');
+            
+            if (this.value && this.value !== newPassword) {
+                if (retypeError) {
+                    retypeError.textContent = 'Passwords do not match.';
+                    retypeError.classList.add('show');
+                }
+            } else {
+                if (retypeError) {
+                    retypeError.classList.remove('show');
+                }
+            }
+        });
+    }
+
     if (changePasswordForm) {
         changePasswordForm.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -335,9 +513,13 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
 
-            if (newPassword.length < 6) {
-                document.getElementById('newPasswordError').textContent = 'Password must be at least 6 characters.';
+            // VALIDATE PASSWORD USING POLICY
+            if (!isPasswordValid(newPassword)) {
+                document.getElementById('newPasswordError').textContent = 'Password must meet all requirements above.';
                 document.getElementById('newPasswordError').classList.add('show');
+                if (reqContainer) {
+                    reqContainer.classList.add('show');
+                }
                 return;
             }
 
@@ -361,6 +543,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                     }
                     showConfirmationModal('Your password has been changed successfully!');
                     changePasswordForm.reset();
+                    if (reqContainer) {
+                        reqContainer.classList.remove('show');
+                    }
                 } else {
                     showValidationModal(data.message || 'Failed to update password.');
                 }
@@ -371,10 +556,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // ==========================================
-    // 7. MODALS (TERMS, ABOUT, VALIDATION, CONFIRMATION)
-    // ==========================================
-    // --- Terms ---
+    // MODAL CONTROLS - TERMS, ABOUT, VALIDATION, CONFIRMATION
+    // TERMS MODAL
     if (termsBtn) {
         termsBtn.addEventListener("click", (e) => {
             e.preventDefault();
@@ -401,7 +584,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // --- About ---
+    // ABOUT MODAL
     if (aboutBtn) {
         aboutBtn.addEventListener("click", (e) => {
             e.preventDefault();
@@ -428,7 +611,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // --- Validation ---
+    // VALIDATION MODAL
     function showValidationModal(message) {
         const modal = document.getElementById('validationModal');
         const msgEl = document.getElementById('validationMessage');
@@ -447,7 +630,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     }
 
-    // --- Confirmation ---
+    // CONFIRMATION MODAL
     function showConfirmationModal(message) {
         const modal = document.getElementById('confirmationModal');
         const msgEl = document.getElementById('confirmationMessage');
@@ -476,9 +659,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (e.target === this) hideConfirmationModal();
     });
 
-    // ==========================================
-    // CLOSE ALL MODALS WITH ESCAPE
-    // ==========================================
+    // CLOSE ALL MODALS WITH ESCAPE KEY
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             hideValidationModal();
@@ -490,9 +671,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
     });
 
-    // ==========================================
-    // LOAD PROFILE
-    // ==========================================
+    // INITIALIZE - LOAD PROFILE DATA
     await loadCustomerProfile();
 
     console.log('Profile page using backend API successfully!');

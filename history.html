@@ -1288,7 +1288,7 @@
       </div>
 
       <!-- ================================================================
-      CONFIRMATION MODAL - 成功弹窗
+      CONFIRMATION MODAL - 成功/错误弹窗
       ================================================================ -->
       <div class="modal-overlay" id="confirmationModal">
           <div class="modal-box">
@@ -1636,7 +1636,7 @@
             const newDate = document.getElementById('newDateInput').value;
             const newTime = document.getElementById('newTimeSelect').value;
             if (!newDate) {
-                alert('Please select a new date.');
+                showConfirmationModal('Please select a new date.', 'error');
                 return;
             }
             try {
@@ -1648,35 +1648,42 @@
                 if (data.success) {
                     document.getElementById('rescheduleRequestModal').classList.remove('active');
                     unlockBodyScroll();
-                    showConfirmationModal('✅ ' + data.message);
-                    await loadBookings(); // 刷新列表
+                    showConfirmationModal('✅ ' + data.message, 'success');
+                    await loadBookings();
                 } else {
-                    showConfirmationModal('❌ ' + (data.message || 'Failed to submit request.'));
+                    showConfirmationModal('❌ ' + (data.message || 'Failed to submit request.'), 'error');
                 }
             } catch (err) {
                 console.error(err);
-                showConfirmationModal('❌ Unable to connect to server.');
+                showConfirmationModal('❌ Unable to connect to server.', 'error');
             }
         });
 
         // ================================================================
         // CONFIRMATION MODAL CONTROLS
         // ================================================================
-        function showConfirmationModal(message) {
+        function showConfirmationModal(message, type) {
             const modal = document.getElementById('confirmationModal');
             const msgEl = document.getElementById('confirmationMessage');
+            const iconCircle = modal.querySelector('.modal-icon-circle');
+            const titleEl = modal.querySelector('.modal-title');
+            
             if (modal && msgEl) {
                 msgEl.textContent = message;
+                
+                // 根据类型设置图标和标题
+                if (type === 'error') {
+                    iconCircle.className = 'modal-icon-circle danger';
+                    iconCircle.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i>';
+                    titleEl.textContent = 'Oops!';
+                } else {
+                    iconCircle.className = 'modal-icon-circle success';
+                    iconCircle.innerHTML = '<i class="fa-solid fa-check-circle"></i>';
+                    titleEl.textContent = 'Success!';
+                }
+                
                 lockBodyScroll();
                 modal.classList.add('active');
-            }
-        }
-
-        function hideConfirmationModal() {
-            const modal = document.getElementById('confirmationModal');
-            if (modal) {
-                modal.classList.remove('active');
-                unlockBodyScroll();
             }
         }
 
@@ -2006,13 +2013,13 @@
                             booking.status = 'Cancelled';
                             booking.statusClass = 'cancelled';
                             renderBookings();
-                            showConfirmationModal('✅ Booking has been cancelled successfully.');
+                            showConfirmationModal('✅ Booking has been cancelled successfully.', 'success');
                         } else {
-                            showConfirmationModal('❌ Failed to cancel booking: ' + (data.message || 'Unknown error'));
+                            showConfirmationModal('❌ Failed to cancel booking: ' + (data.message || 'Unknown error'), 'error');
                         }
                     } catch (err) {
                         console.error('Error cancelling booking:', err);
-                        showConfirmationModal('❌ Unable to connect to server.');
+                        showConfirmationModal('❌ Unable to connect to server.', 'error');
                     }
                 }
             );
