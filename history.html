@@ -10,7 +10,6 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    /* ... 所有样式保持不变，但为了完整性我保留全部 ... */
     * {
       margin: 0;
       padding: 0;
@@ -440,6 +439,7 @@
       border: 1px solid #EFECE6;
       overflow: hidden;
       box-shadow: 0 4px 16px rgba(0,0,0,0.02);
+      overflow-x: auto;
     }
 
     .booking-table {
@@ -447,6 +447,7 @@
       border-collapse: collapse;
       font-size: 13px;
       table-layout: fixed;
+      min-width: 820px;
     }
 
     .booking-table thead {
@@ -493,12 +494,13 @@
       vertical-align: middle;
     }
 
-    .booking-table .col-pet { width: 16%; }
+    /* 列宽调整 - 给 Action 更多空间 */
+    .booking-table .col-pet { width: 14%; }
     .booking-table .col-service { width: 16%; }
-    .booking-table .col-date { width: 14%; }
-    .booking-table .col-price { width: 14%; }
-    .booking-table .col-status { width: 14%; }
-    .booking-table .col-action { width: 26%; }
+    .booking-table .col-date { width: 13%; }
+    .booking-table .col-price { width: 11%; }
+    .booking-table .col-status { width: 12%; }
+    .booking-table .col-action { width: 34%; }
 
     .pet-cell {
       display: flex;
@@ -629,33 +631,35 @@
       margin-right: 4px;
     }
 
+    /* ============================================
+       操作按钮样式 - 紧凑版（保留文字）
+    ============================================ */
     .action-cell {
       display: flex;
-      gap: 6px;
+      gap: 4px;
       flex-wrap: nowrap;
       align-items: center;
     }
 
     .btn-action {
-      padding: 6px 14px;
+      padding: 4px 10px;
       border: none;
-      border-radius: 8px;
-      font-size: 12px;
+      border-radius: 6px;
+      font-size: 11px;
       font-weight: 500;
       cursor: pointer;
       transition: all 0.25s ease;
       font-family: 'Poppins', sans-serif;
       display: inline-flex;
       align-items: center;
-      gap: 5px;
+      gap: 4px;
       white-space: nowrap;
       text-decoration: none;
-      background: #F5F0EB;
-      color: #5A361A;
+      line-height: 1.4;
     }
 
     .btn-action i {
-      font-size: 12px;
+      font-size: 11px;
     }
 
     .btn-action:hover {
@@ -667,6 +671,7 @@
       transform: translateY(0);
     }
 
+    /* View 按钮 - 蓝色 */
     .btn-view {
       background: #E8F0FE;
       color: #1A56DB;
@@ -676,6 +681,7 @@
       box-shadow: 0 4px 12px rgba(26,86,219,0.15);
     }
 
+    /* Reschedule 按钮 - 橙色 */
     .btn-reschedule {
       background: #FEF7E0;
       color: #B06000;
@@ -685,6 +691,7 @@
       box-shadow: 0 4px 12px rgba(176,96,0,0.15);
     }
 
+    /* Cancel 按钮 - 红色 */
     .btn-cancel {
       background: #FCE8E6;
       color: #B91C1C;
@@ -831,6 +838,9 @@
       margin-top: 4px;
     }
 
+    /* ================================================================
+       MODAL STYLES
+    ================================================================ */
     .modal-overlay {
         display: none;
         position: fixed;
@@ -1096,24 +1106,31 @@
       color: #D97706;
     }
 
+    /* ================================================================
+       响应式 - 平板
+    ================================================================ */
     @media (max-width: 992px) {
       .booking-table {
         font-size: 12px;
+        min-width: 760px;
       }
 
       .booking-table thead th,
       .booking-table tbody td {
-        padding: 10px 8px;
-      }
-
-      .action-cell {
-        justify-content: center;
-        flex-wrap: wrap;
+        padding: 10px 10px;
       }
 
       .btn-action {
         font-size: 10px;
-        padding: 4px 10px;
+        padding: 3px 8px;
+        gap: 3px;
+      }
+      .btn-action i {
+        font-size: 10px;
+      }
+      .action-cell {
+        gap: 3px;
+        flex-wrap: wrap;
       }
 
       .pet-avatar {
@@ -1121,13 +1138,11 @@
         height: 32px;
         font-size: 12px;
       }
-
-      .pet-avatar img {
-        width: 32px;
-        height: 32px;
-      }
     }
 
+    /* ================================================================
+       响应式 - 手机
+    ================================================================ */
     @media (max-width: 768px) {
       .main-content {
         padding: 0 15px 15px;
@@ -1202,15 +1217,23 @@
 
       .action-cell {
         flex-wrap: wrap;
-        gap: 4px;
+        gap: 3px;
       }
 
       .btn-action {
-        font-size: 10px;
-        padding: 4px 8px;
+        font-size: 9px;
+        padding: 3px 6px;
+        gap: 2px;
+        border-radius: 4px;
+      }
+      .btn-action i {
+        font-size: 9px;
       }
     }
 
+    /* ================================================================
+       响应式 - 小手机
+    ================================================================ */
     @media (max-width: 480px) {
       .top-header {
         padding: 10px 12px;
@@ -1235,13 +1258,12 @@
       }
 
       .btn-action {
-        font-size: 9px;
-        padding: 3px 6px;
-        gap: 3px;
+        font-size: 8px;
+        padding: 2px 5px;
+        gap: 2px;
       }
-
       .btn-action i {
-        font-size: 10px;
+        font-size: 8px;
       }
     }
   </style>
@@ -1719,12 +1741,10 @@
                 msgEl.textContent = message;
                 
                 if (type === 'error') {
-                    // 错误状态 - Oops!
                     iconCircle.className = 'modal-icon-circle danger';
                     icon.className = 'fa-solid fa-circle-exclamation';
                     title.textContent = 'Oops!';
                 } else {
-                    // 成功状态 - Success!
                     iconCircle.className = 'modal-icon-circle success';
                     icon.className = 'fa-solid fa-check-circle';
                     title.textContent = 'Success!';
@@ -1748,12 +1768,11 @@
             if (e.target === this) hideConfirmationModal();
         });
 
-        // 修改：提交 Reschedule 请求 - 错误时显示 Oops! 弹窗在最上层
+        // Reschedule 提交
         document.getElementById('rescheduleRequestSubmitBtn').addEventListener('click', async function() {
             const newDate = document.getElementById('newDateInput').value;
             const newTime = document.getElementById('newTimeSelect').value;
             
-            // 验证日期是否为空
             if (!newDate) {
                 showConfirmationModal('❌ Please select a new date.', 'error');
                 return;
@@ -1767,13 +1786,11 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    // 成功：关闭 reschedule 模态框，显示成功消息
                     document.getElementById('rescheduleRequestModal').classList.remove('active');
                     unlockBodyScroll();
                     showConfirmationModal('✅ ' + data.message, 'success');
                     await loadBookings();
                 } else {
-                    // 错误：显示 Oops! 模态框（如 "We are closed on Thursdays"）
                     showConfirmationModal('❌ ' + (data.message || 'Failed to submit request.'), 'error');
                 }
             } catch (err) {
