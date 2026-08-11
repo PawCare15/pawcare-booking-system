@@ -1654,16 +1654,13 @@
 
         function validateSingleDate() {
             const selectedDate = bookingDateInput.value;
-            const dateWarningEl = document.getElementById('dateWarning');
-            const warningMsg = document.getElementById('warningMessage');
             if (isThursday(selectedDate)) {
                 const formatted = formatDateDisplay(selectedDate);
-                dateWarningEl.classList.add('active');
-                warningMsg.textContent = `We are closed on Thursdays. ${formatted} is a Thursday. Please select another day.`;
                 bookingDateInput.classList.add('disabled-date');
+                // 弹出模态框提示
+                showValidationModal(`We are closed on Thursdays. ${formatted} is a Thursday. Please select another day.`);
                 return false;
             } else {
-                dateWarningEl.classList.remove('active');
                 bookingDateInput.classList.remove('disabled-date');
                 return true;
             }

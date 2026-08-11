@@ -1555,6 +1555,13 @@
         }
         return response;
     }
+
+    // ===== 日期工具函数：判断是否为周四 =====
+    function isThursday(dateString) {
+        if (!dateString) return false;
+        const date = new Date(dateString + 'T00:00:00');
+        return date.getDay() === 4;
+    }
     
     // ================================================================
     // SCROLLBAR COMPENSATION
@@ -2019,12 +2026,18 @@
 
     // 提交按钮
     document.getElementById('dashboardRescheduleSubmitBtn').addEventListener('click', async function() {
-        const newDate = document.getElementById('dashboardNewDateInput').value;
-        const newTime = document.getElementById('dashboardNewTimeSelect').value;
-        if (!newDate) {
-            alert('Please select a new date.');
-            return;
-        }
+    const newDate = document.getElementById('dashboardNewDateInput').value;
+    const newTime = document.getElementById('dashboardNewTimeSelect').value;
+    if (!newDate) {
+        alert('Please select a new date.');
+        return;
+    }
+    
+    // ✅ 星期四验证（弹出独立模态框）
+    if (isThursday(newDate)) {
+        showDashboardMessage('❌ We are closed on Thursdays. Please choose another date.', false);
+        return;
+    }
         try {
             const res = await authFetch(`/api/bookings/${dashboardRescheduleBookingId}/reschedule-request`, {
                 method: 'POST',
@@ -2054,7 +2067,7 @@
         }
     });
 
-        // ================================================================
+    // ================================================================
     // 显示消息模态框（替代 alert）
     // ================================================================
     function showDashboardMessage(message, isSuccess) {

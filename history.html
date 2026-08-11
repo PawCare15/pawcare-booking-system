@@ -1546,6 +1546,13 @@
         }
         return response;
     }
+
+    // ===== 日期工具函数：判断是否为周四 =====
+    function isThursday(dateString) {
+        if (!dateString) return false;
+        const date = new Date(dateString + 'T00:00:00');
+        return date.getDay() === 4;
+    }
     
     // ================================================================
     // SCROLLBAR COMPENSATION
@@ -1770,13 +1777,19 @@
 
         // Reschedule 提交
         document.getElementById('rescheduleRequestSubmitBtn').addEventListener('click', async function() {
-            const newDate = document.getElementById('newDateInput').value;
-            const newTime = document.getElementById('newTimeSelect').value;
-            
-            if (!newDate) {
-                showConfirmationModal('❌ Please select a new date.', 'error');
-                return;
-            }
+        const newDate = document.getElementById('newDateInput').value;
+        const newTime = document.getElementById('newTimeSelect').value;
+        
+        if (!newDate) {
+            showConfirmationModal('❌ Please select a new date.', 'error');
+            return;
+        }
+        
+        // ✅ 星期四验证（弹出独立模态框）
+        if (isThursday(newDate)) {
+            showConfirmationModal('❌ We are closed on Thursdays. Please choose another date.', 'error');
+            return;
+        }
             
             try {
                 const res = await authFetch(`/api/bookings/${rescheduleBookingId}/reschedule-request`, {
@@ -1963,13 +1976,20 @@
                         priceDisplay = `From RM ${booking.price.toFixed(2)}`;
                     }
 
+                    // 判断是否应显示 "Pending Approval"
+                    const displayStatus = (booking.reschedule_status === 'pending' && booking.status !== 'cancelled') 
+                        ? 'Pending Approval' 
+                        : booking.status;
+
+                    // 根据显示状态选择图标
                     const statusIcons = {
                         'completed': 'fa-regular fa-circle-check',
                         'pending': 'fa-regular fa-clock',
                         'upcoming': 'fa-regular fa-calendar',
-                        'cancelled': 'fa-regular fa-circle-xmark'
+                        'cancelled': 'fa-regular fa-circle-xmark',
+                        'Pending Approval': 'fa-regular fa-hourglass-half'
                     };
-                    const statusIcon = statusIcons[booking.statusClass] || 'fa-regular fa-circle';
+                    const statusIcon = statusIcons[displayStatus] || 'fa-regular fa-circle';
 
                     const serviceNames = booking.services && booking.services.length > 0 
                         ? booking.services.map(s => s.service_name).join(', ') 
@@ -2003,8 +2023,10 @@
                         </td>
                         <td class="price-cell">${priceDisplay}</td>
                         <td>
-                            <span class="status-badge ${booking.statusClass}"><i class="${statusIcon}"></i> ${booking.status}</span>
-                            ${booking.reschedule_status === 'pending' ? '<span style="display:inline-block; background:#FEF7E0; color:#B06000; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">⏳ Pending</span>' : ''}
+                            <span class="status-badge ${booking.reschedule_status === 'pending' && booking.status !== 'cancelled' ? 'warning' : booking.statusClass}">
+                                <i class="${statusIcon}"></i> ${displayStatus}
+                            </span>
+                            ${booking.reschedule_status === 'pending' ? '<span style="display:inline-block; background:#FEF7E0; color:#B06000; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">⏳ Pending Approval</span>' : ''}
                             ${booking.reschedule_status === 'approved' ? '<span style="display:inline-block; background:#E6F4EA; color:#137333; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">✅ Approved</span>' : ''}
                             ${booking.reschedule_status === 'rejected' ? '<span style="display:inline-block; background:#FCE8E6; color:#C5221F; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">❌ Rejected</span>' : ''}
                         </td>
