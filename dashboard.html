@@ -839,7 +839,7 @@
       bottom: 0;
       background: rgba(0,0,0,0.4);
       backdrop-filter: blur(3px);
-      z-index: 2000;
+      z-index: 3000;
       align-items: center;
       justify-content: center;
       padding: 20px;
@@ -1742,13 +1742,20 @@
 
             let html = '';
             recent.forEach(b => {
+                // 判断是否应显示 "Pending Approval"
+                let displayStatus = b.status || 'pending';
                 let statusClass = 'warning';
-                let statusText = b.status || 'pending';
-                if (b.status === 'completed') {
+
+                if (b.reschedule_status === 'pending' && b.status !== 'cancelled') {
+                    displayStatus = 'Pending Approval';
+                    statusClass = 'warning';
+                } else if (b.status === 'completed') {
                     statusClass = 'success';
                 } else if (b.status === 'cancelled') {
                     statusClass = 'danger';
                 }
+
+                // 然后在表格中使用 displayStatus 和 statusClass
 
                 const petName = b.pet ? b.pet.name : 'Unknown';
                 
