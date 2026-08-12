@@ -460,11 +460,11 @@ app.get('/api/bookings', async (req, res) => {
         booking_id,
         booking_date,
         booking_time,
-        check_in_datetime,  
+        check_in_datetime,
         check_out_datetime,
         status,
         special_notes,
-        reschedule_status, 
+        reschedule_status,   // ← 必须有
         pet:pet_id (pet_name, breed, species),
         booking_service (
           service_id,

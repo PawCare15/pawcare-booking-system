@@ -1969,6 +1969,11 @@
                 `;
             } else {
                 tbody.innerHTML = pageItems.map(booking => {
+                    // ---- 添加计算 ----
+                    const bookingDateTime = new Date(booking.date.split('/').reverse().join('-') + 'T' + booking.time);
+                    const diffHours = (bookingDateTime - new Date()) / (1000 * 60 * 60);
+                    const canReschedule = (booking.status === 'pending' || booking.status === 'upcoming') && diffHours >= 24;
+
                     let priceDisplay;
                     if (booking.isFixed || booking.service === 'Nail Cut') {
                         priceDisplay = `RM ${booking.price.toFixed(2)}`;
@@ -1976,12 +1981,10 @@
                         priceDisplay = `From RM ${booking.price.toFixed(2)}`;
                     }
 
-                    // 判断是否应显示 "Pending Approval"
                     const displayStatus = (booking.reschedule_status === 'pending' && booking.status !== 'cancelled') 
                         ? 'Pending Approval' 
                         : booking.status;
 
-                    // 根据显示状态选择图标
                     const statusIcons = {
                         'completed': 'fa-regular fa-circle-check',
                         'pending': 'fa-regular fa-clock',
@@ -1997,56 +2000,47 @@
                     const serviceIcon = 'fa-solid fa-paw';
 
                     return `
-                    <tr>
-                        <td>
-                            <div class="pet-cell">
-                                <div class="pet-avatar">
-                                    ${booking.petInitials}
+                        <tr>
+                            <td>
+                                <div class="pet-cell">
+                                    <div class="pet-avatar">${booking.petInitials}</div>
+                                    <div class="pet-info">
+                                        <div class="pet-name">${booking.petName}</div>
+                                        <div class="pet-breed">${booking.petBreed}</div>
+                                    </div>
                                 </div>
-                                <div class="pet-info">
-                                    <div class="pet-name">${booking.petName}</div>
-                                    <div class="pet-breed">${booking.petBreed}</div>
+                            </td>
+                            <td>
+                                <div class="service-cell">
+                                    <span class="service-name"><i class="${serviceIcon}"></i> ${serviceNames}</span>
+                                    <span class="service-desc">${booking.serviceDesc}</span>
                                 </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="service-cell">
-                                <span class="service-name"><i class="${serviceIcon}"></i> ${serviceNames}</span>
-                                <span class="service-desc">${booking.serviceDesc}</span>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="date-cell">
-                                <div class="date">${booking.date}</div>
-                                <div class="time"><i class="fa-regular fa-clock"></i> ${booking.time}</div>
-                            </div>
-                        </td>
-                        <td class="price-cell">${priceDisplay}</td>
-                        <td>
-                            <span class="status-badge ${booking.reschedule_status === 'pending' && booking.status !== 'cancelled' ? 'warning' : booking.statusClass}">
-                                <i class="${statusIcon}"></i> ${displayStatus}
-                            </span>
-                            ${booking.reschedule_status === 'pending' ? '<span style="display:inline-block; background:#FEF7E0; color:#B06000; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">⏳ Pending Approval</span>' : ''}
-                            ${booking.reschedule_status === 'approved' ? '<span style="display:inline-block; background:#E6F4EA; color:#137333; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">✅ Approved</span>' : ''}
-                            ${booking.reschedule_status === 'rejected' ? '<span style="display:inline-block; background:#FCE8E6; color:#C5221F; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">❌ Rejected</span>' : ''}
-                        </td>
-                        <td>
-                            <div class="action-cell">
-                                <button class="btn-action btn-view" onclick="viewDetails(${booking.id})"><i class="fa-regular fa-eye"></i> View</button>
-                                // 先计算是否可改期（状态为 pending/upcoming 且距离预约时间 >= 24 小时）
-                                const bookingDateTime = new Date(booking.date.split('/').reverse().join('-') + 'T' + booking.time);
-                                const diffHours = (bookingDateTime - new Date()) / (1000 * 60 * 60);
-                                const canReschedule = (booking.status === 'pending' || booking.status === 'upcoming') && diffHours >= 24;
-
-                                // 然后在按钮处使用：
-                                ${canReschedule ? 
-                                    `<button class="btn-action btn-reschedule" onclick="reschedule(${booking.id})"><i class="fa-regular fa-calendar-plus"></i> Reschedule</button>` : ''}
-                                ${booking.status === 'pending' ? 
-                                    `<button class="btn-action btn-cancel" onclick="cancelBooking(${booking.id})"><i class="fa-regular fa-circle-xmark"></i> Cancel</button>` : ''}
-                            </div>
-                        </td>
-                    </tr>
-                `}).join('');
+                            </td>
+                            <td>
+                                <div class="date-cell">
+                                    <div class="date">${booking.date}</div>
+                                    <div class="time"><i class="fa-regular fa-clock"></i> ${booking.time}</div>
+                                </div>
+                            </td>
+                            <td class="price-cell">${priceDisplay}</td>
+                            <td>
+                                <span class="status-badge ${booking.reschedule_status === 'pending' && booking.status !== 'cancelled' ? 'warning' : booking.statusClass}">
+                                    <i class="${statusIcon}"></i> ${displayStatus}
+                                </span>
+                                ${booking.reschedule_status === 'pending' ? '<span style="display:inline-block; background:#FEF7E0; color:#B06000; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">⏳ Pending Approval</span>' : ''}
+                                ${booking.reschedule_status === 'approved' ? '<span style="display:inline-block; background:#E6F4EA; color:#137333; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">✅ Approved</span>' : ''}
+                                ${booking.reschedule_status === 'rejected' ? '<span style="display:inline-block; background:#FCE8E6; color:#C5221F; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">❌ Rejected</span>' : ''}
+                            </td>
+                            <td>
+                                <div class="action-cell">
+                                    <button class="btn-action btn-view" onclick="viewDetails(${booking.id})"><i class="fa-regular fa-eye"></i> View</button>
+                                    ${canReschedule ? `<button class="btn-action btn-reschedule" onclick="reschedule(${booking.id})"><i class="fa-regular fa-calendar-plus"></i> Reschedule</button>` : ''}
+                                    ${booking.status === 'pending' ? `<button class="btn-action btn-cancel" onclick="cancelBooking(${booking.id})"><i class="fa-regular fa-circle-xmark"></i> Cancel</button>` : ''}
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
             }
 
             const startNum = totalItems === 0 ? 0 : start + 1;

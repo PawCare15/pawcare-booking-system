@@ -1742,7 +1742,6 @@
 
             let html = '';
             recent.forEach(b => {
-                // 判断是否应显示 "Pending Approval"
                 let displayStatus = b.status || 'pending';
                 let statusClass = 'warning';
 
@@ -1755,10 +1754,7 @@
                     statusClass = 'danger';
                 }
 
-                // 然后在表格中使用 displayStatus 和 statusClass
-
                 const petName = b.pet ? b.pet.name : 'Unknown';
-                
                 let serviceName = 'N/A';
                 if (b.services && b.services.length > 0) {
                     serviceName = b.services.map(s => s.service_name).join(', ');
@@ -1782,7 +1778,7 @@
                         <td>${serviceName}</td>
                         <td>${formattedDate}</td>
                         <td>${b.booking_time || 'N/A'}</td>
-                        <td><span class="status-pill ${statusClass}">${statusText}</span></td>
+                        <td><span class="status-pill ${statusClass}">${displayStatus}</span></td>
                     </tr>
                 `;
             });
