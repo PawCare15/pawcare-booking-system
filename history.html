@@ -2033,7 +2033,13 @@
                         <td>
                             <div class="action-cell">
                                 <button class="btn-action btn-view" onclick="viewDetails(${booking.id})"><i class="fa-regular fa-eye"></i> View</button>
-                                ${booking.status === 'pending' || booking.status === 'upcoming' ? 
+                                // 先计算是否可改期（状态为 pending/upcoming 且距离预约时间 >= 24 小时）
+                                const bookingDateTime = new Date(booking.date.split('/').reverse().join('-') + 'T' + booking.time);
+                                const diffHours = (bookingDateTime - new Date()) / (1000 * 60 * 60);
+                                const canReschedule = (booking.status === 'pending' || booking.status === 'upcoming') && diffHours >= 24;
+
+                                // 然后在按钮处使用：
+                                ${canReschedule ? 
                                     `<button class="btn-action btn-reschedule" onclick="reschedule(${booking.id})"><i class="fa-regular fa-calendar-plus"></i> Reschedule</button>` : ''}
                                 ${booking.status === 'pending' ? 
                                     `<button class="btn-action btn-cancel" onclick="cancelBooking(${booking.id})"><i class="fa-regular fa-circle-xmark"></i> Cancel</button>` : ''}
@@ -2112,10 +2118,24 @@
         window.reschedule = function(id) {
             const booking = bookings.find(b => b.id === id);
             if (!booking) return;
+
+            // ====== 24小时检查 ======
+            const bookingDateTime = new Date(booking.date.split('/').reverse().join('-') + 'T' + booking.time);
+            const now = new Date();
+            const diffHours = (bookingDateTime - now) / (1000 * 60 * 60);
+            if (diffHours < 24) {
+                showConfirmationModal('❌ Reschedule is not allowed within 24 hours of the appointment.', 'error');
+                return;
+            }
+
             rescheduleBookingId = booking.booking_id;
             const modal = document.getElementById('rescheduleRequestModal');
             if (modal) {
-                document.getElementById('newDateInput').value = '';
+                const dateInput = document.getElementById('newDateInput');
+                // ====== 设置 min = 今天 ======
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.setAttribute('min', today);
+                dateInput.value = '';
                 document.getElementById('newTimeSelect').value = '10:30 AM';
                 lockBodyScroll();
                 modal.classList.add('active');

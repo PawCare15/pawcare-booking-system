@@ -2001,24 +2001,35 @@
 
     // 显示模态框（由 Reschedule 按钮调用）
     function showRescheduleModal() {
-        // 从最近加载的 bookings 中查找第一个 pending 或 upcoming 的预约
         if (window.dashboardBookings && window.dashboardBookings.length > 0) {
             const upcoming = window.dashboardBookings.find(b => b.status === 'pending' || b.status === 'upcoming');
-            if (upcoming) {
-                dashboardRescheduleBookingId = upcoming.booking_id;
-            } else {
-                alert('No upcoming bookings to reschedule.');
+            if (!upcoming) {
+                showDashboardMessage('❌ No upcoming bookings to reschedule.', false);
                 return;
             }
+
+            // ====== 24小时检查 ======
+            const bookingDateTime = new Date(upcoming.booking_date + 'T' + upcoming.booking_time);
+            const now = new Date();
+            const diffHours = (bookingDateTime - now) / (1000 * 60 * 60);
+            if (diffHours < 24) {
+                showDashboardMessage('❌ Reschedule is not allowed within 24 hours of the appointment.', false);
+                return;
+            }
+
+            dashboardRescheduleBookingId = upcoming.booking_id;
         } else {
-            alert('No bookings loaded.');
+            showDashboardMessage('❌ No bookings loaded.', false);
             return;
         }
 
-        // 弹出模态框
         const modal = document.getElementById('rescheduleRequestModal');
         if (modal) {
-            document.getElementById('dashboardNewDateInput').value = '';
+            const dateInput = document.getElementById('dashboardNewDateInput');
+            // ====== 设置 min = 今天 ======
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.setAttribute('min', today);
+            dateInput.value = '';
             document.getElementById('dashboardNewTimeSelect').value = '10:30 AM';
             lockBodyScroll();
             modal.classList.add('active');
@@ -2036,11 +2047,9 @@
     const newDate = document.getElementById('dashboardNewDateInput').value;
     const newTime = document.getElementById('dashboardNewTimeSelect').value;
     if (!newDate) {
-        alert('Please select a new date.');
+        showDashboardMessage('❌ Please select a new date.', false);   // ← 改为模态框
         return;
     }
-    
-    // ✅ 星期四验证（弹出独立模态框）
     if (isThursday(newDate)) {
         showDashboardMessage('❌ We are closed on Thursdays. Please choose another date.', false);
         return;
