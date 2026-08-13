@@ -1271,7 +1271,7 @@
     <!-- ===== DASHBOARD CONTENT ===== -->
     <section class="welcome-banner">
       <div class="banner-text">
-        <h1>Welcome back, Jenny! 😻</h1>
+        <h1 id="welcomeUserName">Welcome back, <span>Loading...</span> 😻</h1>
         <p>Here's what's happening with your pets and bookings today.</p>
       </div>
     </section>
@@ -1282,28 +1282,9 @@
         <div class="card-header">
           <h3><i class="fa-regular fa-calendar card-title-icon"></i> Upcoming Appointment</h3>
         </div>
-        <div class="appointment-card">
-          <div class="appointment-img">
-            <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=200" alt="Buddy">
-          </div>
-          <div class="appointment-info">
-            <div class="pet-title-bar">
-              <h4>Buddy <span>(Golden Retriever)</span></h4>
-              <span class="badge confirmed">Confirmed</span>
-            </div>
-            <ul class="details-list">
-              <li><i class="fa-solid fa-scissors"></i> <span>Service</span> <strong>Grooming</strong></li>
-              <li><i class="fa-regular fa-calendar"></i> <span>Date</span> <strong>15 August 2026</strong></li>
-              <li><i class="fa-regular fa-clock"></i> <span>Time</span> <strong>2:00 PM</strong></li>
-              <li><i class="fa-solid fa-location-dot"></i> <span>Location</span> <strong>PawCare Pet Center, Penang</strong></li>
-            </ul>
-            <div class="action-btns">
-                <button class="btn btn-primary" onclick="showAppointmentModal()">View Details</button>
-                <button class="btn btn-secondary" onclick="showRescheduleModal()">Reschedule</button>
-            </div>
-          </div>
+        <div id="upcomingAppointmentContainer">
+            <!-- 由 JavaScript 动态渲染 -->
         </div>
-      </div>
 
       <div class="card">
         <div class="card-header">
@@ -1398,55 +1379,21 @@
     <!-- ================================================================
    APPOINTMENT DETAILS MODAL
    ================================================================ -->
-    <div class="modal-overlay" id="appointmentModal">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3><i class="fa-regular fa-calendar" style="color:#D97706;"></i> Appointment Details</h3>
-                <button class="modal-close" onclick="closeAppointmentModal()"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-            
-            <div style="display: flex; gap: 16px; margin-bottom: 16px; align-items: center;">
-                <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=100" alt="Buddy" style="width: 70px; height: 70px; border-radius: 50%; object-fit: cover;">
-                <div>
-                    <h4 style="font-size: 18px; margin: 0;">Buddy</h4>
-                    <span style="background: #FFF3E0; color: #D97706; font-size: 12px; padding: 2px 12px; border-radius: 12px;">Confirmed</span>
-                </div>
-            </div>
-
-            <div class="modal-detail-card">
-                <div class="modal-detail-row">
-                    <div class="detail-icon"><i class="fa-solid fa-scissors"></i></div>
-                    <div class="detail-label">Service</div>
-                    <div class="detail-value">Grooming</div>
-                </div>
-                <div class="modal-detail-row">
-                    <div class="detail-icon"><i class="fa-solid fa-paw"></i></div>
-                    <div class="detail-label">Pet Type</div>
-                    <div class="detail-value">Golden Retriever</div>
-                </div>
-                <div class="modal-detail-row">
-                    <div class="detail-icon"><i class="fa-regular fa-calendar"></i></div>
-                    <div class="detail-label">Date</div>
-                    <div class="detail-value">15 August 2026</div>
-                </div>
-                <div class="modal-detail-row">
-                    <div class="detail-icon"><i class="fa-regular fa-clock"></i></div>
-                    <div class="detail-label">Time</div>
-                    <div class="detail-value">2:00 PM</div>
-                </div>
-                <div class="modal-detail-row" style="border-bottom: none; padding-bottom: 0;">
-                    <div class="detail-icon"><i class="fa-solid fa-location-dot"></i></div>
-                    <div class="detail-label">Location</div>
-                    <div class="detail-value">PawCare Pet Center, Penang</div>
-                </div>
-            </div>
-
-            <div style="display: flex; gap: 12px; justify-content: flex-end;">
-                <button class="modal-btn modal-btn-secondary" onclick="closeAppointmentModal()">Close</button>
-                <button class="modal-btn modal-btn-primary" onclick="showRescheduleModal(); closeAppointmentModal();">Reschedule</button>
-            </div>
+  <div class="modal-overlay" id="appointmentModal">
+    <div class="modal-box" style="max-width: 460px;">
+        <div class="modal-icon-circle info">
+            <i class="fa-regular fa-calendar-check"></i>
+        </div>
+        <h2 class="modal-title">📋 Booking Details</h2>
+        <p style="font-size: 12px; color: #7A7A7A; text-align: center; margin-bottom: 16px;">Complete information about your appointment</p>
+        <div class="modal-detail-card" id="appointmentDetailsContent">
+            <!-- 动态内容 -->
+        </div>
+        <div class="modal-btn-group">
+            <button class="modal-btn modal-btn-primary" id="appointmentModalOkBtn">OK</button>
         </div>
     </div>
+  </div>
 
     <!-- ================================================================
     RESCHEDULE REQUEST MODAL - 申请重预约
@@ -1474,6 +1421,11 @@
                     <option value="05:00 PM">05:00 PM</option>
                     <option value="06:00 PM">06:00 PM</option>
                 </select>
+                <!-- 新增注释区块 -->
+                <div style="background:#FEF3C7; border-radius:8px; padding:8px 14px; margin-top:14px; border-left:4px solid #D97706; display:flex; align-items:center; gap:10px;">
+                    <i class="fa-regular fa-clock" style="color:#D97706; font-size:14px;"></i>
+                    <span style="font-size:13px; color:#92400E; font-weight:500;">Reschedule requests must be made at least <strong>24 hours</strong> before the original appointment time.</span>
+                </div>
             </div>
             <div class="modal-btn-group">
                 <button class="modal-btn modal-btn-secondary" id="dashboardRescheduleCancelBtn">Cancel</button>
@@ -1914,6 +1866,82 @@
         }
     }
 
+    async function updateWelcomeName() {
+    try {
+        const res = await authFetch('/api/profile');
+        const data = await res.json();
+        if (data.success) {
+            const name = data.data.full_name || 'User';
+            document.getElementById('welcomeUserName').innerHTML = `Welcome back, ${name}! 😻`;
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+async function renderUpcomingAppointment() {
+    const container = document.getElementById('upcomingAppointmentContainer');
+    try {
+        const res = await authFetch('/api/bookings');
+        const data = await res.json();
+        if (data.success) {
+            const bookings = data.data || [];
+            const upcoming = bookings
+                .filter(b => b.status === 'pending' || b.status === 'upcoming')
+                .sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date))[0];
+            
+            if (upcoming) {
+                const petName = upcoming.pet ? upcoming.pet.name : 'Unknown Pet';
+                const breed = upcoming.pet ? upcoming.pet.breed : '';
+                const serviceName = upcoming.services && upcoming.services.length > 0 
+                    ? upcoming.services.map(s => s.service_name).join(', ') 
+                    : 'Service';
+                const date = new Date(upcoming.booking_date).toLocaleDateString('en-GB', {
+                    day: '2-digit', month: 'short', year: 'numeric'
+                });
+                const time = upcoming.booking_time || 'N/A';
+                const status = upcoming.status || 'pending';
+                const statusClass = status === 'pending' ? 'warning' : status === 'completed' ? 'success' : 'danger';
+                const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+
+                container.innerHTML = `
+                    <div class="appointment-card">
+                        <div class="appointment-img">
+                            <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=200" alt="${petName}">
+                        </div>
+                        <div class="appointment-info">
+                            <div class="pet-title-bar">
+                                <h4>${petName} ${breed ? `<span>(${breed})</span>` : ''}</h4>
+                                <span class="badge ${statusClass}">${statusLabel}</span>
+                            </div>
+                            <ul class="details-list">
+                                <li><i class="fa-solid fa-scissors"></i> <span>Service</span> <strong>${serviceName}</strong></li>
+                                <li><i class="fa-regular fa-calendar"></i> <span>Date</span> <strong>${date}</strong></li>
+                                <li><i class="fa-regular fa-clock"></i> <span>Time</span> <strong>${time}</strong></li>
+                                <li><i class="fa-solid fa-location-dot"></i> <span>Location</span> <strong>PawCare Pet Center, Penang</strong></li>
+                            </ul>
+                            <div class="action-btns">
+                                <button class="btn btn-primary" onclick="showAppointmentModal('${upcoming.booking_id}')">View Details</button>
+                                <button class="btn btn-secondary" onclick="showRescheduleModal()">Reschedule</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:20px; color:#7A7A7A;">
+                        <i class="fa-regular fa-calendar" style="font-size:32px; display:block; margin-bottom:10px;"></i>
+                        <p>No upcoming appointments. <a href="booking.html">Book now</a></p>
+                    </div>
+                `;
+            }
+        }
+    } catch (err) {
+        console.error('Error loading upcoming appointment:', err);
+        container.innerHTML = `<p style="color:#7A7A7A;">Unable to load upcoming appointment.</p>`;
+    }
+}
+
     // ================================================================
     // DOM READY
     // ================================================================
@@ -1961,19 +1989,95 @@
         await renderRecentBookings();
         await renderNotifications();
 
+        // 添加这两个函数调用
+        renderUpcomingAppointment();
+        updateWelcomeName();
+
+        document.getElementById('appointmentModalOkBtn').addEventListener('click', closeAppointmentModal);
         console.log('PawCare Dashboard loaded successfully!');
     });
 
     // ================================================================
     // APPOINTMENT MODAL CONTROLS
     // ================================================================
-    function showAppointmentModal() {
-        const modal = document.getElementById('appointmentModal');
-        if (modal) {
-            lockBodyScroll();
-            modal.classList.add('active');
-        }
+    function showAppointmentModal(bookingId) {
+    const modal = document.getElementById('appointmentModal');
+    const content = document.getElementById('appointmentDetailsContent');
+    if (!modal || !content) return;
+
+    const bookings = window.dashboardBookings || [];
+    const booking = bookings.find(b => b.booking_id === bookingId);
+    if (!booking) {
+        content.innerHTML = `
+            <div class="modal-detail-row">
+                <div class="detail-icon"><i class="fa-solid fa-paw"></i></div>
+                <div class="detail-label">Pet</div>
+                <div class="detail-value"><strong>Buddy</strong> <span style="color:#7A7A7A; font-weight:400; font-size:12px;">Golden Retriever</span></div>
+            </div>
+            <div class="modal-detail-row">
+                <div class="detail-icon"><i class="fa-solid fa-scissors"></i></div>
+                <div class="detail-label">Services</div>
+                <div class="detail-value">Grooming</div>
+            </div>
+            <div class="modal-detail-row">
+                <div class="detail-icon"><i class="fa-regular fa-calendar"></i></div>
+                <div class="detail-label">Date</div>
+                <div class="detail-value">15 August 2026</div>
+            </div>
+            <div class="modal-detail-row">
+                <div class="detail-icon"><i class="fa-regular fa-clock"></i></div>
+                <div class="detail-label">Time</div>
+                <div class="detail-value">2:00 PM</div>
+            </div>
+            <div class="modal-detail-row" style="border-bottom: none; padding-bottom: 0;">
+                <div class="detail-icon"><i class="fa-regular fa-flag"></i></div>
+                <div class="detail-label">Status</div>
+                <div class="detail-value"><span class="status-tag warning">Confirmed</span></div>
+            </div>
+        `;
+    } else {
+        const petName = booking.pet ? booking.pet.name : 'Unknown';
+        const breed = booking.pet ? booking.pet.breed : '';
+        const services = booking.services && booking.services.length > 0 
+            ? booking.services.map(s => `<span style="display:block; font-size:13px;">${s.service_name} - RM ${s.estimated_price}</span>`).join('')
+            : '—';
+        const date = new Date(booking.booking_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+        const time = booking.booking_time || 'N/A';
+        const status = booking.status || 'pending';
+        const statusClass = status === 'pending' ? 'warning' : status === 'completed' ? 'success' : 'danger';
+        const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+
+        content.innerHTML = `
+            <div class="modal-detail-row">
+                <div class="detail-icon"><i class="fa-solid fa-paw"></i></div>
+                <div class="detail-label">Pet</div>
+                <div class="detail-value"><strong>${petName}</strong> ${breed ? `<span style="color:#7A7A7A; font-weight:400; font-size:12px;">${breed}</span>` : ''}</div>
+            </div>
+            <div class="modal-detail-row">
+                <div class="detail-icon"><i class="fa-solid fa-scissors"></i></div>
+                <div class="detail-label">Services</div>
+                <div class="detail-value">${services}</div>
+            </div>
+            <div class="modal-detail-row">
+                <div class="detail-icon"><i class="fa-regular fa-calendar"></i></div>
+                <div class="detail-label">Date</div>
+                <div class="detail-value">${date}</div>
+            </div>
+            <div class="modal-detail-row">
+                <div class="detail-icon"><i class="fa-regular fa-clock"></i></div>
+                <div class="detail-label">Time</div>
+                <div class="detail-value">${time}</div>
+            </div>
+            <div class="modal-detail-row" style="border-bottom: none; padding-bottom: 0;">
+                <div class="detail-icon"><i class="fa-regular fa-flag"></i></div>
+                <div class="detail-label">Status</div>
+                <div class="detail-value"><span class="status-tag ${statusClass}">${statusLabel}</span></div>
+            </div>
+        `;
     }
+    lockBodyScroll();
+    modal.classList.add('active');
+}
 
     function closeAppointmentModal() {
         const modal = document.getElementById('appointmentModal');

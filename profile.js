@@ -63,14 +63,20 @@ function getCustomerId() {
 function lockBodyScroll() {
     if (!document.body.classList.contains('no-scroll')) {
         const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        const scrollY = window.scrollY;
         document.body.style.paddingRight = scrollbarWidth + 'px';
         document.body.classList.add('no-scroll');
+        document.body.dataset.scrollY = scrollY;
     }
 }
 
 function unlockBodyScroll() {
     document.body.style.paddingRight = '';
     document.body.classList.remove('no-scroll');
+    if (document.body.dataset.scrollY) {
+        window.scrollTo(0, parseInt(document.body.dataset.scrollY));
+        delete document.body.dataset.scrollY;
+    }
 }
 
 // LOGOUT FUNCTIONS
