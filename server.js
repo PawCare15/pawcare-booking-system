@@ -145,11 +145,15 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const { data: customer, error } = await supabase
+    const { data: customer, error } = await supabaseAdmin  // 👈 改成 supabaseAdmin
       .from('customer')
       .select('customer_id, full_name, email, password')
       .eq('email', email)
       .maybeSingle();
+    if (error) {
+      console.error('Login error:', error);
+      return res.status(500).json({ success: false, message: 'Database error.' });
+    }
     if (!customer) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
     const match = await bcrypt.compare(password, customer.password);
     if (!match) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
@@ -927,6 +931,54 @@ app.get('/api/reviews', async (req, res) => {
     console.error(err);
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
+});
+
+// ========== 获取服务评分统计 ==========
+app.get('/api/reviews/stats', async (req, res) => {
+    try {
+        // 查询所有 review，关联 service_name
+        const { data: reviews, error } = await supabaseAdmin
+            .from('review')
+            .select(`
+                rating,
+                service:service_id (service_name)
+            `);
+
+        if (error) throw error;
+
+        // 统计每个服务的评分和数量
+        const statsMap = {};
+
+        reviews.forEach(r => {
+            const serviceName = r.service?.service_name || 'General';
+            if (!statsMap[serviceName]) {
+                statsMap[serviceName] = {
+                    totalRating: 0,
+                    count: 0
+                };
+            }
+            statsMap[serviceName].totalRating += r.rating;
+            statsMap[serviceName].count += 1;
+        });
+
+        // 转换为数组并计算平均分
+        const result = Object.keys(statsMap).map(name => {
+            const { totalRating, count } = statsMap[name];
+            return {
+                service_name: name,
+                avg_rating: count > 0 ? (totalRating / count) : 0,
+                review_count: count
+            };
+        });
+
+        // 按评分高低排序
+        result.sort((a, b) => b.avg_rating - a.avg_rating);
+
+        res.json({ success: true, data: result });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ success: false, message: err.message });
+    }
 });
 
 // ========== 点赞切换 (Toggle Like) ==========

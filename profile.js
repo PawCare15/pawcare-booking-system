@@ -559,12 +559,22 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             if (!file.type.startsWith('image/')) {
                 showValidationModal('Please upload an image file.');
+                avatarInput.value = ''; // 清空 input
                 return;
             }
 
             if (file.size > 2 * 1024 * 1024) {
                 showValidationModal('Image size must be less than 2MB.');
+                avatarInput.value = '';
                 return;
+            }
+
+            // ===== 显示 Loading =====
+            const cameraBtn = document.querySelector('.camera-btn');
+            const originalHtml = cameraBtn ? cameraBtn.innerHTML : '';
+            if (cameraBtn) {
+                cameraBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+                cameraBtn.style.pointerEvents = 'none';
             }
 
             try {
@@ -584,6 +594,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                 if (data.success) {
                     setAvatar(data.avatar_url);
+                    // 更新 localStorage 中的头像
+                    const customer = JSON.parse(localStorage.getItem('customer') || '{}');
+                    customer.profile_photo = data.avatar_url;
+                    localStorage.setItem('customer', JSON.stringify(customer));
                     showConfirmationModal("Profile picture updated successfully!");
                 } else {
                     showValidationModal(data.message || 'Failed to upload avatar.');
@@ -591,6 +605,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             } catch (err) {
                 console.error('Error uploading avatar:', err);
                 showValidationModal('Unable to upload avatar.');
+            } finally {
+                // ===== 恢复按钮状态 =====
+                if (cameraBtn) {
+                    cameraBtn.innerHTML = originalHtml || '<i class="fa-solid fa-camera"></i>';
+                    cameraBtn.style.pointerEvents = '';
+                }
+                avatarInput.value = ''; // 清空 input
             }
         });
     }

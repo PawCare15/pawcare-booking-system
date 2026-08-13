@@ -2218,6 +2218,55 @@ async function loadReviews() {
     }
 }
 
+// ================================================================
+// 加载 Most Reviewed Services 统计
+// ================================================================
+async function loadServiceStats() {
+    try {
+        const res = await authFetch('/api/reviews/stats');
+        const data = await res.json();
+        if (data.success) {
+            const stats = data.data || [];
+            const grid = document.querySelector('.service-stats-grid');
+            if (!grid) return;
+
+            // 如果后端返回了数据，用动态数据替换静态内容
+            if (stats.length > 0) {
+                const icons = ['🐾', '✂️', '💇', '🧴', '✂️', '🏠', '🚐', '🌸'];
+                const randomIcon = () => icons[Math.floor(Math.random() * icons.length)];
+
+                let html = '';
+                stats.forEach((item, index) => {
+                    const avgRating = item.avg_rating.toFixed(1);
+                    const fullStars = Math.floor(item.avg_rating);
+                    const hasHalf = item.avg_rating % 1 >= 0.5;
+                    let starsHtml = '';
+                    for (let i = 0; i < fullStars; i++) starsHtml += '<i class="fa-solid fa-star"></i>';
+                    if (hasHalf) starsHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
+                    while (starsHtml.length < 5) starsHtml += '<i class="fa-regular fa-star"></i>';
+
+                    // 每个服务用不同的图标
+                    const icon = icons[index % icons.length];
+
+                    html += `
+                        <div class="service-stat-item">
+                            <div class="s-icon">${icon}</div>
+                            <div class="s-name">${item.service_name}</div>
+                            <div class="s-rating">
+                                ${starsHtml} ${avgRating}
+                            </div>
+                            <div class="s-count">${item.review_count} reviews</div>
+                        </div>
+                    `;
+                });
+                grid.innerHTML = html;
+            }
+        }
+    } catch (err) {
+        console.error('Error loading service stats:', err);
+    }
+}
+
         // ================================================================
         // 加载服务列表并填充下拉框
         // ================================================================
@@ -2415,6 +2464,7 @@ async function loadReviews() {
         setRating(0);
         loadServicesForReview();
         loadReviews();
+        loadServiceStats();  // 👈 添加这一行
 
         console.log('PawCare Reviews page loaded successfully!');
     });
