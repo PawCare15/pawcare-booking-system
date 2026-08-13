@@ -1279,17 +1279,18 @@
     <div class="grid-2-col">
       
       <div class="card">
-        <div class="card-header">
-          <h3><i class="fa-regular fa-calendar card-title-icon"></i> Upcoming Appointment</h3>
-        </div>
-        <div id="upcomingAppointmentContainer">
-            <!-- 由 JavaScript 动态渲染 -->
-        </div>
+          <div class="card-header">
+            <h3><i class="fa-regular fa-calendar card-title-icon"></i> Upcoming Appointment</h3>
+          </div>
+          <div id="upcomingAppointmentContainer">
+              <!-- 由 JavaScript 动态渲染 -->
+          </div>
+        </div>   <!-- 这行是新增的闭合标签 -->
 
-      <div class="card">
-        <div class="card-header">
-          <h3><i class="fa-solid fa-bolt card-title-icon"></i> Quick Actions</h3>
-        </div>
+        <div class="card">
+          <div class="card-header">
+            <h3><i class="fa-solid fa-bolt card-title-icon"></i> Quick Actions</h3>
+          </div>
         <div class="quick-actions-grid">
           <button class="qa-item" onclick="window.location.href='booking.html'">
             <i class="fa-regular fa-calendar-plus"></i>
@@ -1396,43 +1397,42 @@
   </div>
 
     <!-- ================================================================
-    RESCHEDULE REQUEST MODAL - 申请重预约
-    ================================================================ -->
-    <div class="modal-overlay" id="rescheduleRequestModal">
-        <div class="modal-box">
-            <h2 class="modal-title" style="display:flex; align-items:center; gap:10px; justify-content:center;">
-                <i class="fa-regular fa-calendar-plus" style="color:#D97706;"></i> Request Reschedule
-            </h2>
-            <p class="modal-subtitle">Select your preferred new date and time.</p>
-            <div style="margin-bottom:16px;">
-                <label style="font-size:13px; font-weight:500; color:#7A7A7A; display:block; margin-bottom:4px;">📅 New Date</label>
-                <input type="date" id="dashboardNewDateInput" class="form-control" style="width:100%; padding:10px 14px; border:1.5px solid #EFECE6; border-radius:10px; font-family:'Poppins',sans-serif;">
-            </div>
-            <div style="margin-bottom:20px;">
-                <label style="font-size:13px; font-weight:500; color:#7A7A7A; display:block; margin-bottom:4px;">🕐 New Time</label>
-                <select id="dashboardNewTimeSelect" class="form-control" style="width:100%; padding:10px 14px; border:1.5px solid #EFECE6; border-radius:10px; font-family:'Poppins',sans-serif;">
-                    <option value="10:00 AM">10:00 AM</option>
-                    <option value="10:30 AM">10:30 AM</option>
-                    <option value="11:30 AM">11:30 AM</option>
-                    <option value="01:00 PM">01:00 PM</option>
-                    <option value="02:00 PM">02:00 PM</option>
-                    <option value="03:00 PM">03:00 PM</option>
-                    <option value="04:00 PM">04:00 PM</option>
-                    <option value="05:00 PM">05:00 PM</option>
-                    <option value="06:00 PM">06:00 PM</option>
-                </select>
-                <!-- 新增注释区块 -->
-                <div style="background:#FEF3C7; border-radius:8px; padding:8px 14px; margin-top:14px; border-left:4px solid #D97706; display:flex; align-items:center; gap:10px;">
-                    <i class="fa-regular fa-clock" style="color:#D97706; font-size:14px;"></i>
-                    <span style="font-size:13px; color:#92400E; font-weight:500;">Reschedule requests must be made at least <strong>24 hours</strong> before the original appointment time.</span>
-                </div>
-            </div>
-            <div class="modal-btn-group">
-                <button class="modal-btn modal-btn-secondary" id="dashboardRescheduleCancelBtn">Cancel</button>
-                <button class="modal-btn modal-btn-primary" id="dashboardRescheduleSubmitBtn">Submit Request</button>
-            </div>
-        </div>
-    </div>
+      RESCHEDULE REQUEST MODAL
+      ================================================================ -->
+      <div class="modal-overlay" id="rescheduleRequestModal">
+          <div class="modal-box">
+              <h2 class="modal-title" style="display:flex; align-items:center; gap:10px; justify-content:center;">
+                  <i class="fa-regular fa-calendar-plus" style="color:#D97706;"></i> Request Reschedule
+              </h2>
+              <p class="modal-subtitle">Select your preferred new date and time.</p>
+              <div style="margin-bottom:16px;">
+                  <label style="font-size:13px; font-weight:500; color:#7A7A7A; display:block; margin-bottom:4px;">📅 New Date</label>
+                  <input type="date" id="newDateInput" class="form-control" style="width:100%; padding:10px 14px; border:1.5px solid #EFECE6; border-radius:10px; font-family:'Poppins',sans-serif;">
+              </div>
+              <div style="margin-bottom:20px;">
+                  <label style="font-size:13px; font-weight:500; color:#7A7A7A; display:block; margin-bottom:4px;">🕐 New Time</label>
+                  <select id="newTimeSelect" class="form-control" style="width:100%; padding:10px 14px; border:1.5px solid #EFECE6; border-radius:10px; font-family:'Poppins',sans-serif;">
+                      <option value="10:00 AM">10:00 AM</option>
+                      <option value="10:30 AM">10:30 AM</option>
+                      <option value="11:30 AM">11:30 AM</option>
+                      <option value="01:00 PM">01:00 PM</option>
+                      <option value="02:00 PM">02:00 PM</option>
+                      <option value="03:00 PM">03:00 PM</option>
+                      <option value="04:00 PM">04:00 PM</option>
+                      <option value="05:00 PM">05:00 PM</option>
+                      <option value="06:00 PM">06:00 PM</option>
+                  </select>
+                  <div style="background:#FEF3C7; border-radius:8px; padding:8px 14px; margin-top:14px; border-left:4px solid #D97706; display:flex; align-items:center; gap:10px;">
+                      <i class="fa-regular fa-clock" style="color:#D97706; font-size:14px;"></i>
+                      <span style="font-size:13px; color:#92400E; font-weight:500;">Reschedule requests must be made at least <strong>24 hours</strong> before the original appointment time.</span>
+                  </div>
+              </div>
+              <div class="modal-btn-group">
+                  <button class="modal-btn modal-btn-secondary" id="rescheduleRequestCancelBtn">Cancel</button>
+                  <button class="modal-btn modal-btn-primary" id="rescheduleRequestSubmitBtn">Submit Request</button>
+              </div>
+          </div>
+      </div>
 
     <!-- ================================================================
     LOGOUT CONFIRM MODAL
@@ -1901,8 +1901,14 @@ async function renderUpcomingAppointment() {
                 });
                 const time = upcoming.booking_time || 'N/A';
                 const status = upcoming.status || 'pending';
-                const statusClass = status === 'pending' ? 'warning' : status === 'completed' ? 'success' : 'danger';
-                const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+                let statusClass = status === 'pending' ? 'warning' : status === 'completed' ? 'success' : 'danger';
+                let statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+
+                // 如果存在 pending 改期请求，覆盖显示
+                if (upcoming.reschedule_status === 'pending') {
+                    statusLabel = 'Pending Approval';
+                    statusClass = 'warning';
+                }
 
                 container.innerHTML = `
                     <div class="appointment-card">
@@ -1922,7 +1928,8 @@ async function renderUpcomingAppointment() {
                             </ul>
                             <div class="action-btns">
                                 <button class="btn btn-primary" onclick="showAppointmentModal('${upcoming.booking_id}')">View Details</button>
-                                <button class="btn btn-secondary" onclick="showRescheduleModal()">Reschedule</button>
+                                ${upcoming.reschedule_status !== 'pending' ? `<button class="btn btn-secondary" onclick="showRescheduleModal()">Reschedule</button>` : ''}
+                                ${upcoming.reschedule_status === 'pending' ? `<button class="btn btn-danger" onclick="cancelRescheduleRequestFromDashboard('${upcoming.booking_id}')">Cancel Request</button>` : ''}
                             </div>
                         </div>
                     </div>
@@ -2108,6 +2115,11 @@ async function renderUpcomingAppointment() {
                 return;
             }
 
+            if (upcoming.reschedule_status === 'pending' || upcoming.reschedule_status === 'approved') {
+                showDashboardMessage('❌ You already have a pending reschedule request for this booking.', false);
+                return;
+            }
+
             // ====== 24小时检查 ======
             const bookingDateTime = new Date(upcoming.booking_date + 'T' + upcoming.booking_time);
             const now = new Date();
@@ -2163,9 +2175,18 @@ async function renderUpcomingAppointment() {
             if (data.success) {
                 document.getElementById('rescheduleRequestModal').classList.remove('active');
                 unlockBodyScroll();
-                showDashboardMessage('✅ ' + data.message, true);
+                // 更新本地数据
+                const booking = window.dashboardBookings.find(b => b.booking_id === dashboardRescheduleBookingId);
+                if (booking) {
+                    booking.reschedule_status = 'pending';
+                    booking.reschedule_requested_date = newDate;
+                    booking.reschedule_requested_time = newTime;
+                }
+                // 重新渲染
+                await renderUpcomingAppointment();
                 await renderRecentBookings();
                 await renderNotifications();
+                showDashboardMessage('✅ ' + data.message, true);
             } else {
                 showDashboardMessage('❌ ' + (data.message || 'Failed to submit request.'), false);
             }
@@ -2182,6 +2203,34 @@ async function renderUpcomingAppointment() {
             unlockBodyScroll();
         }
     });
+
+    async function cancelRescheduleRequestFromDashboard(bookingId) {
+        if (!confirm('Are you sure you want to cancel the reschedule request?')) return;
+        try {
+            const res = await authFetch(`/api/bookings/${bookingId}/reschedule-cancel`, {
+                method: 'PUT'
+            });
+            const data = await res.json();
+            if (data.success) {
+                // 更新本地数据
+                const booking = window.dashboardBookings.find(b => b.booking_id === bookingId);
+                if (booking) {
+                    booking.reschedule_status = 'none';
+                    booking.reschedule_requested_date = null;
+                    booking.reschedule_requested_time = null;
+                }
+                // 重新渲染
+                await renderUpcomingAppointment();
+                await renderRecentBookings();
+                showDashboardMessage('✅ Reschedule request cancelled.', true);
+            } else {
+                showDashboardMessage('❌ ' + (data.message || 'Failed to cancel request.'), false);
+            }
+        } catch (err) {
+            console.error(err);
+            showDashboardMessage('❌ Unable to connect to server.', false);
+        }
+    }
 
     // ================================================================
     // 显示消息模态框（替代 alert）

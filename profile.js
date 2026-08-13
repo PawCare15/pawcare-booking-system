@@ -270,6 +270,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const data = await res.json();
 
             if (data.success) {
+                console.log('Profile data received:', data.data);
                 renderProfileData(data.data);
             } else {
                 console.error('Failed to load profile:', data.message);
