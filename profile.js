@@ -369,6 +369,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 1. 先加载用户头像和名称（所有页面都需要的公共部分）
     // ================================================================
     loadHeaderProfile();
+
+    const profileBtn = document.getElementById('profileBtn');
+    if (profileBtn) {
+        profileBtn.addEventListener('click', function() {
+            // 已在 profile 页面，可以不跳转或提示
+            // 这里不跳转
+            return;
+        });
+    }
     
     // DOUBLE CHECK TOKEN FOR SECURITY
     const token = localStorage.getItem('token');
