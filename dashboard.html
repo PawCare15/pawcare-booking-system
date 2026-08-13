@@ -1400,39 +1400,40 @@
       RESCHEDULE REQUEST MODAL
       ================================================================ -->
       <div class="modal-overlay" id="rescheduleRequestModal">
-          <div class="modal-box">
-              <h2 class="modal-title" style="display:flex; align-items:center; gap:10px; justify-content:center;">
-                  <i class="fa-regular fa-calendar-plus" style="color:#D97706;"></i> Request Reschedule
-              </h2>
-              <p class="modal-subtitle">Select your preferred new date and time.</p>
-              <div style="margin-bottom:16px;">
-                  <label style="font-size:13px; font-weight:500; color:#7A7A7A; display:block; margin-bottom:4px;">📅 New Date</label>
-                  <input type="date" id="newDateInput" class="form-control" style="width:100%; padding:10px 14px; border:1.5px solid #EFECE6; border-radius:10px; font-family:'Poppins',sans-serif;">
-              </div>
-              <div style="margin-bottom:20px;">
-                  <label style="font-size:13px; font-weight:500; color:#7A7A7A; display:block; margin-bottom:4px;">🕐 New Time</label>
-                  <select id="newTimeSelect" class="form-control" style="width:100%; padding:10px 14px; border:1.5px solid #EFECE6; border-radius:10px; font-family:'Poppins',sans-serif;">
-                      <option value="10:00 AM">10:00 AM</option>
-                      <option value="10:30 AM">10:30 AM</option>
-                      <option value="11:30 AM">11:30 AM</option>
-                      <option value="01:00 PM">01:00 PM</option>
-                      <option value="02:00 PM">02:00 PM</option>
-                      <option value="03:00 PM">03:00 PM</option>
-                      <option value="04:00 PM">04:00 PM</option>
-                      <option value="05:00 PM">05:00 PM</option>
-                      <option value="06:00 PM">06:00 PM</option>
-                  </select>
-                  <div style="background:#FEF3C7; border-radius:8px; padding:8px 14px; margin-top:14px; border-left:4px solid #D97706; display:flex; align-items:center; gap:10px;">
-                      <i class="fa-regular fa-clock" style="color:#D97706; font-size:14px;"></i>
-                      <span style="font-size:13px; color:#92400E; font-weight:500;">Reschedule requests must be made at least <strong>24 hours</strong> before the original appointment time.</span>
-                  </div>
-              </div>
-              <div class="modal-btn-group">
-                  <button class="modal-btn modal-btn-secondary" id="rescheduleRequestCancelBtn">Cancel</button>
-                  <button class="modal-btn modal-btn-primary" id="rescheduleRequestSubmitBtn">Submit Request</button>
-              </div>
-          </div>
-      </div>
+    <div class="modal-box">
+        <h2 class="modal-title" style="display:flex; align-items:center; gap:10px; justify-content:center;">
+            <i class="fa-regular fa-calendar-plus" style="color:#D97706;"></i> Request Reschedule
+        </h2>
+        <p class="modal-subtitle">Select your preferred new date and time.</p>
+        <div style="margin-bottom:16px; text-align:left;">
+            <label style="font-size:13px; font-weight:500; color:#333333; display:block; margin-bottom:4px;">📅 New Date</label>
+            <input type="date" id="newDateInput" class="form-control" style="width:100%; padding:10px 14px; border:1.5px solid #EFECE6; border-radius:10px; font-family:'Poppins',sans-serif;">
+        </div>
+        <div style="margin-bottom:20px; text-align:left;">
+            <label style="font-size:13px; font-weight:500; color:#333333; display:block; margin-bottom:4px;">🕐 New Time</label>
+            <select id="newTimeSelect" class="form-control" style="width:100%; padding:10px 14px; border:1.5px solid #EFECE6; border-radius:10px; font-family:'Poppins',sans-serif;">
+                <option value="10:00 AM">10:00 AM</option>
+                <option value="10:30 AM">10:30 AM</option>
+                <option value="11:30 AM">11:30 AM</option>
+                <option value="01:00 PM">01:00 PM</option>
+                <option value="02:00 PM">02:00 PM</option>
+                <option value="03:00 PM">03:00 PM</option>
+                <option value="04:00 PM">04:00 PM</option>
+                <option value="05:00 PM">05:00 PM</option>
+                <option value="06:00 PM">06:00 PM</option>
+            </select>
+        </div>
+        <!-- 注释区块 -->
+        <div style="background:#FEF3C7; border-radius:8px; padding:8px 14px; margin-bottom:20px; border-left:4px solid #D97706; display:flex; align-items:center; gap:10px;">
+            <i class="fa-regular fa-clock" style="color:#D97706; font-size:14px;"></i>
+            <span style="font-size:13px; color:#92400E; font-weight:500;">Reschedule requests must be made at least <strong>24 hours</strong> before the original appointment time.</span>
+        </div>
+        <div class="modal-btn-group">
+            <button class="modal-btn modal-btn-secondary" id="rescheduleRequestCancelBtn">Cancel</button>
+            <button class="modal-btn modal-btn-primary" id="rescheduleRequestSubmitBtn">Submit Request</button>
+        </div>
+    </div>
+</div>
 
     <!-- ================================================================
     LOGOUT CONFIRM MODAL
@@ -1473,27 +1474,25 @@
       </div>
 
     <!-- ================================================================
-      CONFIRM DELETE MODAL - 确认取消弹窗
-      ================================================================ -->
-      <div class="modal-overlay" id="confirmDeleteModal">
-          <div class="modal-box">
-              <div class="modal-icon-circle danger">
-                  <i class="fa-solid fa-trash"></i>
-              </div>
-              <h2 class="modal-title">Cancel Booking</h2>
-              <p id="confirmDeleteMessage" class="modal-subtitle">
-                  Are you sure you want to cancel this booking?
-              </p>
-              <!-- 新增注释行 -->
-              <p id="confirmDeleteNote" style="background:#FEF3C7; border-left:4px solid #D97706; padding:8px 12px; border-radius:6px; font-size:13px; color:#92400E; font-weight:500; margin-top:-6px; margin-bottom:16px; display:none; text-align:left;">
-                  <!-- 动态内容 -->
-              </p>
-              <div class="modal-btn-group">
-                  <button class="modal-btn modal-btn-secondary" id="confirmDeleteNoBtn">No, Keep It</button>
-                  <button class="modal-btn modal-btn-danger" id="confirmDeleteYesBtn">Yes, Cancel</button>
-              </div>
-          </div>
-      </div>
+    CONFIRM ACTION MODAL (新加)
+    ================================================================ -->
+    <div class="modal-overlay" id="confirmActionModal">
+        <div class="modal-box" style="max-width: 420px; text-align: center; padding: 36px 40px 32px;">
+            <div class="modal-icon-circle danger" style="margin: 0 auto 16px;">
+                <i class="fa-solid fa-trash"></i>
+            </div>
+            <h2 class="modal-title" id="confirmActionTitle">Confirm Action</h2>
+            <p id="confirmActionMessage" class="modal-subtitle" style="margin-bottom: 24px;">
+                Are you sure you want to proceed?
+            </p>
+            <div id="confirmActionNote" style="background:#FEF3C7; border-left:4px solid #D97706; padding:8px 12px; border-radius:6px; font-size:13px; color:#92400E; font-weight:500; margin-top:-6px; margin-bottom:16px; display:none; text-align:left;">
+            </div>
+            <div class="modal-btn-group" style="display: flex; gap: 12px; justify-content: center;">
+                <button class="modal-btn modal-btn-secondary" id="confirmActionNoBtn">No, Keep It</button>
+                <button class="modal-btn modal-btn-danger" id="confirmActionYesBtn">Yes, Cancel</button>
+            </div>
+        </div>
+    </div>
 
     <!-- ================================================================
     NOTIFICATIONS MODAL (显示所有 upcoming appointments)
@@ -2238,11 +2237,11 @@ async function renderUpcomingAppointment() {
 
         // 加载 header 头像和名字
         loadHeaderProfile();
-        // 点击头像/用户名跳转到个人资料页
+
+        // 点击头像跳转到 Profile
         const profileBtn = document.getElementById('profileBtn');
         if (profileBtn) {
             profileBtn.addEventListener('click', function() {
-                // 如果当前不是 profile 页面则跳转
                 if (!window.location.pathname.endsWith('profile.html')) {
                     window.location.href = 'profile.html';
                 }
@@ -2543,52 +2542,47 @@ async function renderUpcomingAppointment() {
     }
 
     // ================================================================
-    // RESCHEDULE REQUEST MODAL EVENTS
-    // ================================================================
-    document.getElementById('rescheduleRequestCancelBtn').addEventListener('click', function() {
-        document.getElementById('rescheduleRequestModal').classList.remove('active');
+// 自定义确认模态框
+// ================================================================
+let confirmActionCallback = null;
+
+function showConfirmActionModal(title, message, onConfirm, note = '') {
+    const modal = document.getElementById('confirmActionModal');
+    const titleEl = document.getElementById('confirmActionTitle');
+    const msgEl = document.getElementById('confirmActionMessage');
+    const noteEl = document.getElementById('confirmActionNote');
+    if (!modal) return;
+
+    titleEl.textContent = title || 'Confirm Action';
+    msgEl.textContent = message || 'Are you sure you want to proceed?';
+    noteEl.textContent = note;
+    noteEl.style.display = note ? 'block' : 'none';
+
+    confirmActionCallback = onConfirm || null;
+    lockBodyScroll();
+    modal.classList.add('active');
+}
+
+function hideConfirmActionModal() {
+    const modal = document.getElementById('confirmActionModal');
+    if (modal) {
+        modal.classList.remove('active');
         unlockBodyScroll();
-    });
+        confirmActionCallback = null;
+    }
+}
 
-    // ================================================================
-        // CONFIRM DELETE MODAL CONTROLS
-        // ================================================================
-        let deleteCallback = null;
+document.getElementById('confirmActionYesBtn').addEventListener('click', function() {
+    if (typeof confirmActionCallback === 'function') {
+        confirmActionCallback();
+    }
+    hideConfirmActionModal();
+});
 
-        function showConfirmDeleteModal(message, callback, note = '') {
-            const modal = document.getElementById('confirmDeleteModal');
-            const msgEl = document.getElementById('confirmDeleteMessage');
-            const noteEl = document.getElementById('confirmDeleteNote');
-            if (modal && msgEl) {
-                msgEl.textContent = message || 'Are you sure you want to cancel this booking?';
-                if (noteEl) {
-                    noteEl.textContent = note;
-                    noteEl.style.display = note ? 'block' : 'none';
-                }
-                deleteCallback = callback;
-                lockBodyScroll();
-                modal.classList.add('active');
-            }
-        }
-
-        function hideConfirmDeleteModal() {
-            const modal = document.getElementById('confirmDeleteModal');
-            if (modal) {
-                modal.classList.remove('active');
-                unlockBodyScroll();
-                deleteCallback = null;
-            }
-        }
-
-        document.getElementById('confirmDeleteYesBtn').addEventListener('click', function() {
-            if (deleteCallback) deleteCallback();
-            hideConfirmDeleteModal();
-        });
-
-        document.getElementById('confirmDeleteNoBtn').addEventListener('click', hideConfirmDeleteModal);
-        document.getElementById('confirmDeleteModal').addEventListener('click', function(e) {
-            if (e.target === this) hideConfirmDeleteModal();
-        });
+document.getElementById('confirmActionNoBtn').addEventListener('click', hideConfirmActionModal);
+document.getElementById('confirmActionModal').addEventListener('click', function(e) {
+    if (e.target === this) hideConfirmActionModal();
+});
 
 // 修改 cancelBookingFromDashboard 使用自定义模态框
 async function cancelBookingFromDashboard(bookingId) {
