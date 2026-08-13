@@ -464,12 +464,12 @@ app.get('/api/bookings', async (req, res) => {
         check_out_datetime,
         status,
         special_notes,
-        reschedule_status,   // ← 必须有
-        pet:pet_id (pet_name, breed, species),
+        reschedule_status,
+        pet:pet_id(pet_name, breed, species),
         booking_service (
           service_id,
           estimated_price,
-          service:service_id (service_name, category)
+          service:service_id(service_name, category)
         )
       `)
       .eq('customer_id', customer_id)
