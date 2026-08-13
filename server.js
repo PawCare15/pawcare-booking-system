@@ -756,6 +756,50 @@ app.put('/api/bookings/:booking_id/reschedule-approve', async (req, res) => {
   }
 });
 
+// ========== 取消改期请求 ==========
+app.put('/api/bookings/:booking_id/reschedule-cancel', async (req, res) => {
+  try {
+    const customer_id = getCustomerId(req);
+    const { booking_id } = req.params;
+
+    // 验证预约是否存在且属于当前用户
+    const { data: booking, error: fetchError } = await supabaseAdmin
+      .from('booking')
+      .select('reschedule_status')
+      .eq('booking_id', booking_id)
+      .eq('customer_id', customer_id)
+      .single();
+
+    if (fetchError || !booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found.' });
+    }
+
+    if (booking.reschedule_status !== 'pending') {
+      return res.status(400).json({ success: false, message: 'No pending reschedule request to cancel.' });
+    }
+
+    // 重置改期状态
+    const { error: updateError } = await supabaseAdmin
+      .from('booking')
+      .update({
+        reschedule_status: 'none',
+        reschedule_requested_date: null,
+        reschedule_requested_time: null
+      })
+      .eq('booking_id', booking_id);
+
+    if (updateError) throw updateError;
+
+    res.json({ success: true, message: 'Reschedule request cancelled.' });
+  } catch (err) {
+    console.error(err);
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
+  }
+});
+
 // ========== 取消预约 ==========
 app.put('/api/bookings/:booking_id/cancel', async (req, res) => {
   try {

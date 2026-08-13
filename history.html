@@ -856,6 +856,11 @@
         animation: fadeIn 0.25s ease;
     }
 
+    /* 确保确认弹窗在最上层，不被改期模态框遮挡 */
+    #confirmationModal {
+        z-index: 4000 !important;
+    }
+
     .modal-overlay.active {
         display: flex;
     }
@@ -1972,7 +1977,10 @@
                     // ---- 添加计算 ----
                     const bookingDateTime = new Date(booking.date.split('/').reverse().join('-') + 'T' + booking.time);
                     const diffHours = (bookingDateTime - new Date()) / (1000 * 60 * 60);
-                    const canReschedule = (booking.status === 'pending' || booking.status === 'upcoming') && diffHours >= 24;
+                    // 可改期条件：状态 pending/upcoming，且距离预约时间 >= 24小时，且没有正在进行的改期请求（pending 或 approved）
+                    const canReschedule = (booking.status === 'pending' || booking.status === 'upcoming')
+                                          && diffHours >= 24
+                                          && (booking.reschedule_status !== 'pending' && booking.reschedule_status !== 'approved');
 
                     let priceDisplay;
                     if (booking.isFixed || booking.service === 'Nail Cut') {
@@ -2035,7 +2043,8 @@
                                 <div class="action-cell">
                                     <button class="btn-action btn-view" onclick="viewDetails(${booking.id})"><i class="fa-regular fa-eye"></i> View</button>
                                     ${canReschedule ? `<button class="btn-action btn-reschedule" onclick="reschedule(${booking.id})"><i class="fa-regular fa-calendar-plus"></i> Reschedule</button>` : ''}
-                                    ${booking.status === 'pending' ? `<button class="btn-action btn-cancel" onclick="cancelBooking(${booking.id})"><i class="fa-regular fa-circle-xmark"></i> Cancel</button>` : ''}
+                                    ${booking.reschedule_status === 'pending' ? `<button class="btn-action btn-cancel" onclick="cancelRescheduleRequest(${booking.id})"><i class="fa-regular fa-circle-xmark"></i> Cancel Request</button>` : ''}
+                                    ${booking.status === 'pending' && booking.reschedule_status !== 'pending' ? `<button class="btn-action btn-cancel" onclick="cancelBooking(${booking.id})"><i class="fa-regular fa-circle-xmark"></i> Cancel</button>` : ''}
                                 </div>
                             </td>
                         </tr>
@@ -2158,6 +2167,37 @@
                         }
                     } catch (err) {
                         console.error('Error cancelling booking:', err);
+                        showConfirmationModal('❌ Unable to connect to server.', 'error');
+                    }
+                }
+            );
+        };
+
+        // 新增：取消改期请求
+        window.cancelRescheduleRequest = function(id) {
+            const booking = bookings.find(b => b.id === id);
+            if (!booking) return;
+
+            showConfirmDeleteModal(
+                'Are you sure you want to cancel the reschedule request?',
+                async function() {
+                    try {
+                        const res = await authFetch(`/api/bookings/${booking.booking_id}/reschedule-cancel`, {
+                            method: 'PUT'
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            // 更新本地数据
+                            booking.reschedule_status = 'none';
+                            booking.reschedule_requested_date = null;
+                            booking.reschedule_requested_time = null;
+                            renderBookings();  // 刷新表格
+                            showConfirmationModal('✅ Reschedule request cancelled.', 'success');
+                        } else {
+                            showConfirmationModal('❌ Failed to cancel request: ' + (data.message || 'Unknown error'), 'error');
+                        }
+                    } catch (err) {
+                        console.error(err);
                         showConfirmationModal('❌ Unable to connect to server.', 'error');
                     }
                 }
