@@ -35,6 +35,28 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_URL,
   process.env.SUPABASE_SERVICE_KEY
 );
+
+// ========== 确保存储桶存在 ==========   <-- 从这里开始粘贴
+async function ensureBucketExists(bucketName) {
+    try {
+        const { data: buckets, error: listError } = await supabaseAdmin.storage.listBuckets();
+        if (listError) throw listError;
+        const exists = buckets.some(b => b.name === bucketName);
+        if (!exists) {
+            const { error: createError } = await supabaseAdmin.storage.createBucket(bucketName, {
+                public: true,
+                fileSizeLimit: 5242880,
+            });
+            if (createError) throw createError;
+            console.log(`✅ Bucket "${bucketName}" created.`);
+        }
+        return true;
+    } catch (err) {
+        console.error(`❌ Error ensuring bucket "${bucketName}":`, err.message);
+        return false;
+    }
+}   // <-- 到这里结束
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 // ========== 辅助函数 ==========
@@ -192,6 +214,8 @@ app.put('/api/profile', async (req, res) => {
 app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
   try {
     const customer_id = getCustomerId(req);
+    // ===== 确保存储桶存在 =====
+    await ensureBucketExists('profile_photos');   // <-- 加了这一行
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded.' });
     }
@@ -244,7 +268,7 @@ app.put('/api/profile/password', async (req, res) => {
       return res.status(400).json({ success: false, message: 'New password does not meet complexity requirements.' });
     }
 
-    const { data: user, error: fetchError } = await supabase
+    const { data: user, error: fetchError } = await supabaseAdmin
       .from('customer')
       .select('password')
       .eq('customer_id', customer_id)
@@ -257,7 +281,7 @@ app.put('/api/profile/password', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Current password is incorrect.' });
     }
     const hashed = await bcrypt.hash(newPassword, 10);
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from('customer')
       .update({ password: hashed })
       .eq('customer_id', customer_id);
@@ -848,33 +872,55 @@ app.put('/api/bookings/:booking_id/cancel', async (req, res) => {
 // ========== 10. 评价 ==========
 app.get('/api/reviews', async (req, res) => {
   try {
-    const { data, error } = await supabaseAdmin
-      .from('review')
-      .select(`
-        review_id,
-        booking_id,
-        customer_id,
-        service_id,
-        rating,
-        comment,
-        review_photo,
-        review_date,
-        customer:customer_id (full_name),
-        service:service_id (service_name)
-      `)
-      .order('review_date', { ascending: false });
+    const customer_id = getCustomerId(req);
+    // 在获取 reviews 数据后，添加点赞数查询
+    const { data: reviews, error } = await supabaseAdmin
+        .from('review')
+        .select(`
+            review_id,
+            booking_id,
+            customer_id,
+            service_id,
+            rating,
+            comment,
+            review_photo,
+            review_date,
+            customer:customer_id (full_name),
+            service:service_id (service_name)
+        `)
+        .order('review_date', { ascending: false });
     if (error) throw error;
-    const mapped = data.map(r => ({
-      review_id: r.review_id,
-      booking_id: r.booking_id,
-      customer_id: r.customer_id,
-      service_id: r.service_id,
-      rating: r.rating,
-      comment: r.comment,
-      review_photo: r.review_photo,
-      created_at: r.review_date,
-      customer: r.customer ? { full_name: r.customer.full_name } : null,
-      service_name: r.service?.service_name || null
+
+    // 获取所有点赞数
+    const { data: likes, error: likesError } = await supabaseAdmin
+        .from('review_likes')
+        .select('review_id, customer_id');
+    if (likesError) throw likesError;
+
+    // 获取当前用户点赞的 review_id 列表
+    const myLikes = likes
+        .filter(l => l.customer_id === customer_id)
+        .map(l => l.review_id);
+
+    // 统计每个 review 的点赞数
+    const likeCountMap = {};
+    likes.forEach(l => {
+        likeCountMap[l.review_id] = (likeCountMap[l.review_id] || 0) + 1;
+    });
+
+    const mapped = reviews.map(r => ({
+        review_id: r.review_id,
+        booking_id: r.booking_id,
+        customer_id: r.customer_id,
+        service_id: r.service_id,
+        rating: r.rating,
+        comment: r.comment,
+        review_photo: r.review_photo,
+        created_at: r.review_date,
+        customer: r.customer ? { full_name: r.customer.full_name } : null,
+        service_name: r.service?.service_name || null,
+        like_count: likeCountMap[r.review_id] || 0,
+        liked_by_me: myLikes.includes(r.review_id)
     }));
     res.json({ success: true, data: mapped });
   } catch (err) {
@@ -883,9 +929,67 @@ app.get('/api/reviews', async (req, res) => {
   }
 });
 
+// ========== 点赞切换 (Toggle Like) ==========
+app.post('/api/reviews/:review_id/like', async (req, res) => {
+    try {
+        const customer_id = getCustomerId(req);
+        const { review_id } = req.params;
+
+        // 检查是否已点赞
+        const { data: existing, error: checkError } = await supabaseAdmin
+            .from('review_likes')
+            .select('review_id')
+            .eq('review_id', review_id)
+            .eq('customer_id', customer_id)
+            .maybeSingle();
+
+        if (checkError) throw checkError;
+
+        let action = 'liked';
+        if (existing) {
+            // 已点赞 → 取消点赞
+            const { error: deleteError } = await supabaseAdmin
+                .from('review_likes')
+                .delete()
+                .eq('review_id', review_id)
+                .eq('customer_id', customer_id);
+            if (deleteError) throw deleteError;
+            action = 'unliked';
+        } else {
+            // 未点赞 → 添加点赞
+            const { error: insertError } = await supabaseAdmin
+                .from('review_likes')
+                .insert([{ review_id, customer_id }]);
+            if (insertError) throw insertError;
+            action = 'liked';
+        }
+
+        // 获取最新点赞数
+        const { count, error: countError } = await supabaseAdmin
+            .from('review_likes')
+            .select('review_id', { count: 'exact', head: true })
+            .eq('review_id', review_id);
+        if (countError) throw countError;
+
+        res.json({
+            success: true,
+            action: action,
+            like_count: count || 0
+        });
+    } catch (err) {
+        console.error(err);
+        if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+        res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
+    }
+});
+
 app.post('/api/reviews', reviewUpload.single('review_photo'), async (req, res) => {
   try {
     const customer_id = getCustomerId(req);
+    // ===== 确保存储桶存在 =====
+    await ensureBucketExists('review_photos');   // <-- 加了这一行
     const { booking_id, service_id, rating, comment } = req.body;
     let review_photo_url = null;
 

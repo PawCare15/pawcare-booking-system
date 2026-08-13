@@ -574,6 +574,17 @@
             display: flex;
             gap: 12px;
             margin-top: 6px;
+            flex-wrap: wrap;  /* 添加这行，允许换行 */
+        }
+
+        @media (max-width: 480px) {
+            .form-actions {
+                flex-direction: column;  /* 手机端竖排 */
+            }
+            .form-actions .btn {
+                width: 100%;
+                justify-content: center;
+            }
         }
 
         /* ===== PET LIST ===== */

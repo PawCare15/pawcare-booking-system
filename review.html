@@ -2077,77 +2077,146 @@ async function fetchNotificationsData() {
         });
 
         // ================================================================
-        // LOAD SERVICES FOR REVIEW DROPDOWN
-        // ================================================================
-        async function loadReviews() {
-            try {
-                const res = await authFetch('/api/reviews');
-                const data = await res.json();
-                if (data.success) {
-                    const reviewList = document.getElementById('reviewList');
-                    reviewList.innerHTML = '';
-                    
-                    const reviews = data.data || [];
-                    if (reviews.length === 0) {
-                        reviewList.innerHTML = `
-                            <div style="text-align:center; padding:30px; color:#7A7A7A;">
-                                <i class="fa-regular fa-comment" style="font-size:32px; display:block; margin-bottom:10px;"></i>
-                                <p>No reviews yet. Be the first to share your experience!</p>
-                            </div>
-                        `;
-                        return;
-                    }
-
-                    reviews.forEach(review => {
-                        const customerName = review.customer ? review.customer.full_name : 'Anonymous';
-                        const dateStr = new Date(review.created_at).toLocaleDateString('en-US', { 
-                            day: 'numeric', 
-                            month: 'short', 
-                            year: 'numeric' 
-                        });
-                        const serviceName = review.service_name || 'General';
-
-                        // ---- 新增：检查是否有图片 ----
-                        const photoHtml = review.review_photo 
-                            ? `<div style="margin-top:10px;"><img src="${review.review_photo}" alt="Review photo" style="max-width:100%; max-height:200px; border-radius:8px; border:1px solid #EFECE6;"></div>` 
-                            : '';
-
-                        const item = document.createElement('div');
-                        item.className = 'review-item';
-                        item.dataset.service = serviceName;
-                        item.dataset.rating = review.rating || 0;
-                        item.innerHTML = `
-                            <div class="review-header">
-                                <div class="reviewer">
-                                    <div class="avatar" style="background:#FDF3E7; color:#5A361A; font-weight:600; font-size:14px; display:flex; align-items:center; justify-content:center;">
-                                        ${customerName.substring(0, 2).toUpperCase()}
-                                    </div>
-                                    <div>
-                                        <div class="r-name">${customerName}</div>
-                                        <div class="r-date">${dateStr}</div>
-                                    </div>
-                                </div>
-                                <div class="r-stars" style="color:#F59E0B; font-size:14px; letter-spacing:1px;">
-                                    ${'<i class="fa-solid fa-star"></i>'.repeat(review.rating)}${'<i class="fa-regular fa-star"></i>'.repeat(5 - review.rating)}
-                                </div>
-                            </div>
-                            <div class="review-body">
-                                <p class="r-text">${review.comment || 'No comment provided.'}</p>
-                                ${photoHtml}
-                                <div class="r-service"><i class="fa-solid fa-tag"></i> ${serviceName}</div>
-                                <div class="r-actions">
-                                    <button class="reply-btn"><i class="fa-regular fa-comment"></i> Reply</button>
-                                    <button class="like-btn"><i class="fa-regular fa-thumbs-up"></i> <span class="like-count">0</span></button>
-                                </div>
-                            </div>
-                        `;
-                        reviewList.appendChild(item);
-                    });
-                }
-            } catch (err) {
-                console.error('Error loading reviews:', err);
-            }
+// 计算评分分布条
+// ================================================================
+function updateRatingBars(reviews) {
+    const total = reviews.length;
+    if (total === 0) return;
+    
+    const distribution = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+    reviews.forEach(r => {
+        if (distribution[r.rating] !== undefined) {
+            distribution[r.rating]++;
         }
+    });
+    
+    const barRows = document.querySelectorAll('.rating-bar-row');
+    barRows.forEach(row => {
+        const labelEl = row.querySelector('.label');
+        if (!labelEl) return;
+        const label = parseInt(labelEl.textContent);
+        const pctEl = row.querySelector('.pct');
+        const fillEl = row.querySelector('.fill');
+        if (distribution[label] !== undefined) {
+            const pct = ((distribution[label] / total) * 100).toFixed(0);
+            if (pctEl) pctEl.textContent = pct + '%';
+            if (fillEl) fillEl.style.width = pct + '%';
+        }
+    });
+}
+
+// ================================================================
+// 加载所有 Reviews（含评分统计 + 点赞）
+// ================================================================
+async function loadReviews() {
+    try {
+        const res = await authFetch('/api/reviews');
+        const data = await res.json();
+        if (data.success) {
+            const reviewList = document.getElementById('reviewList');
+            reviewList.innerHTML = '';
+            
+            const reviews = data.data || [];
+
+            // ---- 计算总体评分 ----
+            if (reviews.length > 0) {
+                const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+                const avgRating = (totalRating / reviews.length).toFixed(1);
+                const ratingNumber = document.querySelector('.rating-big .number');
+                const ratingCount = document.querySelector('.rating-big .count');
+                if (ratingNumber) ratingNumber.textContent = avgRating;
+                if (ratingCount) ratingCount.textContent = `Based on ${reviews.length} reviews`;
+                updateRatingBars(reviews);
+            } else {
+                // 没有 reviews 时重置显示
+                const ratingNumber = document.querySelector('.rating-big .number');
+                const ratingCount = document.querySelector('.rating-big .count');
+                if (ratingNumber) ratingNumber.textContent = '0.0';
+                if (ratingCount) ratingCount.textContent = 'Based on 0 reviews';
+                // 重置进度条
+                document.querySelectorAll('.rating-bar-row .fill').forEach(el => el.style.width = '0%');
+                document.querySelectorAll('.rating-bar-row .pct').forEach(el => el.textContent = '0%');
+            }
+
+            // ---- 空状态 ----
+            if (reviews.length === 0) {
+                reviewList.innerHTML = `
+                    <div style="text-align:center; padding:30px; color:#7A7A7A;">
+                        <i class="fa-regular fa-comment" style="font-size:32px; display:block; margin-bottom:10px;"></i>
+                        <p>No reviews yet. Be the first to share your experience!</p>
+                    </div>
+                `;
+                return;
+            }
+
+            // ---- 渲染每条 review ----
+            reviews.forEach(review => {
+                const customerName = review.customer ? review.customer.full_name : 'Anonymous';
+                const dateStr = new Date(review.created_at).toLocaleDateString('en-US', { 
+                    day: 'numeric', 
+                    month: 'short', 
+                    year: 'numeric' 
+                });
+                const serviceName = review.service_name || 'General';
+
+                // 照片（如果有）
+                const photoHtml = review.review_photo 
+                    ? `<div style="margin-top:10px;"><img src="${review.review_photo}" alt="Review photo" style="max-width:100%; max-height:200px; border-radius:8px; border:1px solid #EFECE6;"></div>` 
+                    : '';
+
+                // 点赞状态
+                const isLiked = review.liked_by_me || false;
+                const likeIconClass = isLiked ? 'fa-solid' : 'fa-regular';
+                const likeColor = isLiked ? 'style="color:#5A361A;"' : '';
+
+                // 星级
+                const starsHtml = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+
+                const item = document.createElement('div');
+                item.className = 'review-item';
+                item.dataset.service = serviceName;
+                item.dataset.rating = review.rating || 0;
+                item.dataset.reviewId = review.review_id;
+
+                item.innerHTML = `
+                    <div class="review-header">
+                        <div class="reviewer">
+                            <div class="avatar" style="background:#FDF3E7; color:#5A361A; font-weight:600; font-size:14px; display:flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:50%; flex-shrink:0;">
+                                ${customerName.substring(0, 2).toUpperCase()}
+                            </div>
+                            <div>
+                                <div class="r-name" style="font-weight:600; font-size:14px;">${customerName}</div>
+                                <div class="r-date" style="font-size:12px; color:#7A7A7A;">${dateStr}</div>
+                            </div>
+                        </div>
+                        <div class="r-stars" style="color:#F59E0B; font-size:15px; letter-spacing:1px;">
+                            ${'<i class="fa-solid fa-star"></i>'.repeat(review.rating)}${'<i class="fa-regular fa-star"></i>'.repeat(5 - review.rating)}
+                        </div>
+                    </div>
+                    <div class="review-body">
+                        <p class="r-text" style="font-size:14px; line-height:1.7; color:#333333; margin-bottom:8px;">${review.comment || 'No comment provided.'}</p>
+                        ${photoHtml}
+                        <div class="r-service" style="font-size:12px; color:#7A7A7A; display:inline-flex; align-items:center; gap:6px; background:#FAF7F2; padding:2px 12px; border-radius:12px;">
+                            <i class="fa-solid fa-tag"></i> ${serviceName}
+                        </div>
+                        <div class="r-actions" style="display:flex; gap:16px; margin-top:10px;">
+                            <button class="reply-btn" style="background:none; border:none; color:#7A7A7A; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; font-family:'Poppins',sans-serif;">
+                                <i class="fa-regular fa-comment"></i> Reply
+                            </button>
+                            <button class="like-btn" ${likeColor} style="background:none; border:none; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; font-family:'Poppins',sans-serif;">
+                                <i class="${likeIconClass} fa-thumbs-up"></i> 
+                                <span class="like-count">${review.like_count || 0}</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                reviewList.appendChild(item);
+            });
+        }
+    } catch (err) {
+        console.error('Error loading reviews:', err);
+    }
+}
 
         // ================================================================
         // 加载服务列表并填充下拉框
@@ -2240,7 +2309,7 @@ async function fetchNotificationsData() {
         // ================================================================
         // REPLY & LIKE BUTTONS (delegated)
         // ================================================================
-        document.getElementById('reviewList').addEventListener('click', function(e) {
+        document.getElementById('reviewList').addEventListener('click', async function(e) {
             const target = e.target.closest('button');
             if (!target) return;
 
@@ -2254,13 +2323,35 @@ async function fetchNotificationsData() {
             }
 
             if (target.classList.contains('like-btn')) {
+                const parent = target.closest('.review-item');
+                const reviewId = parent.dataset.reviewId;
+                if (!reviewId) return;
+
+                const icon = target.querySelector('i');
                 const countSpan = target.querySelector('.like-count');
-                if (countSpan) {
-                    let count = parseInt(countSpan.textContent) || 0;
-                    count++;
-                    countSpan.textContent = count;
-                    target.style.color = '#5A361A';
-                    setTimeout(() => { target.style.color = ''; }, 300);
+
+                try {
+                    const token = localStorage.getItem('token');
+                    const res = await fetch(`/api/reviews/${reviewId}/like`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${token}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        countSpan.textContent = data.like_count;
+                        if (data.action === 'liked') {
+                            target.style.color = '#5A361A';
+                            icon.className = 'fa-solid fa-thumbs-up';
+                        } else {
+                            target.style.color = '';
+                            icon.className = 'fa-regular fa-thumbs-up';
+                        }
+                    }
+                } catch (err) {
+                    console.error('Like error:', err);
                 }
             }
         });
@@ -2292,8 +2383,17 @@ async function fetchNotificationsData() {
             visible.sort((a, b) => {
                 const ratingA = parseInt(a.dataset.rating) || 0;
                 const ratingB = parseInt(b.dataset.rating) || 0;
+                
+                // 获取日期（从 review 中提取）
+                const dateA = a.querySelector('.r-date')?.textContent || '';
+                const dateB = b.querySelector('.r-date')?.textContent || '';
+                
                 if (sort === 'highest') return ratingB - ratingA;
                 if (sort === 'lowest') return ratingA - ratingB;
+                if (sort === 'recent') {
+                    // 简单按日期字符串比较（可优化）
+                    return dateB.localeCompare(dateA);
+                }
                 return 0;
             });
 
