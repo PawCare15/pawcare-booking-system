@@ -274,15 +274,17 @@ document.addEventListener("DOMContentLoaded", async () => {
                 renderProfileData(data.data);
             } else {
                 console.error('Failed to load profile:', data.message);
+                // 如果失败，显示提示
+                showValidationModal('Failed to load profile data. Please refresh.');
             }
         } catch (err) {
             console.error('Error loading profile:', err);
+            showValidationModal('Unable to connect to server.');
         }
     }
 
     // RENDER PROFILE DATA TO UI
     function renderProfileData(data) {
-
         // UPDATE FORM FIELDS - MATCH DATABASE COLUMN NAMES
         if (fullNameInput) fullNameInput.value = data.full_name || '';
         if (emailInput) emailInput.value = data.email || '';
@@ -298,8 +300,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (summaryPhone) summaryPhone.textContent = data.phone_number || 'Not provided';
         if (summaryAddress) summaryAddress.textContent = data.address || 'Not provided';
         if (summaryMemberSince) {
-
-            // USE CREATED_AT OR FALLBACK TO CURRENT DATE IF NOT AVAILABLE
             if (data.created_at) {
                 const dateObj = new Date(data.created_at);
                 summaryMemberSince.textContent = dateObj.toLocaleDateString("en-US", {
@@ -331,7 +331,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const data = await res.json();
 
                 if (data.success) {
-
                     // UPDATE SUMMARY DISPLAY
                     if (summaryPhone) summaryPhone.textContent = phone_number || "Not provided";
                     if (summaryAddress) summaryAddress.textContent = address || "Not provided";
@@ -413,7 +412,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 document.querySelectorAll('.error-message').forEach(el => {
                     el.classList.remove('show');
                 });
-                // HIDE PASSWORD REQUIREMENTS
                 if (reqContainer) {
                     reqContainer.classList.remove('show');
                 }
@@ -453,7 +451,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             }
 
-            // UPDATE NEW PASSWORD ERROR
             const newPasswordError = document.getElementById('newPasswordError');
             if (password.length > 0 && !isValid) {
                 if (newPasswordError) {
@@ -466,7 +463,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             }
 
-            // CHECK CONFIRM PASSWORD MATCH
             const retypePassword = document.getElementById('retypePassword')?.value;
             const retypeError = document.getElementById('retypePasswordError');
             if (retypePassword && password !== retypePassword) {
@@ -520,7 +516,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 return;
             }
 
-            // VALIDATE PASSWORD USING POLICY
             if (!isPasswordValid(newPassword)) {
                 document.getElementById('newPasswordError').textContent = 'Password must meet all requirements above.';
                 document.getElementById('newPasswordError').classList.add('show');

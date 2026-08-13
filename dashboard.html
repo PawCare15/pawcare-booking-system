@@ -1475,7 +1475,6 @@
         }
     })();
 
-    // 检测后退按钮从缓存加载页面
     window.addEventListener('pageshow', function(event) {
         if (event.persisted) {
             const tokenCheck = localStorage.getItem('token');
@@ -1583,6 +1582,41 @@
             closeLogoutModal();
         }
     });
+
+    // ================================================================
+    // LOAD HEADER PROFILE
+    // ================================================================
+    async function loadHeaderProfile() {
+        try {
+            const res = await authFetch('/api/profile');
+            const data = await res.json();
+            if (data.success) {
+                const profile = data.data;
+                document.getElementById('headerName').textContent = profile.full_name || 'User';
+                if (profile.profile_photo) {
+                    const img = document.getElementById('headerAvatarImg');
+                    img.src = profile.profile_photo;
+                    img.style.display = 'block';
+                    document.getElementById('headerAvatarPlaceholder').style.display = 'none';
+                } else {
+                    document.getElementById('headerAvatarImg').style.display = 'none';
+                    document.getElementById('headerAvatarPlaceholder').style.display = 'inline';
+                }
+                // 同时更新 welcome 横幅（若还未更新）
+                const welcomeSpan = document.querySelector('#welcomeUserName span');
+                if (welcomeSpan) {
+                    welcomeSpan.textContent = profile.full_name;
+                }
+                // 更新 localStorage 以便其他页面使用
+                const customer = JSON.parse(localStorage.getItem('customer') || '{}');
+                customer.full_name = profile.full_name;
+                customer.profile_photo = profile.profile_photo;
+                localStorage.setItem('customer', JSON.stringify(customer));
+            }
+        } catch (err) {
+            console.error('Error loading header profile:', err);
+        }
+    }
 
     // ================================================================
     // RENDER FUNCTIONS
@@ -1770,19 +1804,16 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
-            // 计算明天的日期
             const tomorrow = new Date(today);
             tomorrow.setDate(tomorrow.getDate() + 1);
             const tomorrowStr = tomorrow.toISOString().split('T')[0];
 
-            // 筛选明天的预约
             const tomorrowBookings = bookings.filter(b => {
                 const bookingDate = new Date(b.booking_date);
                 bookingDate.setHours(0, 0, 0, 0);
                 return bookingDate.getTime() === tomorrow.getTime() && b.status !== 'cancelled';
             });
 
-            // 筛选即将到来的预约（未来3天内）
             const threeDaysLater = new Date(today);
             threeDaysLater.setDate(threeDaysLater.getDate() + 3);
             
@@ -1797,7 +1828,6 @@
 
             let html = '';
 
-            // 如果有明天的预约，显示提醒
             if (tomorrowBookings.length > 0) {
                 tomorrowBookings.forEach(b => {
                     const petName = b.pet ? b.pet.name : 'Unknown';
@@ -1817,7 +1847,6 @@
                 });
             }
 
-            // 显示其他即将到来的预约
             if (upcomingBookings.length > 0) {
                 upcomingBookings.slice(0, 3).forEach(b => {
                     const petName = b.pet ? b.pet.name : 'Unknown';
@@ -1845,7 +1874,6 @@
                 });
             }
 
-            // 如果没有即将到来的预约
             if (!html) {
                 html = `
                     <div style="text-align:center; color:#7A7A7A; padding:30px 10px; font-size:13px;">
@@ -1867,95 +1895,101 @@
     }
 
     async function updateWelcomeName() {
-    // 先从 localStorage 读取
-    const customer = JSON.parse(localStorage.getItem('customer'));
-    if (customer && customer.name) {
-        document.getElementById('welcomeUserName').innerHTML = `Welcome back, ${customer.name}! 😻`;
-        return;
-    }
-    try {
-        const res = await authFetch('/api/profile');
-        const data = await res.json();
-        if (data.success) {
-            const name = data.data.full_name || 'User';
-            document.getElementById('welcomeUserName').innerHTML = `Welcome back, ${name}! 😻`;
+        // 从 localStorage 读取客户信息
+        let customer = localStorage.getItem('customer');
+        if (customer) {
+            try {
+                customer = JSON.parse(customer);
+                const name = customer.full_name || customer.name || 'User';
+                document.getElementById('welcomeUserName').innerHTML = `Welcome back, ${name}! 😻`;
+                return;
+            } catch (e) {}
         }
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-async function renderUpcomingAppointment() {
-    const container = document.getElementById('upcomingAppointmentContainer');
-    try {
-        const res = await authFetch('/api/bookings');
-        const data = await res.json();
-        if (data.success) {
-            const bookings = data.data || [];
-            const upcoming = bookings
-                .filter(b => b.status === 'pending' || b.status === 'upcoming')
-                .sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date))[0];
-            
-            if (upcoming) {
-                const petName = upcoming.pet ? upcoming.pet.name : 'Unknown Pet';
-                const breed = upcoming.pet ? upcoming.pet.breed : '';
-                const serviceName = upcoming.services && upcoming.services.length > 0 
-                    ? upcoming.services.map(s => s.service_name).join(', ') 
-                    : 'Service';
-                const date = new Date(upcoming.booking_date).toLocaleDateString('en-GB', {
-                    day: '2-digit', month: 'short', year: 'numeric'
-                });
-                const time = upcoming.booking_time || 'N/A';
-                const status = upcoming.status || 'pending';
-                let statusClass = status === 'pending' ? 'warning' : status === 'completed' ? 'success' : 'danger';
-                let statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
-
-                // 如果存在 pending 改期请求，覆盖显示
-                if (upcoming.reschedule_status === 'pending') {
-                    statusLabel = 'Pending Approval';
-                    statusClass = 'warning';
-                }
-
-                container.innerHTML = `
-                    <div class="appointment-card">
-                        <div class="appointment-img">
-                            <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=200" alt="${petName}">
-                        </div>
-                        <div class="appointment-info">
-                            <div class="pet-title-bar">
-                                <h4>${petName} ${breed ? `<span>(${breed})</span>` : ''}</h4>
-                                <span class="badge ${statusClass}">${statusLabel}</span>
-                            </div>
-                            <ul class="details-list">
-                                <li><i class="fa-solid fa-scissors"></i> <span>Service</span> <strong>${serviceName}</strong></li>
-                                <li><i class="fa-regular fa-calendar"></i> <span>Date</span> <strong>${date}</strong></li>
-                                <li><i class="fa-regular fa-clock"></i> <span>Time</span> <strong>${time}</strong></li>
-                                <li><i class="fa-solid fa-location-dot"></i> <span>Location</span> <strong>PawCare Pet Center, Penang</strong></li>
-                            </ul>
-                            <div class="action-btns">
-                                <button class="btn btn-primary" onclick="showAppointmentModal('${upcoming.booking_id}')">View Details</button>
-                                ${upcoming.reschedule_status !== 'pending' ? `<button class="btn btn-secondary" onclick="showRescheduleModal()">Reschedule</button>` : ''}
-                                ${upcoming.reschedule_status === 'pending' ? `<button class="btn btn-danger" onclick="cancelRescheduleRequestFromDashboard('${upcoming.booking_id}')">Cancel Request</button>` : ''}
-                            </div>
-                        </div>
-                    </div>
-                `;
-            } else {
-                container.innerHTML = `
-                    <div style="text-align:center; padding:20px; color:#7A7A7A;">
-                        <i class="fa-regular fa-calendar" style="font-size:32px; display:block; margin-bottom:10px;"></i>
-                        <p>No upcoming appointments. <a href="booking.html">Book now</a></p>
-                    </div>
-                `;
+        // 如果 localStorage 没有，调用 API
+        try {
+            const res = await authFetch('/api/profile');
+            const data = await res.json();
+            if (data.success) {
+                const name = data.data.full_name || 'User';
+                document.getElementById('welcomeUserName').innerHTML = `Welcome back, ${name}! 😻`;
+                // 更新 localStorage
+                const cust = JSON.parse(localStorage.getItem('customer') || '{}');
+                cust.full_name = name;
+                localStorage.setItem('customer', JSON.stringify(cust));
             }
+        } catch (err) {
+            console.error(err);
         }
-    } catch (err) {
-        console.error('Error loading upcoming appointment:', err);
-        container.innerHTML = `<p style="color:#7A7A7A;">Unable to load upcoming appointment.</p>`;
     }
-}
 
-loadHeaderProfile();
+    async function renderUpcomingAppointment() {
+        const container = document.getElementById('upcomingAppointmentContainer');
+        try {
+            const res = await authFetch('/api/bookings');
+            const data = await res.json();
+            if (data.success) {
+                const bookings = data.data || [];
+                const upcoming = bookings
+                    .filter(b => b.status === 'pending' || b.status === 'upcoming')
+                    .sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date))[0];
+                
+                if (upcoming) {
+                    const petName = upcoming.pet ? upcoming.pet.name : 'Unknown Pet';
+                    const breed = upcoming.pet ? upcoming.pet.breed : '';
+                    const serviceName = upcoming.services && upcoming.services.length > 0 
+                        ? upcoming.services.map(s => s.service_name).join(', ') 
+                        : 'Service';
+                    const date = new Date(upcoming.booking_date).toLocaleDateString('en-GB', {
+                        day: '2-digit', month: 'short', year: 'numeric'
+                    });
+                    const time = upcoming.booking_time || 'N/A';
+                    const status = upcoming.status || 'pending';
+                    let statusClass = status === 'pending' ? 'warning' : status === 'completed' ? 'success' : 'danger';
+                    let statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+
+                    if (upcoming.reschedule_status === 'pending') {
+                        statusLabel = 'Pending Approval';
+                        statusClass = 'warning';
+                    }
+
+                    container.innerHTML = `
+                        <div class="appointment-card">
+                            <div class="appointment-img">
+                                <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=200" alt="${petName}">
+                            </div>
+                            <div class="appointment-info">
+                                <div class="pet-title-bar">
+                                    <h4>${petName} ${breed ? `<span>(${breed})</span>` : ''}</h4>
+                                    <span class="badge ${statusClass}">${statusLabel}</span>
+                                </div>
+                                <ul class="details-list">
+                                    <li><i class="fa-solid fa-scissors"></i> <span>Service</span> <strong>${serviceName}</strong></li>
+                                    <li><i class="fa-regular fa-calendar"></i> <span>Date</span> <strong>${date}</strong></li>
+                                    <li><i class="fa-regular fa-clock"></i> <span>Time</span> <strong>${time}</strong></li>
+                                    <li><i class="fa-solid fa-location-dot"></i> <span>Location</span> <strong>PawCare Pet Center, Penang</strong></li>
+                                </ul>
+                                <div class="action-btns">
+                                    <button class="btn btn-primary" onclick="showAppointmentModal('${upcoming.booking_id}')">View Details</button>
+                                    ${upcoming.reschedule_status !== 'pending' ? `<button class="btn btn-secondary" onclick="showRescheduleModal()">Reschedule</button>` : ''}
+                                    ${upcoming.reschedule_status === 'pending' ? `<button class="btn btn-danger" onclick="cancelRescheduleRequestFromDashboard('${upcoming.booking_id}')">Cancel Request</button>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    container.innerHTML = `
+                        <div style="text-align:center; padding:20px; color:#7A7A7A;">
+                            <i class="fa-regular fa-calendar" style="font-size:32px; display:block; margin-bottom:10px;"></i>
+                            <p>No upcoming appointments. <a href="booking.html">Book now</a></p>
+                        </div>
+                    `;
+                }
+            }
+        } catch (err) {
+            console.error('Error loading upcoming appointment:', err);
+            container.innerHTML = `<p style="color:#7A7A7A;">Unable to load upcoming appointment.</p>`;
+        }
+    }
 
     // ================================================================
     // DOM READY
@@ -2008,6 +2042,9 @@ loadHeaderProfile();
         renderUpcomingAppointment();
         updateWelcomeName();
 
+        // 加载 header 头像和名字
+        loadHeaderProfile();
+
         document.getElementById('appointmentModalOkBtn').addEventListener('click', closeAppointmentModal);
         console.log('PawCare Dashboard loaded successfully!');
     });
@@ -2016,83 +2053,83 @@ loadHeaderProfile();
     // APPOINTMENT MODAL CONTROLS
     // ================================================================
     function showAppointmentModal(bookingId) {
-    const modal = document.getElementById('appointmentModal');
-    const content = document.getElementById('appointmentDetailsContent');
-    if (!modal || !content) return;
+        const modal = document.getElementById('appointmentModal');
+        const content = document.getElementById('appointmentDetailsContent');
+        if (!modal || !content) return;
 
-    const bookings = window.dashboardBookings || [];
-    const booking = bookings.find(b => b.booking_id === bookingId);
-    if (!booking) {
-        content.innerHTML = `
-            <div class="modal-detail-row">
-                <div class="detail-icon"><i class="fa-solid fa-paw"></i></div>
-                <div class="detail-label">Pet</div>
-                <div class="detail-value"><strong>Buddy</strong> <span style="color:#7A7A7A; font-weight:400; font-size:12px;">Golden Retriever</span></div>
-            </div>
-            <div class="modal-detail-row">
-                <div class="detail-icon"><i class="fa-solid fa-scissors"></i></div>
-                <div class="detail-label">Services</div>
-                <div class="detail-value">Grooming</div>
-            </div>
-            <div class="modal-detail-row">
-                <div class="detail-icon"><i class="fa-regular fa-calendar"></i></div>
-                <div class="detail-label">Date</div>
-                <div class="detail-value">15 August 2026</div>
-            </div>
-            <div class="modal-detail-row">
-                <div class="detail-icon"><i class="fa-regular fa-clock"></i></div>
-                <div class="detail-label">Time</div>
-                <div class="detail-value">2:00 PM</div>
-            </div>
-            <div class="modal-detail-row" style="border-bottom: none; padding-bottom: 0;">
-                <div class="detail-icon"><i class="fa-regular fa-flag"></i></div>
-                <div class="detail-label">Status</div>
-                <div class="detail-value"><span class="status-tag warning">Confirmed</span></div>
-            </div>
-        `;
-    } else {
-        const petName = booking.pet ? booking.pet.name : 'Unknown';
-        const breed = booking.pet ? booking.pet.breed : '';
-        const services = booking.services && booking.services.length > 0 
-            ? booking.services.map(s => `<span style="display:block; font-size:13px;">${s.service_name} - RM ${s.estimated_price}</span>`).join('')
-            : '—';
-        const date = new Date(booking.booking_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-        const time = booking.booking_time || 'N/A';
-        const status = booking.status || 'pending';
-        const statusClass = status === 'pending' ? 'warning' : status === 'completed' ? 'success' : 'danger';
-        const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+        const bookings = window.dashboardBookings || [];
+        const booking = bookings.find(b => b.booking_id === bookingId);
+        if (!booking) {
+            content.innerHTML = `
+                <div class="modal-detail-row">
+                    <div class="detail-icon"><i class="fa-solid fa-paw"></i></div>
+                    <div class="detail-label">Pet</div>
+                    <div class="detail-value"><strong>Buddy</strong> <span style="color:#7A7A7A; font-weight:400; font-size:12px;">Golden Retriever</span></div>
+                </div>
+                <div class="modal-detail-row">
+                    <div class="detail-icon"><i class="fa-solid fa-scissors"></i></div>
+                    <div class="detail-label">Services</div>
+                    <div class="detail-value">Grooming</div>
+                </div>
+                <div class="modal-detail-row">
+                    <div class="detail-icon"><i class="fa-regular fa-calendar"></i></div>
+                    <div class="detail-label">Date</div>
+                    <div class="detail-value">15 August 2026</div>
+                </div>
+                <div class="modal-detail-row">
+                    <div class="detail-icon"><i class="fa-regular fa-clock"></i></div>
+                    <div class="detail-label">Time</div>
+                    <div class="detail-value">2:00 PM</div>
+                </div>
+                <div class="modal-detail-row" style="border-bottom: none; padding-bottom: 0;">
+                    <div class="detail-icon"><i class="fa-regular fa-flag"></i></div>
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value"><span class="status-tag warning">Confirmed</span></div>
+                </div>
+            `;
+        } else {
+            const petName = booking.pet ? booking.pet.name : 'Unknown';
+            const breed = booking.pet ? booking.pet.breed : '';
+            const services = booking.services && booking.services.length > 0 
+                ? booking.services.map(s => `<span style="display:block; font-size:13px;">${s.service_name} - RM ${s.estimated_price}</span>`).join('')
+                : '—';
+            const date = new Date(booking.booking_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+            const time = booking.booking_time || 'N/A';
+            const status = booking.status || 'pending';
+            const statusClass = status === 'pending' ? 'warning' : status === 'completed' ? 'success' : 'danger';
+            const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
 
-        content.innerHTML = `
-            <div class="modal-detail-row">
-                <div class="detail-icon"><i class="fa-solid fa-paw"></i></div>
-                <div class="detail-label">Pet</div>
-                <div class="detail-value"><strong>${petName}</strong> ${breed ? `<span style="color:#7A7A7A; font-weight:400; font-size:12px;">${breed}</span>` : ''}</div>
-            </div>
-            <div class="modal-detail-row">
-                <div class="detail-icon"><i class="fa-solid fa-scissors"></i></div>
-                <div class="detail-label">Services</div>
-                <div class="detail-value">${services}</div>
-            </div>
-            <div class="modal-detail-row">
-                <div class="detail-icon"><i class="fa-regular fa-calendar"></i></div>
-                <div class="detail-label">Date</div>
-                <div class="detail-value">${date}</div>
-            </div>
-            <div class="modal-detail-row">
-                <div class="detail-icon"><i class="fa-regular fa-clock"></i></div>
-                <div class="detail-label">Time</div>
-                <div class="detail-value">${time}</div>
-            </div>
-            <div class="modal-detail-row" style="border-bottom: none; padding-bottom: 0;">
-                <div class="detail-icon"><i class="fa-regular fa-flag"></i></div>
-                <div class="detail-label">Status</div>
-                <div class="detail-value"><span class="status-tag ${statusClass}">${statusLabel}</span></div>
-            </div>
-        `;
+            content.innerHTML = `
+                <div class="modal-detail-row">
+                    <div class="detail-icon"><i class="fa-solid fa-paw"></i></div>
+                    <div class="detail-label">Pet</div>
+                    <div class="detail-value"><strong>${petName}</strong> ${breed ? `<span style="color:#7A7A7A; font-weight:400; font-size:12px;">${breed}</span>` : ''}</div>
+                </div>
+                <div class="modal-detail-row">
+                    <div class="detail-icon"><i class="fa-solid fa-scissors"></i></div>
+                    <div class="detail-label">Services</div>
+                    <div class="detail-value">${services}</div>
+                </div>
+                <div class="modal-detail-row">
+                    <div class="detail-icon"><i class="fa-regular fa-calendar"></i></div>
+                    <div class="detail-label">Date</div>
+                    <div class="detail-value">${date}</div>
+                </div>
+                <div class="modal-detail-row">
+                    <div class="detail-icon"><i class="fa-regular fa-clock"></i></div>
+                    <div class="detail-label">Time</div>
+                    <div class="detail-value">${time}</div>
+                </div>
+                <div class="modal-detail-row" style="border-bottom: none; padding-bottom: 0;">
+                    <div class="detail-icon"><i class="fa-regular fa-flag"></i></div>
+                    <div class="detail-label">Status</div>
+                    <div class="detail-value"><span class="status-tag ${statusClass}">${statusLabel}</span></div>
+                </div>
+            `;
+        }
+        lockBodyScroll();
+        modal.classList.add('active');
     }
-    lockBodyScroll();
-    modal.classList.add('active');
-}
 
     function closeAppointmentModal() {
         const modal = document.getElementById('appointmentModal');
@@ -2114,7 +2151,6 @@ loadHeaderProfile();
     // ================================================================
     let dashboardRescheduleBookingId = null;
 
-    // 显示模态框（由 Reschedule 按钮调用）
     function showRescheduleModal() {
         if (window.dashboardBookings && window.dashboardBookings.length > 0) {
             const upcoming = window.dashboardBookings.find(b => b.status === 'pending' || b.status === 'upcoming');
@@ -2128,7 +2164,6 @@ loadHeaderProfile();
                 return;
             }
 
-            // ====== 24小时检查 ======
             const bookingDateTime = new Date(upcoming.booking_date + 'T' + upcoming.booking_time);
             const now = new Date();
             const diffHours = (bookingDateTime - now) / (1000 * 60 * 60);
@@ -2146,7 +2181,6 @@ loadHeaderProfile();
         const modal = document.getElementById('rescheduleRequestModal');
         if (modal) {
             const dateInput = document.getElementById('newDateInput');
-            // ====== 设置 min = 今天 ======
             const today = new Date().toISOString().split('T')[0];
             dateInput.setAttribute('min', today);
             dateInput.value = '';
@@ -2156,24 +2190,22 @@ loadHeaderProfile();
         }
     }
 
-    // 取消按钮
     document.getElementById('dashboardRescheduleCancelBtn').addEventListener('click', function() {
         document.getElementById('rescheduleRequestModal').classList.remove('active');
         unlockBodyScroll();
     });
 
-    // 提交按钮
     document.getElementById('dashboardRescheduleSubmitBtn').addEventListener('click', async function() {
-    const newDate = document.getElementById('newDateInput').value;
-const newTime = document.getElementById('newTimeSelect').value;
-    if (!newDate) {
-        showDashboardMessage('❌ Please select a new date.', false);   // ← 改为模态框
-        return;
-    }
-    if (isThursday(newDate)) {
-        showDashboardMessage('❌ We are closed on Thursdays. Please choose another date.', false);
-        return;
-    }
+        const newDate = document.getElementById('newDateInput').value;
+        const newTime = document.getElementById('newTimeSelect').value;
+        if (!newDate) {
+            showDashboardMessage('❌ Please select a new date.', false);
+            return;
+        }
+        if (isThursday(newDate)) {
+            showDashboardMessage('❌ We are closed on Thursdays. Please choose another date.', false);
+            return;
+        }
         try {
             const res = await authFetch(`/api/bookings/${dashboardRescheduleBookingId}/reschedule-request`, {
                 method: 'POST',
@@ -2183,14 +2215,12 @@ const newTime = document.getElementById('newTimeSelect').value;
             if (data.success) {
                 document.getElementById('rescheduleRequestModal').classList.remove('active');
                 unlockBodyScroll();
-                // 更新本地数据
                 const booking = window.dashboardBookings.find(b => b.booking_id === dashboardRescheduleBookingId);
                 if (booking) {
                     booking.reschedule_status = 'pending';
                     booking.reschedule_requested_date = newDate;
                     booking.reschedule_requested_time = newTime;
                 }
-                // 重新渲染
                 await renderUpcomingAppointment();
                 await renderRecentBookings();
                 await renderNotifications();
@@ -2204,7 +2234,6 @@ const newTime = document.getElementById('newTimeSelect').value;
         }
     });
 
-    // 点击背景关闭模态框
     document.getElementById('rescheduleRequestModal').addEventListener('click', function(e) {
         if (e.target === this) {
             this.classList.remove('active');
@@ -2220,14 +2249,12 @@ const newTime = document.getElementById('newTimeSelect').value;
             });
             const data = await res.json();
             if (data.success) {
-                // 更新本地数据
                 const booking = window.dashboardBookings.find(b => b.booking_id === bookingId);
                 if (booking) {
                     booking.reschedule_status = 'none';
                     booking.reschedule_requested_date = null;
                     booking.reschedule_requested_time = null;
                 }
-                // 重新渲染
                 await renderUpcomingAppointment();
                 await renderRecentBookings();
                 showDashboardMessage('✅ Reschedule request cancelled.', true);
@@ -2244,7 +2271,6 @@ const newTime = document.getElementById('newTimeSelect').value;
     // 显示消息模态框（替代 alert）
     // ================================================================
     function showDashboardMessage(message, isSuccess) {
-        // 创建临时模态框
         const overlay = document.createElement('div');
         overlay.className = 'modal-overlay active';
         overlay.style.display = 'flex';
@@ -2284,7 +2310,6 @@ const newTime = document.getElementById('newTimeSelect').value;
         document.body.appendChild(overlay);
         lockBodyScroll();
         
-        // 点击背景关闭
         overlay.addEventListener('click', function(e) {
             if (e.target === overlay) {
                 document.body.removeChild(overlay);
