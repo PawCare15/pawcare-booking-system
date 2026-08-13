@@ -2121,9 +2121,6 @@ async function renderUpcomingAppointment() {
 
     const petName = upcoming.pet ? upcoming.pet.name : 'Unknown Pet';
     const breed = upcoming.pet ? upcoming.pet.breed : '';
-    const petPhoto = upcoming.pet && upcoming.pet.photo_url 
-        ? upcoming.pet.photo_url 
-        : 'https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=200';
     const serviceName = upcoming.services && upcoming.services.length > 0 
         ? upcoming.services.map(s => s.service_name).join(', ') 
         : 'Service';
@@ -2147,8 +2144,11 @@ async function renderUpcomingAppointment() {
 
     container.innerHTML = `
         <div class="appointment-card">
-            <div class="appointment-img">
-                <img src="${petPhoto}" alt="${petName}">
+            <div class="appointment-img" style="display:flex; align-items:center; justify-content:center; background:#FDF3E7; color:#5A361A; font-weight:600; font-size:24px; text-transform:uppercase; overflow:hidden;">
+                ${upcoming.pet && upcoming.pet.photo_url 
+                    ? `<img src="${upcoming.pet.photo_url}" alt="${petName}" style="width:100%; height:100%; object-fit:cover;">`
+                    : `<span>${petName.substring(0,2)}</span>`
+                }
             </div>
             <div class="appointment-info">
                 <div class="pet-title-bar">
