@@ -145,18 +145,28 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    const { data: customer, error } = await supabaseAdmin  // 👈 改成 supabaseAdmin
+    console.log('Login attempt for email:', email);
+    const { data: customer, error } = await supabaseAdmin
       .from('customer')
       .select('customer_id, full_name, email, password')
       .eq('email', email)
       .maybeSingle();
     if (error) {
-      console.error('Login error:', error);
+      console.error('Login DB error:', error);
       return res.status(500).json({ success: false, message: 'Database error.' });
     }
-    if (!customer) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+    if (!customer) {
+      console.log('User not found:', email);
+      return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+    }
+
+    console.log('Stored hash (first 20 chars):', customer.password ? customer.password.substring(0, 20) : 'null');
     const match = await bcrypt.compare(password, customer.password);
-    if (!match) return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+    console.log('Password match:', match);
+    if (!match) {
+      return res.status(401).json({ success: false, message: 'Invalid credentials.' });
+    }
+
     const token = jwt.sign(
       { customer_id: customer.customer_id, email: customer.email },
       JWT_SECRET,
@@ -168,7 +178,7 @@ app.post('/api/login', async (req, res) => {
       customer: { id: customer.customer_id, name: customer.full_name, email: customer.email }
     });
   } catch (err) {
-    console.error(err);
+    console.error('Login exception:', err);
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
 });
@@ -278,23 +288,32 @@ app.put('/api/profile/password', async (req, res) => {
       .eq('customer_id', customer_id)
       .single();
     if (fetchError || !user) {
+      console.error('Fetch user error:', fetchError);
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
+
     const match = await bcrypt.compare(currentPassword, user.password);
     if (!match) {
       return res.status(401).json({ success: false, message: 'Current password is incorrect.' });
     }
+
     const hashed = await bcrypt.hash(newPassword, 10);
+    console.log('Generated hash:', hashed); // 打印哈希
+
     const { error: updateError } = await supabaseAdmin
       .from('customer')
       .update({ password: hashed })
       .eq('customer_id', customer_id);
-    if (updateError) throw updateError;
 
+    if (updateError) {
+      console.error('Update password error:', updateError);
+      throw updateError;
+    }
+
+    console.log(`Password updated for customer ${customer_id}`);
     res.json({ success: true, message: 'Password updated successfully.' });
   } catch (err) {
-    console.error(err);
-    // ==== 修改点：认证错误返回 401 ====
+    console.error('Password update exception:', err);
     if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
