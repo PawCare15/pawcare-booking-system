@@ -1807,7 +1807,18 @@
                     document.getElementById('rescheduleRequestModal').classList.remove('active');
                     unlockBodyScroll();
                     showConfirmationModal('✅ ' + data.message, 'success');
-                    await loadBookings();
+
+                    // 🆕 手动更新本地数据，立即反映状态
+                    const bookingIndex = bookings.findIndex(b => b.booking_id === rescheduleBookingId);
+                    if (bookingIndex !== -1) {
+                        bookings[bookingIndex].reschedule_status = 'pending';
+                        bookings[bookingIndex].reschedule_requested_date = newDate;
+                        bookings[bookingIndex].reschedule_requested_time = newTime;
+                        renderBookings(); // 立即重新渲染
+                    } else {
+                        // 如果本地没有该记录，则重新加载
+                        await loadBookings();
+                    }
                 } else {
                     showConfirmationModal('❌ ' + (data.message || 'Failed to submit request.'), 'error');
                 }

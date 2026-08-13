@@ -682,9 +682,11 @@ app.post('/api/bookings/:booking_id/reschedule-request', async (req, res) => {
         reschedule_requested_time: new_time,
         reschedule_status: 'pending'
       })
-      .eq('booking_id', booking_id);
+      .eq('booking_id', booking_id)
+      .select('reschedule_status');
 
     if (updateError) throw updateError;
+    console.log('✅ Reschedule status updated to:', updatedData[0]?.reschedule_status);
 
     // （可选）发送通知给 Admin（例如通过邮件或系统通知，此处略）
 
