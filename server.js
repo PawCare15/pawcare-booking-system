@@ -200,7 +200,7 @@ app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
     const fileName = `${customer_id}_${Date.now()}.${fileExt}`;
     const filePath = `profile_photos/${fileName}`;
 
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await supabaseAdmin.storage
       .from('profile_photos')
       .upload(filePath, file.buffer, {
         contentType: file.mimetype,
