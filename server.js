@@ -153,14 +153,13 @@ app.get('/api/profile', async (req, res) => {
     const customer_id = getCustomerId(req);
     const { data, error } = await supabase
       .from('customer')
-      .select('customer_id, full_name, email, phone_number, address, profile_photo, created_at')
+      .select('customer_id, full_name, email, phone_number, address, profile_photo')
       .eq('customer_id', customer_id)
       .single();
     if (error) throw error;
     res.json({ success: true, data });
   } catch (err) {
     console.error(err);
-    // ==== 修改点：认证错误返回 401 ====
     if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
