@@ -1867,6 +1867,12 @@
     }
 
     async function updateWelcomeName() {
+    // 先从 localStorage 读取
+    const customer = JSON.parse(localStorage.getItem('customer'));
+    if (customer && customer.name) {
+        document.getElementById('welcomeUserName').innerHTML = `Welcome back, ${customer.name}! 😻`;
+        return;
+    }
     try {
         const res = await authFetch('/api/profile');
         const data = await res.json();
@@ -1948,6 +1954,8 @@ async function renderUpcomingAppointment() {
         container.innerHTML = `<p style="color:#7A7A7A;">Unable to load upcoming appointment.</p>`;
     }
 }
+
+loadHeaderProfile();
 
     // ================================================================
     // DOM READY
@@ -2137,12 +2145,12 @@ async function renderUpcomingAppointment() {
 
         const modal = document.getElementById('rescheduleRequestModal');
         if (modal) {
-            const dateInput = document.getElementById('dashboardNewDateInput');
+            const dateInput = document.getElementById('newDateInput');
             // ====== 设置 min = 今天 ======
             const today = new Date().toISOString().split('T')[0];
             dateInput.setAttribute('min', today);
             dateInput.value = '';
-            document.getElementById('dashboardNewTimeSelect').value = '10:30 AM';
+            document.getElementById('newTimeSelect').value = '10:30 AM';
             lockBodyScroll();
             modal.classList.add('active');
         }
@@ -2156,8 +2164,8 @@ async function renderUpcomingAppointment() {
 
     // 提交按钮
     document.getElementById('dashboardRescheduleSubmitBtn').addEventListener('click', async function() {
-    const newDate = document.getElementById('dashboardNewDateInput').value;
-    const newTime = document.getElementById('dashboardNewTimeSelect').value;
+    const newDate = document.getElementById('newDateInput').value;
+const newTime = document.getElementById('newTimeSelect').value;
     if (!newDate) {
         showDashboardMessage('❌ Please select a new date.', false);   // ← 改为模态框
         return;
