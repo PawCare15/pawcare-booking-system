@@ -464,7 +464,9 @@ app.get('/api/bookings', async (req, res) => {
         status,
         special_notes,
         reschedule_status,
-        pet:pet_id(pet_name, breed, species),
+        reschedule_requested_date,
+        reschedule_requested_time,
+        pet:pet_id(pet_name, breed, species, pet_photo),
         booking_service (
           service_id,
           estimated_price,
@@ -481,15 +483,19 @@ app.get('/api/bookings', async (req, res) => {
         booking_id: b.booking_id,
         booking_date: b.booking_date,
         booking_time: b.booking_time,
-        check_in_datetime: b.check_in_datetime,   // 👈 改成读取这个
+        check_in_datetime: b.check_in_datetime,
         check_out_datetime: b.check_out_datetime,
         status: b.status,
+        reschedule_status: b.reschedule_status || 'none',
+        reschedule_requested_date: b.reschedule_requested_date || null,
+        reschedule_requested_time: b.reschedule_requested_time || null,
         total_price: (b.booking_service || []).reduce((sum, s) => sum + (s.estimated_price || 0), 0),
         special_notes: b.special_notes,
         pet: b.pet ? {
           name: b.pet.pet_name,
           breed: b.pet.breed,
-          species: b.pet.species
+          species: b.pet.species,
+          photo_url: b.pet.pet_photo   // 新增，用于显示宠物照片
         } : null,
         services: services.map(s => ({
           service_id: s.service_id,
@@ -502,7 +508,6 @@ app.get('/api/bookings', async (req, res) => {
     res.json({ success: true, data: bookings });
   } catch (err) {
     console.error(err);
-    // ==== 修改点：认证错误返回 401 ====
     if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }

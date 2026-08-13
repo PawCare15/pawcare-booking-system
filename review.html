@@ -1567,6 +1567,26 @@
         </div>
       </div>
 
+      <!-- ================================================================
+      NOTIFICATIONS MODAL (显示所有 upcoming appointments)
+      =============================================================== -->
+      <div class="modal-overlay" id="notificationsModal">
+          <div class="modal-box" style="max-width: 480px; text-align: left; padding: 28px 30px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                  <h3 style="font-size: 18px; font-weight: 600; color: #5A361A; display: flex; align-items: center; gap: 10px;">
+                      <i class="fa-regular fa-bell" style="color: #D97706;"></i> Notifications
+                  </h3>
+                  <button id="closeNotificationsModal" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #7A7A7A;">&times;</button>
+              </div>
+              <div id="notificationsModalContent" style="max-height: 400px; overflow-y: auto;">
+                  <!-- 由 JavaScript 动态填充 -->
+              </div>
+              <div style="margin-top: 16px; text-align: center;">
+                  <button class="btn btn-primary" id="notificationsModalOkBtn" style="padding: 8px 24px; font-size: 13px;">OK</button>
+              </div>
+          </div>
+      </div>
+
       <!-- FOOTER -->
       <footer class="footer">
         <p><i class="fa-solid fa-paw"></i> © 2026 PawCare Booking System — Paw Walker Grooming House</p>
@@ -1654,15 +1674,128 @@
         }
     }
 
-    // ==========================================
-    // NOTIFICATION
-    // ==========================================
-    const notificationBtn = document.getElementById('notificationBtn');
-    if (notificationBtn) {
-    notificationBtn.addEventListener('click', function() {
-        alert('No new notifications.');
+    // ================================================================
+// NOTIFICATIONS MODAL CONTROLS
+// ================================================================
+const notificationBtn = document.getElementById('notificationBtn');
+const notificationsModal = document.getElementById('notificationsModal');
+const closeNotificationsModal = document.getElementById('closeNotificationsModal');
+const notificationsModalOkBtn = document.getElementById('notificationsModalOkBtn');
+
+function showNotificationsModal() {
+    const content = document.getElementById('notificationsModalContent');
+    if (!content) return;
+    
+    // 复用 dashboard 的 notifications 渲染逻辑
+    // 但需要获取最新的 bookings 数据
+    fetchNotificationsData().then(html => {
+        content.innerHTML = html || '<div style="text-align:center; padding:20px; color:#7A7A7A;">No upcoming appointments.</div>';
+        lockBodyScroll();
+        notificationsModal.classList.add('active');
     });
+}
+
+function hideNotificationsModal() {
+    notificationsModal.classList.remove('active');
+    unlockBodyScroll();
+}
+
+if (notificationBtn) {
+    notificationBtn.addEventListener('click', showNotificationsModal);
+}
+if (closeNotificationsModal) {
+    closeNotificationsModal.addEventListener('click', hideNotificationsModal);
+}
+if (notificationsModalOkBtn) {
+    notificationsModalOkBtn.addEventListener('click', hideNotificationsModal);
+}
+notificationsModal.addEventListener('click', function(e) {
+    if (e.target === this) hideNotificationsModal();
+});
+
+// 辅助函数：获取通知列表 HTML（复用 renderNotifications 的逻辑）
+async function fetchNotificationsData() {
+    try {
+        const res = await authFetch('/api/bookings');
+        const data = await res.json();
+        if (!data.success) return '<div style="text-align:center; color:#7A7A7A; padding:20px;">Unable to load notifications.</div>';
+        
+        const bookings = data.data || [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const tomorrowBookings = bookings.filter(b => {
+            const bookingDate = new Date(b.booking_date);
+            bookingDate.setHours(0, 0, 0, 0);
+            return bookingDate.getTime() === tomorrow.getTime() && b.status !== 'cancelled';
+        });
+        
+        const threeDaysLater = new Date(today);
+        threeDaysLater.setDate(threeDaysLater.getDate() + 3);
+        
+        const upcomingBookings = bookings.filter(b => {
+            const bookingDate = new Date(b.booking_date);
+            bookingDate.setHours(0, 0, 0, 0);
+            return bookingDate >= today && 
+                   bookingDate <= threeDaysLater && 
+                   b.status !== 'cancelled' &&
+                   bookingDate.getTime() !== tomorrow.getTime();
+        });
+        
+        let html = '';
+        
+        if (tomorrowBookings.length > 0) {
+            tomorrowBookings.forEach(b => {
+                const petName = b.pet ? b.pet.name : 'Unknown';
+                const time = b.booking_time || 'N/A';
+                html += `
+                    <div style="background: #FEF7E0; border-radius: 8px; padding: 10px 14px; border: 1px solid #FDE68A; margin-bottom: 10px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <i class="fa-solid fa-clock" style="color: #D97706;"></i>
+                            <strong>⏰ Tomorrow!</strong>
+                            <span style="margin-left:auto; font-size:12px; color:#B06000;">${tomorrow.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short' })}</span>
+                        </div>
+                        <div style="margin-top:4px;">Appointment for <strong>${petName}</strong> at <strong>${time}</strong></div>
+                    </div>
+                `;
+            });
+        }
+        
+        if (upcomingBookings.length > 0) {
+            upcomingBookings.slice(0, 5).forEach(b => {
+                const petName = b.pet ? b.pet.name : 'Unknown';
+                const date = new Date(b.booking_date);
+                const dateDisplay = date.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short' });
+                const daysUntil = Math.ceil((date - today) / (1000 * 60 * 60 * 24));
+                let timeDisplay = '';
+                if (daysUntil === 0) timeDisplay = 'Today';
+                else if (daysUntil === 1) timeDisplay = 'Tomorrow';
+                else timeDisplay = `In ${daysUntil} days`;
+                
+                html += `
+                    <div style="display:flex; align-items:center; padding:8px 0; border-bottom:1px solid #EFECE6;">
+                        <i class="fa-regular fa-calendar" style="color:#D97706; width:24px;"></i>
+                        <div style="flex:1; margin-left:8px;">
+                            <strong>${petName}</strong> on ${dateDisplay}
+                        </div>
+                        <span style="font-size:12px; color:#7A7A7A;">${timeDisplay}</span>
+                    </div>
+                `;
+            });
+        }
+        
+        if (!html) {
+            html = '<div style="text-align:center; padding:30px; color:#7A7A7A;"><i class="fa-regular fa-bell" style="font-size:32px; display:block; margin-bottom:10px;"></i>No upcoming appointments.</div>';
+        }
+        return html;
+    } catch (err) {
+        console.error('Error fetching notifications:', err);
+        return '<div style="text-align:center; color:#7A7A7A; padding:20px;">Error loading notifications.</div>';
     }
+}
 
     // ==========================================
       // LOGOUT MODAL
@@ -2001,6 +2134,33 @@
                 }
             } catch (err) {
                 console.error('Error loading reviews:', err);
+            }
+        }
+
+        // ================================================================
+        // 加载服务列表并填充下拉框
+        // ================================================================
+        async function loadServicesForReview() {
+            const select = document.getElementById('reviewService');
+            if (!select) return;
+            try {
+                const res = await authFetch('/api/services');
+                const data = await res.json();
+                if (data.success) {
+                    const services = data.data || [];
+                    select.innerHTML = '<option value="">Select a service (optional)</option>';
+                    services.forEach(svc => {
+                        const option = document.createElement('option');
+                        option.value = svc.service_id;
+                        option.textContent = svc.service_name;
+                        select.appendChild(option);
+                    });
+                } else {
+                    select.innerHTML = '<option value="">Failed to load services</option>';
+                }
+            } catch (err) {
+                console.error('Error loading services:', err);
+                select.innerHTML = '<option value="">Error loading services</option>';
             }
         }
 
