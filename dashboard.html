@@ -1544,6 +1544,16 @@
         }
     }
 
+    // ==========================================
+    // NOTIFICATION
+    // ==========================================
+    const notificationBtn = document.getElementById('notificationBtn');
+    if (notificationBtn) {
+    notificationBtn.addEventListener('click', function() {
+        alert('No new notifications.');
+    });
+    }
+
     // ================================================================
     // LOGOUT MODAL CONTROLS
     // ================================================================
@@ -1923,74 +1933,82 @@
         }
     }
 
-    async function renderUpcomingAppointment() {
-        const container = document.getElementById('upcomingAppointmentContainer');
-        try {
-            const res = await authFetch('/api/bookings');
-            const data = await res.json();
-            if (data.success) {
-                const bookings = data.data || [];
-                const upcoming = bookings
-                    .filter(b => b.status === 'pending' || b.status === 'upcoming')
-                    .sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date))[0];
-                
-                if (upcoming) {
-                    const petName = upcoming.pet ? upcoming.pet.name : 'Unknown Pet';
-                    const breed = upcoming.pet ? upcoming.pet.breed : '';
-                    const serviceName = upcoming.services && upcoming.services.length > 0 
-                        ? upcoming.services.map(s => s.service_name).join(', ') 
-                        : 'Service';
-                    const date = new Date(upcoming.booking_date).toLocaleDateString('en-GB', {
-                        day: '2-digit', month: 'short', year: 'numeric'
-                    });
-                    const time = upcoming.booking_time || 'N/A';
-                    const status = upcoming.status || 'pending';
-                    let statusClass = status === 'pending' ? 'warning' : status === 'completed' ? 'success' : 'danger';
-                    let statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+async function renderUpcomingAppointment() {
+    const container = document.getElementById('upcomingAppointmentContainer');
+    const bookings = window.dashboardBookings || [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
 
-                    if (upcoming.reschedule_status === 'pending') {
-                        statusLabel = 'Pending Approval';
-                        statusClass = 'warning';
-                    }
+    // 筛选：状态为 pending/upcoming 且日期 >= 今天
+    const upcoming = bookings
+        .filter(b => {
+            if (b.status !== 'pending' && b.status !== 'upcoming') return false;
+            const bookingDate = new Date(b.booking_date);
+            bookingDate.setHours(0, 0, 0, 0);
+            return bookingDate >= today;
+        })
+        .sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date))[0];
 
-                    container.innerHTML = `
-                        <div class="appointment-card">
-                            <div class="appointment-img">
-                                <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=200" alt="${petName}">
-                            </div>
-                            <div class="appointment-info">
-                                <div class="pet-title-bar">
-                                    <h4>${petName} ${breed ? `<span>(${breed})</span>` : ''}</h4>
-                                    <span class="badge ${statusClass}">${statusLabel}</span>
-                                </div>
-                                <ul class="details-list">
-                                    <li><i class="fa-solid fa-scissors"></i> <span>Service</span> <strong>${serviceName}</strong></li>
-                                    <li><i class="fa-regular fa-calendar"></i> <span>Date</span> <strong>${date}</strong></li>
-                                    <li><i class="fa-regular fa-clock"></i> <span>Time</span> <strong>${time}</strong></li>
-                                    <li><i class="fa-solid fa-location-dot"></i> <span>Location</span> <strong>PawCare Pet Center, Penang</strong></li>
-                                </ul>
-                                <div class="action-btns">
-                                    <button class="btn btn-primary" onclick="showAppointmentModal('${upcoming.booking_id}')">View Details</button>
-                                    ${upcoming.reschedule_status !== 'pending' ? `<button class="btn btn-secondary" onclick="showRescheduleModal()">Reschedule</button>` : ''}
-                                    ${upcoming.reschedule_status === 'pending' ? `<button class="btn btn-danger" onclick="cancelRescheduleRequestFromDashboard('${upcoming.booking_id}')">Cancel Request</button>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    container.innerHTML = `
-                        <div style="text-align:center; padding:20px; color:#7A7A7A;">
-                            <i class="fa-regular fa-calendar" style="font-size:32px; display:block; margin-bottom:10px;"></i>
-                            <p>No upcoming appointments. <a href="booking.html">Book now</a></p>
-                        </div>
-                    `;
-                }
-            }
-        } catch (err) {
-            console.error('Error loading upcoming appointment:', err);
-            container.innerHTML = `<p style="color:#7A7A7A;">Unable to load upcoming appointment.</p>`;
-        }
+    if (!upcoming) {
+        container.innerHTML = `
+            <div style="text-align:center; padding:20px; color:#7A7A7A;">
+                <i class="fa-regular fa-calendar" style="font-size:32px; display:block; margin-bottom:10px;"></i>
+                <p>No upcoming appointments. <a href="booking.html">Book now</a></p>
+            </div>
+        `;
+        return;
     }
+
+    const petName = upcoming.pet ? upcoming.pet.name : 'Unknown Pet';
+    const breed = upcoming.pet ? upcoming.pet.breed : '';
+    const serviceName = upcoming.services && upcoming.services.length > 0 
+        ? upcoming.services.map(s => s.service_name).join(', ') 
+        : 'Service';
+    const date = new Date(upcoming.booking_date).toLocaleDateString('en-GB', {
+        day: '2-digit', month: 'short', year: 'numeric'
+    });
+    const time = upcoming.booking_time || 'N/A';
+    let statusClass = upcoming.status === 'pending' ? 'warning' : upcoming.status === 'completed' ? 'success' : 'danger';
+    let statusLabel = upcoming.status.charAt(0).toUpperCase() + upcoming.status.slice(1);
+
+    if (upcoming.reschedule_status === 'pending') {
+        statusLabel = 'Pending Approval';
+        statusClass = 'warning';
+    }
+
+    // 计算是否可以 Reschedule（24小时 + 无 pending/approved 请求）
+    const bookingDateTime = new Date(upcoming.booking_date + 'T' + upcoming.booking_time);
+    const diffHours = (bookingDateTime - new Date()) / (1000 * 60 * 60);
+    const canReschedule = (upcoming.status === 'pending' || upcoming.status === 'upcoming') 
+                          && diffHours >= 24
+                          && (upcoming.reschedule_status !== 'pending' && upcoming.reschedule_status !== 'approved');
+
+    container.innerHTML = `
+        <div class="appointment-card">
+            <div class="appointment-img">
+                <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?auto=format&fit=crop&q=80&w=200" alt="${petName}">
+            </div>
+            <div class="appointment-info">
+                <div class="pet-title-bar">
+                    <h4>${petName} ${breed ? `<span>(${breed})</span>` : ''}</h4>
+                    <span class="badge ${statusClass}">${statusLabel}</span>
+                </div>
+                <ul class="details-list">
+                    <li><i class="fa-solid fa-scissors"></i> <span>Service</span> <strong>${serviceName}</strong></li>
+                    <li><i class="fa-regular fa-calendar"></i> <span>Date</span> <strong>${date}</strong></li>
+                    <li><i class="fa-regular fa-clock"></i> <span>Time</span> <strong>${time}</strong></li>
+                    <li><i class="fa-solid fa-location-dot"></i> <span>Location</span> <strong>PawCare Pet Center, Penang</strong></li>
+                </ul>
+                <div class="action-btns">
+                    <button class="btn btn-primary" onclick="showAppointmentModal('${upcoming.booking_id}')">View Details</button>
+                    ${canReschedule ? `<button class="btn btn-secondary" onclick="showRescheduleModal()">Reschedule</button>` : ''}
+                    ${upcoming.reschedule_status === 'pending' ? `<button class="btn btn-danger" onclick="cancelRescheduleRequestFromDashboard('${upcoming.booking_id}')">Cancel Request</button>` : ''}
+                    ${(upcoming.status === 'pending' && upcoming.reschedule_status !== 'pending') ? `<button class="btn btn-danger" onclick="cancelBookingFromDashboard('${upcoming.booking_id}')">Cancel</button>` : ''}
+                </div>
+            </div>
+        </div>
+    `;
+}
 
     // ================================================================
     // DOM READY
@@ -2222,9 +2240,9 @@
                     booking.reschedule_requested_date = newDate;
                     booking.reschedule_requested_time = newTime;
                 }
-                await renderUpcomingAppointment();
-                await renderRecentBookings();
-                await renderNotifications();
+                renderUpcomingAppointment();
+                renderRecentBookings();
+                renderNotifications();
                 showDashboardMessage('✅ ' + data.message, true);
             } else {
                 showDashboardMessage('❌ ' + (data.message || 'Failed to submit request.'), false);
@@ -2256,8 +2274,8 @@
                     booking.reschedule_requested_date = null;
                     booking.reschedule_requested_time = null;
                 }
-                await renderUpcomingAppointment();
-                await renderRecentBookings();
+                renderUpcomingAppointment();
+                renderRecentBookings();
                 showDashboardMessage('✅ Reschedule request cancelled.', true);
             } else {
                 showDashboardMessage('❌ ' + (data.message || 'Failed to cancel request.'), false);
@@ -2267,6 +2285,26 @@
             showDashboardMessage('❌ Unable to connect to server.', false);
         }
     }
+
+    async function cancelBookingFromDashboard(bookingId) {
+    if (!confirm('Are you sure you want to cancel this booking?')) return;
+    try {
+        const res = await authFetch(`/api/bookings/${bookingId}/cancel`, { method: 'PUT' });
+        const data = await res.json();
+        if (data.success) {
+            const booking = window.dashboardBookings.find(b => b.booking_id === bookingId);
+            if (booking) booking.status = 'cancelled';
+            renderUpcomingAppointment();
+            renderRecentBookings();
+            showDashboardMessage('✅ Booking cancelled successfully.', true);
+        } else {
+            showDashboardMessage('❌ ' + (data.message || 'Failed to cancel.'), false);
+        }
+    } catch (err) {
+        console.error(err);
+        showDashboardMessage('❌ Unable to connect to server.', false);
+    }
+}
 
     // ================================================================
     // 显示消息模态框（替代 alert）

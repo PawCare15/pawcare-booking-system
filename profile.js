@@ -59,50 +59,115 @@ function getCustomerId() {
     }
 }
 
-// SCROLLBAR COMPENSATION FOR MODALS
+// ================================================================
+// SCROLLBAR COMPENSATION
+// ================================================================
+let modalCount = 0;
+
+function getScrollbarWidth() {
+    return window.innerWidth - document.documentElement.clientWidth;
+}
+
 function lockBodyScroll() {
-    if (!document.body.classList.contains('no-scroll')) {
-        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-        const scrollY = window.scrollY;
-        document.body.style.paddingRight = scrollbarWidth + 'px';
-        document.body.classList.add('no-scroll');
-        document.body.dataset.scrollY = scrollY;
+    if (modalCount === 0) {
+        const scrollbarWidth = getScrollbarWidth();
+        if (scrollbarWidth > 0) {
+            document.body.style.paddingRight = scrollbarWidth + 'px';
+        }
+        document.body.style.overflow = 'hidden';
     }
+    modalCount++;
 }
 
 function unlockBodyScroll() {
-    document.body.style.paddingRight = '';
-    document.body.classList.remove('no-scroll');
-    if (document.body.dataset.scrollY) {
-        window.scrollTo(0, parseInt(document.body.dataset.scrollY));
-        delete document.body.dataset.scrollY;
+    modalCount--;
+    if (modalCount <= 0) {
+        modalCount = 0;
+        document.body.style.paddingRight = '';
+        document.body.style.overflow = '';
     }
 }
 
-// LOGOUT FUNCTIONS
-function showLogoutModal() {
-    const modal = document.getElementById('logoutModal');
-    if (modal) {
-        lockBodyScroll();
-        modal.classList.add('active');
+// ==========================================
+    // NOTIFICATION
+    // ==========================================
+    const notificationBtn = document.getElementById('notificationBtn');
+    if (notificationBtn) {
+    notificationBtn.addEventListener('click', function() {
+        alert('No new notifications.');
+    });
     }
-}
 
-function closeLogoutModal() {
-    const modal = document.getElementById('logoutModal');
-    if (modal) {
-        modal.classList.remove('active');
-        unlockBodyScroll();
+// ==========================================
+      // LOGOUT MODAL
+      // ==========================================
+      window.showLogoutModal = function() {
+        const modal = document.getElementById('logoutModal');
+        if (modal) {
+          modal.classList.add('active');
+          lockBodyScroll();
+        }
+      };
+
+      window.closeLogoutModal = function() {
+        const modal = document.getElementById('logoutModal');
+        if (modal) {
+          modal.classList.remove('active');
+          unlockBodyScroll();
+        }
+      };
+
+      window.confirmLogout = function() {
+        localStorage.removeItem('customer');
+        localStorage.removeItem('customerId');
+        localStorage.removeItem('token');
+        localStorage.removeItem('isLoggedIn');
+        window.closeLogoutModal();
+        window.location.replace('index.html');
+      };
+
+      const logoutModal = document.getElementById('logoutModal');
+      if (logoutModal) {
+        logoutModal.addEventListener('click', function(e) {
+          if (e.target === this) {
+            window.closeLogoutModal();
+          }
+        });
+      }
+
+// ================================================================
+// LOAD HEADER PROFILE
+// ================================================================
+async function loadHeaderProfile() {
+    try {
+        const res = await authFetch('/api/profile');
+        const data = await res.json();
+        if (data.success) {
+            const profile = data.data;
+            document.getElementById('headerName').textContent = profile.full_name || 'User';
+            if (profile.profile_photo) {
+                const img = document.getElementById('headerAvatarImg');
+                img.src = profile.profile_photo;
+                img.style.display = 'block';
+                document.getElementById('headerAvatarPlaceholder').style.display = 'none';
+            } else {
+                document.getElementById('headerAvatarImg').style.display = 'none';
+                document.getElementById('headerAvatarPlaceholder').style.display = 'inline';
+            }
+            // 同时更新 welcome 横幅（若还未更新）
+            const welcomeSpan = document.querySelector('#welcomeUserName span');
+            if (welcomeSpan) {
+                welcomeSpan.textContent = profile.full_name;
+            }
+            // 更新 localStorage 以便其他页面使用
+            const customer = JSON.parse(localStorage.getItem('customer') || '{}');
+            customer.full_name = profile.full_name;
+            customer.profile_photo = profile.profile_photo;
+            localStorage.setItem('customer', JSON.stringify(customer));
+        }
+    } catch (err) {
+        console.error('Error loading header profile:', err);
     }
-}
-
-function confirmLogout() {
-    localStorage.removeItem('customer');
-    localStorage.removeItem('customerId');
-    localStorage.removeItem('token');
-    localStorage.removeItem('isLoggedIn');
-    closeLogoutModal();
-    window.location.replace('index.html');
 }
 
 // TOGGLE PASSWORD VISIBILITY
@@ -186,6 +251,11 @@ function updatePasswordRequirements(password) {
 
 // DOM CONTENT LOADED - MAIN APPLICATION
 document.addEventListener("DOMContentLoaded", async () => {
+
+    // ================================================================
+    // 1. 先加载用户头像和名称（所有页面都需要的公共部分）
+    // ================================================================
+    loadHeaderProfile();
     
     // DOUBLE CHECK TOKEN FOR SECURITY
     const token = localStorage.getItem('token');
