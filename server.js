@@ -675,7 +675,7 @@ app.post('/api/bookings/:booking_id/reschedule-request', async (req, res) => {
     }
 
     // 更新 booking 表，记录请求
-    const { error: updateError } = await supabaseAdmin
+    const { data: updatedData, error: updateError } = await supabaseAdmin
       .from('booking')
       .update({
         reschedule_requested_date: new_date,
@@ -689,7 +689,6 @@ app.post('/api/bookings/:booking_id/reschedule-request', async (req, res) => {
     console.log('✅ Reschedule status updated to:', updatedData[0]?.reschedule_status);
 
     // （可选）发送通知给 Admin（例如通过邮件或系统通知，此处略）
-
     res.json({ success: true, message: 'Reschedule request submitted. Waiting for admin approval.' });
   } catch (err) {
     console.error(err);
