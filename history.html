@@ -631,31 +631,14 @@
       margin-right: 4px;
     }
 
-    .status-badge.status-pending-approval {
-    background: #FEF7E0;
-    color: #B06000;
-    font-weight: 700;
-    border: 1px solid #FDE68A;
-    box-shadow: 0 2px 6px rgba(176, 96, 0, 0.1);
-    }
-
-    .status-sub-badge {
-        font-size: 10px;
-        padding: 2px 8px;
-        border-radius: 12px;
-        margin-left: 6px;
+    .status-badge.warning {
+        background: linear-gradient(135deg, #FEF7E0 0%, #FDE68A 100%);
+        color: #92400e;
+        border: 1px solid #fcd34d;
         font-weight: 600;
-        display: inline-block;
-    }
-
-    .status-sub-badge.approved {
-        background: #E6F4EA;
-        color: #137333;
-    }
-
-    .status-sub-badge.rejected {
-        background: #FCE8E6;
-        color: #C5221F;
+        padding: 4px 16px;
+        border-radius: 20px;
+        box-shadow: 0 2px 4px rgba(251, 191, 36, 0.2);
     }
 
     /* ============================================
@@ -1393,9 +1376,10 @@
           </div>
         </div>
 
-        <div class="info-banner" style="background: #F0F7FF; border-left: 4px solid #1A56DB; padding: 10px 16px; border-radius: 8px; margin-bottom: 16px; font-size: 13px; color: #1A56DB; display: flex; align-items: center; gap: 8px;">
-            <i class="fa-regular fa-clock"></i>
-            <span><strong>Note:</strong> Reschedule and cancellation requests are only allowed <strong>at least 24 hours</strong> before the appointment time.</span>
+        <!-- 改期规则提示 -->
+        <div style="background:#FEF7E0; border-left:4px solid #D97706; padding:10px 16px; border-radius:8px; margin-bottom:16px; font-size:13px; color:#7A7A7A; display:flex; align-items:center; gap:10px;">
+            <i class="fa-regular fa-clock" style="color:#D97706; font-size:16px;"></i>
+            <span>Reschedule requests must be made at least <strong>24 hours</strong> before the original appointment time.</span>
         </div>
 
         <div class="booking-table-wrapper">
@@ -1451,6 +1435,10 @@
               <h2 class="modal-title">Cancel Booking</h2>
               <p id="confirmDeleteMessage" class="modal-subtitle">
                   Are you sure you want to cancel this booking?
+              </p>
+              <!-- 新增注释行 -->
+              <p id="confirmDeleteNote" style="font-size:12px; color:#7A7A7A; text-align:center; margin-top:-10px; margin-bottom:16px; display:none;">
+                  <!-- 动态内容 -->
               </p>
               <div class="modal-btn-group">
                   <button class="modal-btn modal-btn-secondary" id="confirmDeleteNoBtn">No, Keep It</button>
@@ -1869,11 +1857,16 @@
         // ================================================================
         let deleteCallback = null;
 
-        function showConfirmDeleteModal(message, callback) {
+        function showConfirmDeleteModal(message, callback, note = '') {
             const modal = document.getElementById('confirmDeleteModal');
             const msgEl = document.getElementById('confirmDeleteMessage');
+            const noteEl = document.getElementById('confirmDeleteNote');
             if (modal && msgEl) {
                 msgEl.textContent = message || 'Are you sure you want to cancel this booking?';
+                if (noteEl) {
+                    noteEl.textContent = note;
+                    noteEl.style.display = note ? 'block' : 'none';
+                }
                 deleteCallback = callback;
                 lockBodyScroll();
                 modal.classList.add('active');
@@ -2246,7 +2239,8 @@
                         console.error(err);
                         showConfirmationModal('❌ Unable to connect to server.', 'error');
                     }
-                }
+                },
+                'Reschedule requests must be made at least 24 hours before the original appointment time.'  // 👈 这就是要加的注释
             );
         };
 
