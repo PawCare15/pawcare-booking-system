@@ -294,7 +294,7 @@ app.put('/api/profile/password', async (req, res) => {
 
     const match = await bcrypt.compare(currentPassword, user.password);
     if (!match) {
-      return res.status(401).json({ success: false, message: 'Current password is incorrect.' });
+      return res.status(400).json({ success: false, message: 'Current password is incorrect.' });
     }
 
     const hashed = await bcrypt.hash(newPassword, 10);
