@@ -942,7 +942,7 @@ app.get('/api/reviews', async (req, res) => {
             reply_id: r.reply_id,
             reply_text: r.reply_text,
             created_at: r.created_at,
-            customer: r.customer ? { full_name: r.customer.full_name } : null
+            customer: r.customer ? { full_name: r.customer.full_name, profile_photo: r.customer.profile_photo } : null
         });
     });
 
@@ -955,7 +955,7 @@ app.get('/api/reviews', async (req, res) => {
         comment: r.comment,
         review_photo: r.review_photo,
         created_at: r.review_date,
-        customer: r.customer ? { full_name: r.customer.full_name } : null,
+        customer: r.customer ? { full_name: r.customer.full_name, profile_photo: r.customer.profile_photo } : null,
         service_name: r.service?.service_name || null,
         like_count: likeCountMap[r.review_id] || 0,
         liked_by_me: myLikes.includes(r.review_id),
@@ -1265,14 +1265,16 @@ app.post('/api/reviews/:review_id/reply', async (req, res) => {
     if (error) throw error;
 
     res.status(201).json({ success: true, data: data[0] });
-    } catch (err) {
-    console.error('❌ Reply 发送失败详细报错:', err); // 👈 加上这行，去 Render Logs 看报错
-    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
-    }
-    res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
-  }
-});
+      } catch (err) {
+        // 👇 这样打印会显示非常详细的报错结构，方便你直接去 Render Logs 里看
+        console.error('❌ Reply 发送失败详细报错:', JSON.stringify(err, null, 2)); 
+
+        if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+          return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+        res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
+      }
+  });
 
 // ========== 启动服务器 ==========
 const PORT = process.env.PORT || 5000;
