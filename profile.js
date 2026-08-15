@@ -492,16 +492,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (summaryPhone) summaryPhone.textContent = data.phone_number || 'Not provided';
         if (summaryAddress) summaryAddress.textContent = data.address || 'Not provided';
         if (summaryMemberSince) {
-            if (data.created_at) {
-                const dateObj = new Date(data.created_at);
-                summaryMemberSince.textContent = dateObj.toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric"
-                });
-            } else {
-                summaryMemberSince.textContent = "Customer";
-            }
+            summaryMemberSince.textContent = "Customer";
         }
 
         setAvatar(data.profile_photo || null);

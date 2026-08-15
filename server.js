@@ -187,9 +187,10 @@ app.post('/api/login', async (req, res) => {
 app.get('/api/profile', async (req, res) => {
   try {
     const customer_id = getCustomerId(req);
+    // 修改后
     const { data, error } = await supabase
       .from('customer')
-      .select('customer_id, full_name, email, phone_number, address, profile_photo, created_at')
+      .select('customer_id, full_name, email, phone_number, address, profile_photo')
       .eq('customer_id', customer_id)
       .single();
     if (error) throw error;
