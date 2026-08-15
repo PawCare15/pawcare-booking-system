@@ -1243,6 +1243,10 @@ app.post('/api/reset-password', async (req, res) => {
 
 // ========== 新增: 回复评论 ==========
 app.post('/api/reviews/:review_id/reply', async (req, res) => {
+  // 🔍 新增两行日志，看看请求到底进没进后端！
+  console.log('✅ [Reply后端] 请求收到！Params:', req.params);
+  console.log('✅ [Reply后端] 请求Body:', req.body);
+
   try {
     const customer_id = getCustomerId(req);
     const { review_id } = req.params;
