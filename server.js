@@ -187,10 +187,9 @@ app.post('/api/login', async (req, res) => {
 app.get('/api/profile', async (req, res) => {
   try {
     const customer_id = getCustomerId(req);
-    // 修改后
     const { data, error } = await supabase
       .from('customer')
-      .select('customer_id, full_name, email, phone_number, address, profile_photo')
+      .select('customer_id, full_name, email, phone_number, address, profile_photo, created_at')
       .eq('customer_id', customer_id)
       .single();
     if (error) throw error;
@@ -893,11 +892,12 @@ app.put('/api/bookings/:booking_id/cancel', async (req, res) => {
   }
 });
 
-// ========== 10. 评价 ==========
+// ========== 10. 评价 (修改版，包含回复) ==========
 app.get('/api/reviews', async (req, res) => {
   try {
     const customer_id = getCustomerId(req);
-    // 在获取 reviews 数据后，添加点赞数查询
+    
+    // 1. 获取所有 Review
     const { data: reviews, error } = await supabaseAdmin
         .from('review')
         .select(`
@@ -915,21 +915,33 @@ app.get('/api/reviews', async (req, res) => {
         .order('review_date', { ascending: false });
     if (error) throw error;
 
-    // 获取所有点赞数
+    // 2. 获取所有点赞
     const { data: likes, error: likesError } = await supabaseAdmin
         .from('review_likes')
         .select('review_id, customer_id');
     if (likesError) throw likesError;
 
-    // 获取当前用户点赞的 review_id 列表
-    const myLikes = likes
-        .filter(l => l.customer_id === customer_id)
-        .map(l => l.review_id);
+    // 3. 获取所有回复 (新增)
+    const { data: repliesData, error: repliesError } = await supabaseAdmin
+        .from('review_replies')
+        .select('reply_id, review_id, reply_text, created_at, customer:customer_id (full_name)')
+        .order('created_at', { ascending: true });
+    if (repliesError) throw repliesError;
 
-    // 统计每个 review 的点赞数
+    // 4. 数据映射组装
+    const myLikes = likes.filter(l => l.customer_id === customer_id).map(l => l.review_id);
     const likeCountMap = {};
-    likes.forEach(l => {
-        likeCountMap[l.review_id] = (likeCountMap[l.review_id] || 0) + 1;
+    likes.forEach(l => { likeCountMap[l.review_id] = (likeCountMap[l.review_id] || 0) + 1; });
+
+    const repliesMap = {};
+    (repliesData || []).forEach(r => {
+        if (!repliesMap[r.review_id]) repliesMap[r.review_id] = [];
+        repliesMap[r.review_id].push({
+            reply_id: r.reply_id,
+            reply_text: r.reply_text,
+            created_at: r.created_at,
+            customer: r.customer ? { full_name: r.customer.full_name } : null
+        });
     });
 
     const mapped = reviews.map(r => ({
@@ -944,8 +956,10 @@ app.get('/api/reviews', async (req, res) => {
         customer: r.customer ? { full_name: r.customer.full_name } : null,
         service_name: r.service?.service_name || null,
         like_count: likeCountMap[r.review_id] || 0,
-        liked_by_me: myLikes.includes(r.review_id)
+        liked_by_me: myLikes.includes(r.review_id),
+        replies: repliesMap[r.review_id] || []  // 将回复关联到对应评论
     }));
+    
     res.json({ success: true, data: mapped });
   } catch (err) {
     console.error(err);
@@ -1223,6 +1237,39 @@ app.post('/api/reset-password', async (req, res) => {
   await supabase.from('otp_codes').delete().eq('email', email);
 
   res.json({ success: true, message: 'Password reset successful.' });
+});
+
+// ========== 新增: 回复评论 ==========
+app.post('/api/reviews/:review_id/reply', async (req, res) => {
+  try {
+    const customer_id = getCustomerId(req);
+    const { review_id } = req.params;
+    const { reply_text } = req.body;
+
+    if (!reply_text || reply_text.trim() === '') {
+      return res.status(400).json({ success: false, message: 'Reply text is required.' });
+    }
+
+    // 插入回复到数据库
+    const { data, error } = await supabaseAdmin
+      .from('review_replies')
+      .insert([{
+        review_id,
+        customer_id,
+        reply_text: reply_text.trim()
+      }])
+      .select('reply_id, reply_text, created_at, customer:customer_id (full_name)');
+
+    if (error) throw error;
+
+    res.status(201).json({ success: true, data: data[0] });
+  } catch (err) {
+    console.error(err);
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
+  }
 });
 
 // ========== 启动服务器 ==========

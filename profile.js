@@ -492,7 +492,16 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (summaryPhone) summaryPhone.textContent = data.phone_number || 'Not provided';
         if (summaryAddress) summaryAddress.textContent = data.address || 'Not provided';
         if (summaryMemberSince) {
-            summaryMemberSince.textContent = "Customer";
+            if (data.created_at) {
+                const dateObj = new Date(data.created_at);
+                summaryMemberSince.textContent = dateObj.toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric"
+                });
+            } else {
+                summaryMemberSince.textContent = "Customer";
+            }
         }
 
         setAvatar(data.profile_photo || null);
@@ -754,18 +763,10 @@ document.addEventListener("DOMContentLoaded", async () => {
                     }
                 } else {
                     // 先关闭密码模态再显示错误提示
-                    if (passwordModal) {
-                        passwordModal.classList.remove('active');
-                        unlockBodyScroll();
-                    }
                     showValidationModal(data.message || 'Failed to update password.');
                 }
             } catch (err) {
                 console.error('Error changing password:', err);
-                if (passwordModal) {
-                    passwordModal.classList.remove('active');
-                    unlockBodyScroll();
-                }
                 showValidationModal('Unable to update password. Please try again.');
             }
         });
