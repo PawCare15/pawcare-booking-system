@@ -762,10 +762,19 @@ document.addEventListener("DOMContentLoaded", async () => {
                         reqContainer.classList.remove('show');
                     }
                 } else {
+                    // 先关闭密码模态再显示错误提示
+                    if (passwordModal) {
+                        passwordModal.classList.remove('active');
+                        unlockBodyScroll();
+                    }
                     showValidationModal(data.message || 'Failed to update password.');
                 }
             } catch (err) {
                 console.error('Error changing password:', err);
+                if (passwordModal) {
+                    passwordModal.classList.remove('active');
+                    unlockBodyScroll();
+                }
                 showValidationModal('Unable to update password. Please try again.');
             }
         });

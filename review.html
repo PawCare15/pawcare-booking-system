@@ -2364,11 +2364,42 @@ async function loadServiceStats() {
 
             if (target.classList.contains('reply-btn')) {
                 const parent = target.closest('.review-item');
-                const name = parent.querySelector('.r-name')?.textContent || 'Reviewer';
-                const replyText = prompt(`Reply to ${name}:`);
-                if (replyText && replyText.trim()) {
-                    showConfirmationModal(`💬 Reply sent to ${name}: "${replyText.trim()}"`);
+                // 如果已存在回复框则移除（切换效果）
+                let existingReply = parent.querySelector('.reply-box');
+                if (existingReply) {
+                    existingReply.remove();
+                    return;
                 }
+                const name = parent.querySelector('.r-name')?.textContent || 'Reviewer';
+                const replyBox = document.createElement('div');
+                replyBox.className = 'reply-box';
+                replyBox.style.marginTop = '10px';
+                replyBox.style.padding = '12px';
+                replyBox.style.background = '#FAF7F2';
+                replyBox.style.borderRadius = '8px';
+                replyBox.style.border = '1px solid #EFECE6';
+                replyBox.innerHTML = `
+                    <textarea placeholder="Reply to ${name}..." rows="2" style="width:100%; padding:8px; border-radius:6px; border:1px solid #EFECE6; font-family:'Poppins',sans-serif; resize:vertical;"></textarea>
+                    <div style="display:flex; gap:8px; margin-top:8px; justify-content:flex-end;">
+                        <button class="reply-submit" style="background:#5A361A; color:#fff; border:none; padding:6px 16px; border-radius:6px; cursor:pointer;">Send</button>
+                        <button class="reply-cancel" style="background:#EFECE6; border:none; padding:6px 16px; border-radius:6px; cursor:pointer;">Cancel</button>
+                    </div>
+                `;
+                parent.appendChild(replyBox);
+                replyBox.querySelector('textarea').focus();
+
+                replyBox.querySelector('.reply-cancel').addEventListener('click', function() {
+                    replyBox.remove();
+                });
+                replyBox.querySelector('.reply-submit').addEventListener('click', function() {
+                    const text = replyBox.querySelector('textarea').value.trim();
+                    if (text) {
+                        showConfirmationModal(`💬 Reply sent to ${name}: "${text}"`);
+                        replyBox.remove();
+                    } else {
+                        showValidationModal('Please enter a reply.');
+                    }
+                });
             }
 
             if (target.classList.contains('like-btn')) {

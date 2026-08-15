@@ -189,7 +189,7 @@ app.get('/api/profile', async (req, res) => {
     const customer_id = getCustomerId(req);
     const { data, error } = await supabase
       .from('customer')
-      .select('customer_id, full_name, email, phone_number, address, profile_photo')
+      .select('customer_id, full_name, email, phone_number, address, profile_photo, created_at')
       .eq('customer_id', customer_id)
       .single();
     if (error) throw error;
