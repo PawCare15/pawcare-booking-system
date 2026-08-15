@@ -922,9 +922,11 @@ app.get('/api/reviews', async (req, res) => {
     if (likesError) throw likesError;
 
     // 3. 获取所有回复 (新增)
+        // 3. 获取所有回复 (新增)
     const { data: repliesData, error: repliesError } = await supabaseAdmin
         .from('review_replies')
-        .select('reply_id, review_id, reply_text, created_at, customer:customer_id (full_name)')
+        // 👇 加上 , profile_photo 即可
+        .select('reply_id, review_id, reply_text, created_at, customer:customer_id (full_name, profile_photo)')
         .order('created_at', { ascending: true });
     if (repliesError) throw repliesError;
 
@@ -1263,8 +1265,8 @@ app.post('/api/reviews/:review_id/reply', async (req, res) => {
     if (error) throw error;
 
     res.status(201).json({ success: true, data: data[0] });
-  } catch (err) {
-    console.error(err);
+    } catch (err) {
+    console.error('❌ Reply 发送失败详细报错:', err); // 👈 加上这行，去 Render Logs 看报错
     if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }

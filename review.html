@@ -2177,6 +2177,7 @@ async function loadReviews() {
                 item.dataset.service = serviceName;
                 item.dataset.rating = review.rating || 0;
                 item.dataset.reviewId = review.review_id;
+                item.dataset.date = review.created_at;
 
                 item.innerHTML = `
                     <div class="review-header">
@@ -2487,6 +2488,35 @@ async function loadServiceStats() {
             }
         });
 
+                // ================================================================
+        // 动态加载 Filter 服务列表
+        // ================================================================
+        async function loadFilterServiceOptions() {
+            const filterSelect = document.getElementById('filterService');
+            if (!filterSelect) return;
+            try {
+                // 复用获取服务的 API
+                const res = await authFetch('/api/services');
+                const data = await res.json();
+                if (data.success) {
+                    const services = data.data || [];
+                    // 保留第一个 'All Services' 选项
+                    filterSelect.innerHTML = '<option value="all">All Services</option>';
+                    services.forEach(svc => {
+                        const option = document.createElement('option');
+                        option.value = svc.service_name; // 使用服务名称进行匹配
+                        option.textContent = svc.service_name;
+                        filterSelect.appendChild(option);
+                    });
+                } else {
+                    filterSelect.innerHTML = '<option value="all">All Services</option>';
+                }
+            } catch (err) {
+                console.error('Error loading filter services:', err);
+                filterSelect.innerHTML = '<option value="all">All Services</option>';
+            }
+        }
+
         // ================================================================
         // SEARCH & FILTER
         // ================================================================
@@ -2507,6 +2537,7 @@ async function loadServiceStats() {
                 const name = item.querySelector('.r-name')?.textContent?.toLowerCase() || '';
 
                 const matchesText = text.includes(query) || name.includes(query);
+                // serviceFilter 是 all 或者等于服务名
                 const matchesService = serviceFilter === 'all' || service === serviceFilter;
                 return matchesText && matchesService;
             });
@@ -2515,15 +2546,14 @@ async function loadServiceStats() {
                 const ratingA = parseInt(a.dataset.rating) || 0;
                 const ratingB = parseInt(b.dataset.rating) || 0;
                 
-                // 获取日期（从 review 中提取）
-                const dateA = a.querySelector('.r-date')?.textContent || '';
-                const dateB = b.querySelector('.r-date')?.textContent || '';
+                // 获取真实时间戳进行精确排序
+                const timeA = a.dataset.date ? new Date(a.dataset.date).getTime() : 0;
+                const timeB = b.dataset.date ? new Date(b.dataset.date).getTime() : 0;
                 
                 if (sort === 'highest') return ratingB - ratingA;
                 if (sort === 'lowest') return ratingA - ratingB;
                 if (sort === 'recent') {
-                    // 简单按日期字符串比较（可优化）
-                    return dateB.localeCompare(dateA);
+                    return timeB - timeA; // 最新在前
                 }
                 return 0;
             });
@@ -2546,7 +2576,8 @@ async function loadServiceStats() {
         setRating(0);
         loadServicesForReview();
         loadReviews();
-        loadServiceStats();  // 👈 添加这一行
+        loadServiceStats();
+        loadFilterServiceOptions();  // 👈 新增这一行
 
         console.log('PawCare Reviews page loaded successfully!');
     });
