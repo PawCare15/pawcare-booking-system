@@ -2182,10 +2182,10 @@ async function loadReviews() {
                 item.innerHTML = `
                     <div class="review-header">
                         <div class="reviewer">
-                            <div class="avatar" style="background:#FDF3E7; color:#5A361A; font-weight:600; font-size:14px; display:flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:50%; flex-shrink:0; overflow:hidden;">
-                                ${review.customer?.profile_photo 
-                                    ? `<img src="${review.customer.profile_photo}" alt="Avatar" style="width:100%; height:100%; object-fit:cover;">` 
-                                    : customerName.substring(0, 2).toUpperCase()}
+                            <div class="avatar" style="background:#FDF3E7; color:#B0A090; font-weight:600; font-size:14px; display:flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:50%; flex-shrink:0; overflow:hidden;">
+                                ${review.customer?.profile_photo
+                                    ? `<img src="${review.customer.profile_photo}" alt="Avatar" style="width:100%; height:100%; object-fit:cover;">`
+                                    : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#FDF3E7; color:#B0A090; font-size:24px;"><i class="fa-solid fa-paw"></i></div>`}
                             </div>
                             <div>
                                 <div class="r-name" style="font-weight:600; font-size:14px;">${customerName}</div>
@@ -2222,12 +2222,11 @@ async function loadReviews() {
                         const replierName = reply.customer ? reply.customer.full_name : 'User';
                         const repDate = new Date(reply.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                         repliesHtml += `
-                            <div style="display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
-                                <div style="width: 28px; height: 28px; border-radius: 50%; background: #FDF3E7; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #5A361A;">
-                                    ${reply.customer?.profile_photo 
-                                        ? `<img src="${reply.customer.profile_photo}" style="width:100%; height:100%; object-fit:cover;">` 
-                                        : (reply.customer?.full_name ? reply.customer.full_name.substring(0, 2).toUpperCase() : 'U')}
-                                </div>
+                            <div style="width: 28px; height: 28px; border-radius: 50%; background: #FDF3E7; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #5A361A;">
+                                ${reply.customer?.profile_photo
+                                    ? `<img src="${reply.customer.profile_photo}" style="width:100%; height:100%; object-fit:cover;">`
+                                    : `<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#FDF3E7; color:#B0A090; font-size:14px;"><i class="fa-solid fa-paw"></i></div>`}
+                            </div>
                                 <div style="font-size: 13px; display: flex; flex-direction: column;">
                                     <span style="font-weight: 600; color: #5A361A;">${replierName}</span>
                                     <span style="color: #444;">${reply.reply_text}</span>
@@ -2420,20 +2419,18 @@ async function loadServiceStats() {
                 replyBox.querySelector('.reply-cancel').addEventListener('click', function() {
                     replyBox.remove();
                 });
-                                replyBox.querySelector('.reply-submit').addEventListener('click', async function() {
+                replyBox.querySelector('.reply-submit').addEventListener('click', async function() {
                     const text = replyBox.querySelector('textarea').value.trim();
                     if (!text) {
                         showValidationModal('Please enter a reply.');
                         return;
                     }
 
-                    // 🔍 新增：在浏览器 F12 控制台打印看看 reviewId 是否正常！
-                    console.log('🔍 准备发送 Reply, reviewId =', reviewId);
-
-                    if (!reviewId) {
-                        showValidationModal('Invalid review ID.');
-                        return;
-                    }
+                    // 👇 1. 按钮转圈圈，给用户立刻的视觉反馈（解决“点了没反应”）
+                    const btn = this;
+                    const originalHtml = btn.innerHTML;
+                    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+                    btn.disabled = true;
 
                     try {
                         const token = localStorage.getItem('token');
@@ -2445,18 +2442,41 @@ async function loadServiceStats() {
                             },
                             body: JSON.stringify({ reply_text: text })
                         });
-                        
+
                         const data = await res.json();
                         if (data.success) {
-                            await loadReviews(); 
-                            showConfirmationModal(`💬 Reply sent to ${name}: "${text}"`);
+                            // ✅ 2. 关闭回复框
+                            replyBox.remove();
+
+                            // ✅ 3. 直接在 DOM 里插入回复，避免整个页面 `loadReviews()` 重绘卡顿
+                            const replierName = document.getElementById('headerName')?.textContent || 'You';
+
+                            // 构造一个统一占位头像的回复 HTML
+                            const replyHtml = `
+                                <div style="display: flex; align-items: flex-start; gap: 8px; margin-top: 12px; padding-left: 16px; border-left: 2px solid #E8DCC8;">
+                                    <div style="width: 28px; height: 28px; border-radius: 50%; background: #FDF3E7; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #5A361A;">
+                                        <div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#FDF3E7; color:#B0A090; font-size:14px;"><i class="fa-solid fa-paw"></i></div>
+                                    </div>
+                                    <div style="font-size: 13px; display: flex; flex-direction: column;">
+                                        <span style="font-weight: 600; color: #5A361A;">${replierName}</span>
+                                        <span style="color: #444;">${text}</span>
+                                        <div style="font-size: 11px; color: #B0A090;">Just now</div>
+                                    </div>
+                                </div>
+                            `;
+                            parent.querySelector('.review-body').insertAdjacentHTML('beforeend', replyHtml);
+
+                            showConfirmationModal(`💬 Reply sent: "${text}"`);
                         } else {
                             showValidationModal(data.message || 'Failed to send reply.');
                         }
                     } catch (err) {
-                        // 🔍 把报错直接打印在浏览器 F12 控制台里
                         console.error('❌ 前端 Reply 报错详情:', err);
                         showValidationModal('Unable to connect to server.');
+                    } finally {
+                        // 👇 4. 恢复按钮状态
+                        btn.innerHTML = originalHtml;
+                        btn.disabled = false;
                     }
                 });
             }
