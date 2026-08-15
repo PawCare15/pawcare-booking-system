@@ -909,7 +909,7 @@ app.get('/api/reviews', async (req, res) => {
             comment,
             review_photo,
             review_date,
-            customer:customer_id (full_name),
+            customer:customer_id (full_name, profile_photo),
             service:service_id (service_name)
         `)
         .order('review_date', { ascending: false });

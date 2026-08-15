@@ -680,6 +680,11 @@
       padding: 20px;
     }
 
+    /* 强制让错误/成功提示框的层级高于密码修改弹窗 */
+    #validationModal, #confirmationModal {
+        z-index: 3000 !important;
+    }
+
     .modal-overlay.active {
       display: flex;
     }
