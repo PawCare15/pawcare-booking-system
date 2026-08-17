@@ -254,6 +254,15 @@
             padding: 5px 16px;
             font-size: 12px;
         }
+        .btn-outline {
+            background: transparent;
+            color: #5A361A;
+            border: 1.5px solid #5A361A;
+        }
+        .btn-outline:hover {
+            background: #5A361A;
+            color: #fff;
+        }
 
         .security-item {
             display: flex;
@@ -362,7 +371,33 @@
             cursor: pointer;
         }
 
-        /* 偏好设置专用 */
+        /* 主题切换 (Light/Dark) */
+        .theme-toggle-group {
+            display: flex;
+            gap: 12px;
+            margin-top: 4px;
+        }
+        .theme-option {
+            padding: 6px 20px;
+            border-radius: 8px;
+            border: 2px solid #EFECE6;
+            background: #FAFAFA;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            color: #7A7A7A;
+            transition: all 0.2s;
+        }
+        .theme-option.active {
+            border-color: #5A361A;
+            background: #F5EDD6;
+            color: #5A361A;
+        }
+        .theme-option:hover {
+            border-color: #D3C4B8;
+        }
+
+        /* 偏好设置样式 */
         .pref-group {
             display: flex;
             flex-wrap: wrap;
@@ -430,6 +465,9 @@
             .pref-group {
                 flex-direction: column;
                 gap: 12px;
+            }
+            .theme-toggle-group {
+                flex-wrap: wrap;
             }
         }
     </style>
@@ -605,6 +643,14 @@
                                     <input type="text" class="form-control" id="editDepartment" value="Management" disabled />
                                 </div>
                             </div>
+                            <!-- Theme -->
+                            <div class="form-group" style="margin-top:8px;">
+                                <label><i class="fa-solid fa-palette"></i> Theme</label>
+                                <div class="theme-toggle-group" id="themeGroup">
+                                    <span class="theme-option active" data-theme="light">Light</span>
+                                    <span class="theme-option" data-theme="dark">Dark</span>
+                                </div>
+                            </div>
                             <div style="display:flex; gap:12px; margin-top:12px; flex-wrap:wrap;">
                                 <button type="submit" class="btn btn-primary"><i class="fa-regular fa-floppy-disk"></i> Save Changes</button>
                                 <button type="button" class="btn btn-secondary" id="resetProfileBtn">Reset</button>
@@ -709,14 +755,14 @@
                                     <div class="title">Log Out from All Devices</div>
                                     <div class="desc">Sign out from all active sessions.</div>
                                 </div>
-                                <button class="btn btn-danger btn-sm">Logout All</button>
+                                <button class="btn btn-danger btn-sm" id="logoutAllBtn">Logout All</button>
                             </div>
                             <div class="danger-item">
                                 <div class="left">
                                     <div class="title">Delete Admin Account</div>
                                     <div class="desc">Permanently delete your admin account.</div>
                                 </div>
-                                <button class="btn btn-danger btn-sm">Delete</button>
+                                <button class="btn btn-danger btn-sm" id="deleteAccountBtn">Delete</button>
                             </div>
                         </div>
                     </div>
@@ -782,7 +828,7 @@
     <!-- ================================================================ -->
     <script>
         // ================================================================
-        // AUTH CHECK (simplified for demo)
+        // AUTH CHECK
         // ================================================================
         (function checkAuth() {
             const token = localStorage.getItem('token');
@@ -886,10 +932,9 @@
             });
 
             // ================================================================
-            // LOAD ADMIN PROFILE (mock data, replace with API call)
+            // LOAD ADMIN PROFILE (mock)
             // ================================================================
             function loadAdminProfile() {
-                // For demo, set static data
                 document.getElementById('headerName').textContent = 'Admin';
                 document.getElementById('profileFullName').textContent = 'Admin';
                 document.getElementById('profileEmail').textContent = 'admin@pawcare.com';
@@ -901,12 +946,12 @@
                 document.getElementById('lastLoginStat').textContent = '15 May 2026';
                 document.getElementById('totalLogins').textContent = '128';
                 document.getElementById('pwdChanged').textContent = '12 Apr 2026';
-                // Edit form
+                // edit form
                 document.getElementById('editFullName').value = 'Admin';
                 document.getElementById('editEmail').value = 'admin@pawcare.com';
                 document.getElementById('editPhone').value = '+60 12-345 6789';
                 document.getElementById('editDepartment').value = 'Management';
-                // Avatar placeholder
+                // avatars
                 document.getElementById('profileAvatarPlaceholder').style.display = 'inline';
                 document.getElementById('headerAvatarPlaceholder').style.display = 'inline';
                 document.getElementById('headerAvatarImg').style.display = 'none';
@@ -914,7 +959,7 @@
             }
 
             // ================================================================
-            // UPDATE PROFILE (mock)
+            // UPDATE PROFILE
             // ================================================================
             document.getElementById('profileForm').addEventListener('submit', function(e) {
                 e.preventDefault();
@@ -927,13 +972,11 @@
                     msg.textContent = 'Full name is required.';
                     return;
                 }
-                // Simulate update
                 msg.style.display = 'block';
                 msg.style.color = '#2E7D32';
                 msg.textContent = '✅ Profile updated successfully!';
                 document.getElementById('headerName').textContent = fullName;
                 document.getElementById('profileFullName').textContent = fullName;
-                // Update last login timestamp (mock)
                 const now = new Date().toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                 document.getElementById('profileLastLogin').textContent = now;
                 localStorage.setItem('lastLogin', now);
@@ -946,7 +989,20 @@
             });
 
             // ================================================================
-            // AVATAR UPLOAD (mock)
+            // THEME TOGGLE
+            // ================================================================
+            const themeOptions = document.querySelectorAll('.theme-option');
+            themeOptions.forEach(opt => {
+                opt.addEventListener('click', function() {
+                    themeOptions.forEach(o => o.classList.remove('active'));
+                    this.classList.add('active');
+                    // Simulate theme change (just alert for demo)
+                    alert(`Theme changed to ${this.dataset.theme} mode (demo)`);
+                });
+            });
+
+            // ================================================================
+            // AVATAR UPLOAD
             // ================================================================
             document.getElementById('avatarUploadInput').addEventListener('change', function(e) {
                 const file = this.files[0];
@@ -961,7 +1017,6 @@
                     this.value = '';
                     return;
                 }
-                // Simulate upload
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     const url = e.target.result;
@@ -1022,7 +1077,6 @@
                     msg.textContent = 'Passwords do not match.';
                     return;
                 }
-                // Simulate success
                 msg.style.color = '#2E7D32';
                 msg.textContent = '✅ Password updated successfully!';
                 document.getElementById('pwdChanged').textContent = new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
@@ -1036,12 +1090,30 @@
                 const lang = document.getElementById('prefLang').value;
                 const dateFormat = document.getElementById('prefDateFormat').value;
                 const timeFormat = document.getElementById('prefTimeFormat').value;
-                // Save to localStorage or send to API
                 localStorage.setItem('adminPrefs', JSON.stringify({ lang, dateFormat, timeFormat }));
                 const msg = document.getElementById('prefMsg');
                 msg.style.display = 'inline';
                 msg.textContent = '✅ Preferences saved!';
                 setTimeout(() => { msg.style.display = 'none'; }, 3000);
+            });
+
+            // ================================================================
+            // DANGER ZONE ACTIONS
+            // ================================================================
+            document.getElementById('logoutAllBtn').addEventListener('click', function() {
+                if (confirm('⚠️ Are you sure you want to log out from all devices?')) {
+                    alert('✅ Logged out from all devices (demo)');
+                    // In real app, call API to revoke all tokens
+                }
+            });
+
+            document.getElementById('deleteAccountBtn').addEventListener('click', function() {
+                if (confirm('⚠️ This action is IRREVERSIBLE. Are you sure you want to permanently delete your admin account?')) {
+                    if (confirm('⚠️ Final confirmation: Delete admin account?')) {
+                        alert('✅ Admin account deleted (demo)');
+                        // In real app, call API to delete account and redirect
+                    }
+                }
             });
 
             // ================================================================
