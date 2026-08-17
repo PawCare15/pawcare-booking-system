@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="image/logo.png" type="image/png" class="logo"/>
+    <title>PAWCARE BOOKING SYSTEM</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- FONT AWESOME ICONS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- GOOGLE FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CHART.JS -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- CUSTOM ADMIN CSS -->
+    <link rel="stylesheet" href="admin_style.css">
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebarClose">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        
+        <div class="brand">
+            <i class="fa-solid fa-paw brand-icon"></i>
+            <div class="brand-text">
+                <h2>PawCare</h2>
+                <span>Booking System | Admin</span>
+            </div>
+        </div>
+
+        <nav class="nav-menu">
+            <a href="admin_dashboard.html" class="nav-item active"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="admin_bookings.html" class="nav-item"><i class="fa-regular fa-calendar-check"></i> Booking Management</a>
+            <a href="admin_customers.html" class="nav-item"><i class="fa-regular fa-user"></i> Customer Management</a>
+            <a href="admin_pets.html" class="nav-item"><i class="fa-solid fa-paw"></i> Pet Management</a>
+            <a href="admin_staff.html" class="nav-item"><i class="fa-solid fa-users"></i> Staff Management</a>
+            <a href="admin_services.html" class="nav-item"><i class="fa-solid fa-scissors"></i> Service Management</a>
+            <a href="admin_reports.html" class="nav-item"><i class="fa-solid fa-chart-bar"></i> Reports & Analytics</a>
+            <a href="admin_reviews.html" class="nav-item"><i class="fa-regular fa-star"></i> Reviews</a>
+            <a href="admin_profile.html" class="nav-item"><i class="fa-regular fa-id-card"></i> Admin Profile</a>
+            <a href="#" class="nav-item logout" onclick="showLogoutModal(); return false;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
+                <a href="admin_dashboard.html" class="brand-header">
+                    <i class="fa-solid fa-paw brand-icon"></i>
+                    <div class="brand-text">
+                        <h2>PawCare</h2>
+                        <span>Booking System | Admin</span>
+                    </div>
+                </a>
+            </div>
+            <div class="header-right">
+                <div class="notification-badge" id="notificationBtn">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="count" id="notifCount">0</span>
+                </div>
+                <div class="user-profile" id="profileBtn">
+                    <div class="avatar-wrapper" id="headerAvatarWrapper">
+                        <img id="headerAvatarImg" src="" alt="Avatar" style="display:none;">
+                        <span class="avatar-placeholder" id="headerAvatarPlaceholder">👤</span>
+                    </div>
+                    <div class="user-info">
+                        <span class="name" id="headerName">Admin</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- DASHBOARD CONTENT -->
+        <div class="dashboard-container">
+
+            <!-- WELCOME BANNER -->
+            <section class="welcome-banner">
+                <div class="banner-text">
+                    <h1>Welcome back, Admin! 👋</h1>
+                    <p>Here's what's happening with PawCare Booking System today.</p>
+                </div>
+                <div class="banner-date">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="currentDate">Loading...</span>
+                </div>
+            </section>
+
+            <!-- STATS CARDS  -->
+            <div class="stats-grid" id="statsGrid">
+                
+                <!-- CARD 1: TOTAL BOOKINGS -->
+                <div class="stat-card stat-total">
+                    <div class="stat-icon" style="background: #FFF3E0; color: #E65100;">
+                        <i class="fa-solid fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalBookings">156</h3>
+                        <p>Total Bookings</p>
+                        <span class="stat-change positive" id="totalChange">+12% from last month</span>
+                    </div>
+                </div>
+
+                <!-- ROW 1: Pending → Confirmed → Completed -->
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #FEF7E0; color: #B06000;">
+                        <i class="fa-regular fa-clock"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="pendingBookings">23</h3>
+                        <p>Pending Bookings</p>
+                        <span class="stat-change negative" id="pendingChange">-8% from last month</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #E3F2FD; color: #0D47A1;">
+                        <i class="fa-solid fa-check-circle"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="confirmedBookings">45</h3>
+                        <p>Confirmed Bookings</p>
+                        <span class="stat-change positive" id="confirmedChange">+15% from last month</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #E8F5E9; color: #2E7D32;">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="completedBookings">78</h3>
+                        <p>Completed Bookings</p>
+                        <span class="stat-change positive" id="completedChange">+10% from last month</span>
+                    </div>
+                </div>
+
+                <!-- ROW 2: Total Customers → Total Pets → Cancelled -->
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #FCE4EC; color: #880E4F;">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalCustomers">89</h3>
+                        <p>Total Customers</p>
+                        <span class="stat-change positive" id="customerChange">+13% from last month</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #F3E5F5; color: #4A148C;">
+                        <i class="fa-solid fa-paw"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalPets">112</h3>
+                        <p>Total Pets</p>
+                        <span class="stat-change positive" id="petChange">+9% from last month</span>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon" style="background: #FBE9E7; color: #BF360C;">
+                        <i class="fa-solid fa-circle-xmark"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="cancelledBookings">10</h3>
+                        <p>Cancelled Bookings</p>
+                        <span class="stat-change negative" id="cancelledChange">-5% from last month</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHARTS & TABLES ROW -->
+            <div class="dashboard-grid">
+
+                <!-- LEFT COLUMN - PIE CHART + LINE CHART -->
+                <div class="left-column">
+
+                    <!-- BOOKING STATUS CHART (PIE) -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-chart-pie"></i> Booking Status (This Month)</h3>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="statusChart"></canvas>
+                        </div>
+                        <div class="chart-legend" id="statusLegend"></div>
+                    </div>
+
+                    <!-- BOOKING TRENDS CHART (LINE) -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-chart-line"></i> Booking Trends</h3>
+                            <span class="badge-month">Last 6 Months</span>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="trendChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN - QUICK ACTIONS → BOOKINGS → REVIEWS -->
+                <div class="right-column">
+
+                    <!-- QUICK ACTIONS -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fa-solid fa-bolt"></i> Quick Actions</h3>
+                        </div>
+                        <div class="quick-actions-grid">
+                            <button class="qa-item" onclick="window.location.href='admin_customers.html'">
+                                <i class="fa-regular fa-user"></i>
+                                <span>Add Customer</span>
+                            </button>
+                            <button class="qa-item" onclick="window.location.href='admin_pets.html'">
+                                <i class="fa-solid fa-paw"></i>
+                                <span>Add Pet</span>
+                            </button>
+                            <button class="qa-item" onclick="window.location.href='admin_services.html'">
+                                <i class="fa-solid fa-scissors"></i>
+                                <span>Add Service</span>
+                            </button>
+                            <button class="qa-item" onclick="window.location.href='admin_staff.html'">
+                                <i class="fa-solid fa-users"></i>
+                                <span>Manage Staff</span>
+                            </button>
+                            <button class="qa-item" onclick="window.location.href='admin_reports.html'">
+                                <i class="fa-solid fa-chart-bar"></i>
+                                <span>View Reports</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- RECENT BOOKINGS -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fa-regular fa-newspaper"></i> Recent Bookings</h3>
+                            <a href="admin_bookings.html" class="view-all">View All</a>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="data-table" id="recentBookingsTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Customer</th>
+                                        <th>Pet</th>
+                                        <th>Service</th>
+                                        <th>Date & Time</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="recentBookingsBody">
+                                    <tr><td colspan="6" style="text-align:center; color:#7A7A7A; padding:20px;">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- RECENT REVIEWS -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="fa-regular fa-star"></i> Recent Reviews</h3>
+                            <a href="admin_reviews.html" class="view-all">View All</a>
+                        </div>
+                        <div class="review-list" id="recentReviews">
+                            <div style="text-align:center; color:#7A7A7A; padding:20px;">Loading reviews...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- LOGOUT CONFIRM MODAL -->
+        <div class="modal-overlay" id="logoutModal">
+            <div class="modal-box">
+                <div class="modal-icon-circle warning">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                </div>
+                <h2 class="modal-title">Confirm Logout</h2>
+                <p class="modal-subtitle">Are you sure you want to logout?</p>
+                <div class="modal-btn-group">
+                    <button class="btn btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+                    <button class="btn btn-danger" onclick="confirmLogout()">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p><i class="fa-solid fa-paw"></i> © 2026 PawCare Booking System — Paw Walker Grooming House</p>
+        </footer>
+
+    </main>
+
+    <!-- JAVASCRIPT -->
+    <script src="admin_dashboard.js"></script>
+</body>
+</html>
