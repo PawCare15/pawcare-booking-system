@@ -266,7 +266,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
 
                 if (data.success) {
-                    
                     // STORE LOGIN STATE
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.customer));
@@ -283,10 +282,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     showPopup('🎉', 'Welcome Back!', 'Login successful! Redirecting...');
                     
+                    // 🆕 根据用户角色决定跳转目标
+                    const redirectUrl = data.customer.role === 'admin' ? 'admin_dashboard.html' : 'dashboard.html';
                     setTimeout(() => {
-                        window.location.replace('dashboard.html');
+                        window.location.replace(redirectUrl);
                     }, 800);
-
                 } else {
 
                     // LOGIN FAILED
