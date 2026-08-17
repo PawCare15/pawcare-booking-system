@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="icon" href="image/logo.png" type="image/png" class="logo" />
-    <title>PAWCARE BOOKING SYSTEM</title>
+    <title>PAWCARE · Admin Profile</title>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
@@ -254,14 +254,6 @@
             padding: 5px 16px;
             font-size: 12px;
         }
-        .btn-ghost {
-            background: transparent;
-            color: #5A361A;
-            border: 1px solid #EFECE6;
-        }
-        .btn-ghost:hover {
-            background: #FAF7F2;
-        }
 
         .security-item {
             display: flex;
@@ -370,6 +362,41 @@
             cursor: pointer;
         }
 
+        /* 偏好设置专用 */
+        .pref-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px 40px;
+            margin: 6px 0 2px;
+        }
+        .pref-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .pref-item label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+            margin: 0;
+        }
+        .pref-item select {
+            padding: 6px 30px 6px 12px;
+            border: 1.5px solid #EFECE6;
+            border-radius: 8px;
+            font-size: 13px;
+            background: #FAFAFA;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A7A7A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+        .pref-item select:focus {
+            border-color: #5A361A;
+        }
+
         @media (max-width: 992px) {
             .profile-grid {
                 grid-template-columns: 1fr;
@@ -399,6 +426,10 @@
             .danger-zone .danger-item {
                 flex-wrap: wrap;
                 gap: 8px;
+            }
+            .pref-group {
+                flex-direction: column;
+                gap: 12px;
             }
         }
     </style>
@@ -521,7 +552,7 @@
                             </div>
                             <div class="info-item" style="grid-column:1/-1;">
                                 <span class="label">Last Login</span>
-                                <span class="value" id="profileLastLogin">—</span>
+                                <span class="value" id="profileLastLogin">15 May 2026, 09:30 AM</span>
                             </div>
                         </div>
                     </div>
@@ -535,7 +566,7 @@
                                 <div class="lbl">Total Logins</div>
                             </div>
                             <div class="activity-stat">
-                                <div class="num" id="lastLoginStat">—</div>
+                                <div class="num" id="lastLoginStat">15 May 2026</div>
                                 <div class="lbl">Last Login</div>
                             </div>
                             <div class="activity-stat">
@@ -580,6 +611,40 @@
                             </div>
                             <div id="profileUpdateMessage" style="margin-top:10px; font-size:13px; display:none;"></div>
                         </form>
+                    </div>
+
+                    <!-- 偏好设置 -->
+                    <div class="profile-card">
+                        <div class="card-title"><i class="fa-regular fa-sliders"></i> Preferences</div>
+                        <div class="pref-group">
+                            <div class="pref-item">
+                                <label for="prefLang"><i class="fa-solid fa-globe"></i> Language</label>
+                                <select id="prefLang">
+                                    <option value="en" selected>English</option>
+                                    <option value="ms">Malay</option>
+                                    <option value="zh">Chinese</option>
+                                </select>
+                            </div>
+                            <div class="pref-item">
+                                <label for="prefDateFormat"><i class="fa-regular fa-calendar"></i> Date Format</label>
+                                <select id="prefDateFormat">
+                                    <option value="DD MMM YYYY" selected>DD MMM YYYY (16 May 2026)</option>
+                                    <option value="YYYY-MM-DD">YYYY-MM-DD (2026-05-16)</option>
+                                    <option value="MM/DD/YYYY">MM/DD/YYYY (05/16/2026)</option>
+                                </select>
+                            </div>
+                            <div class="pref-item">
+                                <label for="prefTimeFormat"><i class="fa-regular fa-clock"></i> Time Format</label>
+                                <select id="prefTimeFormat">
+                                    <option value="12" selected>12 Hour (02:30 PM)</option>
+                                    <option value="24">24 Hour (14:30)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div style="margin-top:12px;">
+                            <button class="btn btn-primary" id="savePrefBtn"><i class="fa-regular fa-floppy-disk"></i> Save Preferences</button>
+                            <span id="prefMsg" style="margin-left:12px; font-size:13px; color:#2E7D32; display:none;">Preferences saved!</span>
+                        </div>
                     </div>
 
                     <!-- 安全设置 -->
@@ -717,7 +782,7 @@
     <!-- ================================================================ -->
     <script>
         // ================================================================
-        // AUTH CHECK
+        // AUTH CHECK (simplified for demo)
         // ================================================================
         (function checkAuth() {
             const token = localStorage.getItem('token');
@@ -737,36 +802,6 @@
                 return;
             }
         })();
-
-        // ================================================================
-        // SUPABASE CONFIG
-        // ================================================================
-        const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
-        const SUPABASE_ANON_KEY =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
-
-        // ================================================================
-        // AUTH FETCH WRAPPER
-        // ================================================================
-        async function authFetch(url, options = {}) {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = 'login.html';
-                return;
-            }
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                ...options.headers
-            };
-            const response = await fetch(url, { ...options, headers });
-            if (response.status === 401) {
-                localStorage.clear();
-                window.location.href = 'login.html';
-                throw new Error('Unauthorized');
-            }
-            return response;
-        }
 
         // ================================================================
         // SCROLLBAR COMPENSATION
@@ -851,104 +886,57 @@
             });
 
             // ================================================================
-            // LOAD ADMIN PROFILE
+            // LOAD ADMIN PROFILE (mock data, replace with API call)
             // ================================================================
-            async function loadAdminProfile() {
-                try {
-                    const res = await authFetch('/api/profile');
-                    const data = await res.json();
-                    if (data.success) {
-                        const p = data.data;
-                        // header
-                        document.getElementById('headerName').textContent = p.full_name || 'Admin';
-                        if (p.profile_photo) {
-                            document.getElementById('headerAvatarImg').src = p.profile_photo;
-                            document.getElementById('headerAvatarImg').style.display = 'block';
-                            document.getElementById('headerAvatarPlaceholder').style.display = 'none';
-                        } else {
-                            document.getElementById('headerAvatarImg').style.display = 'none';
-                            document.getElementById('headerAvatarPlaceholder').style.display = 'inline';
-                        }
-
-                        // profile page
-                        document.getElementById('profileFullName').textContent = p.full_name || 'Admin';
-                        document.getElementById('profileEmail').textContent = p.email || 'admin@pawcare.com';
-                        document.getElementById('profilePhone').textContent = p.phone_number || '+60 12-345 6789';
-                        if (p.profile_photo) {
-                            document.getElementById('profileAvatarImg').src = p.profile_photo;
-                            document.getElementById('profileAvatarImg').style.display = 'block';
-                            document.getElementById('profileAvatarPlaceholder').style.display = 'none';
-                        } else {
-                            document.getElementById('profileAvatarImg').style.display = 'none';
-                            document.getElementById('profileAvatarPlaceholder').style.display = 'inline';
-                        }
-                        // edit form
-                        document.getElementById('editFullName').value = p.full_name || '';
-                        document.getElementById('editEmail').value = p.email || '';
-                        document.getElementById('editPhone').value = p.phone_number || '';
-
-                        // joined date
-                        if (p.created_at) {
-                            const d = new Date(p.created_at);
-                            document.getElementById('profileJoined').textContent = d.toLocaleDateString('en-US', { day: '2-digit',
-                                month: 'short', year: 'numeric' });
-                        }
-                        // last login (from localStorage or fallback)
-                        const lastLogin = localStorage.getItem('lastLogin') || '15 May 2026, 09:30 AM';
-                        document.getElementById('profileLastLogin').textContent = lastLogin;
-                        document.getElementById('lastLoginStat').textContent = lastLogin;
-
-                        // total logins (from localStorage or fallback)
-                        const logins = parseInt(localStorage.getItem('totalLogins')) || 128;
-                        document.getElementById('totalLogins').textContent = logins;
-                    }
-                } catch (err) {
-                    console.error('Error loading admin profile:', err);
-                }
+            function loadAdminProfile() {
+                // For demo, set static data
+                document.getElementById('headerName').textContent = 'Admin';
+                document.getElementById('profileFullName').textContent = 'Admin';
+                document.getElementById('profileEmail').textContent = 'admin@pawcare.com';
+                document.getElementById('profilePhone').textContent = '+60 12-345 6789';
+                document.getElementById('profileDepartment').textContent = 'Management';
+                document.getElementById('profileEmployeeId').textContent = 'ADM-0001';
+                document.getElementById('profileJoined').textContent = '01 Jan 2024';
+                document.getElementById('profileLastLogin').textContent = '15 May 2026, 09:30 AM';
+                document.getElementById('lastLoginStat').textContent = '15 May 2026';
+                document.getElementById('totalLogins').textContent = '128';
+                document.getElementById('pwdChanged').textContent = '12 Apr 2026';
+                // Edit form
+                document.getElementById('editFullName').value = 'Admin';
+                document.getElementById('editEmail').value = 'admin@pawcare.com';
+                document.getElementById('editPhone').value = '+60 12-345 6789';
+                document.getElementById('editDepartment').value = 'Management';
+                // Avatar placeholder
+                document.getElementById('profileAvatarPlaceholder').style.display = 'inline';
+                document.getElementById('headerAvatarPlaceholder').style.display = 'inline';
+                document.getElementById('headerAvatarImg').style.display = 'none';
+                document.getElementById('profileAvatarImg').style.display = 'none';
             }
 
             // ================================================================
-            // UPDATE PROFILE
+            // UPDATE PROFILE (mock)
             // ================================================================
-            document.getElementById('profileForm').addEventListener('submit', async function(e) {
+            document.getElementById('profileForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const fullName = document.getElementById('editFullName').value.trim();
                 const phone = document.getElementById('editPhone').value.trim();
                 const msg = document.getElementById('profileUpdateMessage');
-
                 if (!fullName) {
                     msg.style.display = 'block';
                     msg.style.color = '#C5221F';
                     msg.textContent = 'Full name is required.';
                     return;
                 }
-
-                try {
-                    const res = await authFetch('/api/profile', {
-                        method: 'PUT',
-                        body: JSON.stringify({ full_name: fullName, phone_number: phone })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        msg.style.display = 'block';
-                        msg.style.color = '#2E7D32';
-                        msg.textContent = '✅ Profile updated successfully!';
-                        // refresh header
-                        document.getElementById('headerName').textContent = fullName;
-                        document.getElementById('profileFullName').textContent = fullName;
-                        // update last login timestamp
-                        localStorage.setItem('lastLogin', new Date().toLocaleString('en-US', { day: '2-digit',
-                            month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }));
-                    } else {
-                        msg.style.display = 'block';
-                        msg.style.color = '#C5221F';
-                        msg.textContent = '❌ ' + (data.message || 'Update failed.');
-                    }
-                } catch (err) {
-                    msg.style.display = 'block';
-                    msg.style.color = '#C5221F';
-                    msg.textContent = '❌ Server error.';
-                }
+                // Simulate update
+                msg.style.display = 'block';
+                msg.style.color = '#2E7D32';
+                msg.textContent = '✅ Profile updated successfully!';
+                document.getElementById('headerName').textContent = fullName;
+                document.getElementById('profileFullName').textContent = fullName;
+                // Update last login timestamp (mock)
+                const now = new Date().toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                document.getElementById('profileLastLogin').textContent = now;
+                localStorage.setItem('lastLogin', now);
             });
 
             document.getElementById('resetProfileBtn').addEventListener('click', function() {
@@ -958,9 +946,9 @@
             });
 
             // ================================================================
-            // AVATAR UPLOAD
+            // AVATAR UPLOAD (mock)
             // ================================================================
-            document.getElementById('avatarUploadInput').addEventListener('change', async function(e) {
+            document.getElementById('avatarUploadInput').addEventListener('change', function(e) {
                 const file = this.files[0];
                 if (!file) return;
                 if (!file.type.startsWith('image/')) {
@@ -973,34 +961,19 @@
                     this.value = '';
                     return;
                 }
-
-                const formData = new FormData();
-                formData.append('avatar', file);
-
-                try {
-                    const token = localStorage.getItem('token');
-                    const res = await fetch('/api/profile/avatar', {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${token}` },
-                        body: formData
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        // update avatar everywhere
-                        const url = data.avatar_url;
-                        document.getElementById('headerAvatarImg').src = url;
-                        document.getElementById('headerAvatarImg').style.display = 'block';
-                        document.getElementById('headerAvatarPlaceholder').style.display = 'none';
-                        document.getElementById('profileAvatarImg').src = url;
-                        document.getElementById('profileAvatarImg').style.display = 'block';
-                        document.getElementById('profileAvatarPlaceholder').style.display = 'none';
-                        alert('✅ Avatar updated!');
-                    } else {
-                        alert('❌ ' + (data.message || 'Upload failed.'));
-                    }
-                } catch (err) {
-                    alert('❌ Server error.');
-                }
+                // Simulate upload
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const url = e.target.result;
+                    document.getElementById('headerAvatarImg').src = url;
+                    document.getElementById('headerAvatarImg').style.display = 'block';
+                    document.getElementById('headerAvatarPlaceholder').style.display = 'none';
+                    document.getElementById('profileAvatarImg').src = url;
+                    document.getElementById('profileAvatarImg').style.display = 'block';
+                    document.getElementById('profileAvatarPlaceholder').style.display = 'none';
+                    alert('✅ Avatar updated (demo)');
+                };
+                reader.readAsDataURL(file);
                 this.value = '';
             });
 
@@ -1027,7 +1000,7 @@
                 if (e.target === this) closeChangePwdModal();
             });
 
-            document.getElementById('changePwdForm').addEventListener('submit', async function(e) {
+            document.getElementById('changePwdForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 const current = document.getElementById('currentPwd').value;
                 const newPwd = document.getElementById('newPwd').value;
@@ -1049,30 +1022,26 @@
                     msg.textContent = 'Passwords do not match.';
                     return;
                 }
+                // Simulate success
+                msg.style.color = '#2E7D32';
+                msg.textContent = '✅ Password updated successfully!';
+                document.getElementById('pwdChanged').textContent = new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
+                setTimeout(closeChangePwdModal, 1200);
+            });
 
-                try {
-                    const res = await authFetch('/api/profile/password', {
-                        method: 'PUT',
-                        body: JSON.stringify({ currentPassword: current, newPassword: newPwd })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        msg.style.color = '#2E7D32';
-                        msg.textContent = '✅ Password updated successfully!';
-                        document.getElementById('pwdChanged').textContent = new Date().toLocaleDateString('en-US', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric'
-                        });
-                        setTimeout(closeChangePwdModal, 1200);
-                    } else {
-                        msg.style.color = '#C5221F';
-                        msg.textContent = '❌ ' + (data.message || 'Update failed.');
-                    }
-                } catch (err) {
-                    msg.style.color = '#C5221F';
-                    msg.textContent = '❌ Server error.';
-                }
+            // ================================================================
+            // PREFERENCES SAVE
+            // ================================================================
+            document.getElementById('savePrefBtn').addEventListener('click', function() {
+                const lang = document.getElementById('prefLang').value;
+                const dateFormat = document.getElementById('prefDateFormat').value;
+                const timeFormat = document.getElementById('prefTimeFormat').value;
+                // Save to localStorage or send to API
+                localStorage.setItem('adminPrefs', JSON.stringify({ lang, dateFormat, timeFormat }));
+                const msg = document.getElementById('prefMsg');
+                msg.style.display = 'inline';
+                msg.textContent = '✅ Preferences saved!';
+                setTimeout(() => { msg.style.display = 'none'; }, 3000);
             });
 
             // ================================================================
@@ -1087,20 +1056,6 @@
             // ================================================================
             loadAdminProfile();
             console.log('PawCare Admin Profile loaded.');
-
-            // 点击头像跳转到 Profile
-            document.getElementById('profileBtn').addEventListener('click', function() {
-                // already on profile page
-            });
-
-            // Escape 关闭密码弹窗
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    if (changePwdModal.classList.contains('active')) closeChangePwdModal();
-                    closeLogoutModal();
-                }
-            });
-
         }); // end DOMContentLoaded
     </script>
 
