@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="image/logo.png" type="image/png" class="logo"/>
-    <title>PAWCARE · Admin Reviews</title>
+    <title>PAWCARE BOOKING SYSTEM</title>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
@@ -824,7 +824,7 @@
                     const dateStr = review.created_at ? new Date(review.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
                     const serviceName = review.service_name || 'General';
                     const photoHtml = review.review_photo ?
-                        `<img src="${review.review_photo}" alt="Review photo" class="r-photo" style="max-width:200px;">` :
+                        `<div style="margin-top:10px;"><img src="${review.review_photo}" alt="Review photo" style="max-width:100%; max-height:200px; border-radius:8px; border:1px solid #EFECE6;"></div>` :
                         '';
 
                     const starsHtml = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
