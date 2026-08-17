@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="image/logo.png" type="image/png" class="logo"/>
+    <title>PAWCARE · Admin Reviews</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- GOOGLE FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- CUSTOM ADMIN CSS -->
+    <link rel="stylesheet" href="admin_style.css">
+
+    <style>
+        /* ===== REVIEW PAGE EXTRA STYLES ===== */
+        .reviews-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding-top: 20px;
+            width: 100%;
+        }
+
+        .stats-mini-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-mini-card {
+            background: #FFFFFF;
+            border-radius: 14px;
+            padding: 18px 20px;
+            border: 1px solid #EFECE6;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.2s;
+        }
+        .stat-mini-card:hover {
+            border-color: #D3C4B8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+        .stat-mini-card .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            flex-shrink: 0;
+        }
+        .stat-mini-card .info h3 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            line-height: 1.2;
+        }
+        .stat-mini-card .info p {
+            font-size: 13px;
+            color: #7A7A7A;
+            margin: 0;
+        }
+
+        .rating-overview {
+            display: flex;
+            gap: 40px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .rating-big {
+            text-align: center;
+            min-width: 120px;
+        }
+        .rating-big .number {
+            font-size: 42px;
+            font-weight: 700;
+            color: #333;
+            display: block;
+        }
+        .rating-big .stars {
+            font-size: 20px;
+            color: #F59E0B;
+            letter-spacing: 2px;
+        }
+        .rating-big .count {
+            font-size: 13px;
+            color: #7A7A7A;
+            display: block;
+            margin-top: 2px;
+        }
+        .rating-bars {
+            flex: 1;
+            min-width: 180px;
+        }
+        .rating-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            margin-bottom: 4px;
+        }
+        .rating-bar-row .label {
+            width: 32px;
+            color: #333;
+            font-weight: 500;
+        }
+        .rating-bar-row .bar-track {
+            flex: 1;
+            height: 8px;
+            background: #EFECE6;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .rating-bar-row .bar-track .fill {
+            height: 100%;
+            background: #F59E0B;
+            border-radius: 6px;
+        }
+        .rating-bar-row .pct {
+            width: 36px;
+            color: #7A7A7A;
+            font-size: 12px;
+        }
+
+        /* 评论列表 */
+        .review-item-admin {
+            padding: 18px 0;
+            border-bottom: 1px solid #EFECE6;
+        }
+        .review-item-admin:last-child {
+            border-bottom: none;
+        }
+        .review-header-admin {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+        .reviewer-admin {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .reviewer-admin .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #FDF3E7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: #5A361A;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .reviewer-admin .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .reviewer-admin .r-name {
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .reviewer-admin .r-date {
+            font-size: 12px;
+            color: #7A7A7A;
+        }
+        .r-stars-admin {
+            color: #F59E0B;
+            font-size: 15px;
+            letter-spacing: 1px;
+        }
+        .review-body-admin .r-text {
+            font-size: 14px;
+            line-height: 1.7;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        .review-body-admin .r-service {
+            font-size: 12px;
+            color: #7A7A7A;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #FAF7F2;
+            padding: 2px 12px;
+            border-radius: 12px;
+        }
+        .review-body-admin .r-photo {
+            margin-top: 8px;
+            max-width: 200px;
+            border-radius: 8px;
+            border: 1px solid #EFECE6;
+        }
+        .review-actions-admin {
+            display: flex;
+            gap: 16px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .review-actions-admin button {
+            background: none;
+            border: none;
+            color: #7A7A7A;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Poppins', sans-serif;
+            transition: color 0.2s;
+        }
+        .review-actions-admin button:hover {
+            color: #5A361A;
+        }
+        .review-actions-admin .btn-delete {
+            color: #DC2626;
+        }
+        .review-actions-admin .btn-delete:hover {
+            color: #B91C1C;
+        }
+        .review-actions-admin .like-count {
+            color: #7A7A7A;
+            font-size: 13px;
+        }
+
+        /* 回复框 */
+        .reply-box-admin {
+            margin-top: 10px;
+            padding: 12px;
+            background: #FAF7F2;
+            border-radius: 8px;
+            border: 1px solid #EFECE6;
+        }
+        .reply-box-admin textarea {
+            width: 100%;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid #EFECE6;
+            font-family: 'Poppins', sans-serif;
+            resize: vertical;
+        }
+        .reply-box-admin .reply-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            justify-content: flex-end;
+        }
+
+        .replies-section {
+            margin-top: 12px;
+            padding-left: 16px;
+            border-left: 2px solid #E8DCC8;
+        }
+        .reply-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 8px;
+        }
+        .reply-item .reply-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #FDF3E7;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: #5A361A;
+            overflow: hidden;
+        }
+        .reply-item .reply-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .reply-item .reply-content {
+            font-size: 13px;
+        }
+        .reply-item .reply-content .reply-author {
+            font-weight: 600;
+            color: #5A361A;
+        }
+        .reply-item .reply-content .reply-text {
+            color: #444;
+        }
+        .reply-item .reply-content .reply-date {
+            font-size: 11px;
+            color: #B0A090;
+        }
+
+        .toolbar-admin {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+        .toolbar-admin .search-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 160px;
+        }
+        .toolbar-admin .search-wrapper i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7A7A7A;
+        }
+        .toolbar-admin .search-wrapper input {
+            width: 100%;
+            padding: 8px 12px 8px 36px;
+            border: 1.5px solid #EFECE6;
+            border-radius: 10px;
+            font-size: 13px;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+            background: #FAFAFA;
+        }
+        .toolbar-admin .search-wrapper input:focus {
+            border-color: #5A361A;
+        }
+        .toolbar-admin .filter-group {
+            display: flex;
+            gap: 10px;
+        }
+        .toolbar-admin .filter-group select {
+            padding: 8px 34px 8px 12px;
+            border: 1.5px solid #EFECE6;
+            border-radius: 10px;
+            font-size: 13px;
+            background: #FAFAFA;
+            outline: none;
+            font-family: 'Poppins', sans-serif;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A7A7A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+        }
+        .toolbar-admin .filter-group select:focus {
+            border-color: #5A361A;
+        }
+
+        @media (max-width: 992px) {
+            .stats-mini-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+        @media (max-width: 768px) {
+            .stats-mini-grid {
+                grid-template-columns: 1fr;
+            }
+            .rating-overview {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .toolbar-admin {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== SIDEBAR ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebarClose">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="brand">
+            <i class="fa-solid fa-paw brand-icon"></i>
+            <div class="brand-text">
+                <h2>PawCare</h2>
+                <span>Booking System | Admin</span>
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <a href="admin_dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="admin_bookings.html" class="nav-item"><i class="fa-regular fa-calendar-check"></i> Booking Management</a>
+            <a href="admin_customers.html" class="nav-item"><i class="fa-regular fa-user"></i> Customer Management</a>
+            <a href="admin_pets.html" class="nav-item"><i class="fa-solid fa-paw"></i> Pet Management</a>
+            <a href="admin_staff.html" class="nav-item"><i class="fa-solid fa-users"></i> Staff Management</a>
+            <a href="admin_services.html" class="nav-item"><i class="fa-solid fa-scissors"></i> Service Management</a>
+            <a href="admin_reports.html" class="nav-item"><i class="fa-solid fa-chart-bar"></i> Reports & Analytics</a>
+            <a href="admin_reviews.html" class="nav-item active"><i class="fa-regular fa-star"></i> Reviews</a>
+            <a href="admin_profile.html" class="nav-item"><i class="fa-regular fa-id-card"></i> Admin Profile</a>
+            <a href="#" class="nav-item logout" onclick="showLogoutModal(); return false;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
+                <a href="admin_dashboard.html" class="brand-header">
+                    <i class="fa-solid fa-paw brand-icon"></i>
+                    <div class="brand-text">
+                        <h2>PawCare</h2>
+                        <span>Booking System | Admin</span>
+                    </div>
+                </a>
+            </div>
+            <div class="header-right">
+                <div class="notification-badge" id="notificationBtn">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="count" id="notifCount">0</span>
+                </div>
+                <div class="user-profile" id="profileBtn">
+                    <div class="avatar-wrapper" id="headerAvatarWrapper">
+                        <img id="headerAvatarImg" src="" alt="Avatar" style="display:none;">
+                        <span class="avatar-placeholder" id="headerAvatarPlaceholder">👤</span>
+                    </div>
+                    <div class="user-info">
+                        <span class="name" id="headerName">Admin</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ===== REVIEWS CONTENT ===== -->
+        <div class="reviews-container">
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+                <div>
+                    <h1 style="font-size:24px; font-weight:700; color:#333; display:flex; align-items:center; gap:10px;">
+                        <i class="fa-regular fa-star" style="color:#D97706;"></i> Review Management
+                    </h1>
+                    <p style="color:#7A7A7A; font-size:14px;">Dashboard &gt; Reviews</p>
+                </div>
+                <span style="background:#E8F5E9; color:#2E7D32; padding:4px 16px; border-radius:20px; font-size:13px; font-weight:600;">
+                    <i class="fa-solid fa-circle" style="font-size:8px; margin-right:6px;"></i> All Reviews
+                </span>
+            </div>
+
+            <!-- 统计卡片 -->
+            <div class="stats-mini-grid" id="statsMiniGrid">
+                <div class="stat-mini-card">
+                    <div class="icon" style="background:#FFF3E0; color:#E65100;"><i class="fa-regular fa-comment"></i></div>
+                    <div class="info">
+                        <h3 id="totalReviews">0</h3>
+                        <p>Total Reviews</p>
+                    </div>
+                </div>
+                <div class="stat-mini-card">
+                    <div class="icon" style="background:#E3F2FD; color:#0D47A1;"><i class="fa-solid fa-star"></i></div>
+                    <div class="info">
+                        <h3 id="avgRating">0.0</h3>
+                        <p>Average Rating</p>
+                    </div>
+                </div>
+                <div class="stat-mini-card">
+                    <div class="icon" style="background:#E8F5E9; color:#2E7D32;"><i class="fa-regular fa-thumbs-up"></i></div>
+                    <div class="info">
+                        <h3 id="totalLikes">0</h3>
+                        <p>Total Likes</p>
+                    </div>
+                </div>
+                <div class="stat-mini-card">
+                    <div class="icon" style="background:#F3E5F5; color:#4A148C;"><i class="fa-regular fa-reply"></i></div>
+                    <div class="info">
+                        <h3 id="totalReplies">0</h3>
+                        <p>Total Replies</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 评分概览 -->
+            <div class="card" style="margin-bottom:24px;">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-chart-simple"></i> Rating Distribution</h3>
+                </div>
+                <div class="rating-overview" id="ratingOverview">
+                    <div class="rating-big">
+                        <span class="number" id="overallAvg">0.0</span>
+                        <span class="stars" id="overallStars"></span>
+                        <span class="count" id="overallCount">Based on 0 reviews</span>
+                    </div>
+                    <div class="rating-bars" id="ratingBars">
+                        <!-- 由JS动态填充 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 评论列表 -->
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fa-regular fa-newspaper"></i> All Customer Reviews</h3>
+                </div>
+
+                <!-- 工具栏 -->
+                <div class="toolbar-admin">
+                    <div class="search-wrapper">
+                        <i class="fa-solid fa-search"></i>
+                        <input type="text" id="searchReview" placeholder="Search by customer, service, or comment...">
+                    </div>
+                    <div class="filter-group">
+                        <select id="filterServiceAdmin">
+                            <option value="all">All Services</option>
+                        </select>
+                        <select id="filterRating">
+                            <option value="all">All Ratings</option>
+                            <option value="5">5 ★</option>
+                            <option value="4">4 ★</option>
+                            <option value="3">3 ★</option>
+                            <option value="2">2 ★</option>
+                            <option value="1">1 ★</option>
+                        </select>
+                        <select id="filterSortAdmin">
+                            <option value="recent">Most Recent</option>
+                            <option value="highest">Highest Rated</option>
+                            <option value="lowest">Lowest Rated</option>
+                            <option value="most-liked">Most Liked</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 评论容器 -->
+                <div id="reviewListAdmin">
+                    <div style="text-align:center; padding:30px; color:#7A7A7A;">Loading reviews...</div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p><i class="fa-solid fa-paw"></i> © 2026 PawCare Booking System — Paw Walker Grooming House</p>
+        </footer>
+
+    </main>
+
+    <!-- ===== LOGOUT MODAL ===== -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal-box">
+            <div class="modal-icon-circle warning">
+                <i class="fa-solid fa-sign-out-alt"></i>
+            </div>
+            <h2 class="modal-title">Confirm Logout</h2>
+            <p class="modal-subtitle">Are you sure you want to logout?</p>
+            <div class="modal-btn-group">
+                <button class="btn btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmLogout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== CONFIRMATION MODAL (通用) ===== -->
+    <div class="modal-overlay" id="confirmationModal">
+        <div class="modal-box">
+            <div class="modal-icon-circle success">
+                <i class="fa-solid fa-check-circle"></i>
+            </div>
+            <h2 class="modal-title">Success!</h2>
+            <p id="confirmationMessage" class="modal-subtitle">Action completed.</p>
+            <div class="modal-btn-group">
+                <button class="btn btn-primary" id="confirmationOkBtn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ERROR MODAL ===== -->
+    <div class="modal-overlay" id="errorModal">
+        <div class="modal-box">
+            <div class="modal-icon-circle danger">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <h2 class="modal-title">Error</h2>
+            <p id="errorMessage" class="modal-subtitle">Something went wrong.</p>
+            <div class="modal-btn-group">
+                <button class="btn btn-primary" id="errorOkBtn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- JAVASCRIPT -->
+    <!-- ================================================================ -->
+    <script>
+        // ================================================================
+        // AUTH CHECK - ADMIN ONLY
+        // ================================================================
+        (function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            if (!token) {
+                window.location.replace('index.html');
+                return;
+            }
+            try {
+                const userData = JSON.parse(user);
+                if (userData.role !== 'admin') {
+                    window.location.replace('dashboard.html');
+                    return;
+                }
+            } catch {
+                window.location.replace('dashboard.html');
+                return;
+            }
+        })();
+
+        // ================================================================
+        // SUPABASE CONFIG
+        // ================================================================
+        const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
+        const SUPABASE_ANON_KEY =
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
+
+        // ================================================================
+        // AUTH FETCH
+        // ================================================================
+        async function authFetch(url, options = {}) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+            const response = await fetch(url, { ...options, headers });
+            if (response.status === 401) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+                throw new Error('Unauthorized');
+            }
+            return response;
+        }
+
+        // ================================================================
+        // SCROLLBAR COMPENSATION
+        // ================================================================
+        let modalCount = 0;
+        function lockBodyScroll() {
+            if (modalCount === 0) {
+                const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+                if (scrollbarWidth > 0) document.body.style.paddingRight = scrollbarWidth + 'px';
+                document.body.style.overflow = 'hidden';
+            }
+            modalCount++;
+        }
+        function unlockBodyScroll() {
+            modalCount--;
+            if (modalCount <= 0) {
+                modalCount = 0;
+                document.body.style.paddingRight = '';
+                document.body.style.overflow = '';
+            }
+        }
+
+        // ================================================================
+        // LOGOUT
+        // ================================================================
+        function showLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            if (modal) {
+                lockBodyScroll();
+                modal.classList.add('active');
+            }
+        }
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            if (modal) {
+                modal.classList.remove('active');
+                unlockBodyScroll();
+            }
+        }
+        function confirmLogout() {
+            localStorage.removeItem('customer');
+            localStorage.removeItem('customerId');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('isLoggedIn');
+            closeLogoutModal();
+            window.location.replace('index.html');
+        }
+
+        // ================================================================
+        // MODAL HELPERS
+        // ================================================================
+        function showConfirmation(message) {
+            document.getElementById('confirmationMessage').textContent = message;
+            const modal = document.getElementById('confirmationModal');
+            lockBodyScroll();
+            modal.classList.add('active');
+        }
+        function hideConfirmation() {
+            const modal = document.getElementById('confirmationModal');
+            modal.classList.remove('active');
+            unlockBodyScroll();
+        }
+        document.getElementById('confirmationOkBtn').addEventListener('click', hideConfirmation);
+        document.getElementById('confirmationModal').addEventListener('click', function(e) {
+            if (e.target === this) hideConfirmation();
+        });
+
+        function showError(message) {
+            document.getElementById('errorMessage').textContent = message;
+            const modal = document.getElementById('errorModal');
+            lockBodyScroll();
+            modal.classList.add('active');
+        }
+        function hideError() {
+            const modal = document.getElementById('errorModal');
+            modal.classList.remove('active');
+            unlockBodyScroll();
+        }
+        document.getElementById('errorOkBtn').addEventListener('click', hideError);
+        document.getElementById('errorModal').addEventListener('click', function(e) {
+            if (e.target === this) hideError();
+        });
+
+        // ================================================================
+        // SIDEBAR TOGGLE
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarClose = document.getElementById('sidebarClose');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            function openSidebar() {
+                sidebar.classList.add('active');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            function closeSidebar() {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            if (menuToggle) menuToggle.addEventListener('click', openSidebar);
+            if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
+            if (overlay) overlay.addEventListener('click', closeSidebar);
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeSidebar();
+            });
+
+            // ================================================================
+            // LOAD ADMIN PROFILE (for header)
+            // ================================================================
+            async function loadAdminProfile() {
+                try {
+                    const res = await authFetch('/api/profile');
+                    const data = await res.json();
+                    if (data.success) {
+                        const admin = data.data;
+                        document.getElementById('headerName').textContent = admin.full_name || 'Admin';
+                        if (admin.profile_photo) {
+                            document.getElementById('headerAvatarImg').src = admin.profile_photo;
+                            document.getElementById('headerAvatarImg').style.display = 'block';
+                            document.getElementById('headerAvatarPlaceholder').style.display = 'none';
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error loading admin profile:', err);
+                }
+            }
+            loadAdminProfile();
+
+            // ================================================================
+            // LOAD REVIEWS (核心)
+            // ================================================================
+            let allReviews = [];
+            let serviceOptionsLoaded = false;
+
+            async function loadReviews() {
+                try {
+                    const res = await authFetch('/api/reviews');
+                    const data = await res.json();
+                    if (data.success) {
+                        allReviews = data.data || [];
+                        renderReviews(allReviews);
+                        updateStats(allReviews);
+                        updateRatingOverview(allReviews);
+                        if (!serviceOptionsLoaded) {
+                            loadFilterServices(allReviews);
+                            serviceOptionsLoaded = true;
+                        }
+                    } else {
+                        showError('Failed to load reviews.');
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showError('Unable to connect to server.');
+                }
+            }
+
+            function renderReviews(reviews) {
+                const container = document.getElementById('reviewListAdmin');
+                if (!reviews || reviews.length === 0) {
+                    container.innerHTML = `<div style="text-align:center; padding:30px; color:#7A7A7A;">
+                        <i class="fa-regular fa-comment" style="font-size:32px; display:block; margin-bottom:10px;"></i>
+                        No reviews yet.
+                    </div>`;
+                    return;
+                }
+
+                let html = '';
+                reviews.forEach(review => {
+                    const customerName = review.customer ? review.customer.full_name : 'Anonymous';
+                    const dateStr = review.created_at ? new Date(review.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+                    const serviceName = review.service_name || 'General';
+                    const photoHtml = review.review_photo ?
+                        `<img src="${review.review_photo}" alt="Review photo" class="r-photo" style="max-width:200px;">` :
+                        '';
+
+                    const starsHtml = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+                    const avatarContent = review.customer?.profile_photo ?
+                        `<img src="${review.customer.profile_photo}" alt="Avatar">` :
+                        customerName.substring(0, 2).toUpperCase();
+
+                    // 回复列表
+                    let repliesHtml = '';
+                    if (review.replies && review.replies.length > 0) {
+                        repliesHtml = '<div class="replies-section">';
+                        review.replies.forEach(reply => {
+                            const replierName = reply.customer ? reply.customer.full_name : 'User';
+                            const repDate = reply.created_at ? new Date(reply.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                            const repAvatar = reply.customer?.profile_photo ?
+                                `<img src="${reply.customer.profile_photo}">` :
+                                replierName.substring(0, 2).toUpperCase();
+                            repliesHtml += `
+                                <div class="reply-item">
+                                    <div class="reply-avatar">${repAvatar}</div>
+                                    <div class="reply-content">
+                                        <span class="reply-author">${replierName}</span>
+                                        <span class="reply-text">${reply.reply_text}</span>
+                                        <div class="reply-date">${repDate}</div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        repliesHtml += '</div>';
+                    }
+
+                    html += `
+                        <div class="review-item-admin" data-review-id="${review.review_id}" data-service="${serviceName}" data-rating="${review.rating}" data-date="${review.created_at || ''}" data-likes="${review.like_count || 0}">
+                            <div class="review-header-admin">
+                                <div class="reviewer-admin">
+                                    <div class="avatar">${avatarContent}</div>
+                                    <div>
+                                        <div class="r-name">${customerName}</div>
+                                        <div class="r-date">${dateStr}</div>
+                                    </div>
+                                </div>
+                                <div class="r-stars-admin">${starsHtml}</div>
+                            </div>
+                            <div class="review-body-admin">
+                                <p class="r-text">${review.comment || 'No comment.'}</p>
+                                <div class="r-service"><i class="fa-solid fa-tag"></i> ${serviceName}</div>
+                                ${photoHtml}
+                                ${repliesHtml}
+                                <div class="review-actions-admin">
+                                    <button class="reply-btn-admin" data-review-id="${review.review_id}"><i class="fa-regular fa-comment"></i> Reply</button>
+                                    <button class="delete-btn-admin" data-review-id="${review.review_id}"><i class="fa-regular fa-trash-can"></i> Delete</button>
+                                    <span style="color:#7A7A7A; font-size:13px; display:flex; align-items:center; gap:4px;">
+                                        <i class="fa-regular fa-thumbs-up"></i> <span class="like-count">${review.like_count || 0}</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            }
+
+            // ================================================================
+            // 统计更新
+            // ================================================================
+            function updateStats(reviews) {
+                document.getElementById('totalReviews').textContent = reviews.length;
+                if (reviews.length === 0) {
+                    document.getElementById('avgRating').textContent = '0.0';
+                    document.getElementById('totalLikes').textContent = '0';
+                    document.getElementById('totalReplies').textContent = '0';
+                    return;
+                }
+                const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+                const avg = (totalRating / reviews.length).toFixed(1);
+                document.getElementById('avgRating').textContent = avg;
+
+                let likes = 0, replies = 0;
+                reviews.forEach(r => {
+                    likes += r.like_count || 0;
+                    replies += (r.replies ? r.replies.length : 0);
+                });
+                document.getElementById('totalLikes').textContent = likes;
+                document.getElementById('totalReplies').textContent = replies;
+            }
+
+            function updateRatingOverview(reviews) {
+                const total = reviews.length;
+                const avg = total > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / total).toFixed(1) : '0.0';
+                document.getElementById('overallAvg').textContent = avg;
+                document.getElementById('overallCount').textContent = `Based on ${total} reviews`;
+                // stars
+                let starHtml = '';
+                const full = Math.floor(avg);
+                const half = avg % 1 >= 0.5;
+                for (let i = 0; i < full; i++) starHtml += '<i class="fa-solid fa-star"></i>';
+                if (half) starHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
+                while (starHtml.length / 3 < 5) starHtml += '<i class="fa-regular fa-star"></i>';
+                document.getElementById('overallStars').innerHTML = starHtml;
+
+                // distribution bars
+                const barsContainer = document.getElementById('ratingBars');
+                const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+                reviews.forEach(r => { if (dist[r.rating] !== undefined) dist[r.rating]++; });
+                let barsHtml = '';
+                for (let i = 5; i >= 1; i--) {
+                    const pct = total > 0 ? ((dist[i] / total) * 100).toFixed(0) : 0;
+                    barsHtml += `
+                        <div class="rating-bar-row">
+                            <span class="label">${i} ★</span>
+                            <div class="bar-track"><div class="fill" style="width:${pct}%;"></div></div>
+                            <span class="pct">${pct}%</span>
+                        </div>
+                    `;
+                }
+                barsContainer.innerHTML = barsHtml;
+            }
+
+            // ================================================================
+            // 加载服务筛选下拉
+            // ================================================================
+            function loadFilterServices(reviews) {
+                const select = document.getElementById('filterServiceAdmin');
+                const services = new Set();
+                reviews.forEach(r => { if (r.service_name) services.add(r.service_name); });
+                select.innerHTML = '<option value="all">All Services</option>';
+                services.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.textContent = name;
+                    select.appendChild(opt);
+                });
+            }
+
+            // ================================================================
+            // 搜索 & 筛选
+            // ================================================================
+            function filterReviews() {
+                const search = document.getElementById('searchReview').value.toLowerCase().trim();
+                const serviceFilter = document.getElementById('filterServiceAdmin').value;
+                const ratingFilter = document.getElementById('filterRating').value;
+                const sort = document.getElementById('filterSortAdmin').value;
+
+                let filtered = allReviews.filter(r => {
+                    const name = (r.customer?.full_name || '').toLowerCase();
+                    const comment = (r.comment || '').toLowerCase();
+                    const service = (r.service_name || '').toLowerCase();
+                    const matchesSearch = name.includes(search) || comment.includes(search) || service.includes(search);
+                    const matchesService = serviceFilter === 'all' || r.service_name === serviceFilter;
+                    const matchesRating = ratingFilter === 'all' || r.rating === parseInt(ratingFilter);
+                    return matchesSearch && matchesService && matchesRating;
+                });
+
+                // 排序
+                filtered.sort((a, b) => {
+                    if (sort === 'recent') {
+                        const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+                        const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+                        return db - da;
+                    } else if (sort === 'highest') {
+                        return b.rating - a.rating;
+                    } else if (sort === 'lowest') {
+                        return a.rating - b.rating;
+                    } else if (sort === 'most-liked') {
+                        return (b.like_count || 0) - (a.like_count || 0);
+                    }
+                    return 0;
+                });
+
+                renderReviews(filtered);
+            }
+
+            document.getElementById('searchReview').addEventListener('input', filterReviews);
+            document.getElementById('filterServiceAdmin').addEventListener('change', filterReviews);
+            document.getElementById('filterRating').addEventListener('change', filterReviews);
+            document.getElementById('filterSortAdmin').addEventListener('change', filterReviews);
+
+            // ================================================================
+            // 回复按钮 (事件委托)
+            // ================================================================
+            document.getElementById('reviewListAdmin').addEventListener('click', function(e) {
+                const target = e.target.closest('button');
+                if (!target) return;
+
+                // 回复按钮
+                if (target.classList.contains('reply-btn-admin')) {
+                    const reviewId = target.dataset.reviewId;
+                    const parentItem = target.closest('.review-item-admin');
+                    let existingBox = parentItem.querySelector('.reply-box-admin');
+                    if (existingBox) {
+                        existingBox.remove();
+                        return;
+                    }
+                    const name = parentItem.querySelector('.r-name')?.textContent || 'Customer';
+                    const box = document.createElement('div');
+                    box.className = 'reply-box-admin';
+                    box.innerHTML = `
+                        <textarea placeholder="Reply to ${name}..." rows="2"></textarea>
+                        <div class="reply-actions">
+                            <button class="btn btn-secondary btn-sm reply-cancel-admin">Cancel</button>
+                            <button class="btn btn-primary btn-sm reply-submit-admin" data-review-id="${reviewId}">Send</button>
+                        </div>
+                    `;
+                    parentItem.appendChild(box);
+                    box.querySelector('textarea').focus();
+
+                    box.querySelector('.reply-cancel-admin').addEventListener('click', function() {
+                        box.remove();
+                    });
+
+                    box.querySelector('.reply-submit-admin').addEventListener('click', async function() {
+                        const text = box.querySelector('textarea').value.trim();
+                        if (!text) {
+                            showError('Please enter a reply.');
+                            return;
+                        }
+                        const btn = this;
+                        const originalHtml = btn.innerHTML;
+                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+                        btn.disabled = true;
+
+                        try {
+                            const token = localStorage.getItem('token');
+                            const res = await fetch(`/api/reviews/${reviewId}/reply`, {
+                                method: 'POST',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ reply_text: text })
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                                box.remove();
+                                showConfirmation('Reply sent successfully!');
+                                // 刷新评论列表
+                                await loadReviews();
+                            } else {
+                                showError(data.message || 'Failed to send reply.');
+                            }
+                        } catch (err) {
+                            showError('Unable to connect to server.');
+                        } finally {
+                            btn.innerHTML = originalHtml;
+                            btn.disabled = false;
+                        }
+                    });
+                }
+
+                // 删除按钮
+                if (target.classList.contains('delete-btn-admin')) {
+                    const reviewId = target.dataset.reviewId;
+                    if (!confirm('Are you sure you want to delete this review? This action cannot be undone.')) return;
+
+                    // 调用删除API (暂用模拟，后端需实现 DELETE /api/reviews/:review_id)
+                    // 这里我们调用一个模拟函数，实际应调用后端删除接口
+                    // 因后端未提供删除接口，我们模拟前端删除并显示成功
+                    // 实际生产需调用 DELETE /api/reviews/:review_id
+                    // 此处模拟删除成功
+                    try {
+                        // 模拟删除请求（实际请替换为真实API）
+                        // const res = await authFetch(`/api/reviews/${reviewId}`, { method: 'DELETE' });
+                        // if (res.ok) { ... }
+                        // 模拟：
+                        showConfirmation('Review deleted successfully (demo).');
+                        // 从本地数据移除
+                        allReviews = allReviews.filter(r => r.review_id != reviewId);
+                        filterReviews(); // 刷新显示
+                        updateStats(allReviews);
+                        updateRatingOverview(allReviews);
+                        // 更新筛选下拉
+                        loadFilterServices(allReviews);
+                    } catch (err) {
+                        showError('Failed to delete review.');
+                    }
+                }
+            });
+
+            // ================================================================
+            // NOTIFICATIONS (placeholder)
+            // ================================================================
+            document.getElementById('notificationBtn').addEventListener('click', function() {
+                alert('No new notifications.');
+            });
+
+            // ================================================================
+            // INIT
+            // ================================================================
+            loadReviews();
+            console.log('Admin Reviews page loaded.');
+        });
+    </script>
+
+</body>
+</html>
