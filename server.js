@@ -65,7 +65,7 @@ const getCustomerId = (req) => {
   if (!auth) throw new Error('No token');
   const token = auth.split(' ')[1];
   const decoded = jwt.verify(token, JWT_SECRET);
-  return decoded.customer_id;
+  return decoded.customer_id; // 无论是 admin_id 还是 customer_id，都通过这个字段返回
 };
 
 // 密码策略
@@ -141,42 +141,94 @@ app.post('/api/register', async (req, res) => {
   }
 });
 
-// ========== 2. 登录 ==========
+// ========== 2. 登录（同时支持 customer 和 admin） ==========
 app.post('/api/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     console.log('Login attempt for email:', email);
-    const { data: customer, error } = await supabaseAdmin
+
+    // 1. 先查 customer 表
+    let { data: customer, error } = await supabaseAdmin
       .from('customer')
       .select('customer_id, full_name, email, password')
       .eq('email', email)
       .maybeSingle();
+
+    let role = 'customer';
+    let user = customer;
+
     if (error) {
-      console.error('Login DB error:', error);
+      console.error('Customer query error:', error);
       return res.status(500).json({ success: false, message: 'Database error.' });
     }
-    if (!customer) {
-      console.log('User not found:', email);
+
+    // 如果 customer 存在，验证密码
+    if (customer) {
+      const match = await bcrypt.compare(password, customer.password);
+      if (match) {
+        // 登录成功，角色为 customer
+        user = customer;
+        role = 'customer';
+      } else {
+        // 密码错误，但可能 admin 表也有该邮箱，继续查 admin
+        user = null;
+      }
+    }
+
+    // 2. 如果 customer 不存在或密码不匹配，再查 admin 表
+    if (!user) {
+      const { data: admin, error: adminError } = await supabaseAdmin
+        .from('admin')
+        .select('admin_id, full_name, email, password')
+        .eq('email', email)
+        .maybeSingle();
+
+      if (adminError) {
+        console.error('Admin query error:', adminError);
+        return res.status(500).json({ success: false, message: 'Database error.' });
+      }
+
+      if (admin) {
+        const match = await bcrypt.compare(password, admin.password);
+        if (match) {
+          user = admin;
+          role = 'admin';
+        }
+      }
+    }
+
+    // 3. 最终检查
+    if (!user) {
+      console.log('Invalid credentials for:', email);
       return res.status(401).json({ success: false, message: 'Invalid credentials.' });
     }
 
-    console.log('Stored hash (first 20 chars):', customer.password ? customer.password.substring(0, 20) : 'null');
-    const match = await bcrypt.compare(password, customer.password);
-    console.log('Password match:', match);
-    if (!match) {
-      return res.status(401).json({ success: false, message: 'Invalid credentials.' });
-    }
+    // 统一字段名（customer 用 customer_id，admin 用 admin_id）
+    const userId = user.customer_id || user.admin_id;
 
+    // 生成 JWT，包含 user_id 和 role
     const token = jwt.sign(
-      { customer_id: customer.customer_id, email: customer.email },
+      { 
+        customer_id: userId,   // 为了兼容现有中间件 getCustomerId，字段名保持不变
+        email: user.email,
+        role: role
+      },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
+
+    // 返回用户信息（包含 role）
     res.json({
       success: true,
       token,
-      customer: { id: customer.customer_id, name: customer.full_name, email: customer.email }
+      customer: {
+        id: userId,
+        name: user.full_name,
+        email: user.email,
+        role: role
+      }
     });
+
   } catch (err) {
     console.error('Login exception:', err);
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
