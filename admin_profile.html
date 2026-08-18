@@ -43,6 +43,43 @@
         button { cursor: pointer; }
         a { text-decoration: none; color: inherit; }
 
+        /* ===== 排版优化：填满底部，消除留白 ===== */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 0 35px 20px;
+            width: 100%;
+        }
+        .dashboard-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 100%;
+            margin: 0 auto;
+            width: 100%;
+            padding-top: 20px;
+        }
+        .profile-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 0 0;
+        }
+        .profile-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1.8fr 1.2fr;
+            gap: 28px;
+            align-items: start;
+        }
+        .footer {
+            margin-top: 10px !important;
+        }
+
         body.dark {
             --cream: #29231e;
             --line: #463b32;
@@ -69,14 +106,6 @@
             color: #f4eee7;
         }
 
-        .profile-container {
-            width: 100%;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px 0 0;
-        }
-
-        /* ===== 页面标题 ===== */
         .page-heading {
             display: flex;
             justify-content: space-between;
@@ -108,7 +137,6 @@
         }
         .page-heading .status-badge i { font-size: 9px; }
 
-        /* ===== 统计卡片 ===== */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -155,20 +183,12 @@
             margin: 0;
         }
 
-        /* ===== 主布局 - 2列 ===== */
-        .profile-grid {
-            display: grid;
-            grid-template-columns: 1.8fr 1.2fr;
-            gap: 28px;
-            align-items: start;
-        }
         .left-stack, .right-stack {
             display: flex;
             flex-direction: column;
             gap: 24px;
         }
 
-        /* ===== 卡片通用 ===== */
         .card {
             background: #FFFFFF;
             border: 1px solid #EFECE6;
@@ -196,7 +216,6 @@
         .card-header i { color: #D97706; }
         .card-body { padding: 16px 24px 24px; }
 
-        /* ===== Profile Overview - 整洁清晰 ===== */
         .profile-overview .overview-inner {
             display: flex;
             flex-direction: column;
@@ -288,7 +307,6 @@
             margin-top: 2px;
         }
 
-        /* 资料字段网格 - 2列 */
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -325,7 +343,6 @@
             font-weight: 600;
         }
 
-        /* ===== Security 卡片 ===== */
         .security-card .security-item {
             display: flex;
             justify-content: space-between;
@@ -387,7 +404,6 @@
             border-radius: 6px;
         }
 
-        /* ===== Edit Profile ===== */
         .edit-card .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -466,7 +482,6 @@
         .edit-card .message.success { display: block; color: #2E7D32; }
         .edit-card .message.error { display: block; color: #C5221F; }
 
-        /* ===== Activity ===== */
         .activity-card .activity-row {
             display: flex;
             justify-content: space-between;
@@ -482,7 +497,6 @@
             color: #333;
         }
 
-        /* ===== Danger Zone ===== */
         .danger-card .danger-zone {
             border: 1px solid #F5D9D6;
             border-radius: 10px;
@@ -528,7 +542,6 @@
             transform: translateY(-1px);
         }
 
-        /* ===== 按钮通用 ===== */
         .btn {
             border: none;
             border-radius: 8px;
@@ -569,7 +582,6 @@
             font-size: 12px;
         }
 
-        /* ===== MODAL ===== */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -685,7 +697,6 @@
 
         .dashboard-container { padding: 0 32px 24px; }
 
-        /* ===== 2FA Modal ===== */
         .twofa-status-card {
             display: flex;
             justify-content: space-between;
@@ -759,7 +770,6 @@
             font-size: 16px;
         }
 
-        /* ===== 响应式 ===== */
         @media (max-width: 1200px) {
             .profile-grid { grid-template-columns: 1fr; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1068,13 +1078,13 @@
 
     <!-- ===== MODALS ===== -->
 
-    <!-- LOGOUT MODAL（统一 admin 风格，无右上角关闭按钮） -->
+    <!-- LOGOUT MODAL（统一 dashboard 样式，无右上角关闭按钮） -->
     <div class="modal-overlay" id="logoutModal">
-        <div class="modal-box" style="text-align:center;">
+        <div class="modal-box">
             <div class="modal-icon-circle warning"><i class="fa-solid fa-sign-out-alt"></i></div>
             <h2 class="modal-title">Confirm Logout</h2>
             <p class="modal-subtitle">Are you sure you want to logout?</p>
-            <div class="modal-btn-group" style="justify-content:center;">
+            <div class="modal-btn-group">
                 <button class="btn btn-secondary" onclick="closeLogoutModal()">Cancel</button>
                 <button class="btn btn-danger" onclick="confirmLogout()">Logout</button>
             </div>
