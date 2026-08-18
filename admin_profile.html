@@ -383,7 +383,7 @@
         }
 
         .security-item .left .title {
-            font-size: 12px;          /* 原来 11px */
+            font-size: 12px;
             font-weight: 500;
             color: #333;
             white-space: nowrap !important;
@@ -391,7 +391,7 @@
         }
 
         .security-item .left .desc {
-            font-size: 10px;          /* 原来 9px */
+            font-size: 10px;
             color: #7A7A7A;
             margin-top: 0;
             white-space: nowrap !important;
@@ -409,7 +409,7 @@
         }
 
         .security-item .right .badge {
-            font-size: 10px;          /* 原来 9px */
+            font-size: 10px;
             font-weight: 600;
             padding: 1px 10px;
             border-radius: 20px;
@@ -426,7 +426,7 @@
 
         .security-item .right .btn-sm {
             padding: 2px 10px;
-            font-size: 10px;          /* 原来 9px */
+            font-size: 10px;
             line-height: 1.6;
         }
 
@@ -1255,10 +1255,10 @@
     </main>
 
     <!-- ===== MODALS ===== -->
-    <!-- LOGOUT MODAL（已统一为 reports 样式：无右上角关闭按钮） -->
+    <!-- LOGOUT MODAL（已统一为 reports 样式：无右上角关闭按钮，与 dashboard 一致） -->
     <div class="modal-overlay" id="logoutModal">
-        <div class="modal-box" style="max-width:390px; text-align:center;">
-            <div class="modal-icon-circle warning"><i class="fa-solid fa-right-from-bracket"></i></div>
+        <div class="modal-box" style="text-align:center;">
+            <div class="modal-icon-circle warning"><i class="fa-solid fa-sign-out-alt"></i></div>
             <h2 class="modal-title">Confirm Logout</h2>
             <p class="modal-subtitle">Are you sure you want to logout?</p>
             <div class="modal-btn-group" style="justify-content:center;">
@@ -1548,7 +1548,7 @@
                 }
             }
 
-            // ===== LOGOUT 全局函数（供 onclick 调用） =====
+            // ===== LOGOUT 全局函数（供 onclick 调用）- 已统一为使用 window.location.replace 防止后退 =====
             showLogoutModal = function() {
                 openModal('logoutModal');
             };
@@ -1558,10 +1558,12 @@
             };
 
             confirmLogout = function() {
-                ['customer', 'customerId', 'token', 'user', 'isLoggedIn'].forEach(k => localStorage.removeItem(k));
+                // 清除所有登录相关数据
+                ['customer', 'customerId', 'token', 'user', 'isLoggedIn', 'pawcareAdminProfile', 'pawcareAvatar'].forEach(k => localStorage.removeItem(k));
                 closeModal('logoutModal');
                 toast('Logged out successfully.');
-                setTimeout(() => location.href = 'index.html', 700);
+                // 使用 replace 替换历史记录，防止用户通过后退按钮回到 admin 页面
+                window.location.replace('index.html');
             };
 
             function showInfoModal(title, message) {
