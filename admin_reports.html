@@ -830,42 +830,56 @@
     <!-- JAVASCRIPT -->
     <!-- ================================================================ -->
     <script>
+// 统一放在页面所有 <script> 的最顶部
 (function checkAuth() {
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
+    // 定义检查函数
+    function doAuthCheck() {
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
 
-    // 先检查状态，决定是否需要跳转
-    let shouldRedirect = false;
-    let redirectUrl = 'index.html';
+        let shouldRedirect = false;
+        let redirectUrl = 'index.html';
 
-    if (!token) {
-        shouldRedirect = true;
-        redirectUrl = 'index.html';
-    } else {
-        try {
-            const userData = JSON.parse(user);
-            if (userData.role !== 'admin') {
+        if (!token) {
+            shouldRedirect = true;
+            redirectUrl = 'index.html';
+        } else {
+            try {
+                const userData = JSON.parse(user);
+                if (userData.role !== 'admin') {
+                    shouldRedirect = true;
+                    redirectUrl = 'dashboard.html';
+                }
+            } catch {
                 shouldRedirect = true;
                 redirectUrl = 'dashboard.html';
             }
-        } catch {
-            shouldRedirect = true;
-            redirectUrl = 'dashboard.html';
+        }
+
+        if (shouldRedirect) {
+            // 清空整个页面
+            document.documentElement.innerHTML = `
+                <html>
+                    <head><title>Redirecting...</title></head>
+                    <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;background:#FAF7F2;color:#4A3327;">
+                        Redirecting...
+                    </body>
+                </html>
+            `;
+            window.location.replace(redirectUrl);
         }
     }
 
-    // 只有当确认需要跳转时，才执行“清空页面并跳转”
-    if (shouldRedirect) {
-        document.documentElement.innerHTML = `
-            <html>
-                <head><title>Redirecting...</title></head>
-                <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;background:#FAF7F2;color:#4A3327;">
-                    Redirecting...
-                </body>
-            </html>
-        `;
-        window.location.replace(redirectUrl);
-    }
+    // 页面初次加载执行
+    doAuthCheck();
+
+    // 监听 pageshow 事件，处理 bfcache 恢复
+    window.addEventListener('pageshow', function(event) {
+        // 如果页面是从 bfcache 恢复，重新执行检查
+        if (event.persisted) {
+            doAuthCheck();
+        }
+    });
 })();
 
 // SUPABASE CONFIGURATION

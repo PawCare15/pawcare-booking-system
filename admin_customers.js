@@ -1,61 +1,111 @@
-// AUTH CHECK - ADMIN ONLY 
+// 统一放在页面所有 <script> 的最顶部
 (function checkAuth() {
+    // 定义检查函数
+    function doAuthCheck() {
+        const token = localStorage.getItem('token');
+        const user = localStorage.getItem('user');
 
-    // CHECK IF USER IS LOGGED IN AS ADMIN 
-    const token = localStorage.getItem('token');
-    const user = localStorage.getItem('user');
-    
-    if (!token) {
-        window.location.replace('index.html');
-        return;
-    }
-    
-    try {
-        const userData = JSON.parse(user);
-        if (userData.role !== 'admin') {
-            window.location.replace('dashboard.html');
-            return;
+        let shouldRedirect = false;
+        let redirectUrl = 'index.html';
+
+        if (!token) {
+            shouldRedirect = true;
+            redirectUrl = 'index.html';
+        } else {
+            try {
+                const userData = JSON.parse(user);
+                if (userData.role !== 'admin') {
+                    shouldRedirect = true;
+                    redirectUrl = 'dashboard.html';
+                }
+            } catch {
+                shouldRedirect = true;
+                redirectUrl = 'dashboard.html';
+            }
         }
-    } catch {
-        window.location.replace('dashboard.html');
-        return;
+
+        if (shouldRedirect) {
+            // 清空整个页面
+            document.documentElement.innerHTML = `
+                <html>
+                    <head><title>Redirecting...</title></head>
+                    <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;background:#FAF7F2;color:#4A3327;">
+                        Redirecting...
+                    </body>
+                </html>
+            `;
+            window.location.replace(redirectUrl);
+        }
     }
-    
-    console.log('Admin authenticated successfully');
+
+    // 页面初次加载执行
+    doAuthCheck();
+
+    // 监听 pageshow 事件，处理 bfcache 恢复
+    window.addEventListener('pageshow', function(event) {
+        // 如果页面是从 bfcache 恢复，重新执行检查
+        if (event.persisted) {
+            doAuthCheck();
+        }
+    });
 })();
 
-// WRAPPER FOR API CALLS 
+// SUPABASE CONFIGURATION
+const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
+
+// WRAPPER FOR API CALLS WITH TOKEN
 async function authFetch(url, options = {}) {
     const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.replace('login.html');
+        return;
+    }
     const headers = {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
         ...options.headers
     };
-    
-    if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-    }
-    
-    const response = await fetch(url, {
-        ...options,
-        headers: headers
-    });
-    
+    const response = await fetch(url, { ...options, headers });
     if (response.status === 401) {
-        // Token expired or invalid
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        localStorage.removeItem('customer');
-        localStorage.removeItem('customerId');
-        localStorage.removeItem('isLoggedIn');
-        window.location.replace('index.html');
-        return null;
+        localStorage.clear();
+        window.location.replace('login.html');
+        throw new Error('Unauthorized');
     }
-    
     return response;
 }
 
-// SCROLLBAR COMPENSATION FOR MODALS  
+// SUPABASE DIRECT QUERY FUNCTIONS
+async function supabaseQuery(query, params = []) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.replace('login.html');
+        return null;
+    }
+
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${query}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                'apikey': SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify({ params })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Supabase query failed: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (err) {
+        console.error('Supabase query error:', err);
+        return null;
+    }
+}
+
+// SCROLLBAR COMPENSATION FOR MODALS
 let modalCount = 0;
 
 function lockBodyScroll() {
@@ -78,7 +128,7 @@ function unlockBodyScroll() {
     }
 }
 
-// LOGOUT FUNCTIONS       
+// LOGOUT FUNCTIONS
 function showLogoutModal() {
     const modal = document.getElementById('logoutModal');
     if (modal) {
@@ -96,11 +146,7 @@ function closeLogoutModal() {
 }
 
 function confirmLogout() {
-    localStorage.removeItem('customer');
-    localStorage.removeItem('customerId');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('isLoggedIn');
+    localStorage.clear();
     closeLogoutModal();
     window.location.replace('index.html');
 }
