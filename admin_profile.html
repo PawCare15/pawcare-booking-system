@@ -661,6 +661,182 @@
             margin-top: 2px;
         }
 
+        /* ===== 2FA Modal 优化 ===== */
+        .twofa-status-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 22px;
+            background: #FAF7F2;
+            border: 1px solid #EFECE6;
+            border-radius: 12px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
+        .twofa-status-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .twofa-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+            transition: background 0.3s ease;
+        }
+
+        .status-dot.enabled {
+            background: #2E7D32;
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
+        }
+
+        .status-dot.disabled {
+            background: #C5221F;
+            box-shadow: 0 0 0 3px rgba(197, 34, 31, 0.2);
+        }
+
+        .status-label {
+            font-size: 14px;
+            color: #333;
+        }
+
+        .status-label strong {
+            font-weight: 600;
+        }
+
+        .twofa-status-desc {
+            font-size: 12px;
+            color: #7A7A7A;
+            padding-left: 20px;
+        }
+
+        .btn-md {
+            padding: 8px 24px;
+            font-size: 13px;
+            border-radius: 8px;
+            font-weight: 600;
+            min-width: 120px;
+            justify-content: center;
+        }
+
+        .twofa-info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: #F5F8FA;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #555;
+        }
+
+        .twofa-info-row i {
+            color: #0D47A1;
+            font-size: 16px;
+        }
+
+        /* ===== Danger Zone 优化 ===== */
+        .danger-zone .danger-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            gap: 16px;
+            transition: background 0.2s ease;
+        }
+
+        .danger-zone .danger-item:hover {
+            background: #FFF5F5;
+        }
+
+        .danger-zone .danger-item + .danger-item {
+            border-top: 1px solid #F5DFDC;
+        }
+
+        .danger-item-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .danger-item-left > i {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: #FCE8E6;
+            color: #C5221F;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .danger-item-left .title {
+            font-size: 13px;
+            font-weight: 600;
+            color: #C5221F;
+        }
+
+        .danger-item-left .desc {
+            font-size: 11px;
+            color: #7A7A7A;
+            margin-top: 1px;
+        }
+
+        .danger-zone .danger-item .btn-danger {
+            min-width: 120px;
+            justify-content: center;
+            font-weight: 600;
+            padding: 6px 16px;
+            border-radius: 8px;
+            transition: all 0.25s ease;
+            flex-shrink: 0;
+            gap: 6px;
+        }
+
+        .danger-zone .danger-item .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 14px rgba(211, 47, 47, 0.3);
+        }
+
+        .danger-zone .danger-item .btn-danger:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* ===== 暗色模式适配 ===== */
+        body.dark .twofa-status-card {
+            background: #2c2621;
+            border-color: #4b4036;
+        }
+
+        body.dark .twofa-info-row {
+            background: #2a2420;
+            color: #ccc;
+        }
+
+        body.dark .danger-zone .danger-item:hover {
+            background: #332a24;
+        }
+
+        body.dark .danger-item-left > i {
+            background: #3d2a26;
+        }
+
         html { scrollbar-gutter: stable; }
         body.modal-open {
             overflow: hidden !important;
@@ -1043,12 +1219,28 @@
                             <div class="subtext">Irreversible and sensitive actions.</div>
                             <div class="danger-zone">
                                 <div class="danger-item">
-                                    <div><div class="title">Log Out from All Devices</div><div class="desc">Sign out from all active sessions.</div></div>
-                                    <button class="btn btn-danger btn-sm" id="logoutAllBtn">Log Out All</button>
+                                    <div class="danger-item-left">
+                                        <i class="fa-solid fa-right-from-bracket"></i>
+                                        <div>
+                                            <div class="title">Log Out from All Devices</div>
+                                            <div class="desc">Sign out from all active sessions.</div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-danger btn-sm" id="logoutAllBtn">
+                                        <i class="fa-solid fa-sign-out-alt"></i> Log Out All
+                                    </button>
                                 </div>
                                 <div class="danger-item">
-                                    <div><div class="title">Delete Admin Account</div><div class="desc">Permanently delete your admin account.</div></div>
-                                    <button class="btn btn-danger btn-sm" id="deleteAccountBtn">Delete Account</button>
+                                    <div class="danger-item-left">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                        <div>
+                                            <div class="title">Delete Admin Account</div>
+                                            <div class="desc">Permanently delete your admin account.</div>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-danger btn-sm" id="deleteAccountBtn">
+                                        <i class="fa-solid fa-trash"></i> Delete Account
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1064,10 +1256,9 @@
     </main>
 
     <!-- ===== MODALS ===== -->
-    <!-- LOGOUT MODAL -->
+    <!-- LOGOUT MODAL（已统一为 reports 样式：无右上角关闭按钮） -->
     <div class="modal-overlay" id="logoutModal">
         <div class="modal-box" style="max-width:390px; text-align:center;">
-            <button class="close-modal" data-close="logoutModal"><i class="fa-solid fa-xmark"></i></button>
             <div class="modal-icon-circle warning"><i class="fa-solid fa-right-from-bracket"></i></div>
             <h2 class="modal-title">Confirm Logout</h2>
             <p class="modal-subtitle">Are you sure you want to logout?</p>
@@ -1097,15 +1288,27 @@
         </div>
     </div>
 
-    <!-- 2FA MODAL -->
+    <!-- 2FA MODAL（已优化） -->
     <div class="modal-overlay" id="twoFactorModal">
         <div class="modal-box">
             <button class="close-modal" data-close="twoFactorModal"><i class="fa-solid fa-xmark"></i></button>
             <h2 class="modal-title">Two-Factor Authentication</h2>
             <p class="modal-subtitle">Control the extra security layer for this account.</p>
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 18px; background:#FAF7F2; border:1px solid #EFECE6; border-radius:10px;">
-                <div><b style="font-size:13px;">2FA Status</b><div style="font-size:12px; color:#7A7A7A; margin-top:2px;">Require verification when signing in.</div></div>
-                <button class="btn btn-primary" id="toggle2faBtn">Disable 2FA</button>
+
+            <div class="twofa-status-card">
+                <div class="twofa-status-left">
+                    <div class="twofa-status-indicator">
+                        <span class="status-dot" id="twofaStatusDot"></span>
+                        <span class="status-label" id="twofaStatusLabel">2FA is <strong>Enabled</strong></span>
+                    </div>
+                    <div class="twofa-status-desc">Require verification when signing in.</div>
+                </div>
+                <button class="btn btn-danger btn-md" id="toggle2faBtn">Disable 2FA</button>
+            </div>
+
+            <div class="twofa-info-row">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Adding 2FA adds an extra layer of security to your account.</span>
             </div>
         </div>
     </div>
@@ -1335,6 +1538,15 @@
                 badge.classList.toggle('inactive', !data.twoFactor);
                 $('twoFactorDesc').textContent = data.twoFactor ? 'Extra layer of security' : '2FA is currently disabled';
                 $('toggle2faBtn').textContent = data.twoFactor ? 'Disable 2FA' : 'Enable 2FA';
+
+                // 更新 2FA Modal 状态指示器
+                const dot = document.getElementById('twofaStatusDot');
+                if (dot) {
+                    dot.className = 'status-dot ' + (data.twoFactor ? 'enabled' : 'disabled');
+                    document.getElementById('twofaStatusLabel').innerHTML = data.twoFactor
+                        ? '2FA is <strong>Enabled</strong>'
+                        : '2FA is <strong>Disabled</strong>';
+                }
             }
 
             // ===== LOGOUT 全局函数（供 onclick 调用） =====
@@ -1524,8 +1736,6 @@
                     toast('Admin account deleted.');
                     setTimeout(() => location.href = 'index.html', 800);
                 });
-
-                $('confirmLogoutBtn').addEventListener('click', performLogout);
 
                 loadAvatar();
                 render();
