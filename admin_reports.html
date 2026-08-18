@@ -1,0 +1,1317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="image/logo.png" type="image/png">
+    <title>PAWCARE BOOKING SYSTEM</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 统一 admin_style.css -->
+    <link rel="stylesheet" href="admin_style.css">
+
+    <style>
+        /* ===== REPORTS 页面特有样式 ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        .reports-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding-top: 20px;
+            width: 100%;
+        }
+
+        /* 页面标题 */
+        .page-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        .page-heading h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #4A3327;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .page-heading h1 i {
+            color: #D97706;
+        }
+        .page-heading .breadcrumb {
+            font-size: 13px;
+            color: #7A7A7A;
+            margin-top: 2px;
+        }
+        .page-heading .date-badge {
+            background: #F9F6F0;
+            color: #5A4A3A;
+            border-radius: 20px;
+            padding: 4px 16px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border: 1px solid #EFECE6;
+            white-space: nowrap;
+        }
+        .page-heading .date-badge i {
+            color: #D97706;
+        }
+
+        /* ===== STATS 卡片 (6 个) ===== */
+        .stats-grid-reports {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-report-card {
+            background: #FFFFFF;
+            border-radius: 14px;
+            padding: 16px 18px;
+            border: 1px solid #EFECE6;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            min-height: 100px;
+        }
+        .stat-report-card:hover {
+            border-color: #D3C4B8;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        }
+        .stat-report-card .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+        .stat-report-card .info h3 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #333;
+            line-height: 1.2;
+        }
+        .stat-report-card .info p {
+            font-size: 12px;
+            color: #7A7A7A;
+            margin: 0;
+            font-weight: 500;
+        }
+        .stat-report-card .info .change {
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            padding: 1px 10px;
+            border-radius: 20px;
+            margin-top: 2px;
+        }
+        .stat-report-card .info .change.up {
+            color: #2E7D32;
+            background: #E8F5E9;
+        }
+        .stat-report-card .info .change.down {
+            color: #C62828;
+            background: #FCE8E6;
+        }
+
+        /* ===== CHARTS ROW ===== */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .chart-card {
+            background: #FFFFFF;
+            border-radius: 14px;
+            padding: 20px 22px;
+            border: 1px solid #EFECE6;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            transition: all 0.25s ease;
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+        }
+        .chart-card:hover {
+            border-color: #D3C4B8;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+        .chart-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            padding: 0 0 4px;
+            border-bottom: 1px solid #EFECE6;
+        }
+        .chart-card .card-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #5A361A;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .chart-card .card-header h3 i {
+            color: #D97706;
+        }
+        .chart-card .card-header .badge {
+            font-size: 10px;
+            background: #FDF5E6;
+            color: #5A361A;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+        }
+        .chart-card .chart-wrapper {
+            flex: 1;
+            min-height: 240px;
+            max-height: 300px;
+            position: relative;
+            margin-top: 4px;
+        }
+        .chart-card .chart-wrapper canvas {
+            max-height: 280px;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        /* ===== INSIGHTS + SERVICES ROW ===== */
+        .insights-row {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .insights-card {
+            background: #FFFFFF;
+            border-radius: 14px;
+            padding: 20px 22px;
+            border: 1px solid #EFECE6;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            transition: all 0.25s ease;
+        }
+        .insights-card:hover {
+            border-color: #D3C4B8;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+        .insights-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #EFECE6;
+        }
+        .insights-card .card-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #5A361A;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .insights-card .card-header h3 i {
+            color: #D97706;
+        }
+
+        .insight-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 0;
+            border-bottom: 1px solid #F5F0EA;
+        }
+        .insight-item:last-child {
+            border-bottom: none;
+        }
+        .insight-item .insight-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .insight-item .insight-text {
+            flex: 1;
+            font-size: 13px;
+            color: #333;
+        }
+        .insight-item .insight-text strong {
+            color: #4A3327;
+        }
+        .insight-item .insight-tag {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+        .insight-tag.good {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        .insight-tag.warn {
+            background: #FEF7E0;
+            color: #B06000;
+        }
+        .insight-tag.info {
+            background: #E3F2FD;
+            color: #0D47A1;
+        }
+
+        /* ===== SERVICES LIST ===== */
+        .service-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .service-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 0;
+        }
+        .service-row .s-name {
+            font-size: 12px;
+            font-weight: 500;
+            color: #333;
+            min-width: 80px;
+        }
+        .service-row .s-bar {
+            flex: 1;
+            height: 8px;
+            background: #EFECE6;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .service-row .s-bar .fill {
+            height: 100%;
+            border-radius: 6px;
+            background: #D97706;
+        }
+        .service-row .s-pct {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4A3327;
+            min-width: 44px;
+            text-align: right;
+        }
+        .service-row .s-count {
+            font-size: 11px;
+            color: #7A7A7A;
+            min-width: 30px;
+            text-align: right;
+        }
+
+        /* ===== TABLE CARD ===== */
+        .table-card {
+            background: #FFFFFF;
+            border-radius: 14px;
+            padding: 20px 22px;
+            border: 1px solid #EFECE6;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            transition: all 0.25s ease;
+            margin-bottom: 24px;
+        }
+        .table-card:hover {
+            border-color: #D3C4B8;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+        }
+        .table-card .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid #EFECE6;
+        }
+        .table-card .card-header h3 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #5A361A;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .table-card .card-header h3 i {
+            color: #D97706;
+        }
+        .table-card .card-header .view-all {
+            font-size: 12px;
+            color: #5A361A;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+        .table-card .card-header .view-all:hover {
+            color: #D97706;
+            text-decoration: underline;
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+        .data-table thead th {
+            padding: 8px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #7A7A7A;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 2px solid #EFECE6;
+        }
+        .data-table tbody td {
+            padding: 8px 10px;
+            border-bottom: 1px solid #EFECE6;
+            vertical-align: middle;
+            font-size: 12px;
+            color: #333;
+        }
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .data-table tbody tr:hover {
+            background: #FAF7F2;
+        }
+        .data-table .rank-badge {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #FDF3E7;
+            color: #5A361A;
+            text-align: center;
+            line-height: 24px;
+            font-weight: 700;
+            font-size: 11px;
+        }
+        .data-table .rank-badge.gold {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+        .data-table .rank-badge.silver {
+            background: #F5F5F5;
+            color: #616161;
+        }
+        .data-table .rank-badge.bronze {
+            background: #FBE9E7;
+            color: #BF360C;
+        }
+
+        /* ===== BOTTOM CHARTS ROW ===== */
+        .bottom-charts-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        /* ===== RECENT TRANSACTIONS ===== */
+        .transaction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #F5F0EA;
+            font-size: 12px;
+        }
+        .transaction-item:last-child {
+            border-bottom: none;
+        }
+        .transaction-item .t-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .transaction-item .t-left .t-id {
+            font-weight: 600;
+            color: #333;
+        }
+        .transaction-item .t-left .t-date {
+            color: #7A7A7A;
+            font-size: 11px;
+        }
+        .transaction-item .t-amount {
+            font-weight: 600;
+            color: #2E7D32;
+        }
+        .transaction-item .t-amount.negative {
+            color: #C62828;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1200px) {
+            .stats-grid-reports {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 14px;
+            }
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+            .insights-row {
+                grid-template-columns: 1fr;
+            }
+            .bottom-charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .stats-grid-reports {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 12px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid-reports {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 12px;
+            }
+            .stat-report-card {
+                min-height: 80px;
+                padding: 12px 14px;
+            }
+            .stat-report-card .info h3 {
+                font-size: 18px;
+            }
+            .stat-report-card .icon {
+                width: 40px;
+                height: 40px;
+                font-size: 16px;
+            }
+            .page-heading {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .chart-card {
+                min-height: 260px;
+                padding: 16px 16px;
+            }
+            .chart-card .chart-wrapper {
+                min-height: 200px;
+                max-height: 240px;
+            }
+            .chart-card .chart-wrapper canvas {
+                max-height: 220px;
+            }
+            .insights-card {
+                padding: 16px 16px;
+            }
+            .table-card {
+                padding: 16px 16px;
+            }
+            .bottom-charts-row {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid-reports {
+                grid-template-columns: 1fr 1fr;
+                gap: 10px;
+            }
+            .stat-report-card {
+                min-height: 70px;
+                padding: 10px 12px;
+                gap: 10px;
+            }
+            .stat-report-card .info h3 {
+                font-size: 16px;
+            }
+            .stat-report-card .icon {
+                width: 34px;
+                height: 34px;
+                font-size: 14px;
+            }
+            .stat-report-card .info p {
+                font-size: 10px;
+            }
+            .stat-report-card .info .change {
+                font-size: 9px;
+                padding: 1px 8px;
+            }
+            .chart-card {
+                min-height: 220px;
+                padding: 12px 12px;
+            }
+            .chart-card .chart-wrapper {
+                min-height: 170px;
+                max-height: 200px;
+            }
+            .chart-card .chart-wrapper canvas {
+                max-height: 180px;
+            }
+            .service-row .s-name {
+                min-width: 60px;
+                font-size: 11px;
+            }
+            .service-row .s-pct {
+                font-size: 11px;
+                min-width: 36px;
+            }
+            .service-row .s-count {
+                font-size: 10px;
+                min-width: 24px;
+            }
+            .data-table {
+                font-size: 11px;
+            }
+            .data-table thead th,
+            .data-table tbody td {
+                padding: 6px 8px;
+            }
+            .transaction-item {
+                font-size: 11px;
+                flex-wrap: wrap;
+                gap: 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== SIDEBAR (统一) ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebarClose">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="brand">
+            <i class="fa-solid fa-paw brand-icon"></i>
+            <div class="brand-text">
+                <h2>PawCare</h2>
+                <span>Booking System | Admin</span>
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <a href="admin_dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="admin_bookings.html" class="nav-item"><i class="fa-regular fa-calendar-check"></i> Booking Management</a>
+            <a href="admin_customers.html" class="nav-item"><i class="fa-regular fa-user"></i> Customer Management</a>
+            <a href="admin_pets.html" class="nav-item"><i class="fa-solid fa-paw"></i> Pet Management</a>
+            <a href="admin_staff.html" class="nav-item"><i class="fa-solid fa-users"></i> Staff Management</a>
+            <a href="admin_services.html" class="nav-item"><i class="fa-solid fa-scissors"></i> Service Management</a>
+            <a href="admin_reports.html" class="nav-item active"><i class="fa-solid fa-chart-bar"></i> Reports & Analytics</a>
+            <a href="admin_reviews.html" class="nav-item"><i class="fa-regular fa-star"></i> Reviews</a>
+            <a href="admin_profile.html" class="nav-item"><i class="fa-regular fa-id-card"></i> Admin Profile</a>
+            <a href="#" class="nav-item logout" onclick="showLogoutModal(); return false;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+
+        <!-- ===== TOP HEADER (统一) ===== -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
+                <a href="admin_dashboard.html" class="brand-header">
+                    <i class="fa-solid fa-paw brand-icon"></i>
+                    <div class="brand-text">
+                        <h2>PawCare</h2>
+                        <span>Booking System | Admin</span>
+                    </div>
+                </a>
+            </div>
+            <div class="header-right">
+                <div class="notification-badge" id="notificationBtn" title="Notifications">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="count" id="notifCount">0</span>
+                </div>
+                <div class="user-profile" id="profileBtn" title="Open profile menu">
+                    <div class="avatar-wrapper">
+                        <img id="headerAvatarImg" alt="Avatar" style="display:none;">
+                        <span id="headerAvatarPlaceholder" class="avatar-placeholder">👤</span>
+                    </div>
+                    <div class="user-info">
+                        <span class="name" id="headerName">Admin</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ===== REPORTS CONTENT ===== -->
+        <div class="reports-container">
+
+            <!-- 页面标题 -->
+            <div class="page-heading">
+                <div>
+                    <h1><i class="fa-solid fa-chart-bar"></i> Reports & Analytics</h1>
+                    <div class="breadcrumb">Dashboard &nbsp;›&nbsp; Reports & Analytics</div>
+                </div>
+                <span class="date-badge"><i class="fa-regular fa-calendar"></i> <span id="reportDate">May 2026</span></span>
+            </div>
+
+            <!-- ===== STATS 卡片 (6个) ===== -->
+            <div class="stats-grid-reports">
+                <div class="stat-report-card">
+                    <div class="icon" style="background:#FFF3E0; color:#E65100;"><i class="fa-regular fa-calendar-check"></i></div>
+                    <div class="info">
+                        <h3 id="rTotalBookings">126</h3>
+                        <p>Total Bookings</p>
+                        <span class="change up">↑ 18.6% vs last month</span>
+                    </div>
+                </div>
+                <div class="stat-report-card">
+                    <div class="icon" style="background:#E8F5E9; color:#2E7D32;"><i class="fa-solid fa-ring"></i></div>
+                    <div class="info">
+                        <h3 id="rTotalRevenue">RM 12,450</h3>
+                        <p>Total Revenue</p>
+                        <span class="change up">↑ 16.8% vs last month</span>
+                    </div>
+                </div>
+                <div class="stat-report-card">
+                    <div class="icon" style="background:#E3F2FD; color:#0D47A1;"><i class="fa-regular fa-user"></i></div>
+                    <div class="info">
+                        <h3 id="rTotalCustomers">89</h3>
+                        <p>Total Customers</p>
+                        <span class="change up">↑ 12.7% vs last month</span>
+                    </div>
+                </div>
+                <div class="stat-report-card">
+                    <div class="icon" style="background:#F3E5F5; color:#4A148C;"><i class="fa-solid fa-paw"></i></div>
+                    <div class="info">
+                        <h3 id="rTotalPets">102</h3>
+                        <p>Total Pets</p>
+                        <span class="change up">↑ 9.5% vs last month</span>
+                    </div>
+                </div>
+                <div class="stat-report-card">
+                    <div class="icon" style="background:#E8F5E9; color:#2E7D32;"><i class="fa-regular fa-circle-check"></i></div>
+                    <div class="info">
+                        <h3 id="rCompleted">108</h3>
+                        <p>Completed Bookings</p>
+                        <span class="change up">↑ 20.0% vs last month</span>
+                    </div>
+                </div>
+                <div class="stat-report-card" style="background:#F9F6F0; border-color:#E8E2D8;">
+                    <div class="icon" style="background:#EFECE6; color:#7A6B5A;"><i class="fa-regular fa-star"></i></div>
+                    <div class="info">
+                        <h3 style="font-size:18px; color:#4A3327;">4.8 ★</h3>
+                        <p>Avg. Rating</p>
+                        <span class="change up">↑ 0.2 vs last month</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== CHARTS ROW (2 图表) ===== -->
+            <div class="charts-row">
+                <!-- Bookings Over Time -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-chart-line"></i> Bookings Over Time</h3>
+                        <span class="badge">Last 30 Days</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="bookingsTrendChart"></canvas>
+                    </div>
+                </div>
+                <!-- Revenue Over Time -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-chart-line" style="color:#D97706;"></i> Revenue Over Time (RM)</h3>
+                        <span class="badge">Last 30 Days</span>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="revenueTrendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== INSIGHTS + SERVICES ROW ===== -->
+            <div class="insights-row">
+                <!-- Key Insights -->
+                <div class="insights-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-lightbulb"></i> Key Insights</h3>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-icon" style="background:#E8F5E9; color:#2E7D32;"><i class="fa-solid fa-arrow-up"></i></div>
+                        <div class="insight-text"><strong>Bookings increased by 18.6%</strong> — Great! More pet parents are trusting us.</div>
+                        <span class="insight-tag good">Good</span>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-icon" style="background:#E8F5E9; color:#2E7D32;"><i class="fa-solid fa-arrow-up"></i></div>
+                        <div class="insight-text"><strong>Revenue increased by 16.8%</strong> — Your business is growing well.</div>
+                        <span class="insight-tag good">Good</span>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-icon" style="background:#FEF7E0; color:#B06000;"><i class="fa-regular fa-clock"></i></div>
+                        <div class="insight-text"><strong>18 bookings pending</strong> — Require your attention.</div>
+                        <span class="insight-tag warn">Action</span>
+                    </div>
+                    <div class="insight-item">
+                        <div class="insight-icon" style="background:#E3F2FD; color:#0D47A1;"><i class="fa-solid fa-scissors"></i></div>
+                        <div class="insight-text"><strong>Grooming is the top service</strong> — 30.2% of total bookings.</div>
+                        <span class="insight-tag info">Trend</span>
+                    </div>
+                </div>
+
+                <!-- Popular Services -->
+                <div class="insights-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-chart-simple"></i> Popular Services</h3>
+                        <span style="font-size:11px; color:#7A7A7A;">By total bookings</span>
+                    </div>
+                    <div class="service-list">
+                        <div class="service-row">
+                            <span class="s-name">Grooming</span>
+                            <div class="s-bar"><div class="fill" style="width:30.2%;"></div></div>
+                            <span class="s-pct">30.2%</span>
+                            <span class="s-count">38</span>
+                        </div>
+                        <div class="service-row">
+                            <span class="s-name">Boarding</span>
+                            <div class="s-bar"><div class="fill" style="width:22.2%; background:#8B6B4A;"></div></div>
+                            <span class="s-pct">22.2%</span>
+                            <span class="s-count">28</span>
+                        </div>
+                        <div class="service-row">
+                            <span class="s-name">Check-up</span>
+                            <div class="s-bar"><div class="fill" style="width:15.9%; background:#4A90D9;"></div></div>
+                            <span class="s-pct">15.9%</span>
+                            <span class="s-count">20</span>
+                        </div>
+                        <div class="service-row">
+                            <span class="s-name">Vaccination</span>
+                            <div class="s-bar"><div class="fill" style="width:12.7%; background:#7C4DFF;"></div></div>
+                            <span class="s-pct">12.7%</span>
+                            <span class="s-count">16</span>
+                        </div>
+                        <div class="service-row">
+                            <span class="s-name">Walking</span>
+                            <div class="s-bar"><div class="fill" style="width:11.1%; background:#FF8A65;"></div></div>
+                            <span class="s-pct">11.1%</span>
+                            <span class="s-count">14</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== TOP CUSTOMERS TABLE ===== -->
+            <div class="table-card">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-trophy"></i> Top Customers by Bookings</h3>
+                    <a href="admin_customers.html" class="view-all">View All</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width:50px;">#</th>
+                                <th>Customer</th>
+                                <th>Total Bookings</th>
+                                <th>Total Spent (RM)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="rank-badge gold">1</span></td>
+                                <td><strong>Jenny Lee</strong></td>
+                                <td>12</td>
+                                <td>RM 1,280</td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank-badge silver">2</span></td>
+                                <td><strong>Ahmad Firdaus</strong></td>
+                                <td>9</td>
+                                <td>RM 980</td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank-badge bronze">3</span></td>
+                                <td><strong>Siti Nur</strong></td>
+                                <td>8</td>
+                                <td>RM 850</td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank-badge">4</span></td>
+                                <td><strong>Daniel Tan</strong></td>
+                                <td>7</td>
+                                <td>RM 720</td>
+                            </tr>
+                            <tr>
+                                <td><span class="rank-badge">5</span></td>
+                                <td><strong>Mei Ling</strong></td>
+                                <td>6</td>
+                                <td>RM 650</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- ===== BOTTOM CHARTS ROW (Payment Methods + Monthly Comparison) ===== -->
+            <div class="bottom-charts-row">
+                <!-- Revenue by Payment Method -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-credit-card"></i> Revenue by Payment Method</h3>
+                        <span class="badge">RM</span>
+                    </div>
+                    <div class="chart-wrapper" style="min-height:220px; max-height:260px;">
+                        <canvas id="paymentMethodChart"></canvas>
+                    </div>
+                </div>
+                <!-- Monthly Comparisons -->
+                <div class="chart-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-chart-column"></i> Monthly Comparisons</h3>
+                        <span class="badge">2026</span>
+                    </div>
+                    <div class="chart-wrapper" style="min-height:220px; max-height:260px;">
+                        <canvas id="monthlyComparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== RECENT TRANSACTIONS ===== -->
+            <div class="table-card">
+                <div class="card-header">
+                    <h3><i class="fa-regular fa-receipt"></i> Recent Transactions</h3>
+                    <a href="admin_payments.html" class="view-all">View All</a>
+                </div>
+                <div class="transaction-list">
+                    <div class="transaction-item">
+                        <div class="t-left">
+                            <span class="t-id">#PAY-00126</span>
+                            <span class="t-date">16 May 2026</span>
+                            <span style="font-size:11px; color:#7A7A7A;">Jenny Lee · Grooming</span>
+                        </div>
+                        <span class="t-amount">RM 120.00</span>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="t-left">
+                            <span class="t-id">#PAY-00125</span>
+                            <span class="t-date">16 May 2026</span>
+                            <span style="font-size:11px; color:#7A7A7A;">Ahmad Firdaus · Vaccination</span>
+                        </div>
+                        <span class="t-amount">RM 85.00</span>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="t-left">
+                            <span class="t-id">#PAY-00124</span>
+                            <span class="t-date">16 May 2026</span>
+                            <span style="font-size:11px; color:#7A7A7A;">Siti Nur · Boarding</span>
+                        </div>
+                        <span class="t-amount">RM 200.00</span>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="t-left">
+                            <span class="t-id">#PAY-00122</span>
+                            <span class="t-date">17 May 2026</span>
+                            <span style="font-size:11px; color:#7A7A7A;">Mei Ling · Grooming</span>
+                        </div>
+                        <span class="t-amount">RM 120.00</span>
+                    </div>
+                    <div class="transaction-item">
+                        <div class="t-left">
+                            <span class="t-id">#PAY-00121</span>
+                            <span class="t-date">17 May 2026</span>
+                            <span style="font-size:11px; color:#7A7A7A;">Jason Ho · Boarding</span>
+                        </div>
+                        <span class="t-amount">RM 180.00</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ===== FOOTER (统一) ===== -->
+        <footer class="footer">
+            <p><i class="fa-solid fa-paw"></i> © 2026 PawCare Booking System — Paw Walker Grooming House</p>
+        </footer>
+
+    </main>
+
+    <!-- ===== LOGOUT MODAL ===== -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal-box" style="max-width:390px; text-align:center;">
+            <div class="modal-icon-circle warning"><i class="fa-solid fa-right-from-bracket"></i></div>
+            <h2 class="modal-title">Confirm Logout</h2>
+            <p class="modal-subtitle">Are you sure you want to logout?</p>
+            <div class="modal-btn-group" style="justify-content:center;">
+                <button class="btn btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmLogout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================ -->
+    <!-- JAVASCRIPT -->
+    <!-- ================================================================ -->
+    <script>
+        // ================================================================
+        // AUTH CHECK - ADMIN ONLY
+        // ================================================================
+        (function checkAuth() {
+            const token = localStorage.getItem('token');
+            const user = localStorage.getItem('user');
+            if (!token) {
+                window.location.replace('index.html');
+                return;
+            }
+            try {
+                const userData = JSON.parse(user);
+                if (userData.role !== 'admin') {
+                    window.location.replace('dashboard.html');
+                    return;
+                }
+            } catch {
+                window.location.replace('dashboard.html');
+                return;
+            }
+        })();
+
+        // ================================================================
+        // SUPABASE CONFIG
+        // ================================================================
+        const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
+        const SUPABASE_ANON_KEY =
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
+
+        // ================================================================
+        // AUTH FETCH
+        // ================================================================
+        async function authFetch(url, options = {}) {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+            const response = await fetch(url, { ...options, headers });
+            if (response.status === 401) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+                throw new Error('Unauthorized');
+            }
+            return response;
+        }
+
+        // ================================================================
+        // SCROLLBAR COMPENSATION
+        // ================================================================
+        let modalCount = 0;
+
+        function lockBodyScroll() {
+            if (modalCount === 0) {
+                const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+                if (scrollbarWidth > 0) document.body.style.paddingRight = scrollbarWidth + 'px';
+                document.body.style.overflow = 'hidden';
+            }
+            modalCount++;
+        }
+
+        function unlockBodyScroll() {
+            modalCount--;
+            if (modalCount <= 0) {
+                modalCount = 0;
+                document.body.style.paddingRight = '';
+                document.body.style.overflow = '';
+            }
+        }
+
+        // ================================================================
+        // LOGOUT
+        // ================================================================
+        function showLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            if (modal) { lockBodyScroll();
+                modal.classList.add('active'); }
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            if (modal) { modal.classList.remove('active');
+                unlockBodyScroll(); }
+        }
+
+        function confirmLogout() {
+            localStorage.removeItem('customer');
+            localStorage.removeItem('customerId');
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            localStorage.removeItem('isLoggedIn');
+            closeLogoutModal();
+            window.location.replace('index.html');
+        }
+
+        // ================================================================
+        // SIDEBAR TOGGLE
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            const menuToggle = document.getElementById('menuToggle');
+            const sidebar = document.getElementById('sidebar');
+            const sidebarClose = document.getElementById('sidebarClose');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            function openSidebar() {
+                sidebar.classList.add('active');
+                overlay.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeSidebar() {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+            if (menuToggle) menuToggle.addEventListener('click', openSidebar);
+            if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
+            if (overlay) overlay.addEventListener('click', closeSidebar);
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') closeSidebar();
+            });
+
+            // ================================================================
+            // NOTIFICATIONS
+            // ================================================================
+            document.getElementById('notificationBtn').addEventListener('click', function() {
+                alert('No new notifications.');
+            });
+
+            // ================================================================
+            // HEADER PROFILE
+            // ================================================================
+            async function loadAdminProfile() {
+                try {
+                    const res = await authFetch('/api/profile');
+                    const data = await res.json();
+                    if (data.success) {
+                        const admin = data.data;
+                        document.getElementById('headerName').textContent = admin.full_name || 'Admin';
+                        if (admin.profile_photo) {
+                            document.getElementById('headerAvatarImg').src = admin.profile_photo;
+                            document.getElementById('headerAvatarImg').style.display = 'block';
+                            document.getElementById('headerAvatarPlaceholder').style.display = 'none';
+                        }
+                    }
+                } catch (err) {
+                    console.error('Error loading admin profile:', err);
+                }
+            }
+            loadAdminProfile();
+
+            // ================================================================
+            // SET DATE
+            // ================================================================
+            const now = new Date();
+            document.getElementById('reportDate').textContent =
+                now.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
+            // ================================================================
+            // CHARTS - 使用 Chart.js
+            // ================================================================
+            // 1. Bookings Over Time (Line)
+            const ctx1 = document.getElementById('bookingsTrendChart').getContext('2d');
+            const gradient1 = ctx1.createLinearGradient(0, 0, 0, 200);
+            gradient1.addColorStop(0, 'rgba(74, 51, 39, 0.15)');
+            gradient1.addColorStop(1, 'rgba(74, 51, 39, 0)');
+
+            new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels: ['1 May', '6 May', '11 May', '16 May', '21 May', '26 May', '31 May'],
+                    datasets: [{
+                        label: 'Total Bookings',
+                        data: [18, 22, 20, 28, 24, 30, 26],
+                        borderColor: '#4A3327',
+                        backgroundColor: gradient1,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#4A3327',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }, {
+                        label: 'Completed',
+                        data: [12, 16, 14, 20, 18, 24, 22],
+                        borderColor: '#2E7D32',
+                        backgroundColor: 'rgba(46,125,50,0.05)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#2E7D32',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        borderDash: [4, 4]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { boxWidth: 12, padding: 12, font: { size: 10, family: 'Poppins' } }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 5, font: { size: 9 } } },
+                        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                    },
+                    interaction: { intersect: false, mode: 'index' }
+                }
+            });
+
+            // 2. Revenue Over Time (Line)
+            const ctx2 = document.getElementById('revenueTrendChart').getContext('2d');
+            const gradient2 = ctx2.createLinearGradient(0, 0, 0, 200);
+            gradient2.addColorStop(0, 'rgba(217, 119, 6, 0.20)');
+            gradient2.addColorStop(1, 'rgba(217, 119, 6, 0)');
+
+            new Chart(ctx2, {
+                type: 'line',
+                data: {
+                    labels: ['1 May', '6 May', '11 May', '16 May', '21 May', '26 May', '31 May'],
+                    datasets: [{
+                        label: 'Total Revenue',
+                        data: [320, 450, 380, 560, 490, 620, 540],
+                        borderColor: '#D97706',
+                        backgroundColor: gradient2,
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#D97706',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }, {
+                        label: 'Completed Revenue',
+                        data: [240, 340, 280, 420, 380, 500, 440],
+                        borderColor: '#8B6B4A',
+                        backgroundColor: 'rgba(139,107,74,0.05)',
+                        fill: true,
+                        tension: 0.4,
+                        pointBackgroundColor: '#8B6B4A',
+                        pointBorderColor: '#FFFFFF',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6,
+                        borderDash: [4, 4]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { boxWidth: 12, padding: 12, font: { size: 10, family: 'Poppins' } }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { font: { size: 9 } } },
+                        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
+                    },
+                    interaction: { intersect: false, mode: 'index' }
+                }
+            });
+
+            // 3. Revenue by Payment Method (Bar)
+            const ctx3 = document.getElementById('paymentMethodChart').getContext('2d');
+            new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: ['Online Banking', 'Credit Card', 'Cash', 'E-Wallet'],
+                    datasets: [{
+                        label: 'Revenue (RM)',
+                        data: [7840, 4590, 2100, 1520],
+                        backgroundColor: ['#4A3327', '#D97706', '#8B6B4A', '#7C4DFF'],
+                        borderRadius: 6,
+                        barPercentage: 0.6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { font: { size: 9 } } },
+                        x: { grid: { display: false }, ticks: { font: { size: 10, weight: '500' } } }
+                    }
+                }
+            });
+
+            // 4. Monthly Comparisons (Bar)
+            const ctx4 = document.getElementById('monthlyComparisonChart').getContext('2d');
+            new Chart(ctx4, {
+                type: 'bar',
+                data: {
+                    labels: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    datasets: [{
+                        label: 'Bookings',
+                        data: [80, 100, 120, 140, 160, 180],
+                        backgroundColor: 'rgba(74, 51, 39, 0.7)',
+                        borderRadius: 4,
+                        barPercentage: 0.5
+                    }, {
+                        label: 'Completed',
+                        data: [60, 80, 96, 112, 128, 144],
+                        backgroundColor: 'rgba(46, 125, 50, 0.7)',
+                        borderRadius: 4,
+                        barPercentage: 0.5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: { boxWidth: 12, padding: 10, font: { size: 10, family: 'Poppins' } }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { font: { size: 9 } } },
+                        x: { grid: { display: false }, ticks: { font: { size: 10, weight: '500' } } }
+                    }
+                }
+            });
+
+            console.log('PawCare Reports & Analytics page loaded.');
+        });
+    </script>
+
+</body>
+</html>

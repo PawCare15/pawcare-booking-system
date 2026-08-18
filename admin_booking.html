@@ -1,0 +1,1738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="image/logo.png" type="image/png" class="logo" />
+    <title>PAWCARE BOOKING SYSTEM</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <!-- FONT AWESOME -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- GOOGLE FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <!-- CUSTOM ADMIN CSS -->
+    <link rel="stylesheet" href="admin_style.css" />
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: #FAF7F2;
+            color: #333333;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ===== PAGE HEADER ===== */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            padding-bottom: 4px;
+            gap: 12px;
+        }
+        .page-header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #4A3327;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .page-header h1 i {
+            color: #D97706;
+        }
+        .page-header .header-date {
+            font-size: 14px;
+            color: #7A7A7A;
+            background: #F9F6F0;
+            padding: 6px 16px;
+            border-radius: 30px;
+            border: 1px solid #EFECE6;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .page-header .header-date i {
+            color: #D97706;
+        }
+
+        /* ===== STATS ROW ===== */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+            width: 100%;
+        }
+        .stat-row-card {
+            background: #FFFFFF;
+            border-radius: 14px;
+            padding: 18px 12px;
+            border: 1px solid #EFECE6;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            min-height: 110px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+        }
+        .stat-row-card:hover {
+            border-color: #D3C4B8;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+        }
+        .stat-row-card .stat-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-bottom: 6px;
+        }
+        .stat-row-card .stat-number {
+            font-size: 28px;
+            font-weight: 700;
+            color: #333333;
+            line-height: 1.2;
+        }
+        .stat-row-card .stat-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #7A7A7A;
+            margin: 2px 0;
+        }
+        .stat-row-card .stat-sub {
+            font-size: 11px;
+            color: #7A7A7A;
+            font-weight: 400;
+        }
+        .stat-row-card .stat-change {
+            font-size: 11px;
+            font-weight: 500;
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+            margin-top: 4px;
+        }
+        .stat-change.positive {
+            color: #2E7D32;
+            background: #E8F5E9;
+        }
+        .stat-change.negative {
+            color: #C62828;
+            background: #FCE8E6;
+        }
+        .stat-row-total {
+            background: linear-gradient(145deg, #FFF8E1, #FFECB3);
+            border: 2px solid #FDE68A;
+            box-shadow: 0 4px 16px rgba(253, 230, 138, 0.3);
+        }
+        .stat-row-total .stat-number {
+            color: #4A2800;
+        }
+        .stat-row-total .stat-label {
+            color: #5A361A;
+            font-weight: 600;
+        }
+
+        /* ===== FILTER BAR ===== */
+        .filter-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 16px;
+            align-items: center;
+            margin-bottom: 18px;
+            background: #FFFFFF;
+            padding: 12px 18px;
+            border-radius: 14px;
+            border: 1px solid #EFECE6;
+        }
+        .filter-bar .search-box {
+            flex: 1 1 200px;
+            display: flex;
+            align-items: center;
+            background: #F8F5F0;
+            border-radius: 30px;
+            padding: 0 14px;
+            border: 1px solid #E8E2D8;
+            transition: border-color 0.2s;
+            min-width: 160px;
+        }
+        .filter-bar .search-box:focus-within {
+            border-color: #D97706;
+        }
+        .filter-bar .search-box i {
+            color: #B0A090;
+            font-size: 14px;
+        }
+        .filter-bar .search-box input {
+            border: none;
+            background: transparent;
+            padding: 8px 10px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            width: 100%;
+            outline: none;
+            color: #333;
+            min-width: 80px;
+        }
+        .filter-bar .search-box input::placeholder {
+            color: #B0A090;
+        }
+        .filter-bar select {
+            padding: 8px 30px 8px 14px;
+            border-radius: 30px;
+            border: 1px solid #E8E2D8;
+            background: #F8F5F0 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234A3327' d='M6 8L1 3h10z'/%3E%3C/svg%3E") no-repeat right 12px center;
+            background-size: 12px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            color: #4A3327;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            min-width: 120px;
+            transition: border-color 0.2s;
+        }
+        .filter-bar select:focus {
+            border-color: #D97706;
+        }
+        .filter-bar .date-range {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: 1px solid #E8E2D8;
+            background: #F8F5F0;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            color: #4A3327;
+            flex-wrap: wrap;
+        }
+        .filter-bar .date-range input[type="date"] {
+            border: none;
+            background: transparent;
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            color: #4A3327;
+            outline: none;
+            padding: 4px 0;
+            width: 110px;
+            cursor: pointer;
+        }
+        .filter-bar .date-range input[type="date"]::-webkit-calendar-picker-indicator {
+            opacity: 0.6;
+            cursor: pointer;
+        }
+        .filter-bar .date-range span {
+            color: #B0A090;
+        }
+        .filter-bar .btn-filter {
+            background: #4A3327;
+            color: #fff;
+            border: none;
+            padding: 8px 24px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: 'Poppins', sans-serif;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .filter-bar .btn-filter:hover {
+            background: #2D1F14;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 51, 39, 0.2);
+        }
+        .filter-bar .btn-filter:active {
+            transform: translateY(0);
+        }
+        .filter-bar .btn-clear {
+            background: transparent;
+            color: #7A6B5A;
+            border: 1px solid #E8E2D8;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-weight: 500;
+            font-size: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-family: 'Poppins', sans-serif;
+            white-space: nowrap;
+        }
+        .filter-bar .btn-clear:hover {
+            background: #F5F0EA;
+            border-color: #D3C4B8;
+        }
+
+        /* ===== TABLE ===== */
+        .table-wrap {
+            overflow-x: auto;
+            margin-top: 4px;
+            border-radius: 14px;
+            border: 1px solid #EFECE6;
+            background: #fff;
+            -webkit-overflow-scrolling: touch;
+        }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            min-width: 800px;
+        }
+        .data-table th {
+            background: #F9F6F0;
+            font-weight: 600;
+            color: #5A4A3A;
+            padding: 12px 14px;
+            text-align: left;
+            white-space: nowrap;
+        }
+        .data-table td {
+            padding: 12px 14px;
+            vertical-align: middle;
+            border-bottom: 1px solid #F0EDE8;
+        }
+        .data-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .data-table tbody tr:hover {
+            background: #FAF7F2;
+        }
+
+        /* Customer cell */
+        .customer-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 140px;
+        }
+        .customer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #FDF3E7;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            color: #5A361A;
+            flex-shrink: 0;
+            border: 2px solid #EFECE6;
+        }
+        .customer-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .customer-info .name {
+            font-weight: 600;
+            font-size: 13px;
+            color: #333333;
+            white-space: nowrap;
+        }
+        .customer-info .phone {
+            font-size: 12px;
+            color: #7A7A7A;
+            white-space: nowrap;
+        }
+
+        /* Pet cell */
+        .pet-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 120px;
+        }
+        .pet-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            border: 2px solid #EFECE6;
+        }
+        .pet-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .pet-info .pet-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: #333333;
+            white-space: nowrap;
+        }
+        .pet-info .pet-breed {
+            font-size: 12px;
+            color: #7A7A7A;
+            white-space: nowrap;
+        }
+
+        /* Action icons */
+        .action-icons {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+        }
+        .action-icons i {
+            font-size: 16px;
+            color: #7A6B5A;
+            cursor: pointer;
+            transition: color 0.2s, transform 0.2s;
+        }
+        .action-icons i:hover {
+            color: #D97706;
+            transform: scale(1.15);
+        }
+
+        /* Status & Payment pills */
+        .status-pill {
+            padding: 3px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+            white-space: nowrap;
+        }
+        .status-pill.pending {
+            background: #FEF7E0;
+            color: #B06000;
+        }
+        .status-pill.confirmed {
+            background: #E3F2FD;
+            color: #0D47A1;
+        }
+        .status-pill.completed {
+            background: #E8F5E9;
+            color: #2E7D32;
+        }
+        .status-pill.cancelled {
+            background: #FCE8E6;
+            color: #C5221F;
+        }
+
+        .badge-payment {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 3px 10px;
+            border-radius: 30px;
+            background: #F0EDE8;
+            color: #5A4A3A;
+            white-space: nowrap;
+        }
+        .badge-payment.paid {
+            background: #E6F4EA;
+            color: #137333;
+        }
+        .badge-payment.unpaid {
+            background: #FEF1E6;
+            color: #B06000;
+        }
+        .badge-payment.refunded {
+            background: #FCE8E6;
+            color: #B00020;
+        }
+
+        /* ===== PAGINATION ===== */
+        .pagination-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            padding: 14px 0 4px;
+            font-size: 13px;
+            color: #5A4A3A;
+            gap: 10px;
+        }
+        .pagination-area .pages {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .pagination-area .pages span {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #F0EDE8;
+            font-weight: 500;
+            cursor: default;
+            font-size: 13px;
+        }
+        .pagination-area .pages .active-page {
+            background: #4A3327;
+            color: #fff;
+        }
+
+        /* ===== MODAL COMMON ===== */
+        .modal-overlay-base {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay-base.active {
+            display: flex;
+        }
+        .modal-box-base {
+            background: #FFFFFF;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 520px;
+            padding: 32px 36px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* ===== VIEW DETAIL MODAL ===== */
+        .view-modal-box .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #EFECE6;
+        }
+        .view-modal-box .modal-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #4A3327;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .view-modal-box .modal-header h2 i {
+            color: #4A90D9;
+        }
+        .view-modal-box .modal-header .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7A6B5A;
+            transition: color 0.2s;
+            padding: 0 4px;
+        }
+        .view-modal-box .modal-header .close-modal:hover {
+            color: #333;
+        }
+        .view-detail-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px 24px;
+            margin: 16px 0 20px;
+        }
+        .view-detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+        .view-detail-item .label {
+            font-size: 11px;
+            font-weight: 500;
+            color: #A09080;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .view-detail-item .value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #2D1F14;
+            margin-top: 2px;
+        }
+        .view-detail-item .value .status-pill {
+            font-size: 12px;
+            padding: 3px 14px;
+        }
+        .view-detail-item .value .badge-payment {
+            font-size: 11px;
+            padding: 3px 14px;
+        }
+        .view-detail-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* ===== CLOSE BUTTON CENTERED ===== */
+        .view-modal-box .modal-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 8px;
+            padding-top: 16px;
+            border-top: 1px solid #EFECE6;
+        }
+        .view-modal-box .modal-actions .btn {
+            padding: 8px 40px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+        .view-modal-box .modal-actions .btn-primary {
+            background: #4A3327;
+            color: #FFFFFF;
+        }
+        .view-modal-box .modal-actions .btn-primary:hover {
+            background: #2D1F14;
+        }
+
+        /* ===== EDIT MODAL ===== */
+        .edit-modal-box .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #EFECE6;
+        }
+        .edit-modal-box .modal-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #4A3327;
+        }
+        .edit-modal-box .modal-header .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #7A6B5A;
+            transition: color 0.2s;
+            padding: 0 4px;
+        }
+        .edit-modal-box .modal-header .close-modal:hover {
+            color: #333;
+        }
+        .edit-modal-box .booking-id-display {
+            font-size: 14px;
+            color: #7A7A7A;
+            margin-bottom: 18px;
+            padding: 8px 14px;
+            background: #F9F6F0;
+            border-radius: 8px;
+        }
+        .edit-modal-box .form-group {
+            margin-bottom: 16px;
+        }
+        .edit-modal-box .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4A3327;
+            margin-bottom: 6px;
+        }
+        .edit-modal-box .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1.5px solid #E8E2D8;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            color: #333;
+            background: #F8F5F0;
+            outline: none;
+            transition: border-color 0.2s;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234A3327' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 14px center;
+            background-size: 12px;
+        }
+        .edit-modal-box .form-group select:focus {
+            border-color: #D97706;
+        }
+        .edit-modal-box .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid #EFECE6;
+        }
+        .edit-modal-box .modal-actions .btn {
+            flex: 1;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.25s ease;
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+        }
+        .edit-modal-box .modal-actions .btn-secondary {
+            background: #EFECE6;
+            color: #7A7A7A;
+        }
+        .edit-modal-box .modal-actions .btn-secondary:hover {
+            background: #E0D9D0;
+        }
+        .edit-modal-box .modal-actions .btn-primary {
+            background: #4A3327;
+            color: #FFFFFF;
+        }
+        .edit-modal-box .modal-actions .btn-primary:hover {
+            background: #2D1F14;
+        }
+
+        /* ===== SUCCESS MODAL ===== */
+        .success-modal-box {
+            text-align: center;
+        }
+        .success-modal-box .success-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #E6F4EA;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 36px;
+            color: #137333;
+            border: 2px solid #A8D5BA;
+        }
+        .success-modal-box h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #1E3A2A;
+            margin-bottom: 6px;
+        }
+        .success-modal-box .success-subtitle {
+            font-size: 14px;
+            color: #7A7A7A;
+            margin-bottom: 16px;
+        }
+        .success-modal-box .success-details {
+            background: #F9F6F0;
+            border-radius: 12px;
+            padding: 14px 18px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+        .success-modal-box .success-details .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 13px;
+        }
+        .success-modal-box .success-details .detail-row .label {
+            color: #7A7A7A;
+        }
+        .success-modal-box .success-details .detail-row .value {
+            font-weight: 600;
+            color: #333;
+        }
+        .success-modal-box .success-details .detail-row .value.status-confirmed {
+            color: #0D47A1;
+        }
+        .success-modal-box .success-details .detail-row .value.status-pending {
+            color: #B06000;
+        }
+        .success-modal-box .success-details .detail-row .value.status-completed {
+            color: #2E7D32;
+        }
+        .success-modal-box .success-details .detail-row .value.status-cancelled {
+            color: #C5221F;
+        }
+        .success-modal-box .success-details .detail-row .value.payment-paid {
+            color: #137333;
+        }
+        .success-modal-box .success-details .detail-row .value.payment-unpaid {
+            color: #B06000;
+        }
+        .success-modal-box .success-details .detail-row .value.payment-refunded {
+            color: #B00020;
+        }
+        .success-modal-box .btn-success-close {
+            background: #4A3327;
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 40px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            font-family: 'Poppins', sans-serif;
+        }
+        .success-modal-box .btn-success-close:hover {
+            background: #2D1F14;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 1200px) {
+            .stats-row { grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        }
+        @media (max-width: 992px) {
+            .stats-row { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+            .filter-bar .date-range input[type="date"] { width: 90px; }
+            .page-header h1 { font-size: 20px; }
+        }
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+            .stat-row-card { min-height: 90px; padding: 14px 10px; }
+            .stat-row-card .stat-number { font-size: 24px; }
+            .stat-row-card .stat-label { font-size: 12px; }
+            .stat-row-card .stat-change { font-size: 10px; padding: 2px 10px; }
+            .stat-row-card .stat-icon { width: 38px; height: 38px; font-size: 16px; }
+            .page-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+            .page-header .header-date { font-size: 12px; padding: 4px 12px; }
+            .filter-bar { padding: 10px 14px; gap: 10px; }
+            .filter-bar .search-box { flex: 1 1 100%; min-width: 100%; }
+            .filter-bar select { flex: 1 1 calc(50% - 8px); min-width: 100px; }
+            .filter-bar .date-range { flex: 1 1 100%; justify-content: flex-start; }
+            .filter-bar .date-range input[type="date"] { width: 100px; }
+            .filter-bar .btn-filter,
+            .filter-bar .btn-clear { flex: 1 1 calc(50% - 8px); justify-content: center; }
+            .customer-cell, .pet-cell { gap: 8px; }
+            .customer-avatar, .pet-avatar { width: 32px; height: 32px; font-size: 12px; }
+            .customer-info .name, .pet-info .pet-name { font-size: 12px; }
+            .customer-info .phone, .pet-info .pet-breed { font-size: 11px; }
+            .action-icons i { font-size: 14px; }
+            .action-icons { gap: 8px; }
+            .data-table { font-size: 12px; min-width: 700px; }
+            .data-table th, .data-table td { padding: 8px 10px; }
+            .modal-box-base { padding: 24px 20px; }
+            .view-detail-grid { grid-template-columns: 1fr; gap: 10px; }
+            .view-detail-item.full-width { grid-column: 1; }
+        }
+        @media (max-width: 480px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+            .stat-row-card { min-height: 80px; padding: 12px 8px; }
+            .stat-row-card .stat-number { font-size: 20px; }
+            .stat-row-card .stat-label { font-size: 11px; }
+            .stat-row-card .stat-change { font-size: 9px; padding: 1px 8px; }
+            .stat-row-card .stat-icon { width: 32px; height: 32px; font-size: 14px; margin-bottom: 4px; }
+            .page-header h1 { font-size: 18px; }
+            .page-header .header-date { font-size: 11px; padding: 4px 10px; }
+            .filter-bar { padding: 8px 12px; gap: 8px; }
+            .filter-bar .search-box input { font-size: 12px; padding: 6px 8px; }
+            .filter-bar select { font-size: 11px; padding: 6px 24px 6px 10px; min-width: 80px; flex: 1 1 calc(50% - 6px); }
+            .filter-bar .date-range { font-size: 11px; padding: 4px 10px; flex: 1 1 100%; }
+            .filter-bar .date-range input[type="date"] { font-size: 11px; width: 80px; }
+            .filter-bar .btn-filter, .filter-bar .btn-clear { font-size: 11px; padding: 6px 14px; flex: 1 1 calc(50% - 6px); }
+            .data-table { font-size: 11px; min-width: 600px; }
+            .data-table th, .data-table td { padding: 6px 8px; }
+            .customer-cell, .pet-cell { gap: 6px; }
+            .customer-avatar, .pet-avatar { width: 28px; height: 28px; font-size: 10px; }
+            .customer-info .name, .pet-info .pet-name { font-size: 11px; }
+            .customer-info .phone, .pet-info .pet-breed { font-size: 10px; }
+            .action-icons i { font-size: 13px; }
+            .action-icons { gap: 6px; }
+            .status-pill { font-size: 10px; padding: 2px 8px; }
+            .badge-payment { font-size: 9px; padding: 2px 8px; }
+            .pagination-area { font-size: 12px; flex-direction: column; align-items: flex-start; gap: 6px; }
+            .pagination-area .pages span { font-size: 12px; padding: 3px 10px; }
+            .modal-box-base { padding: 20px 16px; }
+            .view-modal-box .modal-header h2 { font-size: 16px; }
+        }
+        @media (max-width: 380px) {
+            .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .stat-row-card { min-height: 70px; padding: 10px 6px; }
+            .stat-row-card .stat-number { font-size: 18px; }
+            .stat-row-card .stat-label { font-size: 10px; }
+            .filter-bar select { flex: 1 1 100%; }
+            .filter-bar .btn-filter, .filter-bar .btn-clear { flex: 1 1 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== SIDEBAR ===== -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebarClose">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        <div class="brand">
+            <i class="fa-solid fa-paw brand-icon"></i>
+            <div class="brand-text">
+                <h2>PawCare</h2>
+                <span>Booking System | Admin</span>
+            </div>
+        </div>
+        <nav class="nav-menu">
+            <a href="admin_dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="admin_bookings.html" class="nav-item active"><i class="fa-regular fa-calendar-check"></i> Booking Management</a>
+            <a href="admin_customers.html" class="nav-item"><i class="fa-regular fa-user"></i> Customer Management</a>
+            <a href="admin_pets.html" class="nav-item"><i class="fa-solid fa-paw"></i> Pet Management</a>
+            <a href="admin_staff.html" class="nav-item"><i class="fa-solid fa-users"></i> Staff Management</a>
+            <a href="admin_services.html" class="nav-item"><i class="fa-solid fa-scissors"></i> Service Management</a>
+            <a href="admin_reports.html" class="nav-item"><i class="fa-solid fa-chart-bar"></i> Reports & Analytics</a>
+            <a href="admin_reviews.html" class="nav-item"><i class="fa-regular fa-star"></i> Reviews</a>
+            <a href="admin_profile.html" class="nav-item"><i class="fa-regular fa-id-card"></i> Admin Profile</a>
+            <a href="#" class="nav-item logout" onclick="showLogoutModal(); return false;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <!-- ===== MAIN CONTENT ===== -->
+    <main class="main-content">
+
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
+                <a href="admin_dashboard.html" class="brand-header">
+                    <i class="fa-solid fa-paw brand-icon"></i>
+                    <div class="brand-text">
+                        <h2>PawCare</h2>
+                        <span>Booking System | Admin</span>
+                    </div>
+                </a>
+            </div>
+            <div class="header-right">
+                <div class="notification-badge" id="notificationBtn">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="count" id="notifCount">3</span>
+                </div>
+                <div class="user-profile" id="profileBtn">
+                    <div class="avatar-wrapper" id="headerAvatarWrapper">
+                        <img id="headerAvatarImg" src="" alt="Avatar" style="display:none;" />
+                        <span class="avatar-placeholder" id="headerAvatarPlaceholder">👤</span>
+                    </div>
+                    <div class="user-info">
+                        <span class="name" id="headerName">Admin</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- ===== DASHBOARD CONTENT ===== -->
+        <div class="dashboard-container">
+
+            <!-- PAGE TITLE + DATE -->
+            <div class="page-header">
+                <h1><i class="fa-regular fa-calendar-check"></i> Booking Management</h1>
+                <div class="header-date">
+                    <i class="fa-regular fa-calendar"></i>
+                    <span id="headerCurrentDate">Loading...</span>
+                </div>
+            </div>
+
+            <!-- STATS ROW -->
+            <div class="stats-row">
+                <div class="stat-row-card stat-row-total">
+                    <div class="stat-icon" style="background: rgba(255,152,0,0.20); color:#E65100;">
+                        <i class="fa-regular fa-calendar-check"></i>
+                    </div>
+                    <div class="stat-number">126</div>
+                    <div class="stat-label">Total Bookings</div>
+                    <span class="stat-change positive">↑ 12% from last month</span>
+                </div>
+                <div class="stat-row-card">
+                    <div class="stat-icon" style="background: #FEF7E0; color: #B06000;">
+                        <i class="fa-regular fa-clock"></i>
+                    </div>
+                    <div class="stat-number">28</div>
+                    <div class="stat-label">Pending Bookings</div>
+                    <span class="stat-change positive">↑ 8% from last month</span>
+                </div>
+                <div class="stat-row-card">
+                    <div class="stat-icon" style="background: #E3F2FD; color: #0D47A1;">
+                        <i class="fa-regular fa-circle-check"></i>
+                    </div>
+                    <div class="stat-number">45</div>
+                    <div class="stat-label">Confirmed Bookings</div>
+                    <span class="stat-change positive">↑ 15% from last month</span>
+                </div>
+                <div class="stat-row-card">
+                    <div class="stat-icon" style="background: #E8F5E9; color: #2E7D32;">
+                        <i class="fa-regular fa-circle-check"></i>
+                    </div>
+                    <div class="stat-number">48</div>
+                    <div class="stat-label">Completed Bookings</div>
+                    <span class="stat-change positive">↑ 10% from last month</span>
+                </div>
+                <div class="stat-row-card">
+                    <div class="stat-icon" style="background: #FBE9E7; color: #BF360C;">
+                        <i class="fa-regular fa-circle-xmark"></i>
+                    </div>
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Cancelled Bookings</div>
+                    <span class="stat-change positive">↑ 20% from last month</span>
+                </div>
+                <div class="stat-row-card" style="background: #F9F6F0; border-color: #E8E2D8;">
+                    <div class="stat-icon" style="background: #EFECE6; color: #7A6B5A;">
+                        <i class="fa-regular fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-number" style="font-size:18px; color:#4A3327;">All time</div>
+                    <div class="stat-label" style="font-size:12px; color:#7A7A7A;">since launch</div>
+                    <span class="stat-sub"> </span>
+                </div>
+            </div>
+
+            <!-- FILTER BAR -->
+            <div class="filter-bar" id="filterBar">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" id="searchInput" placeholder="Search booking ID, customer or pet name..." />
+                </div>
+
+                <!-- ===== UPDATED SERVICES DROPDOWN ===== -->
+                <select id="serviceFilter">
+                    <option value="all">All Services</option>
+                    <option value="pet-herb-spa">Pet Herb Spa</option>
+                    <option value="pet-transportation">Pet Transportation</option>
+                    <option value="boarding">Boarding</option>
+                    <option value="nail-care">Nail Care</option>
+                    <option value="de-shedding">De-shedding Treatment</option>
+                    <option value="haircut-styling">Haircut &amp; Styling</option>
+                    <option value="full-grooming">Full Grooming Package</option>
+                    <option value="bath-blowdry">Bath &amp; Blow Dry</option>
+                </select>
+
+                <select id="statusFilter">
+                    <option value="all">All Status</option>
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+
+                <div class="date-range">
+                    <i class="fa-regular fa-calendar-alt"></i>
+                    <input type="date" id="startDate" value="2026-05-01" />
+                    <span>—</span>
+                    <input type="date" id="endDate" value="2026-05-31" />
+                </div>
+
+                <button class="btn-filter" id="applyFilterBtn"><i class="fa-solid fa-sliders"></i> Filter</button>
+                <button class="btn-clear" id="clearFilterBtn"><i class="fa-solid fa-undo"></i> Clear</button>
+            </div>
+
+            <!-- TABLE -->
+            <div class="table-wrap">
+                <table class="data-table" id="bookingTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer</th>
+                            <th>Pet</th>
+                            <th>Service</th>
+                            <th>Date &amp; Time</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th style="text-align:center;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bookingTableBody">
+                        <!-- rows rendered by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINATION -->
+            <div class="pagination-area">
+                <span id="entriesInfo">Showing 1 to 8 of 126 entries</span>
+                <div class="pages" id="paginationControls">
+                    <span>‹</span>
+                    <span class="active-page">1</span>
+                    <span>2</span>
+                    <span>3</span>
+                    <span>…</span>
+                    <span>16</span>
+                    <span>›</span>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- LOGOUT MODAL -->
+        <div class="modal-overlay" id="logoutModal">
+            <div class="modal-box">
+                <div class="modal-icon-circle warning">
+                    <i class="fa-solid fa-sign-out-alt"></i>
+                </div>
+                <h2 class="modal-title">Confirm Logout</h2>
+                <p class="modal-subtitle">Are you sure you want to logout?</p>
+                <div class="modal-btn-group">
+                    <button class="btn btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+                    <button class="btn btn-danger" onclick="confirmLogout()">Logout</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== VIEW BOOKING DETAIL MODAL ===== -->
+        <div class="modal-overlay-base" id="viewModal">
+            <div class="modal-box-base view-modal-box">
+                <div class="modal-header">
+                    <h2><i class="fa-regular fa-eye"></i> Booking Details</h2>
+                    <button class="close-modal" id="closeViewModal">&times;</button>
+                </div>
+                <div class="view-detail-grid" id="viewDetailGrid">
+                    <div class="view-detail-item">
+                        <span class="label">Booking ID</span>
+                        <span class="value" id="viewBookingId">#BKG-00126</span>
+                    </div>
+                    <div class="view-detail-item">
+                        <span class="label">Customer</span>
+                        <span class="value" id="viewCustomer">Jenny Lee</span>
+                    </div>
+                    <div class="view-detail-item">
+                        <span class="label">Phone</span>
+                        <span class="value" id="viewPhone">012-345 6789</span>
+                    </div>
+                    <div class="view-detail-item">
+                        <span class="label">Pet</span>
+                        <span class="value" id="viewPet">Buddy (Golden Retriever)</span>
+                    </div>
+                    <div class="view-detail-item">
+                        <span class="label">Service</span>
+                        <span class="value" id="viewService">Grooming</span>
+                    </div>
+                    <div class="view-detail-item">
+                        <span class="label">Date &amp; Time</span>
+                        <span class="value" id="viewDateTime">16 May 2026, 10:00 AM</span>
+                    </div>
+                    <div class="view-detail-item">
+                        <span class="label">Status</span>
+                        <span class="value" id="viewStatus"><span class="status-pill pending">Pending</span></span>
+                    </div>
+                    <div class="view-detail-item">
+                        <span class="label">Payment</span>
+                        <span class="value" id="viewPayment"><span class="badge-payment unpaid">Unpaid</span></span>
+                    </div>
+                </div>
+                <!-- Close button centered -->
+                <div class="modal-actions">
+                    <button class="btn btn-primary" id="closeViewBtn">Close</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== EDIT BOOKING MODAL ===== -->
+        <div class="modal-overlay-base" id="editModal">
+            <div class="modal-box-base edit-modal-box">
+                <div class="modal-header">
+                    <h2><i class="fa-regular fa-pen-to-square" style="color:#D97706;"></i> Edit Booking</h2>
+                    <button class="close-modal" id="closeEditModal">&times;</button>
+                </div>
+                <div class="booking-id-display" id="editBookingId">#BKG-00126</div>
+
+                <div class="form-group">
+                    <label for="editStatus">Status</label>
+                    <select id="editStatus">
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="completed">Completed</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="editPayment">Payment Status</label>
+                    <select id="editPayment">
+                        <option value="unpaid">Unpaid</option>
+                        <option value="paid">Paid</option>
+                        <option value="refunded">Refunded</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancelEditBtn">Cancel</button>
+                    <button class="btn btn-primary" id="saveEditBtn">Save Changes</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SUCCESS MODAL ===== -->
+        <div class="modal-overlay-base" id="successModal">
+            <div class="modal-box-base success-modal-box">
+                <div class="success-icon">
+                    <i class="fa-regular fa-circle-check"></i>
+                </div>
+                <h3>Booking Updated!</h3>
+                <p class="success-subtitle">The booking has been successfully updated.</p>
+                <div class="success-details" id="successDetails">
+                    <div class="detail-row">
+                        <span class="label">Booking ID</span>
+                        <span class="value" id="successBookingId">#BKG-00126</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Status</span>
+                        <span class="value" id="successStatus">Confirmed</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Payment</span>
+                        <span class="value" id="successPayment">Paid</span>
+                    </div>
+                </div>
+                <button class="btn-success-close" id="closeSuccessBtn">OK, Got it!</button>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p><i class="fa-solid fa-paw"></i> © 2026 PawCare Booking System — Paw Walker Grooming House</p>
+        </footer>
+
+    </main>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script>
+        // ===== SIDEBAR TOGGLE =====
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarClose = document.getElementById('sidebarClose');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+        if (menuToggle) menuToggle.addEventListener('click', openSidebar);
+        if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
+        if (overlay) overlay.addEventListener('click', closeSidebar);
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeSidebar();
+        });
+
+        // ===== LOGOUT =====
+        let modalCount = 0;
+
+        function lockBodyScroll() {
+            if (modalCount === 0) {
+                const sw = window.innerWidth - document.documentElement.clientWidth;
+                if (sw > 0) document.body.style.paddingRight = sw + 'px';
+                document.body.style.overflow = 'hidden';
+            }
+            modalCount++;
+        }
+
+        function unlockBodyScroll() {
+            modalCount--;
+            if (modalCount <= 0) {
+                modalCount = 0;
+                document.body.style.paddingRight = '';
+                document.body.style.overflow = '';
+            }
+        }
+
+        function showLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            if (modal) { lockBodyScroll();
+                modal.classList.add('active'); }
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            if (modal) { modal.classList.remove('active');
+                unlockBodyScroll(); }
+        }
+
+        function confirmLogout() {
+            localStorage.clear();
+            closeLogoutModal();
+            window.location.replace('index.html');
+        }
+
+        document.getElementById('notificationBtn')?.addEventListener('click', function() {
+            alert('No new notifications.');
+        });
+
+        // ===== SET DATE =====
+        function setCurrentDate() {
+            const now = new Date();
+            const options = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+            const el = document.getElementById('headerCurrentDate');
+            if (el) el.textContent = now.toLocaleDateString('en-US', options);
+        }
+        setCurrentDate();
+        document.getElementById('headerName').textContent = 'Admin';
+
+        // ===== BOOKING DATA =====
+        let bookingData = [{
+            id: '#BKG-00126',
+            customer: 'Jenny Lee',
+            phone: '012-345 6789',
+            pet: 'Buddy',
+            breed: 'Golden Retriever',
+            petEmoji: '🐕',
+            service: 'Grooming',
+            date: '16 May 2026, 10:00 AM',
+            status: 'Pending',
+            payment: 'Unpaid',
+            paymentClass: 'unpaid',
+            statusClass: 'pending'
+        }, {
+            id: '#BKG-00125',
+            customer: 'Ahmad Firdaus',
+            phone: '013-987 6543',
+            pet: 'Luna',
+            breed: 'Vaccination',
+            petEmoji: '🐈',
+            service: 'Vaccination',
+            date: '16 May 2026, 11:30 AM',
+            status: 'Confirmed',
+            payment: 'Paid',
+            paymentClass: 'paid',
+            statusClass: 'confirmed'
+        }, {
+            id: '#BKG-00124',
+            customer: 'Siti Nur',
+            phone: '011-254 6789',
+            pet: 'Max',
+            breed: 'Cat',
+            petEmoji: '🐈',
+            service: 'Boarding (1 Night)',
+            date: '16 May 2026, 02:00 PM',
+            status: 'Confirmed',
+            payment: 'Paid',
+            paymentClass: 'paid',
+            statusClass: 'confirmed'
+        }, {
+            id: '#BKG-00123',
+            customer: 'Daniel Tan',
+            phone: '017-456 7890',
+            pet: 'Coco',
+            breed: 'Poodle',
+            petEmoji: '🐩',
+            service: 'Check-up',
+            date: '16 May 2026, 04:00 PM',
+            status: 'Pending',
+            payment: 'Unpaid',
+            paymentClass: 'unpaid',
+            statusClass: 'pending'
+        }, {
+            id: '#BKG-00122',
+            customer: 'Mei Ling',
+            phone: '016-321 0987',
+            pet: 'Charlie',
+            breed: 'Shih Tzu',
+            petEmoji: '🐕',
+            service: 'Grooming',
+            date: '17 May 2026, 09:30 AM',
+            status: 'Completed',
+            payment: 'Paid',
+            paymentClass: 'paid',
+            statusClass: 'completed'
+        }, {
+            id: '#BKG-00121',
+            customer: 'Jason Ho',
+            phone: '019-876 5432',
+            pet: 'Bella',
+            breed: 'Beagle',
+            petEmoji: '🐕',
+            service: 'Boarding (2 Nights)',
+            date: '17 May 2026, 02:00 PM',
+            status: 'Completed',
+            payment: 'Paid',
+            paymentClass: 'paid',
+            statusClass: 'completed'
+        }, {
+            id: '#BKG-00120',
+            customer: 'Nur Aishah',
+            phone: '018-234 5678',
+            pet: 'Milo',
+            breed: 'Cat',
+            petEmoji: '🐈',
+            service: 'Grooming',
+            date: '18 May 2026, 10:00 AM',
+            status: 'Confirmed',
+            payment: 'Paid',
+            paymentClass: 'paid',
+            statusClass: 'confirmed'
+        }, {
+            id: '#BKG-00119',
+            customer: 'Farhan Rizal',
+            phone: '014-567 8901',
+            pet: 'Rocky',
+            breed: 'Husky',
+            petEmoji: '🐕',
+            service: 'Check-up',
+            date: '18 May 2026, 03:30 PM',
+            status: 'Cancelled',
+            payment: 'Refunded',
+            paymentClass: 'refunded',
+            statusClass: 'cancelled'
+        }];
+
+        // ===== UPDATED SERVICE MAP =====
+        const serviceMap = {
+            'pet-herb-spa': 'Pet Herb Spa',
+            'pet-transportation': 'Pet Transportation',
+            'boarding': 'Boarding',
+            'nail-care': 'Nail Care',
+            'de-shedding': 'De-shedding Treatment',
+            'haircut-styling': 'Haircut & Styling',
+            'full-grooming': 'Full Grooming Package',
+            'bath-blowdry': 'Bath & Blow Dry'
+        };
+
+        // ===== STATUS / PAYMENT MAPPING =====
+        const statusMap = {
+            'pending': { label: 'Pending', class: 'pending' },
+            'confirmed': { label: 'Confirmed', class: 'confirmed' },
+            'completed': { label: 'Completed', class: 'completed' },
+            'cancelled': { label: 'Cancelled', class: 'cancelled' }
+        };
+        const paymentMap = {
+            'unpaid': { label: 'Unpaid', class: 'unpaid' },
+            'paid': { label: 'Paid', class: 'paid' },
+            'refunded': { label: 'Refunded', class: 'refunded' }
+        };
+
+        // ===== RENDER TABLE =====
+        function renderBookings(data) {
+            const tbody = document.getElementById('bookingTableBody');
+            if (!data || data.length === 0) {
+                tbody.innerHTML =
+                    `<tr><td colspan="8" style="text-align:center; padding:30px; color:#7A7A7A;">No bookings found</td></tr>`;
+                document.getElementById('entriesInfo').textContent = 'Showing 0 entries';
+                return;
+            }
+
+            tbody.innerHTML = data.map(b => {
+                const initials = b.customer.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+                const custColors = ['#FDF3E7', '#E8F5E9', '#E3F2FD', '#FCE4EC', '#F3E5F5', '#FFF3E0', '#E0F7FA'];
+                const cIdx = b.customer.length % custColors.length;
+
+                const petColors = ['#FFF8E1', '#E8F5E9', '#E3F2FD', '#FCE4EC', '#F3E5F5', '#FFF3E0', '#E0F7FA'];
+                const pIdx = b.pet.length % petColors.length;
+
+                const statusInfo = statusMap[b.statusClass] || { label: b.status, class: 'pending' };
+                const paymentInfo = paymentMap[b.paymentClass] || { label: b.payment, class: 'unpaid' };
+
+                return `
+                <tr data-id="${b.id}">
+                    <td><strong>${b.id}</strong></td>
+                    <td>
+                        <div class="customer-cell">
+                            <div class="customer-avatar" style="background:${custColors[cIdx]};">
+                                ${initials}
+                            </div>
+                            <div class="customer-info">
+                                <span class="name">${b.customer}</span>
+                                <span class="phone">${b.phone}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="pet-cell">
+                            <div class="pet-avatar" style="background:${petColors[pIdx]};">
+                                ${b.petEmoji}
+                            </div>
+                            <div class="pet-info">
+                                <span class="pet-name">${b.pet}</span>
+                                <span class="pet-breed">${b.breed}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>${b.service}</td>
+                    <td>${b.date}</td>
+                    <td><span class="status-pill ${statusInfo.class}">${statusInfo.label}</span></td>
+                    <td><span class="badge-payment ${paymentInfo.class}">${paymentInfo.label}</span></td>
+                    <td>
+                        <div class="action-icons">
+                            <i class="fa-regular fa-eye view-btn" title="View"></i>
+                            <i class="fa-regular fa-pen-to-square edit-btn" title="Edit" data-id="${b.id}"></i>
+                            <i class="fa-regular fa-trash-can delete-btn" title="Delete"></i>
+                        </div>
+                    </td>
+                </tr>
+            `}).join('');
+
+            document.getElementById('entriesInfo').textContent =
+                `Showing 1 to ${data.length} of ${data.length} entries`;
+        }
+
+        // ===== VIEW MODAL =====
+        function openViewModal(bookingId) {
+            const booking = bookingData.find(b => b.id === bookingId);
+            if (!booking) return;
+
+            document.getElementById('viewBookingId').textContent = booking.id;
+            document.getElementById('viewCustomer').textContent = booking.customer;
+            document.getElementById('viewPhone').textContent = booking.phone;
+            document.getElementById('viewPet').textContent = `${booking.pet} (${booking.breed})`;
+            document.getElementById('viewService').textContent = booking.service;
+            document.getElementById('viewDateTime').textContent = booking.date;
+
+            const statusInfo = statusMap[booking.statusClass] || { label: booking.status, class: 'pending' };
+            document.getElementById('viewStatus').innerHTML =
+                `<span class="status-pill ${statusInfo.class}">${statusInfo.label}</span>`;
+
+            const paymentInfo = paymentMap[booking.paymentClass] || { label: booking.payment, class: 'unpaid' };
+            document.getElementById('viewPayment').innerHTML =
+                `<span class="badge-payment ${paymentInfo.class}">${paymentInfo.label}</span>`;
+
+            document.getElementById('viewModal').classList.add('active');
+            lockBodyScroll();
+        }
+
+        function closeViewModal() {
+            document.getElementById('viewModal').classList.remove('active');
+            unlockBodyScroll();
+        }
+
+        // ===== EDIT MODAL =====
+        let currentEditId = null;
+
+        function openEditModal(bookingId) {
+            const booking = bookingData.find(b => b.id === bookingId);
+            if (!booking) return;
+
+            currentEditId = bookingId;
+            document.getElementById('editBookingId').textContent = bookingId;
+            document.getElementById('editStatus').value = booking.statusClass;
+            document.getElementById('editPayment').value = booking.paymentClass;
+
+            document.getElementById('editModal').classList.add('active');
+            lockBodyScroll();
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+            unlockBodyScroll();
+            currentEditId = null;
+        }
+
+        // ===== SUCCESS MODAL =====
+        function showSuccessModal(bookingId, newStatus, newPayment) {
+            const statusInfo = statusMap[newStatus];
+            const paymentInfo = paymentMap[newPayment];
+
+            document.getElementById('successBookingId').textContent = bookingId;
+
+            const statusEl = document.getElementById('successStatus');
+            statusEl.textContent = statusInfo.label;
+            statusEl.className = 'value status-' + newStatus;
+
+            const paymentEl = document.getElementById('successPayment');
+            paymentEl.textContent = paymentInfo.label;
+            paymentEl.className = 'value payment-' + newPayment;
+
+            document.getElementById('successModal').classList.add('active');
+            lockBodyScroll();
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.remove('active');
+            unlockBodyScroll();
+        }
+
+        // ===== SAVE EDIT =====
+        function saveEditChanges() {
+            if (!currentEditId) return;
+
+            const newStatus = document.getElementById('editStatus').value;
+            const newPayment = document.getElementById('editPayment').value;
+
+            const booking = bookingData.find(b => b.id === currentEditId);
+            if (!booking) return;
+
+            const statusInfo = statusMap[newStatus];
+            const paymentInfo = paymentMap[newPayment];
+
+            booking.statusClass = newStatus;
+            booking.status = statusInfo.label;
+            booking.paymentClass = newPayment;
+            booking.payment = paymentInfo.label;
+
+            closeEditModal();
+            applyFilters();
+            showSuccessModal(currentEditId, newStatus, newPayment);
+        }
+
+        // ===== FILTER FUNCTION =====
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const serviceFilter = document.getElementById('serviceFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            let filtered = bookingData.filter(b => {
+                if (searchTerm) {
+                    const match = b.id.toLowerCase().includes(searchTerm) ||
+                        b.customer.toLowerCase().includes(searchTerm) ||
+                        b.pet.toLowerCase().includes(searchTerm);
+                    if (!match) return false;
+                }
+
+                if (serviceFilter !== 'all') {
+                    // Map the filter value to the actual service name
+                    const serviceName = serviceMap[serviceFilter];
+                    if (serviceName && !b.service.includes(serviceName)) return false;
+                    // Fallback for backward compatibility
+                    if (!serviceName && !b.service.includes(serviceFilter)) return false;
+                }
+
+                if (statusFilter !== 'all') {
+                    if (b.statusClass !== statusFilter) return false;
+                }
+
+                if (startDate || endDate) {
+                    const bookingDateStr = b.date.split(',')[0].trim();
+                    const monthMap = { 'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
+                        'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12' };
+                    const parts = bookingDateStr.split(' ');
+                    const day = parts[0].padStart(2, '0');
+                    const month = monthMap[parts[1]] || '01';
+                    const year = parts[2] || '2026';
+                    const bookingDate = `${year}-${month}-${day}`;
+
+                    if (startDate && bookingDate < startDate) return false;
+                    if (endDate && bookingDate > endDate) return false;
+                }
+
+                return true;
+            });
+
+            renderBookings(filtered);
+        }
+
+        // ===== CLEAR FILTERS =====
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('serviceFilter').value = 'all';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('startDate').value = '2026-05-01';
+            document.getElementById('endDate').value = '2026-05-31';
+            renderBookings(bookingData);
+        }
+
+        // ===== EVENT LISTENERS =====
+        document.getElementById('applyFilterBtn').addEventListener('click', applyFilters);
+        document.getElementById('clearFilterBtn').addEventListener('click', clearFilters);
+
+        document.getElementById('searchInput').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') applyFilters();
+        });
+
+        document.getElementById('serviceFilter').addEventListener('change', applyFilters);
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        document.getElementById('startDate').addEventListener('change', applyFilters);
+        document.getElementById('endDate').addEventListener('change', applyFilters);
+
+        // View modal events
+        document.getElementById('closeViewModal').addEventListener('click', closeViewModal);
+        document.getElementById('closeViewBtn').addEventListener('click', closeViewModal);
+        document.getElementById('viewModal').addEventListener('click', function(e) {
+            if (e.target === this) closeViewModal();
+        });
+
+        // Edit modal events
+        document.getElementById('closeEditModal').addEventListener('click', closeEditModal);
+        document.getElementById('cancelEditBtn').addEventListener('click', closeEditModal);
+        document.getElementById('saveEditBtn').addEventListener('click', saveEditChanges);
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEditModal();
+        });
+
+        // Success modal events
+        document.getElementById('closeSuccessBtn').addEventListener('click', closeSuccessModal);
+        document.getElementById('successModal').addEventListener('click', function(e) {
+            if (e.target === this) closeSuccessModal();
+        });
+
+        // Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (document.getElementById('viewModal').classList.contains('active')) closeViewModal();
+                if (document.getElementById('editModal').classList.contains('active')) closeEditModal();
+                if (document.getElementById('successModal').classList.contains('active')) closeSuccessModal();
+            }
+        });
+
+        // ===== ACTION ICON CLICK =====
+        document.addEventListener('click', function(e) {
+            const icon = e.target.closest('.action-icons i');
+            if (!icon) return;
+            const row = icon.closest('tr');
+            const id = row?.querySelector('td:first-child strong')?.textContent || 'Unknown';
+
+            if (icon.classList.contains('view-btn')) {
+                openViewModal(id);
+            } else if (icon.classList.contains('edit-btn')) {
+                openEditModal(id);
+            } else if (icon.classList.contains('delete-btn')) {
+                if (confirm(`Are you sure you want to delete ${id}?`)) {
+                    bookingData = bookingData.filter(b => b.id !== id);
+                    applyFilters();
+                    const modal = document.getElementById('successModal');
+                    document.querySelector('#successModal h3').textContent = 'Booking Deleted!';
+                    document.querySelector('#successModal .success-subtitle').textContent =
+                        'The booking has been successfully removed.';
+                    document.getElementById('successBookingId').textContent = id;
+                    document.getElementById('successStatus').textContent = 'Deleted';
+                    document.getElementById('successStatus').className = 'value status-cancelled';
+                    document.getElementById('successPayment').textContent = 'N/A';
+                    document.getElementById('successPayment').className = 'value';
+                    modal.classList.add('active');
+                    lockBodyScroll();
+                    document.getElementById('closeSuccessBtn').addEventListener('click', function reset() {
+                        document.querySelector('#successModal h3').textContent = 'Booking Updated!';
+                        document.querySelector('#successModal .success-subtitle').textContent =
+                            'The booking has been successfully updated.';
+                        document.getElementById('closeSuccessBtn').removeEventListener('click', reset);
+                    });
+                }
+            }
+        });
+
+        // ===== INIT =====
+        renderBookings(bookingData);
+        console.log('PawCare Admin Booking Management (Updated Services dropdown) loaded.');
+    </script>
+
+</body>
+</html>

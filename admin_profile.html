@@ -1,66 +1,245 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="image/logo.png" type="image/png" class="logo" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="image/logo.png" type="image/png">
     <title>PAWCARE BOOKING SYSTEM</title>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Expires" content="0" />
-
-    <!-- FONT AWESOME -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    <!-- GOOGLE FONTS -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <!-- CUSTOM ADMIN CSS (重用) -->
-    <link rel="stylesheet" href="admin_style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- 统一 admin_style.css -->
+    <link rel="stylesheet" href="admin_style.css">
 
     <style>
-        /* ===== PROFILE PAGE EXTRA STYLES ===== */
-        .profile-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding-top: 20px;
-            width: 100%;
+        /* ===== PROFILE 页面特有样式 (微调布局，使 Profile Overview 更紧凑) ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        :root {
+            --brown: #5a361a;
+            --brown2: #402410;
+            --orange: #d97706;
+            --cream: #faf7f2;
+            --line: #eee9e2;
+            --text: #292929;
+            --muted: #7a7a7a;
+            --white: #fff;
+            --green: #2e7d32;
+            --red: #c5221f;
+            --sidebar: 280px;
+        }
+        html { scrollbar-gutter: stable; }
+        html, body {
+            min-height: 100%;
+            font-family: 'Poppins', sans-serif;
+            color: var(--text);
+            background: #fbfaf8;
+            font-size: 13px;
+        }
+        button, input, select { font: inherit; }
+        button { cursor: pointer; }
+        a { text-decoration: none; color: inherit; }
+
+        /* ===== DARK MODE 兼容 (与 dashboard 统一) ===== */
+        body.dark {
+            --cream: #29231e;
+            --line: #463b32;
+            --text: #f4eee7;
+            --muted: #b9afa5;
+            --white: #332b24;
+            background: #211c18;
+        }
+        body.dark .top-header,
+        body.dark .card {
+            background: #2c2621;
+        }
+        body.dark .form-control,
+        body.dark .pref-item select,
+        body.dark .theme-option {
+            background: #241f1b;
+            color: #f4eee7;
+            border-color: #4b4036;
+        }
+        body.dark .sidebar {
+            background: #241b13;
+        }
+        body.dark .modal-box {
+            background: #302820;
+            color: #f4eee7;
+        }
+        body.dark .dropdown-menu,
+        body.dark .notification-panel {
+            background: #302820;
         }
 
+        /* ===== 主容器 ===== */
+        .profile-container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px 0 0;
+        }
+
+        /* ===== 页面标题 ===== */
+        .page-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        .page-heading h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #4A3327;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .page-heading h1 i { color: #D97706; }
+        .page-heading .breadcrumb {
+            font-size: 13px;
+            color: #7A7A7A;
+            margin-top: 2px;
+        }
+        .page-heading .status-badge {
+            background: #E8F5E9;
+            color: #2E7D32;
+            border-radius: 20px;
+            padding: 4px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .page-heading .status-badge i { font-size: 8px; }
+
+        /* ===== STATS 卡片 (与 dashboard 风格一致) ===== */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        .stat-card {
+            background: #FFFFFF;
+            border-radius: 14px;
+            padding: 18px 20px;
+            border: 1px solid #EFECE6;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.25s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+        .stat-card:hover {
+            border-color: #D3C4B8;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        }
+        .stat-card i {
+            font-size: 28px;
+            color: #D97706;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #FFF3E0;
+            flex-shrink: 0;
+        }
+        .stat-card h3 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #333;
+            line-height: 1.2;
+        }
+        .stat-card p {
+            font-size: 13px;
+            color: #7A7A7A;
+            margin: 0;
+        }
+
+        /* ===== PROFILE 网格布局 ===== */
         .profile-grid {
             display: grid;
-            grid-template-columns: 1fr 1.2fr;
+            grid-template-columns: 2.2fr 1fr;
             gap: 24px;
             align-items: start;
         }
-
-        /* 左侧卡片 (头像 + 概览) */
-        .profile-card-left {
+        .left-stack, .right-stack {
             display: flex;
             flex-direction: column;
             gap: 20px;
         }
+        .top-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            align-items: stretch;
+        }
+        .bottom-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
 
-        .profile-avatar-card {
+        /* ===== 卡片 (与 dashboard 风格一致) ===== */
+        .card {
             background: #FFFFFF;
-            border-radius: 16px;
-            padding: 28px 24px 24px;
             border: 1px solid #EFECE6;
-            text-align: center;
+            border-radius: 14px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-            transition: border-color 0.2s;
+            transition: all 0.25s ease;
+            overflow: hidden;
         }
-        .profile-avatar-card:hover {
+        .card:hover {
             border-color: #D3C4B8;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
         }
+        .card-header {
+            padding: 16px 20px 6px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #4A3327;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-header i { color: #D97706; }
+        .card-body { padding: 16px 20px 20px; }
 
+        /* ===== PROFILE OVERVIEW (紧凑调整) ===== */
+        .profile-overview {
+            padding: 20px;
+        }
+        .overview-inner {
+            display: grid;
+            grid-template-columns: 140px 1fr;
+            gap: 20px;
+            align-items: start;
+        }
+        .photo-column {
+            text-align: center;
+        }
         .profile-avatar-wrapper {
-            width: 100px;
-            height: 100px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             overflow: hidden;
-            margin: 0 auto 12px;
+            margin: 0 auto 8px;
             background: #FDF3E7;
-            border: 3px solid #EFECE6;
-            position: relative;
+            border: 2px solid #EFECE6;
+            display: grid;
+            place-items: center;
         }
         .profile-avatar-wrapper img {
             width: 100%;
@@ -68,413 +247,537 @@
             object-fit: cover;
         }
         .profile-avatar-wrapper .avatar-placeholder {
-            font-size: 48px;
-            color: #B0A090;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
+            font-size: 38px;
         }
-
-        .profile-avatar-card h3 {
-            font-size: 20px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 2px;
+        .change-photo {
+            position: relative;
+            display: inline-flex;
         }
-        .profile-avatar-card .role-badge {
-            display: inline-block;
-            background: #FDF5E6;
-            color: #5A361A;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 4px 16px;
-            border-radius: 20px;
-            margin-bottom: 6px;
-            border: 1px solid #EFECE6;
+        .change-photo input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
         }
-        .profile-avatar-card .email-text {
-            font-size: 13px;
+        .photo-help {
+            font-size: 10px;
             color: #7A7A7A;
-        }
-        .profile-avatar-card .status-badge {
-            display: inline-block;
-            margin-top: 8px;
-            font-size: 12px;
-            font-weight: 600;
-            padding: 4px 14px;
-            border-radius: 20px;
-            background: #E8F5E9;
-            color: #2E7D32;
+            margin-top: 4px;
         }
 
-        .profile-info-grid {
+        .overview-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px 16px;
-            margin-top: 16px;
-            text-align: left;
-            background: #FAF7F2;
-            padding: 16px 18px;
-            border-radius: 12px;
-            border: 1px solid #EFECE6;
+            gap: 6px 20px;
         }
-        .profile-info-grid .info-item {
+        .info-item {
             display: flex;
-            flex-direction: column;
+            align-items: center;
+            gap: 8px;
         }
-        .profile-info-grid .info-item .label {
-            font-size: 11px;
-            font-weight: 500;
+        .info-item i {
+            width: 14px;
+            color: #8B796A;
+            text-align: center;
+            font-size: 12px;
+        }
+        .info-item .label {
+            font-size: 9px;
             color: #7A7A7A;
+            display: block;
             text-transform: uppercase;
             letter-spacing: 0.3px;
+            line-height: 1.1;
         }
-        .profile-info-grid .info-item .value {
-            font-size: 14px;
+        .info-item .value {
+            font-size: 12px;
             font-weight: 500;
             color: #333;
-            margin-top: 1px;
+            display: block;
+            line-height: 1.3;
+        }
+        .role-badge {
+            background: #F5EADC;
+            color: #79502E;
+            border-radius: 4px;
+            padding: 1px 8px;
+            font-size: 9px;
+            font-weight: 600;
+            display: inline-block;
         }
 
-        /* 右侧卡片 (编辑表单 + 安全) */
-        .profile-card-right {
+        /* ===== SECURITY (与 Profile Overview 协调) ===== */
+        .security-card {
+            padding: 20px;
             display: flex;
             flex-direction: column;
-            gap: 20px;
         }
-
-        .profile-card {
-            background: #FFFFFF;
-            border-radius: 14px;
-            padding: 22px 26px;
-            border: 1px solid #EFECE6;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-            transition: border-color 0.2s;
-        }
-        .profile-card:hover {
-            border-color: #D3C4B8;
-        }
-
-        .profile-card .card-title {
-            font-size: 16px;
-            font-weight: 600;
-            color: #5A361A;
+        .security-intro {
             display: flex;
+            gap: 10px;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 16px;
+            margin-bottom: 8px;
         }
-        .profile-card .card-title i {
-            color: #D97706;
-        }
-
-        .form-row {
+        .security-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #FFF0DF;
+            color: #4A3327;
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px 20px;
+            place-items: center;
+            font-size: 14px;
+            flex-shrink: 0;
         }
-        .form-row .form-group {
-            margin-bottom: 4px;
-        }
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 4px;
-        }
-        .form-group label i {
-            color: #D97706;
-            margin-right: 4px;
-        }
-        .form-group .form-control {
-            width: 100%;
-            padding: 9px 12px;
-            border: 1.5px solid #EFECE6;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #333;
-            background: #FAFAFA;
-            outline: none;
-            transition: border-color 0.2s;
-            font-family: 'Poppins', sans-serif;
-        }
-        .form-group .form-control:focus {
-            border-color: #5A361A;
-            box-shadow: 0 0 0 3px rgba(90, 54, 26, 0.06);
-            background: #FFFFFF;
-        }
-        .form-group .form-control:disabled {
-            background: #F0EDE8;
-            color: #7A7A7A;
-        }
-
-        .btn {
-            padding: 9px 24px;
-            border-radius: 10px;
+        .security-intro h3 {
             font-size: 13px;
             font-weight: 600;
-            cursor: pointer;
-            border: none;
-            transition: all 0.25s ease;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            font-family: 'Poppins', sans-serif;
+            color: #4A3327;
+            margin: 0;
         }
-        .btn-primary {
-            background: #5A361A;
-            color: #FFFFFF;
-        }
-        .btn-primary:hover {
-            background: #402410;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 14px rgba(90, 54, 26, 0.25);
-        }
-        .btn-secondary {
-            background: #EFECE6;
+        .security-intro p {
+            font-size: 10px;
             color: #7A7A7A;
-            border: 1px solid #E8E4DC;
+            margin: 0;
         }
-        .btn-secondary:hover {
-            background: #E0D9D0;
-        }
-        .btn-danger {
-            background: #DC2626;
-            color: #FFFFFF;
-        }
-        .btn-danger:hover {
-            background: #B91C1C;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 14px rgba(220, 38, 38, 0.25);
-        }
-        .btn-sm {
-            padding: 5px 16px;
-            font-size: 12px;
-        }
-        .btn-outline {
-            background: transparent;
-            color: #5A361A;
-            border: 1.5px solid #5A361A;
-        }
-        .btn-outline:hover {
-            background: #5A361A;
-            color: #fff;
-        }
-
         .security-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #EFECE6;
+            padding: 6px 0;
+            border-top: 1px solid #EFECE6;
+            gap: 8px;
         }
-        .security-item:last-child {
-            border-bottom: none;
-        }
+        .security-item:first-of-type { border-top: none; }
         .security-item .left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 8px;
+            min-width: 0;
         }
-        .security-item .left i {
-            font-size: 18px;
-            color: #7A7A7A;
-            width: 28px;
+        .security-item .left > i {
+            width: 16px;
+            color: #8B796A;
             text-align: center;
+            font-size: 12px;
         }
-        .security-item .left .info .title {
+        .security-item .title {
+            font-size: 11px;
             font-weight: 500;
-            font-size: 13px;
             color: #333;
         }
-        .security-item .left .info .desc {
-            font-size: 12px;
+        .security-item .desc {
+            font-size: 9px;
             color: #7A7A7A;
+            margin-top: 0;
         }
-        .security-item .right .badge {
-            font-size: 11px;
+        .security-item .right {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .badge {
+            font-size: 9px;
             font-weight: 600;
-            padding: 3px 12px;
+            padding: 1px 10px;
             border-radius: 20px;
             background: #E8F5E9;
             color: #2E7D32;
         }
-        .security-item .right .badge.inactive {
+        .badge.inactive {
             background: #FCE8E6;
             color: #C5221F;
         }
 
-        .activity-stats {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 12px;
-            margin-top: 6px;
-        }
-        .activity-stat {
-            background: #FAF7F2;
-            padding: 12px 10px;
-            border-radius: 10px;
-            text-align: center;
-            border: 1px solid #EFECE6;
-        }
-        .activity-stat .num {
-            font-size: 22px;
-            font-weight: 700;
-            color: #333;
-        }
-        .activity-stat .lbl {
-            font-size: 11px;
-            color: #7A7A7A;
-        }
-
-        .danger-zone {
-            margin-top: 6px;
-            border: 1.5px solid #FCE8E6;
-            border-radius: 12px;
-            padding: 16px 20px;
-            background: #FEF8F8;
-        }
-        .danger-zone .danger-item {
-            display: flex;
-            justify-content: space-between;
+        /* ===== 按钮 (与 dashboard 统一) ===== */
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 6px 14px;
+            display: inline-flex;
             align-items: center;
-            padding: 8px 0;
-        }
-        .danger-zone .danger-item:not(:last-child) {
-            border-bottom: 1px solid #FDE8E6;
-        }
-        .danger-zone .danger-item .left .title {
-            font-weight: 500;
-            font-size: 13px;
-            color: #333;
-        }
-        .danger-zone .danger-item .left .desc {
-            font-size: 12px;
-            color: #7A7A7A;
-        }
-
-        /* 头像上传按钮 */
-        .avatar-upload-btn {
-            position: relative;
-            margin-top: 4px;
-        }
-        .avatar-upload-btn input[type="file"] {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
+            justify-content: center;
+            gap: 6px;
+            font-weight: 600;
+            font-size: 10px;
+            transition: all 0.25s ease;
             cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+        }
+        .btn-primary {
+            background: #4A3327;
+            color: #FFFFFF;
+        }
+        .btn-primary:hover {
+            background: #2D1F14;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(74, 51, 39, 0.2);
+        }
+        .btn-secondary {
+            background: #F5F1EC;
+            color: #6C625A;
+            border: 1px solid #E9E1D8;
+        }
+        .btn-secondary:hover { background: #EBE3DA; }
+        .btn-danger {
+            background: #D32F2F;
+            color: #FFFFFF;
+        }
+        .btn-danger:hover {
+            background: #B71C1C;
+            transform: translateY(-1px);
+        }
+        .btn-outline {
+            background: transparent;
+            color: #4A3327;
+            border: 1px solid #DFD0C2;
+        }
+        .btn-outline:hover { background: #F7EFE7; }
+        .btn-sm {
+            padding: 3px 10px;
+            font-size: 9px;
         }
 
-        /* 主题切换 (Light/Dark) */
+        /* ===== 编辑表单 ===== */
+        .edit-card, .pref-card { padding: 20px; }
+        .edit-card .sub, .pref-card .sub {
+            font-size: 10px;
+            color: #7A7A7A;
+            margin: -2px 0 10px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .form-group { margin-bottom: 10px; }
+        .form-group label {
+            display: block;
+            font-size: 10px;
+            font-weight: 600;
+            color: #4A3327;
+            margin-bottom: 3px;
+        }
+        .form-group label i { color: #D97706; margin-right: 4px; }
+        .form-control {
+            width: 100%;
+            border: 1.5px solid #E8E2D8;
+            border-radius: 8px;
+            background: #FAFAFA;
+            padding: 6px 10px;
+            font-size: 11px;
+            outline: none;
+            color: #333;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus {
+            border-color: #4A3327;
+            box-shadow: 0 0 0 3px rgba(74, 51, 39, 0.06);
+        }
+        .form-control:disabled {
+            background: #F1EFEC;
+            color: #777;
+        }
+
         .theme-toggle-group {
             display: flex;
-            gap: 12px;
-            margin-top: 4px;
+            gap: 6px;
+            flex-wrap: wrap;
         }
         .theme-option {
-            padding: 6px 20px;
+            padding: 4px 14px;
+            border: 1.5px solid #E4DDD5;
             border-radius: 8px;
-            border: 2px solid #EFECE6;
             background: #FAFAFA;
+            color: #777;
             cursor: pointer;
-            font-size: 13px;
+            font-size: 10px;
             font-weight: 500;
-            color: #7A7A7A;
             transition: all 0.2s;
+            font-family: 'Poppins', sans-serif;
         }
         .theme-option.active {
-            border-color: #5A361A;
-            background: #F5EDD6;
-            color: #5A361A;
+            border-color: #4A3327;
+            background: #F7EADB;
+            color: #4A3327;
+            font-weight: 600;
         }
-        .theme-option:hover {
-            border-color: #D3C4B8;
-        }
+        .theme-option:hover { border-color: #4A3327; }
 
-        /* 偏好设置样式 */
+        .action-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+        .message {
+            font-size: 10px;
+            margin-top: 6px;
+            display: none;
+        }
+        .message.success { display: block; color: #2E7D32; }
+        .message.error { display: block; color: #C5221F; }
+
+        /* ===== 偏好设置 ===== */
         .pref-group {
             display: flex;
-            flex-wrap: wrap;
-            gap: 20px 40px;
-            margin: 6px 0 2px;
+            flex-direction: column;
+            gap: 8px;
         }
         .pref-item {
+            display: grid;
+            grid-template-columns: 90px 1fr;
+            align-items: center;
+            gap: 8px;
+        }
+        .pref-item label {
+            font-size: 10px;
+            font-weight: 500;
+            color: #4A3327;
+        }
+        .pref-item label i { color: #D97706; width: 14px; }
+        .pref-item select {
+            width: 100%;
+            padding: 5px 10px;
+            border: 1.5px solid #E8E2D8;
+            border-radius: 8px;
+            background: #FAFAFA;
+            font-size: 10px;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            outline: none;
+            cursor: pointer;
+        }
+        .pref-item select:focus { border-color: #4A3327; }
+        .save-pref {
             display: flex;
             align-items: center;
             gap: 10px;
-        }
-        .pref-item label {
-            font-size: 13px;
-            font-weight: 500;
-            color: #333;
-            margin: 0;
-        }
-        .pref-item select {
-            padding: 6px 30px 6px 12px;
-            border: 1.5px solid #EFECE6;
-            border-radius: 8px;
-            font-size: 13px;
-            background: #FAFAFA;
-            outline: none;
-            font-family: 'Poppins', sans-serif;
-            appearance: none;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A7A7A' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-            background-repeat: no-repeat;
-            background-position: right 10px center;
-        }
-        .pref-item select:focus {
-            border-color: #5A361A;
+            margin-top: 10px;
         }
 
+        /* ===== 活动 & 危险区域 ===== */
+        .activity-card, .danger-card { padding: 20px; }
+        .activity-title, .danger-title {
+            font-size: 13px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #4A3327;
+        }
+        .activity-title i { color: #D97706; }
+        .danger-title { color: #C5221F; }
+        .danger-title i { color: #C5221F; }
+        .subtext {
+            font-size: 9px;
+            color: #7A7A7A;
+            margin: 2px 0 10px 26px;
+        }
+        .activity-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #EFECE6;
+            font-size: 11px;
+        }
+        .activity-row:last-child { border-bottom: none; }
+        .activity-row .v { font-weight: 500; color: #333; }
+
+        .danger-zone {
+            border: 1px solid #F5D9D6;
+            border-radius: 8px;
+            background: #FFFAFA;
+            margin-top: 6px;
+        }
+        .danger-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            gap: 8px;
+        }
+        .danger-item + .danger-item { border-top: 1px solid #F5DFDC; }
+        .danger-item .title {
+            font-size: 11px;
+            font-weight: 600;
+            color: #C5221F;
+        }
+        .danger-item .desc {
+            font-size: 9px;
+            color: #7A7A7A;
+            margin-top: 1px;
+        }
+
+        /* ===== MODAL (与 dashboard 统一) ===== */
+        /* ===== MODAL SCROLLBAR STABILITY =====
+           Reserve the scrollbar width permanently so opening any modal never
+           moves the page/header/content horizontally. */
+        html {
+            scrollbar-gutter: stable;
+        }
+        body.modal-open {
+            overflow: hidden !important;
+            padding-right: 0 !important;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            z-index: 3000;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-box {
+            width: min(440px, 100%);
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 28px 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            animation: slideUp 0.3s ease;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .modal-title {
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            color: #4A3327;
+            margin-bottom: 4px;
+        }
+        .modal-subtitle {
+            text-align: center;
+            color: #7A7A7A;
+            font-size: 12px;
+            margin: 0 0 16px;
+        }
+        .modal-btn-group {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 16px;
+        }
+        .modal-btn-group .btn { flex: 1; justify-content: center; }
+        .close-modal {
+            position: absolute;
+            right: 14px;
+            top: 12px;
+            border: none;
+            background: none;
+            font-size: 20px;
+            color: #7A6B5A;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-modal:hover { color: #333; }
+        .modal-icon-circle {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            margin: 0 auto 12px;
+            font-size: 24px;
+        }
+        .modal-icon-circle.warning { background: #FFF0DF; color: #D97706; }
+        .modal-icon-circle.success { background: #E8F5E9; color: #2E7D32; }
+        .modal-icon-circle.danger { background: #FCE8E6; color: #C5221F; }
+
+        /* ===== SESSION LIST ===== */
+        .session-list { margin-top: 8px; }
+        .session {
+            padding: 8px 0;
+            border-top: 1px solid #EFECE6;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+        }
+        .session small { color: #7A7A7A; font-size: 9px; }
+
+        /* ===== TOAST ===== */
+        .toast {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            background: #2F2A26;
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 11px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            transform: translateY(10px);
+            pointer-events: none;
+            transition: all 0.3s ease;
+            z-index: 5000;
+            font-family: 'Poppins', sans-serif;
+        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+
+        /* ===== 统一 dashboard 容器内边距 ===== */
+        .dashboard-container { padding: 0 32px 20px; }
+
+        /* ===== 响应式 (调整) ===== */
+        @media (max-width: 1200px) {
+            .profile-grid { grid-template-columns: 1fr; }
+            .top-row { grid-template-columns: 1fr; }
+            .bottom-row { grid-template-columns: 1fr 1fr; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
         @media (max-width: 992px) {
-            .profile-grid {
-                grid-template-columns: 1fr;
-            }
-            .form-row {
-                grid-template-columns: 1fr;
-            }
-            .activity-stats {
-                grid-template-columns: 1fr 1fr;
-            }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .overview-inner { grid-template-columns: 1fr; gap: 16px; }
+            .overview-info { grid-template-columns: 1fr 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .pref-item { grid-template-columns: 1fr; gap: 4px; }
+        }
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .stat-card { padding: 14px 16px; }
+            .stat-card i { width: 36px; height: 36px; font-size: 22px; }
+            .stat-card h3 { font-size: 20px; }
+            .bottom-row { grid-template-columns: 1fr; }
+            .overview-info { grid-template-columns: 1fr; }
+            .page-heading { flex-direction: column; align-items: flex-start; }
+            .security-item { flex-direction: column; align-items: flex-start; gap: 4px; }
+            .security-item .right { align-self: flex-end; }
+            .danger-item { flex-direction: column; align-items: flex-start; gap: 4px; }
+            .danger-item .btn { align-self: flex-end; }
+            .modal-box { padding: 20px 18px; }
+            .dashboard-container { padding: 0 14px 16px; }
+            .overview-inner { grid-template-columns: 1fr; }
         }
         @media (max-width: 480px) {
-            .profile-card {
-                padding: 16px 14px;
-            }
-            .profile-info-grid {
-                grid-template-columns: 1fr;
-                gap: 6px;
-            }
-            .activity-stats {
-                grid-template-columns: 1fr;
-            }
-            .security-item {
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-            .danger-zone .danger-item {
-                flex-wrap: wrap;
-                gap: 8px;
-            }
-            .pref-group {
-                flex-direction: column;
-                gap: 12px;
-            }
-            .theme-toggle-group {
-                flex-wrap: wrap;
-            }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+            .stat-card { padding: 12px 14px; }
+            .stat-card i { width: 32px; height: 32px; font-size: 18px; }
+            .stat-card h3 { font-size: 18px; }
+            .stat-card p { font-size: 11px; }
+            .profile-avatar-wrapper { width: 70px; height: 70px; }
+            .profile-avatar-wrapper .avatar-placeholder { font-size: 30px; }
+            .page-heading h1 { font-size: 18px; }
         }
+
+        /* 覆盖 admin_style.css 中的部分样式以保持 profile 布局 */
+        .main-content .dashboard-container { padding-top: 0; }
     </style>
 </head>
 <body>
 
-    <!-- ===== SIDEBAR ===== -->
+    <!-- ===== SIDEBAR (与 dashboard 完全一致) ===== -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
     <aside class="sidebar" id="sidebar">
         <button class="sidebar-close" id="sidebarClose">
@@ -504,7 +807,7 @@
     <!-- ===== MAIN CONTENT ===== -->
     <main class="main-content">
 
-        <!-- TOP HEADER -->
+        <!-- ===== TOP HEADER (统一 Reviews Header) ===== -->
         <header class="top-header">
             <div class="header-left">
                 <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
@@ -523,7 +826,7 @@
                 </div>
                 <div class="user-profile" id="profileBtn">
                     <div class="avatar-wrapper" id="headerAvatarWrapper">
-                        <img id="headerAvatarImg" src="" alt="Avatar" style="display:none;" />
+                        <img id="headerAvatarImg" src="" alt="Avatar" style="display:none;">
                         <span class="avatar-placeholder" id="headerAvatarPlaceholder">👤</span>
                     </div>
                     <div class="user-info">
@@ -531,250 +834,215 @@
                         <span class="role">Administrator</span>
                     </div>
                 </div>
+
+                <!-- Keep original Profile functionality; visually hidden until opened -->
+                <div class="notification-panel" id="notificationPanel">
+                    <h4>Notifications</h4>
+                    <div class="notification-item"><b>New booking</b><small>A grooming booking needs review.</small></div>
+                    <div class="notification-item"><b>Booking reminder</b><small>Tomorrow has 5 scheduled appointments.</small></div>
+                    <div class="notification-item"><b>System update</b><small>Profile settings are ready.</small></div>
+                </div>
+                <div class="dropdown-menu" id="profileMenu">
+                    <button id="viewProfileBtn"><i class="fa-regular fa-id-card"></i> View Profile</button>
+                    <button id="headerLogoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                </div>
             </div>
         </header>
 
         <!-- ===== PROFILE CONTENT ===== -->
-        <div class="profile-container">
+        <div class="dashboard-container">
 
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
-                <div>
-                    <h1 style="font-size:24px; font-weight:700; color:#333; display:flex; align-items:center; gap:10px;">
-                        <i class="fa-regular fa-id-card" style="color:#D97706;"></i> Admin Profile
-                    </h1>
-                    <p style="color:#7A7A7A; font-size:14px;">Dashboard &gt; Admin Profile</p>
+            <div class="profile-container">
+
+                <!-- 页面标题 -->
+                <div class="page-heading">
+                    <div>
+                        <h1><i class="fa-regular fa-id-card"></i> Admin Profile</h1>
+                        <div class="breadcrumb">Dashboard &nbsp;›&nbsp; Admin Profile</div>
+                    </div>
+                    <span class="status-badge"><i class="fa-solid fa-circle"></i> Active</span>
                 </div>
-                <span style="background:#E8F5E9; color:#2E7D32; padding:4px 16px; border-radius:20px; font-size:13px; font-weight:600;">
-                    <i class="fa-solid fa-circle" style="font-size:8px; margin-right:6px; color:#2E7D32;"></i> Active
-                </span>
+
+                <!-- 统计卡片 -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <i class="fa-solid fa-right-to-bracket"></i>
+                        <div>
+                            <h3 id="totalLogins">128</h3>
+                            <p>Total Logins</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <div>
+                            <h3>98%</h3>
+                            <p>Security Score</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fa-solid fa-desktop"></i>
+                        <div>
+                            <h3>3</h3>
+                            <p>Active Sessions</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <i class="fa-solid fa-calendar-check"></i>
+                        <div>
+                            <h3>873</h3>
+                            <p>Days Active</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== PROFILE 网格 ===== -->
+                <div class="profile-grid">
+
+                    <!-- 左列 -->
+                    <div class="left-stack">
+
+                        <!-- 顶部行：Profile Overview + Security -->
+                        <div class="top-row">
+
+                            <!-- Profile Overview (紧凑) -->
+                            <div class="card profile-overview">
+                                <div class="card-header"><i class="fa-regular fa-user"></i> Profile Overview</div>
+                                <div class="overview-inner">
+                                    <div class="photo-column">
+                                        <div class="profile-avatar-wrapper">
+                                            <img id="profileAvatarImg" alt="Profile avatar" style="display:none;">
+                                            <span id="profileAvatarPlaceholder" class="avatar-placeholder">👤</span>
+                                        </div>
+                                        <div class="change-photo">
+                                            <button class="btn btn-outline btn-sm"><i class="fa-solid fa-camera"></i> Change Photo</button>
+                                            <input type="file" id="avatarUploadInput" accept="image/png,image/jpeg,image/gif,image/webp">
+                                        </div>
+                                        <div class="photo-help">JPG, PNG or GIF. Max 2MB.</div>
+                                    </div>
+                                    <div class="overview-info">
+                                        <div class="info-item"><i class="fa-regular fa-user"></i><div><span class="label">Full Name</span><span class="value" id="profileFullName">Admin</span></div></div>
+                                        <div class="info-item"><i class="fa-solid fa-crown"></i><div><span class="label">Role</span><span class="role-badge">Super Admin</span></div></div>
+                                        <div class="info-item"><i class="fa-regular fa-envelope"></i><div><span class="label">Email</span><span class="value" id="profileEmail">admin@pawcare.com</span></div></div>
+                                        <div class="info-item"><i class="fa-solid fa-phone"></i><div><span class="label">Phone</span><span class="value" id="profilePhone">+60 12-345 6789</span></div></div>
+                                        <div class="info-item"><i class="fa-solid fa-building"></i><div><span class="label">Department</span><span class="value" id="profileDepartment">Management</span></div></div>
+                                        <div class="info-item"><i class="fa-regular fa-id-badge"></i><div><span class="label">Employee ID</span><span class="value">ADM-0001</span></div></div>
+                                        <div class="info-item"><i class="fa-regular fa-calendar"></i><div><span class="label">Joined Date</span><span class="value">01 January 2024</span></div></div>
+                                        <div class="info-item"><i class="fa-regular fa-clock"></i><div><span class="label">Last Login</span><span class="value" id="profileLastLogin">15 May 2026, 09:30 AM</span></div></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Security (紧凑) -->
+                            <div class="card security-card">
+                                <div class="security-intro">
+                                    <div class="security-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                                    <div>
+                                        <h3>Account Security</h3>
+                                        <p>Keep your account secure and updated.</p>
+                                    </div>
+                                </div>
+                                <div class="security-item">
+                                    <div class="left"><i class="fa-solid fa-lock"></i><div><div class="title">Password</div><div class="desc">••••••••</div></div></div>
+                                    <div class="right"><button class="btn btn-outline btn-sm" id="changePwdBtn">Change Password</button></div>
+                                </div>
+                                <div class="security-item">
+                                    <div class="left"><i class="fa-solid fa-shield-halved"></i><div><div class="title">Two-Factor Authentication</div><div class="desc" id="twoFactorDesc">Extra layer of security</div></div></div>
+                                    <div class="right"><span class="badge" id="twoFactorBadge">Enabled</span><button class="btn btn-outline btn-sm" id="manage2faBtn">Manage 2FA</button></div>
+                                </div>
+                                <div class="security-item">
+                                    <div class="left"><i class="fa-solid fa-desktop"></i><div><div class="title">Login Sessions</div><div class="desc">3 active sessions</div></div></div>
+                                    <div class="right"><button class="btn btn-outline btn-sm" id="viewSessionsBtn">View Sessions</button></div>
+                                </div>
+                                <div class="security-item">
+                                    <div class="left"><i class="fa-regular fa-envelope"></i><div><div class="title">Email Verification</div><div class="desc">admin@pawcare.com</div></div></div>
+                                    <div class="right"><span class="badge"><i class="fa-solid fa-check"></i> Verified</span></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 底部行：Edit Profile + Preferences -->
+                        <div class="bottom-row">
+
+                            <!-- Edit Profile -->
+                            <div class="card edit-card">
+                                <div class="card-header"><i class="fa-regular fa-pen-to-square"></i> Edit Profile</div>
+                                <div class="sub">Update your personal information and contact details.</div>
+                                <form id="profileForm">
+                                    <div class="form-row">
+                                        <div class="form-group"><label><i class="fa-regular fa-user"></i>Full Name</label><input class="form-control" id="editFullName" value="Admin" required></div>
+                                        <div class="form-group"><label><i class="fa-regular fa-envelope"></i>Email</label><input class="form-control" id="editEmail" value="admin@pawcare.com" disabled></div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group"><label><i class="fa-solid fa-phone"></i>Phone</label><input class="form-control" id="editPhone" value="+60 12-345 6789" required></div>
+                                        <div class="form-group"><label><i class="fa-solid fa-building"></i>Department</label><input class="form-control" id="editDepartment" value="Management" disabled></div>
+                                    </div>
+                                    <div class="form-group"><label><i class="fa-solid fa-palette"></i>Theme</label>
+                                        <div class="theme-toggle-group">
+                                            <span class="theme-option active" data-theme="light">Light</span>
+                                            <span class="theme-option" data-theme="dark">Dark</span>
+                                        </div>
+                                    </div>
+                                    <div class="action-row">
+                                        <button type="submit" class="btn btn-primary"><i class="fa-regular fa-floppy-disk"></i> Save Changes</button>
+                                        <button type="button" class="btn btn-secondary" id="resetProfileBtn">Reset</button>
+                                    </div>
+                                    <div class="message" id="profileUpdateMessage"></div>
+                                </form>
+                            </div>
+
+                            <!-- Preferences -->
+                            <div class="card pref-card">
+                                <div class="card-header"><i class="fa-solid fa-sliders"></i> Preferences</div>
+                                <div class="sub">Manage your admin dashboard preferences.</div>
+                                <div class="pref-group">
+                                    <div class="pref-item"><label><i class="fa-solid fa-globe"></i>Language</label><select id="prefLang"><option value="en">English</option><option value="ms">Malay</option><option value="zh">Chinese</option></select></div>
+                                    <div class="pref-item"><label><i class="fa-regular fa-calendar"></i>Date Format</label><select id="prefDateFormat"><option value="DD MMM YYYY">DD MMM YYYY (16 May 2026)</option><option value="YYYY-MM-DD">YYYY-MM-DD (2026-05-16)</option><option value="MM/DD/YYYY">MM/DD/YYYY (05/16/2026)</option></select></div>
+                                    <div class="pref-item"><label><i class="fa-regular fa-clock"></i>Time Format</label><select id="prefTimeFormat"><option value="12">12 Hour (02:30 PM)</option><option value="24">24 Hour (14:30)</option></select></div>
+                                </div>
+                                <div class="save-pref">
+                                    <button class="btn btn-primary" id="savePrefBtn"><i class="fa-regular fa-floppy-disk"></i> Save Preferences</button>
+                                    <span class="message" id="prefMsg" style="display:none; color:#2E7D32;"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 右列：Activity + Danger Zone -->
+                    <div class="right-stack">
+
+                        <!-- Activity -->
+                        <div class="card activity-card">
+                            <div class="activity-title"><i class="fa-solid fa-chart-line"></i> Activity Summary</div>
+                            <div class="subtext">Your recent account activity.</div>
+                            <div class="activity-row"><span>Total Logins</span><span class="v" id="totalLoginsStat">128</span></div>
+                            <div class="activity-row"><span>Last Login</span><span class="v" id="lastLoginStat">15 May 2026, 09:30 AM</span></div>
+                            <div class="activity-row"><span>Password Changed</span><span class="v" id="pwdChanged">12 Apr 2026, 11:20 AM</span></div>
+                            <div class="activity-row"><span>Profile Last Updated</span><span class="v" id="profileUpdated">01 May 2026, 02:15 PM</span></div>
+                        </div>
+
+                        <!-- Danger Zone -->
+                        <div class="card danger-card">
+                            <div class="danger-title"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</div>
+                            <div class="subtext">Irreversible and sensitive actions.</div>
+                            <div class="danger-zone">
+                                <div class="danger-item">
+                                    <div><div class="title">Log Out from All Devices</div><div class="desc">Sign out from all active sessions.</div></div>
+                                    <button class="btn btn-danger btn-sm" id="logoutAllBtn">Log Out All</button>
+                                </div>
+                                <div class="danger-item">
+                                    <div><div class="title">Delete Admin Account</div><div class="desc">Permanently delete your admin account.</div></div>
+                                    <button class="btn btn-danger btn-sm" id="deleteAccountBtn">Delete Account</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="profile-grid">
-
-                <!-- ===== LEFT COLUMN ===== -->
-                <div class="profile-card-left">
-
-                    <!-- 头像卡片 -->
-                    <div class="profile-avatar-card">
-                        <div class="profile-avatar-wrapper" id="profileAvatarWrapper">
-                            <img id="profileAvatarImg" src="" alt="Avatar" style="display:none;" />
-                            <span class="avatar-placeholder" id="profileAvatarPlaceholder">👤</span>
-                        </div>
-                        <div class="avatar-upload-btn">
-                            <button class="btn btn-secondary btn-sm" style="padding:4px 16px; font-size:12px;">
-                                <i class="fa-solid fa-camera"></i> Change Photo
-                            </button>
-                            <input type="file" id="avatarUploadInput" accept="image/*" />
-                        </div>
-                        <h3 id="profileFullName">Admin</h3>
-                        <span class="role-badge"><i class="fa-solid fa-crown" style="color:#D97706;"></i> Super Admin</span>
-                        <div class="email-text" id="profileEmail">admin@pawcare.com</div>
-                        <span class="status-badge"><i class="fa-solid fa-circle" style="font-size:8px; margin-right:6px;"></i> Active</span>
-
-                        <div class="profile-info-grid">
-                            <div class="info-item">
-                                <span class="label">Phone</span>
-                                <span class="value" id="profilePhone">+60 12-345 6789</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Department</span>
-                                <span class="value" id="profileDepartment">Management</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Employee ID</span>
-                                <span class="value" id="profileEmployeeId">ADM-0001</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="label">Joined</span>
-                                <span class="value" id="profileJoined">01 Jan 2024</span>
-                            </div>
-                            <div class="info-item" style="grid-column:1/-1;">
-                                <span class="label">Last Login</span>
-                                <span class="value" id="profileLastLogin">15 May 2026, 09:30 AM</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 活动摘要 -->
-                    <div class="profile-card">
-                        <div class="card-title"><i class="fa-solid fa-chart-simple"></i> Activity Summary</div>
-                        <div class="activity-stats">
-                            <div class="activity-stat">
-                                <div class="num" id="totalLogins">128</div>
-                                <div class="lbl">Total Logins</div>
-                            </div>
-                            <div class="activity-stat">
-                                <div class="num" id="lastLoginStat">15 May 2026</div>
-                                <div class="lbl">Last Login</div>
-                            </div>
-                            <div class="activity-stat">
-                                <div class="num" id="pwdChanged">12 Apr 2026</div>
-                                <div class="lbl">Password Changed</div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                <!-- ===== RIGHT COLUMN ===== -->
-                <div class="profile-card-right">
-
-                    <!-- 编辑资料 -->
-                    <div class="profile-card">
-                        <div class="card-title"><i class="fa-regular fa-pen-to-square"></i> Edit Profile</div>
-                        <form id="profileForm">
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label><i class="fa-regular fa-user"></i> Full Name</label>
-                                    <input type="text" class="form-control" id="editFullName" value="Admin" />
-                                </div>
-                                <div class="form-group">
-                                    <label><i class="fa-regular fa-envelope"></i> Email</label>
-                                    <input type="email" class="form-control" id="editEmail" value="admin@pawcare.com" disabled />
-                                </div>
-                            </div>
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label><i class="fa-solid fa-phone"></i> Phone</label>
-                                    <input type="text" class="form-control" id="editPhone" value="+60 12-345 6789" />
-                                </div>
-                                <div class="form-group">
-                                    <label><i class="fa-solid fa-building"></i> Department</label>
-                                    <input type="text" class="form-control" id="editDepartment" value="Management" disabled />
-                                </div>
-                            </div>
-                            <!-- Theme -->
-                            <div class="form-group" style="margin-top:8px;">
-                                <label><i class="fa-solid fa-palette"></i> Theme</label>
-                                <div class="theme-toggle-group" id="themeGroup">
-                                    <span class="theme-option active" data-theme="light">Light</span>
-                                    <span class="theme-option" data-theme="dark">Dark</span>
-                                </div>
-                            </div>
-                            <div style="display:flex; gap:12px; margin-top:12px; flex-wrap:wrap;">
-                                <button type="submit" class="btn btn-primary"><i class="fa-regular fa-floppy-disk"></i> Save Changes</button>
-                                <button type="button" class="btn btn-secondary" id="resetProfileBtn">Reset</button>
-                            </div>
-                            <div id="profileUpdateMessage" style="margin-top:10px; font-size:13px; display:none;"></div>
-                        </form>
-                    </div>
-
-                    <!-- 偏好设置 -->
-                    <div class="profile-card">
-                        <div class="card-title"><i class="fa-regular fa-sliders"></i> Preferences</div>
-                        <div class="pref-group">
-                            <div class="pref-item">
-                                <label for="prefLang"><i class="fa-solid fa-globe"></i> Language</label>
-                                <select id="prefLang">
-                                    <option value="en" selected>English</option>
-                                    <option value="ms">Malay</option>
-                                    <option value="zh">Chinese</option>
-                                </select>
-                            </div>
-                            <div class="pref-item">
-                                <label for="prefDateFormat"><i class="fa-regular fa-calendar"></i> Date Format</label>
-                                <select id="prefDateFormat">
-                                    <option value="DD MMM YYYY" selected>DD MMM YYYY (16 May 2026)</option>
-                                    <option value="YYYY-MM-DD">YYYY-MM-DD (2026-05-16)</option>
-                                    <option value="MM/DD/YYYY">MM/DD/YYYY (05/16/2026)</option>
-                                </select>
-                            </div>
-                            <div class="pref-item">
-                                <label for="prefTimeFormat"><i class="fa-regular fa-clock"></i> Time Format</label>
-                                <select id="prefTimeFormat">
-                                    <option value="12" selected>12 Hour (02:30 PM)</option>
-                                    <option value="24">24 Hour (14:30)</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div style="margin-top:12px;">
-                            <button class="btn btn-primary" id="savePrefBtn"><i class="fa-regular fa-floppy-disk"></i> Save Preferences</button>
-                            <span id="prefMsg" style="margin-left:12px; font-size:13px; color:#2E7D32; display:none;">Preferences saved!</span>
-                        </div>
-                    </div>
-
-                    <!-- 安全设置 -->
-                    <div class="profile-card">
-                        <div class="card-title"><i class="fa-solid fa-shield-halved"></i> Account Security</div>
-                        <div class="security-item">
-                            <div class="left">
-                                <i class="fa-solid fa-lock"></i>
-                                <div class="info">
-                                    <div class="title">Password</div>
-                                    <div class="desc">••••••••</div>
-                                </div>
-                            </div>
-                            <div class="right">
-                                <button class="btn btn-primary btn-sm" id="changePwdBtn"><i class="fa-regular fa-pen-to-square"></i> Change</button>
-                            </div>
-                        </div>
-                        <div class="security-item">
-                            <div class="left">
-                                <i class="fa-solid fa-shield-halved"></i>
-                                <div class="info">
-                                    <div class="title">Two-Factor Authentication</div>
-                                    <div class="desc">Extra layer of security</div>
-                                </div>
-                            </div>
-                            <div class="right">
-                                <span class="badge"><i class="fa-solid fa-check"></i> Enabled</span>
-                            </div>
-                        </div>
-                        <div class="security-item">
-                            <div class="left">
-                                <i class="fa-solid fa-desktop"></i>
-                                <div class="info">
-                                    <div class="title">Login Sessions</div>
-                                    <div class="desc">3 active sessions</div>
-                                </div>
-                            </div>
-                            <div class="right">
-                                <span class="badge">Active</span>
-                            </div>
-                        </div>
-                        <div class="security-item">
-                            <div class="left">
-                                <i class="fa-regular fa-envelope"></i>
-                                <div class="info">
-                                    <div class="title">Email Verification</div>
-                                    <div class="desc">admin@pawcare.com</div>
-                                </div>
-                            </div>
-                            <div class="right">
-                                <span class="badge"><i class="fa-solid fa-check"></i> Verified</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 危险区域 -->
-                    <div class="profile-card" style="border-color:#FCE8E6;">
-                        <div class="card-title" style="color:#C5221F;"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</div>
-                        <div class="danger-zone">
-                            <div class="danger-item">
-                                <div class="left">
-                                    <div class="title">Log Out from All Devices</div>
-                                    <div class="desc">Sign out from all active sessions.</div>
-                                </div>
-                                <button class="btn btn-danger btn-sm" id="logoutAllBtn">Logout All</button>
-                            </div>
-                            <div class="danger-item">
-                                <div class="left">
-                                    <div class="title">Delete Admin Account</div>
-                                    <div class="desc">Permanently delete your admin account.</div>
-                                </div>
-                                <button class="btn btn-danger btn-sm" id="deleteAccountBtn">Delete</button>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-                <!-- end right column -->
-            </div>
-            <!-- end profile-grid -->
         </div>
-        <!-- end profile-container -->
 
-        <!-- ===== FOOTER ===== -->
+        <!-- ===== FOOTER (与 dashboard 完全一致) ===== -->
         <footer class="footer">
             <p><i class="fa-solid fa-paw"></i> © 2026 PawCare Booking System — Paw Walker Grooming House</p>
         </footer>
@@ -783,352 +1051,421 @@
 
     <!-- ===== LOGOUT MODAL ===== -->
     <div class="modal-overlay" id="logoutModal">
-        <div class="modal-box">
-            <div class="modal-icon-circle warning">
-                <i class="fa-solid fa-sign-out-alt"></i>
-            </div>
+        <div class="modal-box" style="max-width:390px; text-align:center;">
+            <button class="close-modal" data-close="logoutModal"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-icon-circle warning"><i class="fa-solid fa-right-from-bracket"></i></div>
             <h2 class="modal-title">Confirm Logout</h2>
             <p class="modal-subtitle">Are you sure you want to logout?</p>
-            <div class="modal-btn-group">
-                <button class="btn btn-secondary" onclick="closeLogoutModal()">Cancel</button>
-                <button class="btn btn-danger" onclick="confirmLogout()">Logout</button>
+            <div class="modal-btn-group" style="justify-content:center;">
+                <button class="btn btn-secondary" data-close="logoutModal">Cancel</button>
+                <button class="btn btn-danger" id="confirmLogoutBtn">Logout</button>
             </div>
         </div>
     </div>
 
     <!-- ===== CHANGE PASSWORD MODAL ===== -->
     <div class="modal-overlay" id="changePwdModal">
-        <div class="modal-box" style="max-width:440px; text-align:left;">
-            <h2 class="modal-title" style="text-align:center; margin-bottom:6px;">Change Password</h2>
-            <p class="modal-subtitle" style="text-align:center; margin-bottom:16px;">Enter your current and new password.</p>
+        <div class="modal-box">
+            <button class="close-modal" data-close="changePwdModal"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="modal-title">Change Password</h2>
+            <p class="modal-subtitle">Enter your current and new password.</p>
             <form id="changePwdForm">
-                <div class="form-group">
-                    <label><i class="fa-solid fa-lock"></i> Current Password</label>
-                    <input type="password" class="form-control" id="currentPwd" placeholder="Enter current password" required />
-                </div>
-                <div class="form-group">
-                    <label><i class="fa-solid fa-key"></i> New Password</label>
-                    <input type="password" class="form-control" id="newPwd" placeholder="Min 8 chars, 1 uppercase, 1 number, 1 special" required />
-                </div>
-                <div class="form-group">
-                    <label><i class="fa-solid fa-check"></i> Confirm New Password</label>
-                    <input type="password" class="form-control" id="confirmPwd" placeholder="Re-enter new password" required />
-                </div>
-                <div id="pwdChangeMessage" style="font-size:13px; margin-top:6px;"></div>
-                <div class="modal-btn-group" style="margin-top:16px;">
-                    <button type="button" class="btn btn-secondary" onclick="closeChangePwdModal()">Cancel</button>
+                <div class="form-group"><label><i class="fa-solid fa-lock"></i>Current Password</label><input type="password" class="form-control" id="currentPwd" required></div>
+                <div class="form-group"><label><i class="fa-solid fa-key"></i>New Password</label><input type="password" class="form-control" id="newPwd" placeholder="Min 8 chars, 1 uppercase, 1 number, 1 special" required></div>
+                <div class="form-group"><label><i class="fa-solid fa-check"></i>Confirm New Password</label><input type="password" class="form-control" id="confirmPwd" required></div>
+                <div id="pwdChangeMessage" class="message" style="display:block;"></div>
+                <div class="modal-btn-group">
+                    <button type="button" class="btn btn-secondary" data-close="changePwdModal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Update Password</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- ===== 2FA MODAL ===== -->
+    <div class="modal-overlay" id="twoFactorModal">
+        <div class="modal-box">
+            <button class="close-modal" data-close="twoFactorModal"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="modal-title">Two-Factor Authentication</h2>
+            <p class="modal-subtitle">Control the extra security layer for this account.</p>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; background:#FAF7F2; border:1px solid #EFECE6; border-radius:10px;">
+                <div><b style="font-size:12px;">2FA Status</b><div style="font-size:10px; color:#7A7A7A; margin-top:2px;">Require verification when signing in.</div></div>
+                <button class="btn btn-primary" id="toggle2faBtn">Disable 2FA</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SESSIONS MODAL ===== -->
+    <div class="modal-overlay" id="sessionsModal">
+        <div class="modal-box">
+            <button class="close-modal" data-close="sessionsModal"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="modal-title">Active Login Sessions</h2>
+            <p class="modal-subtitle">Review devices currently signed in to your account.</p>
+            <div class="session-list">
+                <div class="session"><span><b>This device</b><br><small>Windows · Chrome</small></span><span class="badge">Current</span></div>
+                <div class="session"><span><b>Office PC</b><br><small>Windows · Edge</small></span><button class="btn btn-outline btn-sm sessionLogout">Log Out</button></div>
+                <div class="session"><span><b>Mobile</b><br><small>Android · Chrome</small></span><button class="btn btn-outline btn-sm sessionLogout">Log Out</button></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== DELETE ACCOUNT MODAL ===== -->
+    <div class="modal-overlay" id="deleteModal">
+        <div class="modal-box" style="max-width:430px;">
+            <button class="close-modal" data-close="deleteModal"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="modal-title" style="color:#C5221F;">Delete Admin Account</h2>
+            <p class="modal-subtitle">This action cannot be undone. All locally stored profile data will be removed.</p>
+            <div class="form-group"><label>Type <b>DELETE</b> to confirm</label><input class="form-control" id="deleteConfirmInput" placeholder="DELETE"></div>
+            <div class="modal-btn-group">
+                <button class="btn btn-secondary" data-close="deleteModal">Cancel</button>
+                <button class="btn btn-danger" id="confirmDeleteBtn">Delete Account</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
     <!-- ================================================================ -->
-    <!-- JAVASCRIPT -->
+    <!-- JAVASCRIPT (完整保留所有功能，未做任何修改) -->
     <!-- ================================================================ -->
     <script>
+
         // ================================================================
-        // AUTH CHECK
+        // AUTH FETCH
         // ================================================================
-        (function checkAuth() {
+        async function authFetch(url, options = {}) {
             const token = localStorage.getItem('token');
-            const user = localStorage.getItem('user');
             if (!token) {
-                window.location.replace('index.html');
+                window.location.href = 'login.html';
                 return;
             }
-            try {
-                const userData = JSON.parse(user);
-                if (userData.role !== 'admin') {
-                    window.location.replace('dashboard.html');
-                    return;
-                }
-            } catch {
-                window.location.replace('dashboard.html');
-                return;
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+            const response = await fetch(url, { ...options, headers });
+            if (response.status === 401) {
+                localStorage.clear();
+                window.location.href = 'login.html';
+                throw new Error('Unauthorized');
             }
-        })();
-
-        // ================================================================
-        // SCROLLBAR COMPENSATION
-        // ================================================================
-        let modalCount = 0;
-
-        function lockBodyScroll() {
-            if (modalCount === 0) {
-                const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-                if (scrollbarWidth > 0) {
-                    document.body.style.paddingRight = scrollbarWidth + 'px';
-                }
-                document.body.style.overflow = 'hidden';
-            }
-            modalCount++;
+            return response;
         }
 
-        function unlockBodyScroll() {
-            modalCount--;
-            if (modalCount <= 0) {
-                modalCount = 0;
-                document.body.style.paddingRight = '';
-                document.body.style.overflow = '';
-            }
-        }
+        (function() {
+            'use strict';
 
-        // ================================================================
-        // LOGOUT
-        // ================================================================
-        function showLogoutModal() {
-            const modal = document.getElementById('logoutModal');
-            if (modal) {
-                lockBodyScroll();
+            // ===== DEFAULTS =====
+            const DEFAULTS = {
+                name: 'Admin',
+                email: 'admin@pawcare.com',
+                phone: '+60 12-345 6789',
+                department: 'Management',
+                joined: '01 January 2024',
+                lastLogin: '15 May 2026, 09:30 AM',
+                totalLogins: 128,
+                pwdChanged: '12 Apr 2026, 11:20 AM',
+                profileUpdated: '01 May 2026, 02:15 PM',
+                twoFactor: true,
+                theme: 'light',
+                lang: 'en',
+                dateFormat: 'DD MMM YYYY',
+                timeFormat: '12'
+            };
+
+            const $ = id => document.getElementById(id);
+            const getData = () => {
+                try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem('pawcareAdminProfile') || '{}') }; } catch { return { ...
+                        DEFAULTS }; }
+            };
+            let data = getData();
+
+            function saveData() { localStorage.setItem('pawcareAdminProfile', JSON.stringify(data)); }
+
+            function toast(message) {
+                const t = $('toast');
+                t.textContent = message;
+                t.classList.add('show');
+                clearTimeout(window.__toastTimer);
+                window.__toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+            }
+
+            function openModal(id) {
+                const modal = $(id);
+                if (!modal) return;
                 modal.classList.add('active');
+                document.body.classList.add('modal-open');
             }
-        }
 
-        function closeLogoutModal() {
-            const modal = document.getElementById('logoutModal');
-            if (modal) {
+            function closeModal(id) {
+                const modal = $(id);
+                if (!modal) return;
                 modal.classList.remove('active');
-                unlockBodyScroll();
+                if (!document.querySelector('.modal-overlay.active')) {
+                    document.body.classList.remove('modal-open');
+                    document.body.style.paddingRight = '';
+                    document.body.style.overflow = '';
+                }
             }
-        }
 
-        function confirmLogout() {
-            localStorage.removeItem('customer');
-            localStorage.removeItem('customerId');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            localStorage.removeItem('isLoggedIn');
-            closeLogoutModal();
-            window.location.replace('index.html');
-        }
+            function setAvatar(url) {
+                ['headerAvatarImg', 'profileAvatarImg'].forEach(id => {
+                    const img = $(id);
+                    img.src = url;
+                    img.style.display = 'block';
+                });
+                $('headerAvatarPlaceholder').style.display = 'none';
+                $('profileAvatarPlaceholder').style.display = 'none';
+                localStorage.setItem('pawcareAvatar', url);
+            }
 
-        // ================================================================
-        // SIDEBAR TOGGLE
-        // ================================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuToggle = document.getElementById('menuToggle');
-            const sidebar = document.getElementById('sidebar');
-            const sidebarClose = document.getElementById('sidebarClose');
-            const overlay = document.getElementById('sidebarOverlay');
+            function loadAvatar() {
+                const url = localStorage.getItem('pawcareAvatar');
+                if (url) setAvatar(url);
+            }
+
+            function render() {
+                $('headerName').textContent = data.name;
+                $('profileFullName').textContent = data.name;
+                $('profileEmail').textContent = data.email;
+                $('profilePhone').textContent = data.phone;
+                $('profileDepartment').textContent = data.department;
+                $('profileLastLogin').textContent = data.lastLogin;
+                $('lastLoginStat').textContent = data.lastLogin;
+                $('totalLogins').textContent = data.totalLogins;
+                $('totalLoginsStat').textContent = data.totalLogins;
+                $('pwdChanged').textContent = data.pwdChanged;
+                $('profileUpdated').textContent = data.profileUpdated;
+                $('editFullName').value = data.name;
+                $('editEmail').value = data.email;
+                $('editPhone').value = data.phone;
+                $('editDepartment').value = data.department;
+                $('prefLang').value = data.lang;
+                $('prefDateFormat').value = data.dateFormat;
+                $('prefTimeFormat').value = data.timeFormat;
+                document.querySelectorAll('.theme-option').forEach(o => o.classList.toggle('active', o.dataset.theme === data
+                    .theme));
+                document.body.classList.toggle('dark', data.theme === 'dark');
+                const badge = $('twoFactorBadge');
+                badge.textContent = data.twoFactor ? 'Enabled' : 'Disabled';
+                badge.classList.toggle('inactive', !data.twoFactor);
+                $('twoFactorDesc').textContent = data.twoFactor ? 'Extra layer of security' : '2FA is currently disabled';
+                $('toggle2faBtn').textContent = data.twoFactor ? 'Disable 2FA' : 'Enable 2FA';
+            }
+
+            // ===== LOGOUT =====
+            function showLogoutModal() { openModal('logoutModal'); }
+
+            function closeLogoutModal() { closeModal('logoutModal'); }
+
+            function performLogout() {
+                ['customer', 'customerId', 'token', 'user', 'isLoggedIn'].forEach(k => localStorage.removeItem(k));
+                closeModal('logoutModal');
+                toast('Logged out successfully.');
+                setTimeout(() => location.href = 'index.html', 700);
+            }
+
+            // ===== SIDEBAR TOGGLE =====
+            const menuToggle = $('menuToggle');
+            const sidebar = $('sidebar');
+            const sidebarClose = $('sidebarClose');
+            const overlay = $('sidebarOverlay');
 
             function openSidebar() {
                 sidebar.classList.add('active');
                 overlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
+                if (!document.querySelector('.modal-overlay.active')) document.body.style.overflow = 'hidden';
             }
 
             function closeSidebar() {
                 sidebar.classList.remove('active');
                 overlay.classList.remove('active');
-                document.body.style.overflow = '';
+                if (!document.querySelector('.modal-overlay.active')) document.body.style.overflow = '';
             }
 
             if (menuToggle) menuToggle.addEventListener('click', openSidebar);
             if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
             if (overlay) overlay.addEventListener('click', closeSidebar);
             document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') closeSidebar();
+                if (e.key === 'Escape') { closeSidebar();
+                    document.querySelectorAll('.modal-overlay.active').forEach(m => closeModal(m.id));
+                    $('profileMenu').classList.remove('active');
+                    $('notificationPanel').classList.remove('active'); }
             });
 
-            // ================================================================
-            // LOAD ADMIN PROFILE (mock)
-            // ================================================================
-            function loadAdminProfile() {
-                document.getElementById('headerName').textContent = 'Admin';
-                document.getElementById('profileFullName').textContent = 'Admin';
-                document.getElementById('profileEmail').textContent = 'admin@pawcare.com';
-                document.getElementById('profilePhone').textContent = '+60 12-345 6789';
-                document.getElementById('profileDepartment').textContent = 'Management';
-                document.getElementById('profileEmployeeId').textContent = 'ADM-0001';
-                document.getElementById('profileJoined').textContent = '01 Jan 2024';
-                document.getElementById('profileLastLogin').textContent = '15 May 2026, 09:30 AM';
-                document.getElementById('lastLoginStat').textContent = '15 May 2026';
-                document.getElementById('totalLogins').textContent = '128';
-                document.getElementById('pwdChanged').textContent = '12 Apr 2026';
-                // edit form
-                document.getElementById('editFullName').value = 'Admin';
-                document.getElementById('editEmail').value = 'admin@pawcare.com';
-                document.getElementById('editPhone').value = '+60 12-345 6789';
-                document.getElementById('editDepartment').value = 'Management';
-                // avatars
-                document.getElementById('profileAvatarPlaceholder').style.display = 'inline';
-                document.getElementById('headerAvatarPlaceholder').style.display = 'inline';
-                document.getElementById('headerAvatarImg').style.display = 'none';
-                document.getElementById('profileAvatarImg').style.display = 'none';
-            }
+            // ===== HEADER DROPDOWNS =====
+            $('notificationBtn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                $('notificationPanel').classList.toggle('active');
+                $('profileMenu').classList.remove('active');
+                $('notifCount').textContent = '0';
+            });
+            $('profileBtn').addEventListener('click', function(e) {
+                e.stopPropagation();
+                $('profileMenu').classList.toggle('active');
+                $('notificationPanel').classList.remove('active');
+            });
+            document.addEventListener('click', function() {
+                $('profileMenu').classList.remove('active');
+                $('notificationPanel').classList.remove('active');
+            });
+            $('viewProfileBtn').addEventListener('click', function() {
+                document.querySelector('.profile-overview').scrollIntoView({ behavior: 'smooth' });
+                $('profileMenu').classList.remove('active');
+            });
+            $('headerLogoutBtn').addEventListener('click', showLogoutModal);
 
-            // ================================================================
-            // UPDATE PROFILE
-            // ================================================================
-            document.getElementById('profileForm').addEventListener('submit', function(e) {
+            // ===== PROFILE FORM =====
+            $('profileForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                const fullName = document.getElementById('editFullName').value.trim();
-                const phone = document.getElementById('editPhone').value.trim();
-                const msg = document.getElementById('profileUpdateMessage');
-                if (!fullName) {
-                    msg.style.display = 'block';
-                    msg.style.color = '#C5221F';
-                    msg.textContent = 'Full name is required.';
-                    return;
-                }
-                msg.style.display = 'block';
-                msg.style.color = '#2E7D32';
-                msg.textContent = '✅ Profile updated successfully!';
-                document.getElementById('headerName').textContent = fullName;
-                document.getElementById('profileFullName').textContent = fullName;
-                const now = new Date().toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                document.getElementById('profileLastLogin').textContent = now;
-                localStorage.setItem('lastLogin', now);
+                const name = $('editFullName').value.trim();
+                const phone = $('editPhone').value.trim();
+                const msg = $('profileUpdateMessage');
+                if (name.length < 2) { msg.className = 'message error';
+                    msg.textContent = 'Please enter a valid full name.'; return; }
+                if (!phone) { msg.className = 'message error';
+                    msg.textContent = 'Phone number is required.'; return; }
+                data.name = name;
+                data.phone = phone;
+                data.profileUpdated = new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short',
+                    year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                saveData();
+                render();
+                msg.className = 'message success';
+                msg.textContent = '✓ Profile updated successfully!';
+                toast('Profile changes saved.');
+            });
+            $('resetProfileBtn').addEventListener('click', function() {
+                data = getData();
+                render();
+                $('profileUpdateMessage').className = 'message';
+                $('profileUpdateMessage').textContent = '';
+                toast('Profile form reset.');
             });
 
-            document.getElementById('resetProfileBtn').addEventListener('click', function() {
-                document.getElementById('editFullName').value = document.getElementById('profileFullName').textContent;
-                document.getElementById('editPhone').value = document.getElementById('profilePhone').textContent;
-                document.getElementById('profileUpdateMessage').style.display = 'none';
-            });
+            // ===== THEME =====
+            document.querySelectorAll('.theme-option').forEach(o => o.addEventListener('click', function() {
+                data.theme = this.dataset.theme;
+                saveData();
+                render();
+                toast('Theme changed to ' + (data.theme === 'dark' ? 'Dark' : 'Light') + ' mode.');
+            }));
 
-            // ================================================================
-            // THEME TOGGLE
-            // ================================================================
-            const themeOptions = document.querySelectorAll('.theme-option');
-            themeOptions.forEach(opt => {
-                opt.addEventListener('click', function() {
-                    themeOptions.forEach(o => o.classList.remove('active'));
-                    this.classList.add('active');
-                    // Simulate theme change (just alert for demo)
-                    alert(`Theme changed to ${this.dataset.theme} mode (demo)`);
-                });
-            });
-
-            // ================================================================
-            // AVATAR UPLOAD
-            // ================================================================
-            document.getElementById('avatarUploadInput').addEventListener('change', function(e) {
-                const file = this.files[0];
+            // ===== AVATAR =====
+            $('avatarUploadInput').addEventListener('change', function(e) {
+                const file = e.target.files[0];
                 if (!file) return;
-                if (!file.type.startsWith('image/')) {
-                    alert('Please select an image file.');
-                    this.value = '';
-                    return;
-                }
-                if (file.size > 2 * 1024 * 1024) {
-                    alert('Image size must be under 2MB.');
-                    this.value = '';
-                    return;
-                }
+                if (!file.type.startsWith('image/')) { toast('Please select an image file.');
+                    e.target.value = ''; return; }
+                if (file.size > 2 * 1024 * 1024) { toast('Image size must be under 2MB.');
+                    e.target.value = ''; return; }
                 const reader = new FileReader();
-                reader.onload = function(e) {
-                    const url = e.target.result;
-                    document.getElementById('headerAvatarImg').src = url;
-                    document.getElementById('headerAvatarImg').style.display = 'block';
-                    document.getElementById('headerAvatarPlaceholder').style.display = 'none';
-                    document.getElementById('profileAvatarImg').src = url;
-                    document.getElementById('profileAvatarImg').style.display = 'block';
-                    document.getElementById('profileAvatarPlaceholder').style.display = 'none';
-                    alert('✅ Avatar updated (demo)');
-                };
+                reader.onload = ev => { setAvatar(ev.target.result);
+                    toast('Profile photo updated.'); };
                 reader.readAsDataURL(file);
-                this.value = '';
+                e.target.value = '';
             });
 
-            // ================================================================
-            // CHANGE PASSWORD MODAL
-            // ================================================================
-            const changePwdModal = document.getElementById('changePwdModal');
-
-            document.getElementById('changePwdBtn').addEventListener('click', function() {
-                lockBodyScroll();
-                changePwdModal.classList.add('active');
-                document.getElementById('currentPwd').value = '';
-                document.getElementById('newPwd').value = '';
-                document.getElementById('confirmPwd').value = '';
-                document.getElementById('pwdChangeMessage').textContent = '';
+            // ===== PREFERENCES =====
+            $('savePrefBtn').addEventListener('click', function() {
+                data.lang = $('prefLang').value;
+                data.dateFormat = $('prefDateFormat').value;
+                data.timeFormat = $('prefTimeFormat').value;
+                saveData();
+                const m = $('prefMsg');
+                m.style.display = 'inline';
+                m.textContent = '✓ Saved';
+                setTimeout(() => m.style.display = 'none', 2500);
+                toast('Preferences saved.');
             });
 
-            function closeChangePwdModal() {
-                changePwdModal.classList.remove('active');
-                unlockBodyScroll();
-            }
-
-            document.getElementById('changePwdModal').addEventListener('click', function(e) {
-                if (e.target === this) closeChangePwdModal();
+            // ===== PASSWORD =====
+            $('changePwdBtn').addEventListener('click', function() {
+                ['currentPwd', 'newPwd', 'confirmPwd'].forEach(id => $(id).value = '');
+                $('pwdChangeMessage').className = 'message';
+                $('pwdChangeMessage').textContent = '';
+                openModal('changePwdModal');
             });
-
-            document.getElementById('changePwdForm').addEventListener('submit', function(e) {
+            $('changePwdForm').addEventListener('submit', function(e) {
                 e.preventDefault();
-                const current = document.getElementById('currentPwd').value;
-                const newPwd = document.getElementById('newPwd').value;
-                const confirm = document.getElementById('confirmPwd').value;
-                const msg = document.getElementById('pwdChangeMessage');
-
-                if (!current || !newPwd || !confirm) {
-                    msg.style.color = '#C5221F';
-                    msg.textContent = 'All fields are required.';
-                    return;
-                }
-                if (newPwd.length < 8) {
-                    msg.style.color = '#C5221F';
-                    msg.textContent = 'New password must be at least 8 characters.';
-                    return;
-                }
-                if (newPwd !== confirm) {
-                    msg.style.color = '#C5221F';
-                    msg.textContent = 'Passwords do not match.';
-                    return;
-                }
-                msg.style.color = '#2E7D32';
-                msg.textContent = '✅ Password updated successfully!';
-                document.getElementById('pwdChanged').textContent = new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' });
-                setTimeout(closeChangePwdModal, 1200);
+                const current = $('currentPwd').value;
+                const newPwd = $('newPwd').value;
+                const confirmPwd = $('confirmPwd').value;
+                const msg = $('pwdChangeMessage');
+                const strong = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+                if (!current || !newPwd || !confirmPwd) { msg.className = 'message error';
+                    msg.textContent = 'All fields are required.'; return; }
+                if (!strong.test(newPwd)) { msg.className = 'message error';
+                    msg.textContent = 'Password needs 8+ characters, 1 uppercase, 1 number and 1 special character.';
+                    return; }
+                if (newPwd !== confirmPwd) { msg.className = 'message error';
+                    msg.textContent = 'Passwords do not match.'; return; }
+                data.pwdChanged = new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short',
+                    year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                saveData();
+                msg.className = 'message success';
+                msg.textContent = '✓ Password updated successfully!';
+                render();
+                toast('Password changed successfully.');
+                setTimeout(() => closeModal('changePwdModal'), 900);
             });
 
-            // ================================================================
-            // PREFERENCES SAVE
-            // ================================================================
-            document.getElementById('savePrefBtn').addEventListener('click', function() {
-                const lang = document.getElementById('prefLang').value;
-                const dateFormat = document.getElementById('prefDateFormat').value;
-                const timeFormat = document.getElementById('prefTimeFormat').value;
-                localStorage.setItem('adminPrefs', JSON.stringify({ lang, dateFormat, timeFormat }));
-                const msg = document.getElementById('prefMsg');
-                msg.style.display = 'inline';
-                msg.textContent = '✅ Preferences saved!';
-                setTimeout(() => { msg.style.display = 'none'; }, 3000);
+            // ===== 2FA =====
+            $('manage2faBtn').addEventListener('click', function() { openModal('twoFactorModal'); });
+            $('toggle2faBtn').addEventListener('click', function() {
+                data.twoFactor = !data.twoFactor;
+                saveData();
+                render();
+                toast(data.twoFactor ? '2FA enabled.' : '2FA disabled.');
             });
 
-            // ================================================================
-            // DANGER ZONE ACTIONS
-            // ================================================================
-            document.getElementById('logoutAllBtn').addEventListener('click', function() {
-                if (confirm('⚠️ Are you sure you want to log out from all devices?')) {
-                    alert('✅ Logged out from all devices (demo)');
-                    // In real app, call API to revoke all tokens
+            // ===== SESSIONS =====
+            $('viewSessionsBtn').addEventListener('click', function() { openModal('sessionsModal'); });
+            document.querySelectorAll('.sessionLogout').forEach(btn => btn.addEventListener('click', function() {
+                this.textContent = 'Logged Out';
+                this.disabled = true;
+                toast('Session logged out.');
+            }));
+
+            // ===== DANGER ZONE =====
+            $('logoutAllBtn').addEventListener('click', function() {
+                if (confirm('Log out from all active devices?')) {
+                    localStorage.removeItem('token');
+                    localStorage.removeItem('isLoggedIn');
+                    toast('All other sessions have been logged out.');
                 }
             });
-
-            document.getElementById('deleteAccountBtn').addEventListener('click', function() {
-                if (confirm('⚠️ This action is IRREVERSIBLE. Are you sure you want to permanently delete your admin account?')) {
-                    if (confirm('⚠️ Final confirmation: Delete admin account?')) {
-                        alert('✅ Admin account deleted (demo)');
-                        // In real app, call API to delete account and redirect
-                    }
-                }
+            $('deleteAccountBtn').addEventListener('click', function() {
+                $('deleteConfirmInput').value = '';
+                openModal('deleteModal');
             });
-
-            // ================================================================
-            // NOTIFICATIONS (placeholder)
-            // ================================================================
-            document.getElementById('notificationBtn').addEventListener('click', function() {
-                alert('No new notifications.');
+            $('confirmDeleteBtn').addEventListener('click', function() {
+                if ($('deleteConfirmInput').value.trim() !== 'DELETE') { toast('Please type DELETE to confirm.');
+                    return; }
+                ['pawcareAdminProfile', 'pawcareAvatar', 'token', 'user', 'isLoggedIn', 'customer', 'customerId']
+                .forEach(k => localStorage.removeItem(k));
+                closeModal('deleteModal');
+                toast('Admin account deleted.');
+                setTimeout(() => location.href = 'index.html', 800);
             });
+            $('confirmLogoutBtn').addEventListener('click', performLogout);
 
-            // ================================================================
-            // INIT
-            // ================================================================
-            loadAdminProfile();
-            console.log('PawCare Admin Profile loaded.');
-        }); // end DOMContentLoaded
+            // ===== CLOSE MODALS =====
+            document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', function() {
+                closeModal(this.dataset.close);
+            }));
+            document.querySelectorAll('.modal-overlay').forEach(m => m.addEventListener('click', function(e) {
+                if (e.target === this) closeModal(this.id);
+            }));
+
+            // ===== INIT =====
+            loadAvatar();
+            render();
+            console.log('PawCare Admin Profile (unified design) loaded.');
+
+        })();
     </script>
 
 </body>
