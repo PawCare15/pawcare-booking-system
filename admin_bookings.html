@@ -1019,7 +1019,6 @@
                     <input type="text" id="searchInput" placeholder="Search booking ID, customer or pet name..." />
                 </div>
 
-                <!-- ===== UPDATED SERVICES DROPDOWN ===== -->
                 <select id="serviceFilter">
                     <option value="all">All Services</option>
                     <option value="pet-herb-spa">Pet Herb Spa</option>
@@ -1144,7 +1143,6 @@
                         <span class="value" id="viewPayment"><span class="badge-payment unpaid">Unpaid</span></span>
                     </div>
                 </div>
-                <!-- Close button centered -->
                 <div class="modal-actions">
                     <button class="btn btn-primary" id="closeViewBtn">Close</button>
                 </div>
@@ -1222,7 +1220,7 @@
     <!-- ===== JAVASCRIPT ===== -->
     <script>
         // ================================================================
-        // AUTH CHECK - ADMIN ONLY (新增)
+        // AUTH CHECK - ADMIN ONLY
         // ================================================================
         (function checkAuth() {
             const token = localStorage.getItem('token');
@@ -1242,7 +1240,7 @@
                 return;
             }
         })();
-        
+
         // ===== SIDEBAR TOGGLE =====
         const menuToggle = document.getElementById('menuToggle');
         const sidebar = document.getElementById('sidebar');
@@ -1631,10 +1629,8 @@
                 }
 
                 if (serviceFilter !== 'all') {
-                    // Map the filter value to the actual service name
                     const serviceName = serviceMap[serviceFilter];
                     if (serviceName && !b.service.includes(serviceName)) return false;
-                    // Fallback for backward compatibility
                     if (!serviceName && !b.service.includes(serviceFilter)) return false;
                 }
 
