@@ -173,7 +173,7 @@
         /* ===== 关键调整：顶部行比例从 2fr 1fr 改为 1.5fr 1fr ===== */
         .top-row {
             display: grid;
-            grid-template-columns: 2.2fr 0.8fr;
+            grid-template-columns: 1.5fr 1.1fr;
             gap: 24px;
             align-items: stretch;
         }
@@ -209,23 +209,23 @@
 
         /* ===== Profile Overview 适当紧凑 ===== */
         .profile-overview {
-            padding: 20px 24px 24px;
+            padding: 16px 20px 20px !important;
         }
         .overview-inner {
             display: grid;
-            grid-template-columns: 140px 1fr;
-            gap: 20px;
+            grid-template-columns: 110px 1fr;
+            gap: 16px;
             align-items: start;
         }
         .photo-column {
             text-align: center;
         }
         .profile-avatar-wrapper {
-            width: 90px;
-            height: 90px;
+            width: 76px;
+            height: 76px;
             border-radius: 50%;
             overflow: hidden;
-            margin: 0 auto 8px;
+            margin: 0 auto 6px;
             background: #FDF3E7;
             border: 2px solid #EFECE6;
             display: grid;
@@ -237,11 +237,15 @@
             object-fit: cover;
         }
         .profile-avatar-wrapper .avatar-placeholder {
-            font-size: 38px;
+            font-size: 32px;
         }
         .change-photo {
             position: relative;
             display: inline-flex;
+        }
+        .change-photo .btn-sm {
+            font-size: 10px;
+            padding: 3px 10px;
         }
         .change-photo input {
             position: absolute;
@@ -250,9 +254,9 @@
             cursor: pointer;
         }
         .photo-help {
-            font-size: 10px;
+            font-size: 9px;
             color: #7A7A7A;
-            margin-top: 4px;
+            margin-top: 2px;
         }
 
         .overview-info {
@@ -263,125 +267,114 @@
         .info-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
+            padding: 2px 0;
         }
+
         .info-item i {
             width: 14px;
             color: #8B796A;
             text-align: center;
-            font-size: 13px;
+            font-size: 12px;
+            flex-shrink: 0;
         }
+
         .info-item .label {
-            font-size: 10px;
+            font-size: 9px;
             color: #7A7A7A;
             display: block;
             text-transform: uppercase;
-            letter-spacing: 0.4px;
+            letter-spacing: 0.3px;
             line-height: 1.1;
         }
+
         .info-item .value {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             color: #333;
             display: block;
-            line-height: 1.3;
+            line-height: 1.2;
+            white-space: nowrap;
         }
+
         .role-badge {
             background: #F5EADC;
             color: #79502E;
             border-radius: 4px;
             padding: 1px 8px;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 600;
             display: inline-block;
+            white-space: nowrap;
         }
 
-        /* ===== Security 卡片保持完整显示 ===== */
+
+       /* ===== Security 卡片优化 ===== */
         .security-card {
-            padding: 20px 24px 24px;
-            display: flex;
-            flex-direction: column;
+            padding: 16px 18px 18px !important;
         }
+
         .security-intro {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
+
         .security-icon {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             background: #FFF0DF;
             color: #4A3327;
             display: grid;
             place-items: center;
-            font-size: 14px;
+            font-size: 13px;
             flex-shrink: 0;
         }
+
         .security-intro h3 {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             color: #4A3327;
             margin: 0;
         }
+
         .security-intro p {
-            font-size: 11px;
+            font-size: 10px;
             color: #7A7A7A;
             margin: 0;
         }
+
         .security-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
+            padding: 6px 0;
             border-top: 1px solid #EFECE6;
-            gap: 8px;
+            gap: 6px;
+            min-height: 38px;
         }
-        .security-item:first-of-type { border-top: none; }
+
+        .security-item:first-of-type {
+            border-top: none;
+        }
+
         .security-item .left {
             display: flex;
             align-items: center;
-            gap: 8px;
-            min-width: 0;
-            flex: 1;
-        }
-        .security-item .left {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            gap: 6px;
             min-width: 0;
             flex: 1 1 0;
             overflow: visible;
         }
 
-        .security-item .left .title {
-            white-space: normal !important;
-            overflow: visible !important;
+        .security-item .left > i {
+            width: 14px;
+            color: #8B796A;
+            text-align: center;
             font-size: 12px;
-        }
-
-        .security-item .left .desc {
-            white-space: normal !important;
-            overflow: visible !important;
-            font-size: 10px;
-        }
-
-        /* Security 卡片中右侧按钮组改为垂直排列（徽章在上，按钮在下） */
-        .security-item .right {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 2px;
             flex-shrink: 0;
-            margin-left: 10px;
-        }
-
-        /* 确保 Security 卡片中所有文字不换行 */
-        .security-item .left .title,
-        .security-item .left .desc {
-            white-space: nowrap !important;
-            overflow: visible !important;
         }
 
         .security-item .left > div {
@@ -390,16 +383,52 @@
             flex: 1 1 auto;
         }
 
-        /* 徽章和按钮尺寸微调 */
+        .security-item .left .title {
+            font-size: 11px;
+            font-weight: 500;
+            color: #333;
+            white-space: nowrap !important;
+            overflow: visible !important;
+        }
+
+        .security-item .left .desc {
+            font-size: 9px;
+            color: #7A7A7A;
+            margin-top: 0;
+            white-space: nowrap !important;
+            overflow: visible !important;
+        }
+
+        /* 右侧垂直排列：徽章在上，按钮在下 */
+        .security-item .right {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 1px;
+            flex-shrink: 0;
+            margin-left: 6px;
+        }
+
         .security-item .right .badge {
-            font-size: 10px;
-            padding: 2px 12px;
-            line-height: 1.4;
+            font-size: 9px;
+            font-weight: 600;
+            padding: 1px 10px;
+            border-radius: 20px;
+            background: #E8F5E9;
+            color: #2E7D32;
+            line-height: 1.6;
+            white-space: nowrap;
+        }
+
+        .security-item .right .badge.inactive {
+            background: #FCE8E6;
+            color: #C5221F;
         }
 
         .security-item .right .btn-sm {
-            font-size: 10px;
-            padding: 3px 12px;
+            padding: 2px 10px;
+            font-size: 9px;
+            line-height: 1.6;
         }
 
         .badge {
