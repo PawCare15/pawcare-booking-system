@@ -173,7 +173,7 @@
         /* ===== 关键调整：顶部行比例从 2fr 1fr 改为 1.5fr 1fr ===== */
         .top-row {
             display: grid;
-            grid-template-columns: 1.5fr 1fr;
+            grid-template-columns: 1.2fr 1fr;
             gap: 24px;
             align-items: stretch;
         }
@@ -346,30 +346,41 @@
             min-width: 0;
             flex: 1;
         }
-        .security-item .left > i {
-            width: 16px;
-            color: #8B796A;
-            text-align: center;
-            font-size: 13px;
-            flex-shrink: 0;
+        .security-item .left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            flex: 1 1 0;
+            overflow: visible;
         }
-        .security-item .title {
+        .security-item .left > div {
+            overflow: visible;
+            white-space: normal !important;
+            word-break: break-word;
+            flex: 1 1 auto;
+            min-width: 40px;
+        }
+
+        .security-item .left .title {
+            white-space: normal !important;
+            overflow: visible !important;
             font-size: 12px;
-            font-weight: 500;
-            color: #333;
-            white-space: nowrap;
         }
-        .security-item .desc {
+
+        .security-item .left .desc {
+            white-space: normal !important;
+            overflow: visible !important;
             font-size: 10px;
-            color: #7A7A7A;
-            margin-top: 0;
         }
+
         .security-item .right {
+            flex-shrink: 0;
+            margin-left: 8px;
             display: flex;
             align-items: center;
             gap: 6px;
             white-space: nowrap;
-            flex-shrink: 0;
         }
         .badge {
             font-size: 10px;
