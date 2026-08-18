@@ -596,33 +596,40 @@
     <!-- ================================================================ -->
     <script>
 (function checkAuth() {
-    // 🔥 先清空整个页面，防止缓存显示旧内容
-    document.documentElement.innerHTML = `
-        <html>
-            <head><title>Redirecting...</title></head>
-            <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;background:#FAF7F2;color:#4A3327;">
-                Redirecting...
-            </body>
-        </html>
-    `;
-
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
 
+    // 先检查状态，决定是否需要跳转
+    let shouldRedirect = false;
+    let redirectUrl = 'index.html';
+
     if (!token) {
-        window.location.replace('index.html');
-        return;
+        shouldRedirect = true;
+        redirectUrl = 'index.html';
+    } else {
+        try {
+            const userData = JSON.parse(user);
+            if (userData.role !== 'admin') {
+                shouldRedirect = true;
+                redirectUrl = 'dashboard.html';
+            }
+        } catch {
+            shouldRedirect = true;
+            redirectUrl = 'dashboard.html';
+        }
     }
 
-    try {
-        const userData = JSON.parse(user);
-        if (userData.role !== 'admin') {
-            window.location.replace('dashboard.html');
-            return;
-        }
-    } catch {
-        window.location.replace('dashboard.html');
-        return;
+    // 只有当确认需要跳转时，才执行“清空页面并跳转”
+    if (shouldRedirect) {
+        document.documentElement.innerHTML = `
+            <html>
+                <head><title>Redirecting...</title></head>
+                <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;background:#FAF7F2;color:#4A3327;">
+                    Redirecting...
+                </body>
+            </html>
+        `;
+        window.location.replace(redirectUrl);
     }
 })();
 
