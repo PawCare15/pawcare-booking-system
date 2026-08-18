@@ -56,7 +56,6 @@
             background: #2c2621;
         }
         body.dark .form-control,
-        body.dark .pref-item select,
         body.dark .theme-option {
             background: #241f1b;
             color: #f4eee7;
@@ -156,7 +155,7 @@
             margin: 0;
         }
 
-        /* ===== 主布局 - 2列，左侧稍宽 ===== */
+        /* ===== 主布局 - 2列 ===== */
         .profile-grid {
             display: grid;
             grid-template-columns: 1.8fr 1.2fr;
@@ -467,60 +466,6 @@
         .edit-card .message.success { display: block; color: #2E7D32; }
         .edit-card .message.error { display: block; color: #C5221F; }
 
-        /* ===== Preferences ===== */
-        .pref-card .pref-group {
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-            padding: 4px 0;
-        }
-        .pref-card .pref-item {
-            display: grid;
-            grid-template-columns: 120px 1fr;
-            align-items: center;
-            gap: 16px;
-        }
-        .pref-card .pref-item label {
-            font-size: 13px;
-            font-weight: 500;
-            color: #4A3327;
-        }
-        .pref-card .pref-item label i {
-            color: #D97706;
-            width: 18px;
-            margin-right: 4px;
-        }
-        .pref-card .pref-item select {
-            width: 100%;
-            padding: 8px 14px;
-            border: 1.5px solid #E8E2D8;
-            border-radius: 8px;
-            background: #FAFAFA;
-            font-size: 13px;
-            font-family: 'Poppins', sans-serif;
-            color: #333;
-            outline: none;
-            cursor: pointer;
-            transition: border-color 0.2s;
-        }
-        .pref-card .pref-item select:focus {
-            border-color: #4A3327;
-        }
-        .pref-card .save-pref-row {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-top: 16px;
-            padding-top: 12px;
-            border-top: 1px solid #EFECE6;
-        }
-        .pref-card .save-pref-row .msg {
-            font-size: 13px;
-            color: #2E7D32;
-            display: none;
-        }
-        .pref-card .save-pref-row .msg.show { display: inline; }
-
         /* ===== Activity ===== */
         .activity-card .activity-row {
             display: flex;
@@ -823,7 +768,6 @@
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .info-grid { grid-template-columns: 1fr; }
             .edit-card .form-grid { grid-template-columns: 1fr; }
-            .pref-card .pref-item { grid-template-columns: 1fr; gap: 6px; }
         }
         @media (max-width: 768px) {
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -1042,43 +986,6 @@
                                     </div>
                                     <div class="message" id="profileUpdateMessage"></div>
                                 </form>
-                            </div>
-                        </div>
-
-                        <!-- Preferences -->
-                        <div class="card pref-card">
-                            <div class="card-header"><i class="fa-solid fa-sliders"></i> Preferences</div>
-                            <div class="card-body">
-                                <div style="font-size:13px; color:#7A7A7A; margin-bottom:14px;">Manage your admin dashboard preferences.</div>
-                                <div class="pref-group">
-                                    <div class="pref-item">
-                                        <label><i class="fa-solid fa-globe"></i>Language</label>
-                                        <select id="prefLang">
-                                            <option value="en">English</option>
-                                            <option value="ms">Malay</option>
-                                            <option value="zh">Chinese</option>
-                                        </select>
-                                    </div>
-                                    <div class="pref-item">
-                                        <label><i class="fa-regular fa-calendar"></i>Date Format</label>
-                                        <select id="prefDateFormat">
-                                            <option value="DD MMM YYYY">DD MMM YYYY (16 May 2026)</option>
-                                            <option value="YYYY-MM-DD">YYYY-MM-DD (2026-05-16)</option>
-                                            <option value="MM/DD/YYYY">MM/DD/YYYY (05/16/2026)</option>
-                                        </select>
-                                    </div>
-                                    <div class="pref-item">
-                                        <label><i class="fa-regular fa-clock"></i>Time Format</label>
-                                        <select id="prefTimeFormat">
-                                            <option value="12">12 Hour (02:30 PM)</option>
-                                            <option value="24">24 Hour (14:30)</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="save-pref-row">
-                                    <button class="btn btn-primary" id="savePrefBtn"><i class="fa-regular fa-floppy-disk"></i> Save Preferences</button>
-                                    <span class="msg" id="prefMsg">✓ Saved</span>
-                                </div>
                             </div>
                         </div>
 
@@ -1351,10 +1258,7 @@
                 pwdChanged: '12 Apr 2026, 11:20 AM',
                 profileUpdated: '01 May 2026, 02:15 PM',
                 twoFactor: true,
-                theme: 'light',
-                lang: 'en',
-                dateFormat: 'DD MMM YYYY',
-                timeFormat: '12'
+                theme: 'light'
             };
 
             const $ = id => document.getElementById(id);
@@ -1420,53 +1324,6 @@
                 if (url) setAvatar(url);
             }
 
-            // ===== 格式化日期/时间（根据偏好） =====
-            function formatDate(dateStr) {
-                if (!dateStr) return '';
-                const d = new Date(dateStr);
-                if (isNaN(d.getTime())) return dateStr;
-                const fmt = data.dateFormat || 'DD MMM YYYY';
-                const day = String(d.getDate()).padStart(2, '0');
-                const month = d.toLocaleString('en', { month: 'short' });
-                const year = d.getFullYear();
-                const monthNum = String(d.getMonth() + 1).padStart(2, '0');
-                if (fmt === 'YYYY-MM-DD') return `${year}-${monthNum}-${day}`;
-                if (fmt === 'MM/DD/YYYY') return `${monthNum}/${day}/${year}`;
-                return `${day} ${month} ${year}`;
-            }
-
-            function formatTime(timeStr) {
-                if (!timeStr) return '';
-                // 尝试解析 "15 May 2026, 09:30 AM" 或 "09:30 AM"
-                let hours, minutes, ampm = '';
-                let match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
-                if (match) {
-                    hours = parseInt(match[1]);
-                    minutes = match[2];
-                    ampm = match[3] || '';
-                } else {
-                    return timeStr;
-                }
-                const fmt = data.timeFormat || '12';
-                if (fmt === '24') {
-                    if (ampm.toUpperCase() === 'PM' && hours < 12) hours += 12;
-                    if (ampm.toUpperCase() === 'AM' && hours === 12) hours = 0;
-                    return `${String(hours).padStart(2, '0')}:${minutes}`;
-                }
-                const h12 = hours % 12 || 12;
-                const ap = hours >= 12 ? 'PM' : 'AM';
-                return `${h12}:${minutes} ${ap}`;
-            }
-
-            function formatDateTime(dateStr, timeStr) {
-                let result = formatDate(dateStr);
-                if (timeStr) {
-                    const t = formatTime(timeStr);
-                    if (t) result += `, ${t}`;
-                }
-                return result;
-            }
-
             // ===== 渲染 =====
             function render() {
                 $('headerName').textContent = data.name;
@@ -1474,10 +1331,8 @@
                 $('profileEmail').textContent = data.email;
                 $('profilePhone').textContent = data.phone;
                 $('profileDepartment').textContent = data.department;
-
-                const lastLoginFormatted = formatDateTime(data.lastLogin, data.lastLogin);
-                $('profileLastLogin').textContent = lastLoginFormatted;
-                $('lastLoginStat').textContent = lastLoginFormatted;
+                $('profileLastLogin').textContent = data.lastLogin;
+                $('lastLoginStat').textContent = data.lastLogin;
                 $('totalLogins').textContent = data.totalLogins;
                 $('totalLoginsStat').textContent = data.totalLogins;
                 $('pwdChanged').textContent = data.pwdChanged;
@@ -1486,9 +1341,6 @@
                 $('editEmail').value = data.email;
                 $('editPhone').value = data.phone;
                 $('editDepartment').value = data.department;
-                $('prefLang').value = data.lang;
-                $('prefDateFormat').value = data.dateFormat;
-                $('prefTimeFormat').value = data.timeFormat;
 
                 document.querySelectorAll('.theme-option').forEach(o => o.classList.toggle('active', o.dataset.theme === data.theme));
                 document.body.classList.toggle('dark', data.theme === 'dark');
@@ -1633,22 +1485,6 @@
                         toast('Profile photo updated.'); };
                     reader.readAsDataURL(file);
                     e.target.value = '';
-                });
-
-                // ===== Preferences - 保存偏好 =====
-                $('savePrefBtn').addEventListener('click', function() {
-                    data.lang = $('prefLang').value;
-                    data.dateFormat = $('prefDateFormat').value;
-                    data.timeFormat = $('prefTimeFormat').value;
-                    saveData();
-                    render();
-                    const m = $('prefMsg');
-                    m.classList.add('show');
-                    m.textContent = '✓ Saved';
-                    setTimeout(() => m.classList.remove('show'), 2500);
-                    toast('Preferences saved. UI language will update on refresh.');
-                    // 重新加载页面以应用语言变化（实际项目中可用 i18n 动态更新）
-                    // 这里我们简单提示刷新
                 });
 
                 // ===== Change Password =====
