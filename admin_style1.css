@@ -380,6 +380,17 @@ body {
     width: 100%;
 }
 
+/* ============================================================ */
+/* STATS GRID - 4 CARDS (FOR CUSTOMER PAGE)                    */
+/* ============================================================ */
+.stats-grid-4 {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+    margin-bottom: 24px;
+    width: 100%;
+}
+
 .stat-card-balance {
     background: #FFFFFF;
     border-radius: 14px;
@@ -1260,6 +1271,10 @@ body {
 /* RESPONSIVE                                                    */
 /* ============================================================ */
 @media (max-width: 1200px) {
+    .stats-grid-3 {
+        gap: 14px;
+    }
+    
     .stats-grid-4 {
         grid-template-columns: repeat(4, 1fr);
         gap: 14px;
@@ -1286,6 +1301,11 @@ body {
 }
 
 @media (max-width: 992px) {
+    .stats-grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+    }
+
     .stats-grid-4 {
         grid-template-columns: repeat(2, 1fr);
         gap: 14px;
@@ -1352,6 +1372,11 @@ body {
 
     .page-header-profile-subtitle {
         font-size: 13px;
+    }
+
+    .stats-grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
     }
 
     .stats-grid-4 {
@@ -1515,6 +1540,11 @@ body {
         font-size: 12px;
     }
 
+    .stats-grid-3 {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+    
     .stats-grid-4 {
         grid-template-columns: 1fr 1fr;
         gap: 10px;
