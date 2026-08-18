@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="admin_style.css">
 
     <style>
-        /* ===== PROFILE 页面样式 - 整洁清晰，类似用户资料页 ===== */
+        /* ===== PROFILE 页面样式 ===== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -43,7 +43,7 @@
         button { cursor: pointer; }
         a { text-decoration: none; color: inherit; }
 
-        /* ===== 排版优化：填满底部，左右对齐 ===== */
+        /* ===== 排版优化：左右完全对齐 ===== */
         .main-content {
             flex: 1;
             display: flex;
@@ -80,11 +80,40 @@
         .right-stack {
             display: flex;
             flex-direction: column;
-            gap: 32px;
+            gap: 28px;
             flex: 1;
-            justify-content: space-between;
             height: 100%;
         }
+
+        /* 左列：Profile Overview 自然高度，Edit Profile 拉伸填满剩余空间 */
+        .left-stack .profile-overview {
+            flex: 0 1 auto;
+        }
+        .left-stack .edit-card {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .left-stack .edit-card .card-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .left-stack .edit-card form {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        .left-stack .edit-card .action-row {
+            margin-top: auto;
+            padding-top: 8px;
+        }
+
+        /* 右列：三个卡片均匀分布 */
+        .right-stack {
+            justify-content: space-between;
+        }
+
         .footer {
             margin-top: 10px !important;
         }
@@ -338,14 +367,6 @@
             font-weight: 500;
             color: #333;
             word-break: break-word;
-        }
-        .info-item .value .role-badge-sm {
-            background: #F5EADC;
-            color: #79502E;
-            border-radius: 4px;
-            padding: 1px 10px;
-            font-size: 11px;
-            font-weight: 600;
         }
 
         .security-card .security-item {
@@ -777,8 +798,13 @@
 
         @media (max-width: 1200px) {
             .profile-grid { grid-template-columns: 1fr; }
+            .left-stack .edit-card { flex: 0 1 auto; }
+            .left-stack .edit-card .card-body { flex: 0 1 auto; }
+            .left-stack .edit-card form { flex: 0 1 auto; }
+            .left-stack .edit-card .action-row { margin-top: 0; }
             .left-stack,
-            .right-stack { justify-content: flex-start; gap: 24px; }
+            .right-stack { gap: 24px; }
+            .right-stack { justify-content: flex-start; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 992px) {
@@ -801,8 +827,13 @@
             .modal-box { padding: 24px 20px; }
             .dashboard-container { padding: 0 16px 18px; }
             .page-heading { flex-direction: column; align-items: flex-start; }
+            .left-stack .edit-card { flex: 0 1 auto; }
+            .left-stack .edit-card .card-body { flex: 0 1 auto; }
+            .left-stack .edit-card form { flex: 0 1 auto; }
+            .left-stack .edit-card .action-row { margin-top: 0; }
             .left-stack,
-            .right-stack { justify-content: flex-start; gap: 20px; }
+            .right-stack { gap: 20px; }
+            .right-stack { justify-content: flex-start; }
         }
         @media (max-width: 480px) {
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -968,7 +999,7 @@
                             </div>
                         </div>
 
-                        <!-- Edit Profile -->
+                        <!-- Edit Profile（拉伸填满剩余空间） -->
                         <div class="card edit-card">
                             <div class="card-header"><i class="fa-regular fa-pen-to-square"></i> Edit Profile</div>
                             <div class="card-body">
@@ -1087,7 +1118,7 @@
 
     <!-- ===== MODALS ===== -->
 
-    <!-- LOGOUT MODAL（统一 dashboard 样式，无右上角关闭按钮） -->
+    <!-- LOGOUT MODAL -->
     <div class="modal-overlay" id="logoutModal">
         <div class="modal-box">
             <div class="modal-icon-circle warning"><i class="fa-solid fa-sign-out-alt"></i></div>
@@ -1379,7 +1410,7 @@
                 }
             }
 
-            // ===== LOGOUT 全局函数（与 dashboard 完全一致） =====
+            // ===== LOGOUT =====
             showLogoutModal = function() {
                 openModal('logoutModal');
             };
@@ -1392,7 +1423,6 @@
                 ['customer', 'customerId', 'token', 'user', 'isLoggedIn', 'pawcareAdminProfile', 'pawcareAvatar'].forEach(k => localStorage.removeItem(k));
                 closeModal('logoutModal');
                 toast('Logged out successfully.');
-                // 使用 replace 替换历史记录，防止用户通过后退按钮回到 admin 页面
                 window.location.replace('index.html');
             };
 
