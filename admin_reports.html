@@ -49,11 +49,6 @@
         .page-heading h1 i {
             color: #D97706;
         }
-        .page-heading .breadcrumb {
-            font-size: 13px;
-            color: #7A7A7A;
-            margin-top: 2px;
-        }
         .page-heading .date-badge {
             background: #F9F6F0;
             color: #5A4A3A;
@@ -71,7 +66,7 @@
             color: #D97706;
         }
 
-        /* ===== STATS 卡片 (5 个 - 移除了 Revenue) ===== */
+        /* ===== STATS 卡片 (5 个) ===== */
         .stats-grid-reports {
             display: grid;
             grid-template-columns: repeat(5, 1fr);
@@ -134,11 +129,11 @@
             background: #FCE8E6;
         }
 
-        /* ===== CHARTS ROW (仅保留 Bookings Over Time) ===== */
+        /* ===== CHARTS ROW (仅 Bookings Over Time，占满整行) ===== */
         .charts-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
+            grid-template-columns: 1fr;
+            gap: 0;
             margin-bottom: 24px;
         }
         .chart-card {
@@ -185,13 +180,13 @@
         }
         .chart-card .chart-wrapper {
             flex: 1;
-            min-height: 240px;
-            max-height: 300px;
+            min-height: 260px;
+            max-height: 320px;
             position: relative;
             margin-top: 4px;
         }
         .chart-card .chart-wrapper canvas {
-            max-height: 280px;
+            max-height: 300px;
             width: 100% !important;
             height: 100% !important;
         }
@@ -428,34 +423,12 @@
             color: #BF360C;
         }
 
-        /* ===== RECENT TRANSACTIONS (移除了金额列) ===== */
-        .transaction-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 0;
-            border-bottom: 1px solid #F5F0EA;
-            font-size: 12px;
-        }
-        .transaction-item:last-child {
-            border-bottom: none;
-        }
-        .transaction-item .t-left {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .transaction-item .t-left .t-id {
-            font-weight: 600;
-            color: #333;
-        }
-        .transaction-item .t-left .t-date {
-            color: #7A7A7A;
-            font-size: 11px;
-        }
-        .transaction-item .t-left .t-service {
-            font-size: 11px;
-            color: #7A7A7A;
+        /* ===== BOTTOM CHARTS ROW (仅 Monthly Comparisons，占满整行) ===== */
+        .bottom-charts-row {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0;
+            margin-bottom: 24px;
         }
 
         /* ===== RESPONSIVE ===== */
@@ -463,9 +436,6 @@
             .stats-grid-reports {
                 grid-template-columns: repeat(3, 1fr);
                 gap: 14px;
-            }
-            .charts-row {
-                grid-template-columns: 1fr;
             }
             .insights-row {
                 grid-template-columns: 1fr;
@@ -574,11 +544,6 @@
             .data-table tbody td {
                 padding: 6px 8px;
             }
-            .transaction-item {
-                font-size: 11px;
-                flex-wrap: wrap;
-                gap: 4px;
-            }
         }
     </style>
 </head>
@@ -655,7 +620,7 @@
                 <span class="date-badge"><i class="fa-regular fa-calendar"></i> <span id="reportDate">May 2026</span></span>
             </div>
 
-            <!-- ===== STATS 卡片 (5个 - 移除了 Revenue) ===== -->
+            <!-- ===== STATS 卡片 (5个) ===== -->
             <div class="stats-grid-reports">
                 <div class="stat-report-card">
                     <div class="icon" style="background:#FFF3E0; color:#E65100;"><i class="fa-regular fa-calendar-check"></i></div>
@@ -699,9 +664,8 @@
                 </div>
             </div>
 
-            <!-- ===== CHARTS ROW (仅保留 Bookings Over Time) ===== -->
+            <!-- ===== CHARTS ROW (Bookings Over Time 占满整行) ===== -->
             <div class="charts-row">
-                <!-- Bookings Over Time -->
                 <div class="chart-card">
                     <div class="card-header">
                         <h3><i class="fa-solid fa-chart-line"></i> Bookings Over Time</h3>
@@ -709,14 +673,6 @@
                     </div>
                     <div class="chart-wrapper">
                         <canvas id="bookingsTrendChart"></canvas>
-                    </div>
-                </div>
-                <!-- 已删除 Revenue Over Time 图表 -->
-                <div class="chart-card" style="background:#F9F7F4; display:flex; align-items:center; justify-content:center; min-height:320px; border:1px dashed #D3C4B8;">
-                    <div style="text-align:center; color:#B0A090;">
-                        <i class="fa-solid fa-chart-simple" style="font-size:36px; display:block; margin-bottom:10px; opacity:0.4;"></i>
-                        <p style="font-size:13px; font-weight:500;">Additional Chart Space</p>
-                        <p style="font-size:11px; color:#C0B0A0;">(Revenue metrics removed)</p>
                     </div>
                 </div>
             </div>
@@ -786,7 +742,7 @@
                 </div>
             </div>
 
-            <!-- ===== TOP CUSTOMERS TABLE (移除了 Total Spent 列) ===== -->
+            <!-- ===== TOP CUSTOMERS TABLE ===== -->
             <div class="table-card">
                 <div class="card-header">
                     <h3><i class="fa-solid fa-trophy"></i> Top Customers by Bookings</h3>
@@ -832,69 +788,15 @@
                 </div>
             </div>
 
-            <!-- ===== BOTTOM CHARTS ROW (移除了 Payment Method 图表) ===== -->
-            <div class="bottom-charts-row" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px;">
-                <!-- Monthly Comparisons (保留) -->
+            <!-- ===== BOTTOM CHARTS ROW (Monthly Comparisons 占满整行) ===== -->
+            <div class="bottom-charts-row">
                 <div class="chart-card">
                     <div class="card-header">
                         <h3><i class="fa-solid fa-chart-column"></i> Monthly Comparisons</h3>
                         <span class="badge">2026</span>
                     </div>
-                    <div class="chart-wrapper" style="min-height:220px; max-height:260px;">
+                    <div class="chart-wrapper" style="min-height:220px; max-height:280px;">
                         <canvas id="monthlyComparisonChart"></canvas>
-                    </div>
-                </div>
-                <!-- 已删除 Revenue by Payment Method -->
-                <div class="chart-card" style="background:#F9F7F4; display:flex; align-items:center; justify-content:center; min-height:260px; border:1px dashed #D3C4B8;">
-                    <div style="text-align:center; color:#B0A090;">
-                        <i class="fa-solid fa-credit-card" style="font-size:36px; display:block; margin-bottom:10px; opacity:0.4;"></i>
-                        <p style="font-size:13px; font-weight:500;">Additional Chart Space</p>
-                        <p style="font-size:11px; color:#C0B0A0;">(Revenue metrics removed)</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- ===== RECENT TRANSACTIONS (移除了金额列) ===== -->
-            <div class="table-card">
-                <div class="card-header">
-                    <h3><i class="fa-regular fa-receipt"></i> Recent Transactions</h3>
-                    <a href="admin_payments.html" class="view-all">View All</a>
-                </div>
-                <div class="transaction-list">
-                    <div class="transaction-item">
-                        <div class="t-left">
-                            <span class="t-id">#PAY-00126</span>
-                            <span class="t-date">16 May 2026</span>
-                            <span class="t-service">Jenny Lee · Grooming</span>
-                        </div>
-                    </div>
-                    <div class="transaction-item">
-                        <div class="t-left">
-                            <span class="t-id">#PAY-00125</span>
-                            <span class="t-date">16 May 2026</span>
-                            <span class="t-service">Ahmad Firdaus · Vaccination</span>
-                        </div>
-                    </div>
-                    <div class="transaction-item">
-                        <div class="t-left">
-                            <span class="t-id">#PAY-00124</span>
-                            <span class="t-date">16 May 2026</span>
-                            <span class="t-service">Siti Nur · Boarding</span>
-                        </div>
-                    </div>
-                    <div class="transaction-item">
-                        <div class="t-left">
-                            <span class="t-id">#PAY-00122</span>
-                            <span class="t-date">17 May 2026</span>
-                            <span class="t-service">Mei Ling · Grooming</span>
-                        </div>
-                    </div>
-                    <div class="transaction-item">
-                        <div class="t-left">
-                            <span class="t-id">#PAY-00121</span>
-                            <span class="t-date">17 May 2026</span>
-                            <span class="t-service">Jason Ho · Boarding</span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -1145,7 +1047,7 @@
                 }
             });
 
-            // 4. Monthly Comparisons (Bar) - 保留
+            // 2. Monthly Comparisons (Bar)
             const ctx4 = document.getElementById('monthlyComparisonChart').getContext('2d');
             new Chart(ctx4, {
                 type: 'bar',
@@ -1181,7 +1083,7 @@
                 }
             });
 
-            console.log('PawCare Reports & Analytics page loaded (Revenue removed).');
+            console.log('PawCare Reports & Analytics page loaded.');
         });
     </script>
 
