@@ -71,10 +71,10 @@
             color: #D97706;
         }
 
-        /* ===== STATS 卡片 (6 个) ===== */
+        /* ===== STATS 卡片 (5 个 - 移除了 Revenue) ===== */
         .stats-grid-reports {
             display: grid;
-            grid-template-columns: repeat(6, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 16px;
             margin-bottom: 24px;
         }
@@ -134,7 +134,7 @@
             background: #FCE8E6;
         }
 
-        /* ===== CHARTS ROW ===== */
+        /* ===== CHARTS ROW (仅保留 Bookings Over Time) ===== */
         .charts-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -428,15 +428,7 @@
             color: #BF360C;
         }
 
-        /* ===== BOTTOM CHARTS ROW ===== */
-        .bottom-charts-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-            margin-bottom: 24px;
-        }
-
-        /* ===== RECENT TRANSACTIONS ===== */
+        /* ===== RECENT TRANSACTIONS (移除了金额列) ===== */
         .transaction-item {
             display: flex;
             justify-content: space-between;
@@ -461,12 +453,9 @@
             color: #7A7A7A;
             font-size: 11px;
         }
-        .transaction-item .t-amount {
-            font-weight: 600;
-            color: #2E7D32;
-        }
-        .transaction-item .t-amount.negative {
-            color: #C62828;
+        .transaction-item .t-left .t-service {
+            font-size: 11px;
+            color: #7A7A7A;
         }
 
         /* ===== RESPONSIVE ===== */
@@ -479,9 +468,6 @@
                 grid-template-columns: 1fr;
             }
             .insights-row {
-                grid-template-columns: 1fr;
-            }
-            .bottom-charts-row {
                 grid-template-columns: 1fr;
             }
         }
@@ -530,10 +516,6 @@
             }
             .table-card {
                 padding: 16px 16px;
-            }
-            .bottom-charts-row {
-                grid-template-columns: 1fr;
-                gap: 16px;
             }
         }
 
@@ -669,12 +651,11 @@
             <div class="page-heading">
                 <div>
                     <h1><i class="fa-solid fa-chart-bar"></i> Reports & Analytics</h1>
-                    <div class="breadcrumb">Dashboard &nbsp;›&nbsp; Reports & Analytics</div>
                 </div>
                 <span class="date-badge"><i class="fa-regular fa-calendar"></i> <span id="reportDate">May 2026</span></span>
             </div>
 
-            <!-- ===== STATS 卡片 (6个) ===== -->
+            <!-- ===== STATS 卡片 (5个 - 移除了 Revenue) ===== -->
             <div class="stats-grid-reports">
                 <div class="stat-report-card">
                     <div class="icon" style="background:#FFF3E0; color:#E65100;"><i class="fa-regular fa-calendar-check"></i></div>
@@ -682,14 +663,6 @@
                         <h3 id="rTotalBookings">126</h3>
                         <p>Total Bookings</p>
                         <span class="change up">↑ 18.6% vs last month</span>
-                    </div>
-                </div>
-                <div class="stat-report-card">
-                    <div class="icon" style="background:#E8F5E9; color:#2E7D32;"><i class="fa-solid fa-ring"></i></div>
-                    <div class="info">
-                        <h3 id="rTotalRevenue">RM 12,450</h3>
-                        <p>Total Revenue</p>
-                        <span class="change up">↑ 16.8% vs last month</span>
                     </div>
                 </div>
                 <div class="stat-report-card">
@@ -726,7 +699,7 @@
                 </div>
             </div>
 
-            <!-- ===== CHARTS ROW (2 图表) ===== -->
+            <!-- ===== CHARTS ROW (仅保留 Bookings Over Time) ===== -->
             <div class="charts-row">
                 <!-- Bookings Over Time -->
                 <div class="chart-card">
@@ -738,14 +711,12 @@
                         <canvas id="bookingsTrendChart"></canvas>
                     </div>
                 </div>
-                <!-- Revenue Over Time -->
-                <div class="chart-card">
-                    <div class="card-header">
-                        <h3><i class="fa-solid fa-chart-line" style="color:#D97706;"></i> Revenue Over Time (RM)</h3>
-                        <span class="badge">Last 30 Days</span>
-                    </div>
-                    <div class="chart-wrapper">
-                        <canvas id="revenueTrendChart"></canvas>
+                <!-- 已删除 Revenue Over Time 图表 -->
+                <div class="chart-card" style="background:#F9F7F4; display:flex; align-items:center; justify-content:center; min-height:320px; border:1px dashed #D3C4B8;">
+                    <div style="text-align:center; color:#B0A090;">
+                        <i class="fa-solid fa-chart-simple" style="font-size:36px; display:block; margin-bottom:10px; opacity:0.4;"></i>
+                        <p style="font-size:13px; font-weight:500;">Additional Chart Space</p>
+                        <p style="font-size:11px; color:#C0B0A0;">(Revenue metrics removed)</p>
                     </div>
                 </div>
             </div>
@@ -760,11 +731,6 @@
                     <div class="insight-item">
                         <div class="insight-icon" style="background:#E8F5E9; color:#2E7D32;"><i class="fa-solid fa-arrow-up"></i></div>
                         <div class="insight-text"><strong>Bookings increased by 18.6%</strong> — Great! More pet parents are trusting us.</div>
-                        <span class="insight-tag good">Good</span>
-                    </div>
-                    <div class="insight-item">
-                        <div class="insight-icon" style="background:#E8F5E9; color:#2E7D32;"><i class="fa-solid fa-arrow-up"></i></div>
-                        <div class="insight-text"><strong>Revenue increased by 16.8%</strong> — Your business is growing well.</div>
                         <span class="insight-tag good">Good</span>
                     </div>
                     <div class="insight-item">
@@ -820,7 +786,7 @@
                 </div>
             </div>
 
-            <!-- ===== TOP CUSTOMERS TABLE ===== -->
+            <!-- ===== TOP CUSTOMERS TABLE (移除了 Total Spent 列) ===== -->
             <div class="table-card">
                 <div class="card-header">
                     <h3><i class="fa-solid fa-trophy"></i> Top Customers by Bookings</h3>
@@ -833,7 +799,6 @@
                                 <th style="width:50px;">#</th>
                                 <th>Customer</th>
                                 <th>Total Bookings</th>
-                                <th>Total Spent (RM)</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -841,50 +806,35 @@
                                 <td><span class="rank-badge gold">1</span></td>
                                 <td><strong>Jenny Lee</strong></td>
                                 <td>12</td>
-                                <td>RM 1,280</td>
                             </tr>
                             <tr>
                                 <td><span class="rank-badge silver">2</span></td>
                                 <td><strong>Ahmad Firdaus</strong></td>
                                 <td>9</td>
-                                <td>RM 980</td>
                             </tr>
                             <tr>
                                 <td><span class="rank-badge bronze">3</span></td>
                                 <td><strong>Siti Nur</strong></td>
                                 <td>8</td>
-                                <td>RM 850</td>
                             </tr>
                             <tr>
                                 <td><span class="rank-badge">4</span></td>
                                 <td><strong>Daniel Tan</strong></td>
                                 <td>7</td>
-                                <td>RM 720</td>
                             </tr>
                             <tr>
                                 <td><span class="rank-badge">5</span></td>
                                 <td><strong>Mei Ling</strong></td>
                                 <td>6</td>
-                                <td>RM 650</td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
 
-            <!-- ===== BOTTOM CHARTS ROW (Payment Methods + Monthly Comparison) ===== -->
-            <div class="bottom-charts-row">
-                <!-- Revenue by Payment Method -->
-                <div class="chart-card">
-                    <div class="card-header">
-                        <h3><i class="fa-solid fa-credit-card"></i> Revenue by Payment Method</h3>
-                        <span class="badge">RM</span>
-                    </div>
-                    <div class="chart-wrapper" style="min-height:220px; max-height:260px;">
-                        <canvas id="paymentMethodChart"></canvas>
-                    </div>
-                </div>
-                <!-- Monthly Comparisons -->
+            <!-- ===== BOTTOM CHARTS ROW (移除了 Payment Method 图表) ===== -->
+            <div class="bottom-charts-row" style="display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:24px;">
+                <!-- Monthly Comparisons (保留) -->
                 <div class="chart-card">
                     <div class="card-header">
                         <h3><i class="fa-solid fa-chart-column"></i> Monthly Comparisons</h3>
@@ -894,9 +844,17 @@
                         <canvas id="monthlyComparisonChart"></canvas>
                     </div>
                 </div>
+                <!-- 已删除 Revenue by Payment Method -->
+                <div class="chart-card" style="background:#F9F7F4; display:flex; align-items:center; justify-content:center; min-height:260px; border:1px dashed #D3C4B8;">
+                    <div style="text-align:center; color:#B0A090;">
+                        <i class="fa-solid fa-credit-card" style="font-size:36px; display:block; margin-bottom:10px; opacity:0.4;"></i>
+                        <p style="font-size:13px; font-weight:500;">Additional Chart Space</p>
+                        <p style="font-size:11px; color:#C0B0A0;">(Revenue metrics removed)</p>
+                    </div>
+                </div>
             </div>
 
-            <!-- ===== RECENT TRANSACTIONS ===== -->
+            <!-- ===== RECENT TRANSACTIONS (移除了金额列) ===== -->
             <div class="table-card">
                 <div class="card-header">
                     <h3><i class="fa-regular fa-receipt"></i> Recent Transactions</h3>
@@ -907,41 +865,36 @@
                         <div class="t-left">
                             <span class="t-id">#PAY-00126</span>
                             <span class="t-date">16 May 2026</span>
-                            <span style="font-size:11px; color:#7A7A7A;">Jenny Lee · Grooming</span>
+                            <span class="t-service">Jenny Lee · Grooming</span>
                         </div>
-                        <span class="t-amount">RM 120.00</span>
                     </div>
                     <div class="transaction-item">
                         <div class="t-left">
                             <span class="t-id">#PAY-00125</span>
                             <span class="t-date">16 May 2026</span>
-                            <span style="font-size:11px; color:#7A7A7A;">Ahmad Firdaus · Vaccination</span>
+                            <span class="t-service">Ahmad Firdaus · Vaccination</span>
                         </div>
-                        <span class="t-amount">RM 85.00</span>
                     </div>
                     <div class="transaction-item">
                         <div class="t-left">
                             <span class="t-id">#PAY-00124</span>
                             <span class="t-date">16 May 2026</span>
-                            <span style="font-size:11px; color:#7A7A7A;">Siti Nur · Boarding</span>
+                            <span class="t-service">Siti Nur · Boarding</span>
                         </div>
-                        <span class="t-amount">RM 200.00</span>
                     </div>
                     <div class="transaction-item">
                         <div class="t-left">
                             <span class="t-id">#PAY-00122</span>
                             <span class="t-date">17 May 2026</span>
-                            <span style="font-size:11px; color:#7A7A7A;">Mei Ling · Grooming</span>
+                            <span class="t-service">Mei Ling · Grooming</span>
                         </div>
-                        <span class="t-amount">RM 120.00</span>
                     </div>
                     <div class="transaction-item">
                         <div class="t-left">
                             <span class="t-id">#PAY-00121</span>
                             <span class="t-date">17 May 2026</span>
-                            <span style="font-size:11px; color:#7A7A7A;">Jason Ho · Boarding</span>
+                            <span class="t-service">Jason Ho · Boarding</span>
                         </div>
-                        <span class="t-amount">RM 180.00</span>
                     </div>
                 </div>
             </div>
@@ -1192,88 +1145,7 @@
                 }
             });
 
-            // 2. Revenue Over Time (Line)
-            const ctx2 = document.getElementById('revenueTrendChart').getContext('2d');
-            const gradient2 = ctx2.createLinearGradient(0, 0, 0, 200);
-            gradient2.addColorStop(0, 'rgba(217, 119, 6, 0.20)');
-            gradient2.addColorStop(1, 'rgba(217, 119, 6, 0)');
-
-            new Chart(ctx2, {
-                type: 'line',
-                data: {
-                    labels: ['1 May', '6 May', '11 May', '16 May', '21 May', '26 May', '31 May'],
-                    datasets: [{
-                        label: 'Total Revenue',
-                        data: [320, 450, 380, 560, 490, 620, 540],
-                        borderColor: '#D97706',
-                        backgroundColor: gradient2,
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#D97706',
-                        pointBorderColor: '#FFFFFF',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6
-                    }, {
-                        label: 'Completed Revenue',
-                        data: [240, 340, 280, 420, 380, 500, 440],
-                        borderColor: '#8B6B4A',
-                        backgroundColor: 'rgba(139,107,74,0.05)',
-                        fill: true,
-                        tension: 0.4,
-                        pointBackgroundColor: '#8B6B4A',
-                        pointBorderColor: '#FFFFFF',
-                        pointBorderWidth: 2,
-                        pointRadius: 4,
-                        pointHoverRadius: 6,
-                        borderDash: [4, 4]
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                            labels: { boxWidth: 12, padding: 12, font: { size: 10, family: 'Poppins' } }
-                        }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { font: { size: 9 } } },
-                        x: { grid: { display: false }, ticks: { font: { size: 9 } } }
-                    },
-                    interaction: { intersect: false, mode: 'index' }
-                }
-            });
-
-            // 3. Revenue by Payment Method (Bar)
-            const ctx3 = document.getElementById('paymentMethodChart').getContext('2d');
-            new Chart(ctx3, {
-                type: 'bar',
-                data: {
-                    labels: ['Online Banking', 'Credit Card', 'Cash', 'E-Wallet'],
-                    datasets: [{
-                        label: 'Revenue (RM)',
-                        data: [7840, 4590, 2100, 1520],
-                        backgroundColor: ['#4A3327', '#D97706', '#8B6B4A', '#7C4DFF'],
-                        borderRadius: 6,
-                        barPercentage: 0.6
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { font: { size: 9 } } },
-                        x: { grid: { display: false }, ticks: { font: { size: 10, weight: '500' } } }
-                    }
-                }
-            });
-
-            // 4. Monthly Comparisons (Bar)
+            // 4. Monthly Comparisons (Bar) - 保留
             const ctx4 = document.getElementById('monthlyComparisonChart').getContext('2d');
             new Chart(ctx4, {
                 type: 'bar',
@@ -1309,7 +1181,7 @@
                 }
             });
 
-            console.log('PawCare Reports & Analytics page loaded.');
+            console.log('PawCare Reports & Analytics page loaded (Revenue removed).');
         });
     </script>
 
