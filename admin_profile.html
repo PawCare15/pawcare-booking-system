@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="admin_style.css">
 
     <style>
-        /* ===== PROFILE 页面特有样式 ===== */
+        /* ===== PROFILE 页面特有样式 - 调整 Profile Overview 与 Security 比例 ===== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -170,10 +170,10 @@
             flex-direction: column;
             gap: 24px;
         }
-        /* ===== 顶部行比例调整为 1.2fr 1fr，让 Security 更宽 ===== */
+        /* ===== 关键调整：顶部行比例从 2fr 1fr 改为 1.5fr 1fr ===== */
         .top-row {
             display: grid;
-            grid-template-columns: 1.2fr 1fr;
+            grid-template-columns: 1.5fr 1fr;
             gap: 24px;
             align-items: stretch;
         }
@@ -207,7 +207,7 @@
         .card-header i { color: #D97706; }
         .card-body { padding: 16px 24px 24px; }
 
-        /* ===== Profile Overview 紧凑 ===== */
+        /* ===== Profile Overview 适当紧凑 ===== */
         .profile-overview {
             padding: 20px 24px 24px;
         }
@@ -296,7 +296,7 @@
             display: inline-block;
         }
 
-        /* ===== Security 卡片 - 确保内容完整显示 ===== */
+        /* ===== Security 卡片保持完整显示 ===== */
         .security-card {
             padding: 20px 24px 24px;
             display: flex;
@@ -369,13 +369,7 @@
             align-items: center;
             gap: 6px;
             white-space: nowrap;
-            flex-shrink: 0; /* 防止按钮被压缩 */
-        }
-        /* Security 卡片内的按钮使用 btn-sm 统一尺寸 */
-        .security-item .right .btn {
-            padding: 4px 12px;
-            font-size: 11px;
-            white-space: nowrap;
+            flex-shrink: 0;
         }
         .badge {
             font-size: 10px;
@@ -434,13 +428,8 @@
         }
         .btn-outline:hover { background: #F7EFE7; }
         .btn-sm {
-            padding: 4px 14px;
+            padding: 4px 12px;
             font-size: 11px;
-        }
-        /* Danger Zone 按钮统一宽度 */
-        .danger-item .btn {
-            min-width: 100px;
-            justify-content: center;
         }
 
         .edit-card, .pref-card { padding: 24px; }
@@ -747,7 +736,7 @@
             .security-item { flex-direction: column; align-items: flex-start; gap: 6px; }
             .security-item .right { align-self: flex-end; }
             .danger-item { flex-direction: column; align-items: flex-start; gap: 6px; }
-            .danger-item .btn { align-self: flex-end; min-width: 80px; }
+            .danger-item .btn { align-self: flex-end; }
             .modal-box { padding: 24px 20px; }
             .dashboard-container { padding: 0 16px 18px; }
             .overview-inner { grid-template-columns: 1fr; }
@@ -765,7 +754,6 @@
             .overview-info { gap: 6px 14px; }
             .info-item .label { font-size: 10px; }
             .info-item .value { font-size: 13px; }
-            .danger-item .btn { min-width: 70px; font-size: 10px; padding: 4px 10px; }
         }
         .main-content .dashboard-container { padding-top: 0; }
     </style>
@@ -995,17 +983,11 @@
                             <div class="subtext">Irreversible and sensitive actions.</div>
                             <div class="danger-zone">
                                 <div class="danger-item">
-                                    <div>
-                                        <div class="title">Log Out from All Devices</div>
-                                        <div class="desc">Sign out from all active sessions.</div>
-                                    </div>
+                                    <div><div class="title">Log Out from All Devices</div><div class="desc">Sign out from all active sessions.</div></div>
                                     <button class="btn btn-danger btn-sm" id="logoutAllBtn">Log Out All</button>
                                 </div>
                                 <div class="danger-item">
-                                    <div>
-                                        <div class="title">Delete Admin Account</div>
-                                        <div class="desc">Permanently delete your admin account.</div>
-                                    </div>
+                                    <div><div class="title">Delete Admin Account</div><div class="desc">Permanently delete your admin account.</div></div>
                                     <button class="btn btn-danger btn-sm" id="deleteAccountBtn">Delete Account</button>
                                 </div>
                             </div>
