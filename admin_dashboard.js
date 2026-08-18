@@ -1,12 +1,22 @@
-// AUTH CHECK - ADMIN ONLY
 (function checkAuth() {
+    // 🔥 先清空整个页面，防止缓存显示旧内容
+    document.documentElement.innerHTML = `
+        <html>
+            <head><title>Redirecting...</title></head>
+            <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;background:#FAF7F2;color:#4A3327;">
+                Redirecting...
+            </body>
+        </html>
+    `;
+
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
+
     if (!token) {
         window.location.replace('index.html');
         return;
     }
-    // CHECK IF USER IS ADMIN
+
     try {
         const userData = JSON.parse(user);
         if (userData.role !== 'admin') {
@@ -20,15 +30,14 @@
 })();
 
 // SUPABASE CONFIGURATION
-const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co'; 
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk'; 
-
+const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
 
 // WRAPPER FOR API CALLS WITH TOKEN
 async function authFetch(url, options = {}) {
     const token = localStorage.getItem('token');
     if (!token) {
-        window.location.href = 'login.html';
+        window.location.replace('login.html');
         return;
     }
     const headers = {
@@ -39,7 +48,7 @@ async function authFetch(url, options = {}) {
     const response = await fetch(url, { ...options, headers });
     if (response.status === 401) {
         localStorage.clear();
-        window.location.href = 'login.html';
+        window.location.replace('login.html');
         throw new Error('Unauthorized');
     }
     return response;
@@ -49,10 +58,10 @@ async function authFetch(url, options = {}) {
 async function supabaseQuery(query, params = []) {
     const token = localStorage.getItem('token');
     if (!token) {
-        window.location.href = 'login.html';
+        window.location.replace('login.html');
         return null;
     }
-    
+
     try {
         const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${query}`, {
             method: 'POST',
@@ -63,11 +72,11 @@ async function supabaseQuery(query, params = []) {
             },
             body: JSON.stringify({ params })
         });
-        
+
         if (!response.ok) {
             throw new Error(`Supabase query failed: ${response.status}`);
         }
-        
+
         return await response.json();
     } catch (err) {
         console.error('Supabase query error:', err);
@@ -116,11 +125,7 @@ function closeLogoutModal() {
 }
 
 function confirmLogout() {
-    localStorage.removeItem('customer');
-    localStorage.removeItem('customerId');
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    localStorage.removeItem('isLoggedIn');
+    localStorage.clear();
     closeLogoutModal();
     window.location.replace('index.html');
 }

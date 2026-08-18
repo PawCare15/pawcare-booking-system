@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="image/logo.png" type="image/png">
     <title>PAWCARE BOOKING SYSTEM</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+    
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -1245,14 +1249,25 @@
     <!-- JAVASCRIPT -->
     <!-- ================================================================ -->
     <script>
-        // AUTH CHECK - ADMIN ONLY
 (function checkAuth() {
+    // 🔥 先清空整个页面，防止缓存显示旧内容
+    document.documentElement.innerHTML = `
+        <html>
+            <head><title>Redirecting...</title></head>
+            <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;background:#FAF7F2;color:#4A3327;">
+                Redirecting...
+            </body>
+        </html>
+    `;
+
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
+
     if (!token) {
         window.location.replace('index.html');
         return;
     }
+
     try {
         const userData = JSON.parse(user);
         if (userData.role !== 'admin') {

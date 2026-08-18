@@ -1220,14 +1220,25 @@
 
     <!-- ===== JAVASCRIPT ===== -->
     <script>
-// AUTH CHECK - ADMIN ONLY
 (function checkAuth() {
+    // 🔥 先清空整个页面，防止缓存显示旧内容
+    document.documentElement.innerHTML = `
+        <html>
+            <head><title>Redirecting...</title></head>
+            <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;background:#FAF7F2;color:#4A3327;">
+                Redirecting...
+            </body>
+        </html>
+    `;
+
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
+
     if (!token) {
         window.location.replace('index.html');
         return;
     }
+
     try {
         const userData = JSON.parse(user);
         if (userData.role !== 'admin') {
