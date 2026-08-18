@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="admin_style.css">
 
     <style>
-        /* ===== PROFILE 页面特有样式 - 调整为与 Reports 页面同样舒适的大小 ===== */
+        /* ===== PROFILE 页面特有样式 - 调整 Profile Overview 与 Security 比例 ===== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -37,7 +37,7 @@
             font-family: 'Poppins', sans-serif;
             color: var(--text);
             background: #fbfaf8;
-            font-size: 14px;  /* 从13px提升到14px，与reports一致 */
+            font-size: 14px;
         }
         button, input, select { font: inherit; }
         button { cursor: pointer; }
@@ -170,9 +170,10 @@
             flex-direction: column;
             gap: 24px;
         }
+        /* ===== 关键调整：顶部行比例从 2fr 1fr 改为 1.5fr 1fr ===== */
         .top-row {
             display: grid;
-            grid-template-columns: 2fr 1fr;
+            grid-template-columns: 1.5fr 1fr;
             gap: 24px;
             align-items: stretch;
         }
@@ -206,24 +207,25 @@
         .card-header i { color: #D97706; }
         .card-body { padding: 16px 24px 24px; }
 
+        /* ===== Profile Overview 适当紧凑 ===== */
         .profile-overview {
-            padding: 24px;
+            padding: 20px 24px 24px;
         }
         .overview-inner {
             display: grid;
-            grid-template-columns: 150px 1fr;
-            gap: 24px;
+            grid-template-columns: 140px 1fr;
+            gap: 20px;
             align-items: start;
         }
         .photo-column {
             text-align: center;
         }
         .profile-avatar-wrapper {
-            width: 100px;
-            height: 100px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             overflow: hidden;
-            margin: 0 auto 10px;
+            margin: 0 auto 8px;
             background: #FDF3E7;
             border: 2px solid #EFECE6;
             display: grid;
@@ -235,7 +237,7 @@
             object-fit: cover;
         }
         .profile-avatar-wrapper .avatar-placeholder {
-            font-size: 42px;
+            font-size: 38px;
         }
         .change-photo {
             position: relative;
@@ -248,82 +250,83 @@
             cursor: pointer;
         }
         .photo-help {
-            font-size: 11px;
+            font-size: 10px;
             color: #7A7A7A;
-            margin-top: 6px;
+            margin-top: 4px;
         }
 
         .overview-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px 28px;
+            gap: 6px 20px;
         }
         .info-item {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
         .info-item i {
-            width: 16px;
+            width: 14px;
             color: #8B796A;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
         }
         .info-item .label {
-            font-size: 11px;
+            font-size: 10px;
             color: #7A7A7A;
             display: block;
             text-transform: uppercase;
             letter-spacing: 0.4px;
-            line-height: 1.2;
+            line-height: 1.1;
         }
         .info-item .value {
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 500;
             color: #333;
             display: block;
-            line-height: 1.4;
+            line-height: 1.3;
         }
         .role-badge {
             background: #F5EADC;
             color: #79502E;
             border-radius: 4px;
-            padding: 2px 10px;
-            font-size: 11px;
+            padding: 1px 8px;
+            font-size: 10px;
             font-weight: 600;
             display: inline-block;
         }
 
+        /* ===== Security 卡片保持完整显示 ===== */
         .security-card {
-            padding: 24px;
+            padding: 20px 24px 24px;
             display: flex;
             flex-direction: column;
         }
         .security-intro {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
         }
         .security-icon {
-            width: 40px;
-            height: 40px;
+            width: 36px;
+            height: 36px;
             border-radius: 50%;
             background: #FFF0DF;
             color: #4A3327;
             display: grid;
             place-items: center;
-            font-size: 16px;
+            font-size: 14px;
             flex-shrink: 0;
         }
         .security-intro h3 {
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 600;
             color: #4A3327;
             margin: 0;
         }
         .security-intro p {
-            font-size: 12px;
+            font-size: 11px;
             color: #7A7A7A;
             margin: 0;
         }
@@ -331,43 +334,47 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            padding: 8px 0;
             border-top: 1px solid #EFECE6;
-            gap: 10px;
+            gap: 8px;
         }
         .security-item:first-of-type { border-top: none; }
         .security-item .left {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             min-width: 0;
+            flex: 1;
         }
         .security-item .left > i {
-            width: 18px;
+            width: 16px;
             color: #8B796A;
             text-align: center;
-            font-size: 14px;
+            font-size: 13px;
+            flex-shrink: 0;
         }
         .security-item .title {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             color: #333;
+            white-space: nowrap;
         }
         .security-item .desc {
-            font-size: 11px;
+            font-size: 10px;
             color: #7A7A7A;
             margin-top: 0;
         }
         .security-item .right {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             white-space: nowrap;
+            flex-shrink: 0;
         }
         .badge {
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
-            padding: 2px 12px;
+            padding: 2px 10px;
             border-radius: 20px;
             background: #E8F5E9;
             color: #2E7D32;
