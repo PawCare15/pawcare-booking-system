@@ -876,7 +876,6 @@
             <a href="admin_bookings.html" class="nav-item"><i class="fa-regular fa-calendar-check"></i> Booking Management</a>
             <a href="admin_customers.html" class="nav-item"><i class="fa-regular fa-user"></i> Customer Management</a>
             <a href="admin_pets.html" class="nav-item"><i class="fa-solid fa-paw"></i> Pet Management</a>
-            <a href="admin_staff.html" class="nav-item"><i class="fa-solid fa-users"></i> Staff Management</a>
             <a href="admin_services.html" class="nav-item"><i class="fa-solid fa-scissors"></i> Service Management</a>
             <a href="admin_reports.html" class="nav-item"><i class="fa-solid fa-chart-bar"></i> Reports & Analytics</a>
             <a href="admin_reviews.html" class="nav-item"><i class="fa-regular fa-star"></i> Reviews</a>
@@ -1246,7 +1245,7 @@
     <!-- JAVASCRIPT -->
     <!-- ================================================================ -->
     <script>
-// AUTH CHECK - ADMIN ONLY
+        // AUTH CHECK - ADMIN ONLY
 (function checkAuth() {
     const token = localStorage.getItem('token');
     const user = localStorage.getItem('user');
@@ -1372,6 +1371,8 @@ function confirmLogout() {
     closeLogoutModal();
     window.location.replace('index.html');
 }
+
+        var openModal, closeModal, showLogoutModal, closeLogoutModal, confirmLogout;
 
         (function() {
             'use strict';
