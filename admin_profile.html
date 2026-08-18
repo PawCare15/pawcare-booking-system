@@ -173,7 +173,7 @@
         /* ===== 关键调整：顶部行比例从 2fr 1fr 改为 1.5fr 1fr ===== */
         .top-row {
             display: grid;
-            grid-template-columns: 1.2fr 1fr;
+            grid-template-columns: 2.2fr 0.8fr;
             gap: 24px;
             align-items: stretch;
         }
@@ -354,13 +354,6 @@
             flex: 1 1 0;
             overflow: visible;
         }
-        .security-item .left > div {
-            overflow: visible;
-            white-space: normal !important;
-            word-break: break-word;
-            flex: 1 1 auto;
-            min-width: 40px;
-        }
 
         .security-item .left .title {
             white-space: normal !important;
@@ -374,14 +367,41 @@
             font-size: 10px;
         }
 
+        /* Security 卡片中右侧按钮组改为垂直排列（徽章在上，按钮在下） */
         .security-item .right {
-            flex-shrink: 0;
-            margin-left: 8px;
             display: flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 2px;
+            flex-shrink: 0;
+            margin-left: 10px;
         }
+
+        /* 确保 Security 卡片中所有文字不换行 */
+        .security-item .left .title,
+        .security-item .left .desc {
+            white-space: nowrap !important;
+            overflow: visible !important;
+        }
+
+        .security-item .left > div {
+            overflow: visible;
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        /* 徽章和按钮尺寸微调 */
+        .security-item .right .badge {
+            font-size: 10px;
+            padding: 2px 12px;
+            line-height: 1.4;
+        }
+
+        .security-item .right .btn-sm {
+            font-size: 10px;
+            padding: 3px 12px;
+        }
+
         .badge {
             font-size: 10px;
             font-weight: 600;
