@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="image/logo.png" type="image/png" class="logo"/>
+    <title>PAWCARE BOOKING SYSTEM - PET MANAGEMENT</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- FONT AWESOME ICONS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- GOOGLE FONTS -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- CUSTOM ADMIN CSS -->
+    <link rel="stylesheet" href="admin_style.css">
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    <aside class="sidebar" id="sidebar">
+        <button class="sidebar-close" id="sidebarClose">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+        
+        <div class="brand">
+            <i class="fa-solid fa-paw brand-icon"></i>
+            <div class="brand-text">
+                <h2>PawCare</h2>
+                <span>Booking System | Admin</span>
+            </div>
+        </div>
+
+        <nav class="nav-menu">
+            <a href="admin_dashboard.html" class="nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+            <a href="admin_bookings.html" class="nav-item"><i class="fa-regular fa-calendar-check"></i> Booking Management</a>
+            <a href="admin_customers.html" class="nav-item"><i class="fa-regular fa-user"></i> Customer Management</a>
+            <a href="admin_pets.html" class="nav-item active"><i class="fa-solid fa-paw"></i> Pet Management</a>
+            <a href="admin_staff.html" class="nav-item"><i class="fa-solid fa-users"></i> Staff Management</a>
+            <a href="admin_services.html" class="nav-item"><i class="fa-solid fa-scissors"></i> Service Management</a>
+            <a href="admin_reports.html" class="nav-item"><i class="fa-solid fa-chart-bar"></i> Reports & Analytics</a>
+            <a href="admin_reviews.html" class="nav-item"><i class="fa-regular fa-star"></i> Reviews</a>
+            <a href="admin_profile.html" class="nav-item"><i class="fa-regular fa-id-card"></i> Admin Profile</a>
+            <a href="#" class="nav-item logout" onclick="showLogoutModal(); return false;"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        
+        <!-- TOP HEADER -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
+                <a href="admin_dashboard.html" class="brand-header">
+                    <i class="fa-solid fa-paw brand-icon"></i>
+                    <div class="brand-text">
+                        <h2>PawCare</h2>
+                        <span>Booking System | Admin</span>
+                    </div>
+                </a>
+            </div>
+            <div class="header-right">
+                <div class="notification-badge" id="notificationBtn">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="count" id="notifCount">0</span>
+                </div>
+                <div class="user-profile" id="profileBtn">
+                    <div class="avatar-wrapper" id="headerAvatarWrapper">
+                        <img id="headerAvatarImg" src="" alt="Avatar" style="display:none;">
+                        <span class="avatar-placeholder" id="headerAvatarPlaceholder">👤</span>
+                    </div>
+                    <div class="user-info">
+                        <span class="name" id="headerName">Admin</span>
+                        <span class="role">Administrator</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- PET MANAGEMENT CONTENT -->
+        <div class="dashboard-container" style="padding-top: 16px;">
+
+            <!-- PAGE HEADER -->
+            <div class="page-header-profile">
+                <div class="page-header-profile-left">
+                    <i class="fa-solid fa-paw page-header-profile-icon"></i>
+                    <div>
+                        <h1 class="page-header-profile-title">Pet Management</h1>
+                        <p class="page-header-profile-subtitle">View and manage all pet profiles.</p>
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="openAddPetModal()">
+                    <i class="fa-solid fa-plus"></i> Add New Pet
+                </button>
+            </div>
+
+            <!-- STATS CARDS - 3 CARDS SAMA LEBAR DALAM SATU ROW -->
+            <div class="stats-grid-3" style="margin-bottom: 24px;">
+
+                <!-- TOTAL PETS -->
+                <div class="stat-card-balance">
+                    <div class="stat-icon" style="background:#FDF3E7;color:#5A361A;">
+                        <i class="fa-solid fa-paw"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalPets">0</h3>
+                        <p>Total Pets</p>
+                        <span class="stat-change positive">All time</span>
+                    </div>
+                </div>
+
+                <!-- DOGS -->
+                <div class="stat-card-balance">
+                    <div class="stat-icon" style="background:#E3F2FD;color:#0D47A1;">
+                        <i class="fa-solid fa-dog"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalDogs">0</h3>
+                        <p>Dogs</p>
+                        <span class="stat-change positive" id="dogPercentage">0% of total</span>
+                    </div>
+                </div>
+
+                <!-- CATS -->
+                <div class="stat-card-balance">
+                    <div class="stat-icon" style="background:#FCE4EC;color:#880E4F;">
+                        <i class="fa-solid fa-cat"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="totalCats">0</h3>
+                        <p>Cats</p>
+                        <span class="stat-change positive" id="catPercentage">0% of total</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SEARCH & TABLE -->
+            <div class="card" style="padding: 18px 24px 20px;">
+
+                <!-- TOOLBAR -->
+                <div style="display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                        <div class="search-wrapper">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" placeholder="Search by pet name, owner or breed..." id="searchInput" />
+                        </div>
+                        <select class="filter-select" id="speciesFilter">
+                            <option value="all">All Species</option>
+                            <option value="Dog">Dogs</option>
+                            <option value="Cat">Cats</option>
+                        </select>
+                        <select class="filter-select" id="statusFilter">
+                            <option value="all">All Status</option>
+                            <option value="Active">Active</option>
+                            <option value="Inactive">Inactive</option>
+                        </select>
+                    </div>
+                    <span style="font-size:12px; color:#7A7A7A; display:flex; align-items:center; gap:6px;">
+                        <i class="fa-solid fa-paw" style="color:#5A361A;"></i> <span id="petCount">0</span> pets
+                    </span>
+                </div>
+
+                <!-- PET TABLE -->
+                <div class="table-responsive">
+                    <table class="data-table" id="petTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Pet Name</th>
+                                <th>Owner</th>
+                                <th>Species</th>
+                                <th>Breed</th>
+                                <th>Age</th>
+                                <th>Weight</th>
+                                <th>Status</th>
+                                <th style="text-align:center;">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="petTableBody">
+
+                            <!-- INJECTED BY JAVASCRIPT -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- PET DETAILS MODAL (VIEW) -->
+            <div class="modal-overlay" id="petDetailModal">
+                <div class="modal-box modal-detail modal-view">
+                    <button class="modal-close" onclick="closePetDetail()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <div id="petDetailContent">
+
+                        <!-- INJECTED BY JAVASCRIPT -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- ADD/EDIT PET MODAL -->
+            <div class="modal-overlay" id="petFormModal">
+                <div class="modal-box modal-detail modal-edit">
+                    <button class="modal-close" onclick="closePetFormModal()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <div id="petFormContent">
+
+                        <!-- INJECTED BY JAVASCRIPT -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- DELETE CONFIRMATION MODAL -->
+            <div class="modal-overlay" id="deleteConfirmModal">
+                <div class="modal-box">
+                    <button class="modal-close" onclick="closeDeleteModal()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <div class="modal-icon-circle danger">
+                        <i class="fa-solid fa-trash-can"></i>
+                    </div>
+                    <h2 class="modal-title">Delete Pet</h2>
+                    <p class="modal-subtitle" id="deleteConfirmMessage">Are you sure you want to delete this pet?</p>
+                    <div class="modal-btn-group">
+                        <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
+                        <button class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUCCESS MODAL -->
+            <div class="modal-overlay" id="successModal">
+                <div class="modal-box">
+                    <button class="modal-close" onclick="closeSuccessModal()">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                    <div class="modal-icon-circle success">
+                        <i class="fa-solid fa-check-circle"></i>
+                    </div>
+                    <h2 class="modal-title" id="successTitle">Success!</h2>
+                    <p class="modal-subtitle" id="successMessage">Pet has been updated successfully.</p>
+                    <div class="modal-btn-group">
+                        <button class="btn btn-primary" onclick="closeSuccessModal()">OK</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- FOOTER -->
+        <footer class="footer">
+            <p><i class="fa-solid fa-paw"></i> © 2026 PawCare Booking System — Paw Walker Grooming House</p>
+        </footer>
+
+    </main>
+
+    <!-- LOGOUT CONFIRM MODAL -->
+    <div class="modal-overlay" id="logoutModal">
+        <div class="modal-box">
+            <div class="modal-icon-circle warning">
+                <i class="fa-solid fa-sign-out-alt"></i>
+            </div>
+            <h2 class="modal-title">Confirm Logout</h2>
+            <p class="modal-subtitle">Are you sure you want to logout?</p>
+            <div class="modal-btn-group">
+                <button class="btn btn-secondary" onclick="closeLogoutModal()">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmLogout()">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script src="admin_pets.js"></script>
+
+</body>
+</html>
