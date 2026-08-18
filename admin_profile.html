@@ -12,8 +12,7 @@
     <link rel="stylesheet" href="admin_style.css">
 
     <style>
-        /* 所有样式与您提供的一致，由于篇幅，此处省略。
-           实际文件中已完整包含全部样式。 */
+        /* ===== PROFILE 页面特有样式 ===== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -38,7 +37,7 @@
             font-family: 'Poppins', sans-serif;
             color: var(--text);
             background: #fbfaf8;
-            font-size: 13px;
+            font-size: 14px;
         }
         button, input, select { font: inherit; }
         button { cursor: pointer; }
@@ -77,16 +76,17 @@
             margin: 0 auto;
             padding: 20px 0 0;
         }
+
         .page-heading {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
-            margin-bottom: 20px;
-            gap: 10px;
+            margin-bottom: 24px;
+            gap: 12px;
         }
         .page-heading h1 {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 700;
             color: #4A3327;
             display: flex;
@@ -95,7 +95,7 @@
         }
         .page-heading h1 i { color: #D97706; }
         .page-heading .breadcrumb {
-            font-size: 13px;
+            font-size: 14px;
             color: #7A7A7A;
             margin-top: 2px;
         }
@@ -103,30 +103,30 @@
             background: #E8F5E9;
             color: #2E7D32;
             border-radius: 20px;
-            padding: 4px 16px;
-            font-size: 12px;
+            padding: 6px 18px;
+            font-size: 13px;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 6px;
             white-space: nowrap;
         }
-        .page-heading .status-badge i { font-size: 8px; }
+        .page-heading .status-badge i { font-size: 9px; }
 
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
+            gap: 18px;
+            margin-bottom: 28px;
         }
         .stat-card {
             background: #FFFFFF;
             border-radius: 14px;
-            padding: 18px 20px;
+            padding: 20px 24px;
             border: 1px solid #EFECE6;
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 18px;
             transition: all 0.25s ease;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
         }
@@ -136,10 +136,10 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
         }
         .stat-card i {
-            font-size: 28px;
+            font-size: 30px;
             color: #D97706;
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -148,13 +148,13 @@
             flex-shrink: 0;
         }
         .stat-card h3 {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 700;
             color: #333;
             line-height: 1.2;
         }
         .stat-card p {
-            font-size: 13px;
+            font-size: 14px;
             color: #7A7A7A;
             margin: 0;
         }
@@ -162,24 +162,25 @@
         .profile-grid {
             display: grid;
             grid-template-columns: 2.2fr 1fr;
-            gap: 24px;
+            gap: 28px;
             align-items: start;
         }
         .left-stack, .right-stack {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 24px;
         }
+        /* ===== 顶部行比例调整为 1.2fr 1fr，让 Security 更宽 ===== */
         .top-row {
             display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 20px;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
             align-items: stretch;
         }
         .bottom-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 20px;
+            gap: 24px;
         }
 
         .card {
@@ -195,8 +196,8 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
         }
         .card-header {
-            padding: 16px 20px 6px;
-            font-size: 14px;
+            padding: 18px 24px 8px;
+            font-size: 15px;
             font-weight: 600;
             color: #4A3327;
             display: flex;
@@ -204,10 +205,11 @@
             gap: 8px;
         }
         .card-header i { color: #D97706; }
-        .card-body { padding: 16px 20px 20px; }
+        .card-body { padding: 16px 24px 24px; }
 
+        /* ===== Profile Overview 紧凑 ===== */
         .profile-overview {
-            padding: 20px;
+            padding: 20px 24px 24px;
         }
         .overview-inner {
             display: grid;
@@ -252,6 +254,7 @@
             color: #7A7A7A;
             margin-top: 4px;
         }
+
         .overview-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -266,18 +269,18 @@
             width: 14px;
             color: #8B796A;
             text-align: center;
-            font-size: 12px;
+            font-size: 13px;
         }
         .info-item .label {
-            font-size: 9px;
+            font-size: 10px;
             color: #7A7A7A;
             display: block;
             text-transform: uppercase;
-            letter-spacing: 0.3px;
+            letter-spacing: 0.4px;
             line-height: 1.1;
         }
         .info-item .value {
-            font-size: 12px;
+            font-size: 13px;
             font-weight: 500;
             color: #333;
             display: block;
@@ -288,13 +291,14 @@
             color: #79502E;
             border-radius: 4px;
             padding: 1px 8px;
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 600;
             display: inline-block;
         }
 
+        /* ===== Security 卡片 - 确保内容完整显示 ===== */
         .security-card {
-            padding: 20px;
+            padding: 20px 24px 24px;
             display: flex;
             flex-direction: column;
         }
@@ -302,7 +306,7 @@
             display: flex;
             gap: 10px;
             align-items: center;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         .security-icon {
             width: 36px;
@@ -316,13 +320,13 @@
             flex-shrink: 0;
         }
         .security-intro h3 {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
             color: #4A3327;
             margin: 0;
         }
         .security-intro p {
-            font-size: 10px;
+            font-size: 11px;
             color: #7A7A7A;
             margin: 0;
         }
@@ -330,7 +334,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 6px 0;
+            padding: 8px 0;
             border-top: 1px solid #EFECE6;
             gap: 8px;
         }
@@ -340,20 +344,23 @@
             align-items: center;
             gap: 8px;
             min-width: 0;
+            flex: 1;
         }
         .security-item .left > i {
             width: 16px;
             color: #8B796A;
             text-align: center;
-            font-size: 12px;
+            font-size: 13px;
+            flex-shrink: 0;
         }
         .security-item .title {
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 500;
             color: #333;
+            white-space: nowrap;
         }
         .security-item .desc {
-            font-size: 9px;
+            font-size: 10px;
             color: #7A7A7A;
             margin-top: 0;
         }
@@ -362,11 +369,18 @@
             align-items: center;
             gap: 6px;
             white-space: nowrap;
+            flex-shrink: 0; /* 防止按钮被压缩 */
+        }
+        /* Security 卡片内的按钮使用 btn-sm 统一尺寸 */
+        .security-item .right .btn {
+            padding: 4px 12px;
+            font-size: 11px;
+            white-space: nowrap;
         }
         .badge {
-            font-size: 9px;
+            font-size: 10px;
             font-weight: 600;
-            padding: 1px 10px;
+            padding: 2px 10px;
             border-radius: 20px;
             background: #E8F5E9;
             color: #2E7D32;
@@ -379,13 +393,13 @@
         .btn {
             border: none;
             border-radius: 8px;
-            padding: 6px 14px;
+            padding: 8px 18px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
             font-weight: 600;
-            font-size: 10px;
+            font-size: 12px;
             transition: all 0.25s ease;
             cursor: pointer;
             font-family: 'Poppins', sans-serif;
@@ -420,28 +434,33 @@
         }
         .btn-outline:hover { background: #F7EFE7; }
         .btn-sm {
-            padding: 3px 10px;
-            font-size: 9px;
+            padding: 4px 14px;
+            font-size: 11px;
+        }
+        /* Danger Zone 按钮统一宽度 */
+        .danger-item .btn {
+            min-width: 100px;
+            justify-content: center;
         }
 
-        .edit-card, .pref-card { padding: 20px; }
+        .edit-card, .pref-card { padding: 24px; }
         .edit-card .sub, .pref-card .sub {
-            font-size: 10px;
+            font-size: 12px;
             color: #7A7A7A;
-            margin: -2px 0 10px;
+            margin: -2px 0 14px;
         }
         .form-row {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
+            gap: 14px;
         }
-        .form-group { margin-bottom: 10px; }
+        .form-group { margin-bottom: 14px; }
         .form-group label {
             display: block;
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 600;
             color: #4A3327;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
         .form-group label i { color: #D97706; margin-right: 4px; }
         .form-control {
@@ -449,8 +468,8 @@
             border: 1.5px solid #E8E2D8;
             border-radius: 8px;
             background: #FAFAFA;
-            padding: 6px 10px;
-            font-size: 11px;
+            padding: 8px 12px;
+            font-size: 13px;
             outline: none;
             color: #333;
             font-family: 'Poppins', sans-serif;
@@ -467,17 +486,17 @@
 
         .theme-toggle-group {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             flex-wrap: wrap;
         }
         .theme-option {
-            padding: 4px 14px;
+            padding: 5px 18px;
             border: 1.5px solid #E4DDD5;
             border-radius: 8px;
             background: #FAFAFA;
             color: #777;
             cursor: pointer;
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 500;
             transition: all 0.2s;
             font-family: 'Poppins', sans-serif;
@@ -492,13 +511,13 @@
 
         .action-row {
             display: flex;
-            gap: 8px;
+            gap: 10px;
             flex-wrap: wrap;
-            margin-top: 2px;
+            margin-top: 4px;
         }
         .message {
-            font-size: 10px;
-            margin-top: 6px;
+            font-size: 12px;
+            margin-top: 8px;
             display: none;
         }
         .message.success { display: block; color: #2E7D32; }
@@ -507,27 +526,27 @@
         .pref-group {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 12px;
         }
         .pref-item {
             display: grid;
-            grid-template-columns: 90px 1fr;
+            grid-template-columns: 110px 1fr;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
         }
         .pref-item label {
-            font-size: 10px;
+            font-size: 12px;
             font-weight: 500;
             color: #4A3327;
         }
-        .pref-item label i { color: #D97706; width: 14px; }
+        .pref-item label i { color: #D97706; width: 16px; }
         .pref-item select {
             width: 100%;
-            padding: 5px 10px;
+            padding: 7px 12px;
             border: 1.5px solid #E8E2D8;
             border-radius: 8px;
             background: #FAFAFA;
-            font-size: 10px;
+            font-size: 12px;
             font-family: 'Poppins', sans-serif;
             color: #333;
             outline: none;
@@ -537,13 +556,13 @@
         .save-pref {
             display: flex;
             align-items: center;
-            gap: 10px;
-            margin-top: 10px;
+            gap: 12px;
+            margin-top: 14px;
         }
 
-        .activity-card, .danger-card { padding: 20px; }
+        .activity-card, .danger-card { padding: 24px; }
         .activity-title, .danger-title {
-            font-size: 13px;
+            font-size: 15px;
             font-weight: 600;
             display: flex;
             align-items: center;
@@ -554,16 +573,16 @@
         .danger-title { color: #C5221F; }
         .danger-title i { color: #C5221F; }
         .subtext {
-            font-size: 9px;
+            font-size: 11px;
             color: #7A7A7A;
-            margin: 2px 0 10px 26px;
+            margin: 2px 0 14px 28px;
         }
         .activity-row {
             display: flex;
             justify-content: space-between;
-            padding: 5px 0;
+            padding: 8px 0;
             border-bottom: 1px solid #EFECE6;
-            font-size: 11px;
+            font-size: 13px;
         }
         .activity-row:last-child { border-bottom: none; }
         .activity-row .v { font-weight: 500; color: #333; }
@@ -572,25 +591,25 @@
             border: 1px solid #F5D9D6;
             border-radius: 8px;
             background: #FFFAFA;
-            margin-top: 6px;
+            margin-top: 8px;
         }
         .danger-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 12px;
-            gap: 8px;
+            padding: 12px 16px;
+            gap: 12px;
         }
         .danger-item + .danger-item { border-top: 1px solid #F5DFDC; }
         .danger-item .title {
-            font-size: 11px;
+            font-size: 13px;
             font-weight: 600;
             color: #C5221F;
         }
         .danger-item .desc {
-            font-size: 9px;
+            font-size: 11px;
             color: #7A7A7A;
-            margin-top: 1px;
+            margin-top: 2px;
         }
 
         html { scrollbar-gutter: stable; }
@@ -615,7 +634,7 @@
             width: min(440px, 100%);
             background: #FFFFFF;
             border-radius: 16px;
-            padding: 28px 32px;
+            padding: 32px 36px;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
             animation: slideUp 0.3s ease;
             max-height: 90vh;
@@ -628,22 +647,22 @@
         }
         .modal-title {
             text-align: center;
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 700;
             color: #4A3327;
-            margin-bottom: 4px;
+            margin-bottom: 6px;
         }
         .modal-subtitle {
             text-align: center;
             color: #7A7A7A;
-            font-size: 12px;
-            margin: 0 0 16px;
+            font-size: 14px;
+            margin: 0 0 18px;
         }
         .modal-btn-group {
             display: flex;
             justify-content: flex-end;
-            gap: 10px;
-            margin-top: 16px;
+            gap: 12px;
+            margin-top: 18px;
         }
         .modal-btn-group .btn { flex: 1; justify-content: center; }
         .close-modal {
@@ -652,36 +671,36 @@
             top: 12px;
             border: none;
             background: none;
-            font-size: 20px;
+            font-size: 22px;
             color: #7A6B5A;
             cursor: pointer;
             transition: color 0.2s;
         }
         .close-modal:hover { color: #333; }
         .modal-icon-circle {
-            width: 56px;
-            height: 56px;
+            width: 60px;
+            height: 60px;
             border-radius: 50%;
             display: grid;
             place-items: center;
-            margin: 0 auto 12px;
-            font-size: 24px;
+            margin: 0 auto 14px;
+            font-size: 26px;
         }
         .modal-icon-circle.warning { background: #FFF0DF; color: #D97706; }
         .modal-icon-circle.success { background: #E8F5E9; color: #2E7D32; }
         .modal-icon-circle.danger { background: #FCE8E6; color: #C5221F; }
         .modal-icon-circle.info { background: #E3F2FD; color: #0D47A1; }
 
-        .session-list { margin-top: 8px; }
+        .session-list { margin-top: 10px; }
         .session {
-            padding: 8px 0;
+            padding: 10px 0;
             border-top: 1px solid #EFECE6;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 11px;
+            font-size: 13px;
         }
-        .session small { color: #7A7A7A; font-size: 9px; }
+        .session small { color: #7A7A7A; font-size: 11px; }
 
         .toast {
             position: fixed;
@@ -689,9 +708,9 @@
             bottom: 24px;
             background: #2F2A26;
             color: #fff;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border-radius: 10px;
-            font-size: 11px;
+            font-size: 13px;
             box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
             opacity: 0;
             transform: translateY(10px);
@@ -702,7 +721,7 @@
         }
         .toast.show { opacity: 1; transform: translateY(0); }
 
-        .dashboard-container { padding: 0 32px 20px; }
+        .dashboard-container { padding: 0 32px 24px; }
 
         @media (max-width: 1200px) {
             .profile-grid { grid-template-columns: 1fr; }
@@ -712,36 +731,41 @@
         }
         @media (max-width: 992px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .overview-inner { grid-template-columns: 1fr; gap: 16px; }
+            .overview-inner { grid-template-columns: 1fr; gap: 18px; }
             .overview-info { grid-template-columns: 1fr 1fr; }
             .form-row { grid-template-columns: 1fr; }
-            .pref-item { grid-template-columns: 1fr; gap: 4px; }
+            .pref-item { grid-template-columns: 1fr; gap: 6px; }
         }
         @media (max-width: 768px) {
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
-            .stat-card { padding: 14px 16px; }
-            .stat-card i { width: 36px; height: 36px; font-size: 22px; }
-            .stat-card h3 { font-size: 20px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
+            .stat-card { padding: 16px 18px; }
+            .stat-card i { width: 40px; height: 40px; font-size: 24px; }
+            .stat-card h3 { font-size: 22px; }
             .bottom-row { grid-template-columns: 1fr; }
             .overview-info { grid-template-columns: 1fr; }
             .page-heading { flex-direction: column; align-items: flex-start; }
-            .security-item { flex-direction: column; align-items: flex-start; gap: 4px; }
+            .security-item { flex-direction: column; align-items: flex-start; gap: 6px; }
             .security-item .right { align-self: flex-end; }
-            .danger-item { flex-direction: column; align-items: flex-start; gap: 4px; }
-            .danger-item .btn { align-self: flex-end; }
-            .modal-box { padding: 20px 18px; }
-            .dashboard-container { padding: 0 14px 16px; }
+            .danger-item { flex-direction: column; align-items: flex-start; gap: 6px; }
+            .danger-item .btn { align-self: flex-end; min-width: 80px; }
+            .modal-box { padding: 24px 20px; }
+            .dashboard-container { padding: 0 16px 18px; }
             .overview-inner { grid-template-columns: 1fr; }
+            .profile-avatar-wrapper { width: 80px; height: 80px; }
         }
         @media (max-width: 480px) {
-            .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
-            .stat-card { padding: 12px 14px; }
-            .stat-card i { width: 32px; height: 32px; font-size: 18px; }
-            .stat-card h3 { font-size: 18px; }
-            .stat-card p { font-size: 11px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .stat-card { padding: 14px 16px; }
+            .stat-card i { width: 36px; height: 36px; font-size: 20px; }
+            .stat-card h3 { font-size: 20px; }
+            .stat-card p { font-size: 12px; }
             .profile-avatar-wrapper { width: 70px; height: 70px; }
-            .profile-avatar-wrapper .avatar-placeholder { font-size: 30px; }
-            .page-heading h1 { font-size: 18px; }
+            .profile-avatar-wrapper .avatar-placeholder { font-size: 34px; }
+            .page-heading h1 { font-size: 20px; }
+            .overview-info { gap: 6px 14px; }
+            .info-item .label { font-size: 10px; }
+            .info-item .value { font-size: 13px; }
+            .danger-item .btn { min-width: 70px; font-size: 10px; padding: 4px 10px; }
         }
         .main-content .dashboard-container { padding-top: 0; }
     </style>
@@ -971,11 +995,17 @@
                             <div class="subtext">Irreversible and sensitive actions.</div>
                             <div class="danger-zone">
                                 <div class="danger-item">
-                                    <div><div class="title">Log Out from All Devices</div><div class="desc">Sign out from all active sessions.</div></div>
+                                    <div>
+                                        <div class="title">Log Out from All Devices</div>
+                                        <div class="desc">Sign out from all active sessions.</div>
+                                    </div>
                                     <button class="btn btn-danger btn-sm" id="logoutAllBtn">Log Out All</button>
                                 </div>
                                 <div class="danger-item">
-                                    <div><div class="title">Delete Admin Account</div><div class="desc">Permanently delete your admin account.</div></div>
+                                    <div>
+                                        <div class="title">Delete Admin Account</div>
+                                        <div class="desc">Permanently delete your admin account.</div>
+                                    </div>
                                     <button class="btn btn-danger btn-sm" id="deleteAccountBtn">Delete Account</button>
                                 </div>
                             </div>
@@ -1031,8 +1061,8 @@
             <button class="close-modal" data-close="twoFactorModal"><i class="fa-solid fa-xmark"></i></button>
             <h2 class="modal-title">Two-Factor Authentication</h2>
             <p class="modal-subtitle">Control the extra security layer for this account.</p>
-            <div style="display:flex; justify-content:space-between; align-items:center; padding:14px 16px; background:#FAF7F2; border:1px solid #EFECE6; border-radius:10px;">
-                <div><b style="font-size:12px;">2FA Status</b><div style="font-size:10px; color:#7A7A7A; margin-top:2px;">Require verification when signing in.</div></div>
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:16px 18px; background:#FAF7F2; border:1px solid #EFECE6; border-radius:10px;">
+                <div><b style="font-size:13px;">2FA Status</b><div style="font-size:12px; color:#7A7A7A; margin-top:2px;">Require verification when signing in.</div></div>
                 <button class="btn btn-primary" id="toggle2faBtn">Disable 2FA</button>
             </div>
         </div>
@@ -1087,7 +1117,7 @@
                 <i class="fa-regular fa-user"></i>
             </div>
             <h2 class="modal-title">Account Menu</h2>
-            <div style="display:flex; flex-direction:column; gap:10px; margin:16px 0 8px;">
+            <div style="display:flex; flex-direction:column; gap:12px; margin:18px 0 10px;">
                 <button class="btn btn-primary" id="userViewProfileBtn" style="width:100%; justify-content:center;">
                     <i class="fa-regular fa-id-card"></i> View Profile
                 </button>
@@ -1095,7 +1125,7 @@
                     <i class="fa-solid fa-right-from-bracket"></i> Logout
                 </button>
             </div>
-            <p class="modal-subtitle" style="margin-bottom:0; font-size:11px;">Click outside to close.</p>
+            <p class="modal-subtitle" style="margin-bottom:0; font-size:12px;">Click outside to close.</p>
         </div>
     </div>
 
