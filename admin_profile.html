@@ -74,7 +74,14 @@
             display: grid;
             grid-template-columns: 1.8fr 1.2fr;
             gap: 28px;
-            align-items: start;
+            align-items: stretch;
+        }
+        .left-stack, .right-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+            justify-content: space-between;
+            height: 100%;
         }
         .footer {
             margin-top: 10px !important;
@@ -181,12 +188,6 @@
             font-size: 14px;
             color: #7A7A7A;
             margin: 0;
-        }
-
-        .left-stack, .right-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
         }
 
         .card {
@@ -772,6 +773,7 @@
 
         @media (max-width: 1200px) {
             .profile-grid { grid-template-columns: 1fr; }
+            .left-stack, .right-stack { justify-content: flex-start; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 992px) {
@@ -794,6 +796,7 @@
             .modal-box { padding: 24px 20px; }
             .dashboard-container { padding: 0 16px 18px; }
             .page-heading { flex-direction: column; align-items: flex-start; }
+            .left-stack, .right-stack { justify-content: flex-start; }
         }
         @media (max-width: 480px) {
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -1370,7 +1373,7 @@
                 }
             }
 
-            // ===== LOGOUT 全局函数 =====
+            // ===== LOGOUT 全局函数（与 dashboard 完全一致） =====
             showLogoutModal = function() {
                 openModal('logoutModal');
             };
@@ -1383,6 +1386,7 @@
                 ['customer', 'customerId', 'token', 'user', 'isLoggedIn', 'pawcareAdminProfile', 'pawcareAvatar'].forEach(k => localStorage.removeItem(k));
                 closeModal('logoutModal');
                 toast('Logged out successfully.');
+                // 使用 replace 替换历史记录，防止用户通过后退按钮回到 admin 页面
                 window.location.replace('index.html');
             };
 
