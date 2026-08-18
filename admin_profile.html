@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="admin_style.css">
 
     <style>
-        /* ===== PROFILE 页面特有样式 - 调整 Profile Overview 与 Security 比例 ===== */
+        /* ===== PROFILE 页面样式 - 整洁清晰，类似用户资料页 ===== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -77,6 +77,7 @@
             padding: 20px 0 0;
         }
 
+        /* ===== 页面标题 ===== */
         .page-heading {
             display: flex;
             justify-content: space-between;
@@ -94,11 +95,6 @@
             gap: 10px;
         }
         .page-heading h1 i { color: #D97706; }
-        .page-heading .breadcrumb {
-            font-size: 14px;
-            color: #7A7A7A;
-            margin-top: 2px;
-        }
         .page-heading .status-badge {
             background: #E8F5E9;
             color: #2E7D32;
@@ -113,6 +109,7 @@
         }
         .page-heading .status-badge i { font-size: 9px; }
 
+        /* ===== 统计卡片 ===== */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -136,7 +133,7 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
         }
         .stat-card i {
-            font-size: 30px;
+            font-size: 28px;
             color: #D97706;
             width: 48px;
             height: 48px;
@@ -159,9 +156,10 @@
             margin: 0;
         }
 
+        /* ===== 主布局 - 2列，左侧稍宽 ===== */
         .profile-grid {
             display: grid;
-            grid-template-columns: 2.2fr 1fr;
+            grid-template-columns: 1.8fr 1.2fr;
             gap: 28px;
             align-items: start;
         }
@@ -170,19 +168,8 @@
             flex-direction: column;
             gap: 24px;
         }
-        /* ===== 关键调整：顶部行比例从 2fr 1fr 改为 1.5fr 1fr ===== */
-        .top-row {
-            display: grid;
-            grid-template-columns: 1.5fr 1.1fr;
-            gap: 24px;
-            align-items: stretch;
-        }
-        .bottom-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 24px;
-        }
 
+        /* ===== 卡片通用 ===== */
         .card {
             background: #FFFFFF;
             border: 1px solid #EFECE6;
@@ -196,40 +183,43 @@
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
         }
         .card-header {
-            padding: 18px 24px 8px;
+            padding: 18px 24px 6px;
             font-size: 15px;
             font-weight: 600;
             color: #4A3327;
             display: flex;
             align-items: center;
             gap: 8px;
+            border-bottom: 1px solid #EFECE6;
+            padding-bottom: 12px;
+            margin-bottom: 4px;
         }
         .card-header i { color: #D97706; }
         .card-body { padding: 16px 24px 24px; }
 
-        /* ===== Profile Overview 适当紧凑 ===== */
-        .profile-overview {
-            padding: 16px 20px 20px !important;
+        /* ===== Profile Overview - 整洁清晰 ===== */
+        .profile-overview .overview-inner {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 4px 0 8px;
         }
-        .overview-inner {
-            display: grid;
-            grid-template-columns: 110px 1fr;
-            gap: 16px;
-            align-items: start;
-        }
-        .photo-column {
-            text-align: center;
+        .profile-top-row {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
         }
         .profile-avatar-wrapper {
-            width: 76px;
-            height: 76px;
+            width: 88px;
+            height: 88px;
             border-radius: 50%;
             overflow: hidden;
-            margin: 0 auto 6px;
             background: #FDF3E7;
-            border: 2px solid #EFECE6;
+            border: 3px solid #EFECE6;
             display: grid;
             place-items: center;
+            flex-shrink: 0;
         }
         .profile-avatar-wrapper img {
             width: 100%;
@@ -237,222 +227,373 @@
             object-fit: cover;
         }
         .profile-avatar-wrapper .avatar-placeholder {
-            font-size: 32px;
+            font-size: 38px;
         }
-        .change-photo {
-            position: relative;
+        .profile-name-title {
+            flex: 1;
+        }
+        .profile-name-title .name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+        .profile-name-title .role-badge-lg {
+            background: #F5EADC;
+            color: #79502E;
+            border-radius: 6px;
+            padding: 2px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 2px;
+        }
+        .profile-name-title .sub-info {
+            font-size: 13px;
+            color: #7A7A7A;
+            margin-top: 2px;
+        }
+        .profile-name-title .sub-info i {
+            color: #D97706;
+            margin-right: 4px;
+        }
+        .change-photo-btn {
+            font-size: 12px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            border: 1px solid #DFD0C2;
+            background: transparent;
+            color: #4A3327;
+            cursor: pointer;
+            transition: all 0.2s;
             display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Poppins', sans-serif;
         }
-        .change-photo .btn-sm {
-            font-size: 10px;
-            padding: 3px 10px;
+        .change-photo-btn:hover {
+            background: #F7EFE7;
         }
-        .change-photo input {
+        .change-photo-wrap {
+            position: relative;
+            display: inline-block;
+        }
+        .change-photo-wrap input {
             position: absolute;
             inset: 0;
             opacity: 0;
             cursor: pointer;
         }
-        .photo-help {
-            font-size: 9px;
-            color: #7A7A7A;
+        .photo-help-text {
+            font-size: 10px;
+            color: #B0A090;
             margin-top: 2px;
         }
 
-        .overview-info {
+        /* 资料字段网格 - 2列 */
+        .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 6px 20px;
+            gap: 6px 32px;
+            padding-top: 4px;
         }
         .info-item {
             display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 2px 0;
+            align-items: baseline;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid #F5F0EA;
         }
-
-        .info-item i {
-            width: 14px;
-            color: #8B796A;
-            text-align: center;
-            font-size: 12px;
-            flex-shrink: 0;
-        }
-
         .info-item .label {
-            font-size: 9px;
+            font-size: 11px;
             color: #7A7A7A;
-            display: block;
             text-transform: uppercase;
             letter-spacing: 0.3px;
-            line-height: 1.1;
+            min-width: 80px;
+            flex-shrink: 0;
         }
-
         .info-item .value {
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 500;
             color: #333;
-            display: block;
-            line-height: 1.2;
-            white-space: nowrap;
+            word-break: break-word;
         }
-
-        .role-badge {
+        .info-item .value .role-badge-sm {
             background: #F5EADC;
             color: #79502E;
             border-radius: 4px;
-            padding: 1px 8px;
-            font-size: 9px;
+            padding: 1px 10px;
+            font-size: 11px;
             font-weight: 600;
-            display: inline-block;
-            white-space: nowrap;
         }
 
-        /* ===== Security 卡片优化 ===== */
-        .security-card {
-            padding: 16px 18px 18px !important;
-        }
-
-        .security-intro {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-
-        .security-icon {
-            width: 32px;
-            height: 32px;
-            border-radius: 50%;
-            background: #FFF0DF;
-            color: #4A3327;
-            display: grid;
-            place-items: center;
-            font-size: 13px;
-            flex-shrink: 0;
-        }
-
-        .security-intro h3 {
-            font-size: 13px;
-            font-weight: 600;
-            color: #4A3327;
-            margin: 0;
-        }
-
-        .security-intro p {
-            font-size: 10px;
-            color: #7A7A7A;
-            margin: 0;
-        }
-
-        .security-item {
+        /* ===== Security 卡片 ===== */
+        .security-card .security-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 8px 0;
-            border-top: 1px solid #EFECE6;
-            gap: 6px;
-            min-height: 42px;
+            padding: 10px 0;
+            border-bottom: 1px solid #F5F0EA;
+            gap: 12px;
         }
-
-        .security-item:first-of-type {
-            border-top: none;
+        .security-card .security-item:last-child {
+            border-bottom: none;
         }
-
         .security-item .left {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 12px;
+            flex: 1;
             min-width: 0;
-            flex: 1 1 0;
-            overflow: visible;
         }
-
         .security-item .left > i {
-            width: 14px;
+            width: 18px;
             color: #8B796A;
             text-align: center;
-            font-size: 12px;
+            font-size: 15px;
             flex-shrink: 0;
         }
-
-        .security-item .left > div {
-            overflow: visible;
-            min-width: 0;
-            flex: 1 1 auto;
-        }
-
         .security-item .left .title {
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 500;
             color: #333;
-            white-space: nowrap !important;
-            overflow: visible !important;
         }
-
         .security-item .left .desc {
-            font-size: 10px;
+            font-size: 12px;
             color: #7A7A7A;
-            margin-top: 0;
-            white-space: nowrap !important;
-            overflow: visible !important;
         }
-
-        /* 右侧垂直排列：徽章在上，按钮在下 */
         .security-item .right {
             display: flex;
-            flex-direction: column;
-            align-items: flex-end;
-            gap: 1px;
+            align-items: center;
+            gap: 8px;
             flex-shrink: 0;
-            margin-left: 6px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
         }
-
         .security-item .right .badge {
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 600;
-            padding: 1px 10px;
+            padding: 2px 14px;
             border-radius: 20px;
             background: #E8F5E9;
             color: #2E7D32;
-            line-height: 1.6;
             white-space: nowrap;
         }
-
         .security-item .right .badge.inactive {
             background: #FCE8E6;
             color: #C5221F;
         }
-
         .security-item .right .btn-sm {
-            padding: 2px 10px;
-            font-size: 10px;
-            line-height: 1.6;
+            font-size: 11px;
+            padding: 4px 14px;
+            border-radius: 6px;
         }
 
-        .badge {
-            font-size: 10px;
-            font-weight: 600;
-            padding: 2px 10px;
-            border-radius: 20px;
-            background: #E8F5E9;
-            color: #2E7D32;
+        /* ===== Edit Profile ===== */
+        .edit-card .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px 24px;
         }
-        .badge.inactive {
-            background: #FCE8E6;
+        .edit-card .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .edit-card .form-group label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #4A3327;
+        }
+        .edit-card .form-group label i {
+            color: #D97706;
+            margin-right: 4px;
+            width: 16px;
+        }
+        .edit-card .form-control {
+            width: 100%;
+            border: 1.5px solid #E8E2D8;
+            border-radius: 8px;
+            background: #FAFAFA;
+            padding: 8px 14px;
+            font-size: 14px;
+            outline: none;
+            color: #333;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.2s;
+        }
+        .edit-card .form-control:focus {
+            border-color: #4A3327;
+            box-shadow: 0 0 0 3px rgba(74, 51, 39, 0.06);
+        }
+        .edit-card .form-control:disabled {
+            background: #F1EFEC;
+            color: #777;
+        }
+        .edit-card .theme-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 2px;
+        }
+        .edit-card .theme-option {
+            padding: 4px 18px;
+            border: 1.5px solid #E4DDD5;
+            border-radius: 8px;
+            background: #FAFAFA;
+            color: #777;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+            font-family: 'Poppins', sans-serif;
+        }
+        .edit-card .theme-option.active {
+            border-color: #4A3327;
+            background: #F7EADB;
+            color: #4A3327;
+            font-weight: 600;
+        }
+        .edit-card .theme-option:hover { border-color: #4A3327; }
+        .edit-card .action-row {
+            display: flex;
+            gap: 12px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .edit-card .message {
+            font-size: 13px;
+            margin-top: 8px;
+            display: none;
+        }
+        .edit-card .message.success { display: block; color: #2E7D32; }
+        .edit-card .message.error { display: block; color: #C5221F; }
+
+        /* ===== Preferences ===== */
+        .pref-card .pref-group {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            padding: 4px 0;
+        }
+        .pref-card .pref-item {
+            display: grid;
+            grid-template-columns: 120px 1fr;
+            align-items: center;
+            gap: 16px;
+        }
+        .pref-card .pref-item label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #4A3327;
+        }
+        .pref-card .pref-item label i {
+            color: #D97706;
+            width: 18px;
+            margin-right: 4px;
+        }
+        .pref-card .pref-item select {
+            width: 100%;
+            padding: 8px 14px;
+            border: 1.5px solid #E8E2D8;
+            border-radius: 8px;
+            background: #FAFAFA;
+            font-size: 13px;
+            font-family: 'Poppins', sans-serif;
+            color: #333;
+            outline: none;
+            cursor: pointer;
+            transition: border-color 0.2s;
+        }
+        .pref-card .pref-item select:focus {
+            border-color: #4A3327;
+        }
+        .pref-card .save-pref-row {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid #EFECE6;
+        }
+        .pref-card .save-pref-row .msg {
+            font-size: 13px;
+            color: #2E7D32;
+            display: none;
+        }
+        .pref-card .save-pref-row .msg.show { display: inline; }
+
+        /* ===== Activity ===== */
+        .activity-card .activity-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #F5F0EA;
+            font-size: 14px;
+        }
+        .activity-card .activity-row:last-child {
+            border-bottom: none;
+        }
+        .activity-card .activity-row .v {
+            font-weight: 600;
+            color: #333;
+        }
+
+        /* ===== Danger Zone ===== */
+        .danger-card .danger-zone {
+            border: 1px solid #F5D9D6;
+            border-radius: 10px;
+            background: #FFFAFA;
+            margin-top: 4px;
+        }
+        .danger-card .danger-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            gap: 16px;
+        }
+        .danger-card .danger-item + .danger-item {
+            border-top: 1px solid #F5DFDC;
+        }
+        .danger-card .danger-item .title {
+            font-size: 14px;
+            font-weight: 600;
             color: #C5221F;
         }
+        .danger-card .danger-item .desc {
+            font-size: 12px;
+            color: #7A7A7A;
+        }
+        .danger-card .danger-item .btn-danger {
+            font-size: 12px;
+            padding: 6px 18px;
+            border-radius: 8px;
+            background: #D32F2F;
+            color: #fff;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-family: 'Poppins', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .danger-card .danger-item .btn-danger:hover {
+            background: #B71C1C;
+            transform: translateY(-1px);
+        }
 
+        /* ===== 按钮通用 ===== */
         .btn {
             border: none;
             border-radius: 8px;
-            padding: 8px 18px;
+            padding: 8px 22px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 6px;
             font-weight: 600;
-            font-size: 12px;
+            font-size: 13px;
             transition: all 0.25s ease;
             cursor: pointer;
             font-family: 'Poppins', sans-serif;
@@ -472,14 +613,6 @@
             border: 1px solid #E9E1D8;
         }
         .btn-secondary:hover { background: #EBE3DA; }
-        .btn-danger {
-            background: #D32F2F;
-            color: #FFFFFF;
-        }
-        .btn-danger:hover {
-            background: #B71C1C;
-            transform: translateY(-1px);
-        }
         .btn-outline {
             background: transparent;
             color: #4A3327;
@@ -487,361 +620,11 @@
         }
         .btn-outline:hover { background: #F7EFE7; }
         .btn-sm {
-            padding: 4px 12px;
-            font-size: 11px;
-        }
-
-        .edit-card, .pref-card { padding: 24px; }
-        .edit-card .sub, .pref-card .sub {
+            padding: 4px 14px;
             font-size: 12px;
-            color: #7A7A7A;
-            margin: -2px 0 14px;
-        }
-        .form-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 14px;
-        }
-        .form-group { margin-bottom: 14px; }
-        .form-group label {
-            display: block;
-            font-size: 12px;
-            font-weight: 600;
-            color: #4A3327;
-            margin-bottom: 4px;
-        }
-        .form-group label i { color: #D97706; margin-right: 4px; }
-        .form-control {
-            width: 100%;
-            border: 1.5px solid #E8E2D8;
-            border-radius: 8px;
-            background: #FAFAFA;
-            padding: 8px 12px;
-            font-size: 13px;
-            outline: none;
-            color: #333;
-            font-family: 'Poppins', sans-serif;
-            transition: border-color 0.2s;
-        }
-        .form-control:focus {
-            border-color: #4A3327;
-            box-shadow: 0 0 0 3px rgba(74, 51, 39, 0.06);
-        }
-        .form-control:disabled {
-            background: #F1EFEC;
-            color: #777;
         }
 
-        .theme-toggle-group {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .theme-option {
-            padding: 5px 18px;
-            border: 1.5px solid #E4DDD5;
-            border-radius: 8px;
-            background: #FAFAFA;
-            color: #777;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 500;
-            transition: all 0.2s;
-            font-family: 'Poppins', sans-serif;
-        }
-        .theme-option.active {
-            border-color: #4A3327;
-            background: #F7EADB;
-            color: #4A3327;
-            font-weight: 600;
-        }
-        .theme-option:hover { border-color: #4A3327; }
-
-        .action-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 4px;
-        }
-        .message {
-            font-size: 12px;
-            margin-top: 8px;
-            display: none;
-        }
-        .message.success { display: block; color: #2E7D32; }
-        .message.error { display: block; color: #C5221F; }
-
-        .pref-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .pref-item {
-            display: grid;
-            grid-template-columns: 110px 1fr;
-            align-items: center;
-            gap: 12px;
-        }
-        .pref-item label {
-            font-size: 12px;
-            font-weight: 500;
-            color: #4A3327;
-        }
-        .pref-item label i { color: #D97706; width: 16px; }
-        .pref-item select {
-            width: 100%;
-            padding: 7px 12px;
-            border: 1.5px solid #E8E2D8;
-            border-radius: 8px;
-            background: #FAFAFA;
-            font-size: 12px;
-            font-family: 'Poppins', sans-serif;
-            color: #333;
-            outline: none;
-            cursor: pointer;
-        }
-        .pref-item select:focus { border-color: #4A3327; }
-        .save-pref {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-top: 14px;
-        }
-
-        .activity-card, .danger-card { padding: 24px; }
-        .activity-title, .danger-title {
-            font-size: 15px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #4A3327;
-        }
-        .activity-title i { color: #D97706; }
-        .danger-title { color: #C5221F; }
-        .danger-title i { color: #C5221F; }
-        .subtext {
-            font-size: 11px;
-            color: #7A7A7A;
-            margin: 2px 0 14px 28px;
-        }
-        .activity-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #EFECE6;
-            font-size: 13px;
-        }
-        .activity-row:last-child { border-bottom: none; }
-        .activity-row .v { font-weight: 500; color: #333; }
-
-        .danger-zone {
-            border: 1px solid #F5D9D6;
-            border-radius: 8px;
-            background: #FFFAFA;
-            margin-top: 8px;
-        }
-        .danger-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 16px;
-            gap: 12px;
-        }
-        .danger-item + .danger-item { border-top: 1px solid #F5DFDC; }
-        .danger-item .title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #C5221F;
-        }
-        .danger-item .desc {
-            font-size: 11px;
-            color: #7A7A7A;
-            margin-top: 2px;
-        }
-
-        /* ===== 2FA Modal 优化 ===== */
-        .twofa-status-card {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 18px 22px;
-            background: #FAF7F2;
-            border: 1px solid #EFECE6;
-            border-radius: 12px;
-            gap: 16px;
-            flex-wrap: wrap;
-        }
-
-        .twofa-status-left {
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-        }
-
-        .twofa-status-indicator {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            display: inline-block;
-            flex-shrink: 0;
-            transition: background 0.3s ease;
-        }
-
-        .status-dot.enabled {
-            background: #2E7D32;
-            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
-        }
-
-        .status-dot.disabled {
-            background: #C5221F;
-            box-shadow: 0 0 0 3px rgba(197, 34, 31, 0.2);
-        }
-
-        .status-label {
-            font-size: 14px;
-            color: #333;
-        }
-
-        .status-label strong {
-            font-weight: 600;
-        }
-
-        .twofa-status-desc {
-            font-size: 12px;
-            color: #7A7A7A;
-            padding-left: 20px;
-        }
-
-        .btn-md {
-            padding: 8px 24px;
-            font-size: 13px;
-            border-radius: 8px;
-            font-weight: 600;
-            min-width: 120px;
-            justify-content: center;
-        }
-
-        .twofa-info-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 16px;
-            padding: 12px 16px;
-            background: #F5F8FA;
-            border-radius: 8px;
-            font-size: 12px;
-            color: #555;
-        }
-
-        .twofa-info-row i {
-            color: #0D47A1;
-            font-size: 16px;
-        }
-
-        /* ===== Danger Zone 优化 ===== */
-        .danger-zone .danger-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 14px 18px;
-            gap: 16px;
-            transition: background 0.2s ease;
-        }
-
-        .danger-zone .danger-item:hover {
-            background: #FFF5F5;
-        }
-
-        .danger-zone .danger-item + .danger-item {
-            border-top: 1px solid #F5DFDC;
-        }
-
-        .danger-item-left {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            flex: 1;
-            min-width: 0;
-        }
-
-        .danger-item-left > i {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
-            background: #FCE8E6;
-            color: #C5221F;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-
-        .danger-item-left .title {
-            font-size: 13px;
-            font-weight: 600;
-            color: #C5221F;
-        }
-
-        .danger-item-left .desc {
-            font-size: 11px;
-            color: #7A7A7A;
-            margin-top: 1px;
-        }
-
-        .danger-zone .danger-item .btn-danger {
-            min-width: 120px;
-            justify-content: center;
-            font-weight: 600;
-            padding: 6px 16px;
-            border-radius: 8px;
-            transition: all 0.25s ease;
-            flex-shrink: 0;
-            gap: 6px;
-        }
-
-        .danger-zone .danger-item .btn-danger:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 14px rgba(211, 47, 47, 0.3);
-        }
-
-        .danger-zone .danger-item .btn-danger:active {
-            transform: translateY(0);
-            box-shadow: none;
-        }
-
-        /* ===== 暗色模式适配 ===== */
-        body.dark .twofa-status-card {
-            background: #2c2621;
-            border-color: #4b4036;
-        }
-
-        body.dark .twofa-info-row {
-            background: #2a2420;
-            color: #ccc;
-        }
-
-        body.dark .danger-zone .danger-item:hover {
-            background: #332a24;
-        }
-
-        body.dark .danger-item-left > i {
-            background: #3d2a26;
-        }
-
-        html { scrollbar-gutter: stable; }
-        body.modal-open {
-            overflow: hidden !important;
-            padding-right: 0 !important;
-        }
-
+        /* ===== MODAL ===== */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -864,6 +647,7 @@
             max-height: 90vh;
             overflow-y: auto;
             position: relative;
+            text-align: center;
         }
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(30px) scale(0.95); }
@@ -884,11 +668,11 @@
         }
         .modal-btn-group {
             display: flex;
-            justify-content: flex-end;
+            justify-content: center;
             gap: 12px;
             margin-top: 18px;
         }
-        .modal-btn-group .btn { flex: 1; justify-content: center; }
+        .modal-btn-group .btn { flex: 1; justify-content: center; max-width: 160px; }
         .close-modal {
             position: absolute;
             right: 14px;
@@ -911,11 +695,11 @@
             font-size: 26px;
         }
         .modal-icon-circle.warning { background: #FFF0DF; color: #D97706; }
-        .modal-icon-circle.success { background: #E8F5E9; color: #2E7D32; }
         .modal-icon-circle.danger { background: #FCE8E6; color: #C5221F; }
+        .modal-icon-circle.success { background: #E8F5E9; color: #2E7D32; }
         .modal-icon-circle.info { background: #E3F2FD; color: #0D47A1; }
 
-        .session-list { margin-top: 10px; }
+        .session-list { margin-top: 10px; text-align: left; }
         .session {
             padding: 10px 0;
             border-top: 1px solid #EFECE6;
@@ -925,6 +709,15 @@
             font-size: 13px;
         }
         .session small { color: #7A7A7A; font-size: 11px; }
+        .badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 14px;
+            border-radius: 20px;
+            background: #E8F5E9;
+            color: #2E7D32;
+            display: inline-block;
+        }
 
         .toast {
             position: fixed;
@@ -947,50 +740,126 @@
 
         .dashboard-container { padding: 0 32px 24px; }
 
+        /* ===== 2FA Modal ===== */
+        .twofa-status-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 22px;
+            background: #FAF7F2;
+            border: 1px solid #EFECE6;
+            border-radius: 12px;
+            gap: 16px;
+            flex-wrap: wrap;
+            text-align: left;
+        }
+        .twofa-status-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        .twofa-status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+            flex-shrink: 0;
+            transition: background 0.3s ease;
+        }
+        .status-dot.enabled {
+            background: #2E7D32;
+            box-shadow: 0 0 0 3px rgba(46, 125, 50, 0.2);
+        }
+        .status-dot.disabled {
+            background: #C5221F;
+            box-shadow: 0 0 0 3px rgba(197, 34, 31, 0.2);
+        }
+        .status-label {
+            font-size: 14px;
+            color: #333;
+        }
+        .status-label strong { font-weight: 600; }
+        .twofa-status-desc {
+            font-size: 12px;
+            color: #7A7A7A;
+            padding-left: 20px;
+        }
+        .btn-md {
+            padding: 8px 24px;
+            font-size: 13px;
+            border-radius: 8px;
+            font-weight: 600;
+            min-width: 120px;
+            justify-content: center;
+        }
+        .twofa-info-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: #F5F8FA;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #555;
+            text-align: left;
+        }
+        .twofa-info-row i {
+            color: #0D47A1;
+            font-size: 16px;
+        }
+
+        /* ===== 响应式 ===== */
         @media (max-width: 1200px) {
             .profile-grid { grid-template-columns: 1fr; }
-            .top-row { grid-template-columns: 1fr; }
-            .bottom-row { grid-template-columns: 1fr 1fr; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 992px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .overview-inner { grid-template-columns: 1fr; gap: 18px; }
-            .overview-info { grid-template-columns: 1fr 1fr; }
-            .form-row { grid-template-columns: 1fr; }
-            .pref-item { grid-template-columns: 1fr; gap: 6px; }
+            .info-grid { grid-template-columns: 1fr; }
+            .edit-card .form-grid { grid-template-columns: 1fr; }
+            .pref-card .pref-item { grid-template-columns: 1fr; gap: 6px; }
         }
         @media (max-width: 768px) {
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
             .stat-card { padding: 16px 18px; }
-            .stat-card i { width: 40px; height: 40px; font-size: 24px; }
+            .stat-card i { width: 40px; height: 40px; font-size: 20px; }
             .stat-card h3 { font-size: 22px; }
-            .bottom-row { grid-template-columns: 1fr; }
-            .overview-info { grid-template-columns: 1fr; }
-            .page-heading { flex-direction: column; align-items: flex-start; }
+            .profile-top-row { flex-direction: column; align-items: center; text-align: center; }
+            .info-grid { grid-template-columns: 1fr; }
+            .edit-card .form-grid { grid-template-columns: 1fr; }
             .security-item { flex-direction: column; align-items: flex-start; gap: 6px; }
             .security-item .right { align-self: flex-end; }
-            .danger-item { flex-direction: column; align-items: flex-start; gap: 6px; }
-            .danger-item .btn { align-self: flex-end; }
+            .danger-item { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .danger-item .btn-danger { align-self: flex-end; }
             .modal-box { padding: 24px 20px; }
             .dashboard-container { padding: 0 16px 18px; }
-            .overview-inner { grid-template-columns: 1fr; }
-            .profile-avatar-wrapper { width: 80px; height: 80px; }
+            .page-heading { flex-direction: column; align-items: flex-start; }
         }
         @media (max-width: 480px) {
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
             .stat-card { padding: 14px 16px; }
-            .stat-card i { width: 36px; height: 36px; font-size: 20px; }
+            .stat-card i { width: 36px; height: 36px; font-size: 18px; }
             .stat-card h3 { font-size: 20px; }
             .stat-card p { font-size: 12px; }
-            .profile-avatar-wrapper { width: 70px; height: 70px; }
-            .profile-avatar-wrapper .avatar-placeholder { font-size: 34px; }
+            .profile-avatar-wrapper { width: 72px; height: 72px; }
+            .profile-avatar-wrapper .avatar-placeholder { font-size: 30px; }
+            .profile-name-title .name { font-size: 18px; }
             .page-heading h1 { font-size: 20px; }
-            .overview-info { gap: 6px 14px; }
-            .info-item .label { font-size: 10px; }
+            .info-item .label { min-width: 60px; font-size: 10px; }
             .info-item .value { font-size: 13px; }
         }
         .main-content .dashboard-container { padding-top: 0; }
+
+        body.modal-open {
+            overflow: hidden !important;
+            padding-right: 0 !important;
+        }
     </style>
 </head>
 <body>
@@ -1056,7 +925,8 @@
 
         <div class="dashboard-container">
             <div class="profile-container">
-                <!-- 页面标题 -->
+
+                <!-- ===== 页面标题 ===== -->
                 <div class="page-heading">
                     <div>
                         <h1><i class="fa-regular fa-id-card"></i> Admin Profile</h1>
@@ -1064,7 +934,7 @@
                     <span class="status-badge"><i class="fa-solid fa-circle"></i> Active</span>
                 </div>
 
-                <!-- 统计卡片 -->
+                <!-- ===== 统计卡片 ===== -->
                 <div class="stats-grid">
                     <div class="stat-card">
                         <i class="fa-solid fa-right-to-bracket"></i>
@@ -1096,46 +966,132 @@
                     </div>
                 </div>
 
+                <!-- ===== 主布局 ===== -->
                 <div class="profile-grid">
+                    <!-- 左侧 -->
                     <div class="left-stack">
-                        <div class="top-row">
-                            <!-- Profile Overview -->
-                            <div class="card profile-overview">
-                                <div class="card-header"><i class="fa-regular fa-user"></i> Profile Overview</div>
+
+                        <!-- Profile Overview -->
+                        <div class="card profile-overview">
+                            <div class="card-header"><i class="fa-regular fa-user"></i> Profile Overview</div>
+                            <div class="card-body">
                                 <div class="overview-inner">
-                                    <div class="photo-column">
+                                    <div class="profile-top-row">
                                         <div class="profile-avatar-wrapper">
                                             <img id="profileAvatarImg" alt="Profile avatar" style="display:none;">
                                             <span id="profileAvatarPlaceholder" class="avatar-placeholder">👤</span>
                                         </div>
-                                        <div class="change-photo">
-                                            <button class="btn btn-outline btn-sm"><i class="fa-solid fa-camera"></i> Change Photo</button>
-                                            <input type="file" id="avatarUploadInput" accept="image/png,image/jpeg,image/gif,image/webp">
+                                        <div class="profile-name-title">
+                                            <div class="name" id="profileFullName">Admin</div>
+                                            <div><span class="role-badge-lg">Super Admin</span></div>
+                                            <div class="sub-info"><i class="fa-regular fa-envelope"></i> <span id="profileEmail">admin@pawcare.com</span></div>
+                                            <div style="margin-top:4px;">
+                                                <span class="change-photo-wrap">
+                                                    <button class="change-photo-btn"><i class="fa-solid fa-camera"></i> Change Photo</button>
+                                                    <input type="file" id="avatarUploadInput" accept="image/png,image/jpeg,image/gif,image/webp">
+                                                </span>
+                                                <span class="photo-help-text">JPG, PNG or GIF. Max 2MB.</span>
+                                            </div>
                                         </div>
-                                        <div class="photo-help">JPG, PNG or GIF. Max 2MB.</div>
                                     </div>
-                                    <div class="overview-info">
-                                        <div class="info-item"><i class="fa-regular fa-user"></i><div><span class="label">Full Name</span><span class="value" id="profileFullName">Admin</span></div></div>
-                                        <div class="info-item"><i class="fa-solid fa-crown"></i><div><span class="label">Role</span><span class="role-badge">Super Admin</span></div></div>
-                                        <div class="info-item"><i class="fa-regular fa-envelope"></i><div><span class="label">Email</span><span class="value" id="profileEmail">admin@pawcare.com</span></div></div>
-                                        <div class="info-item"><i class="fa-solid fa-phone"></i><div><span class="label">Phone</span><span class="value" id="profilePhone">+60 12-345 6789</span></div></div>
-                                        <div class="info-item"><i class="fa-solid fa-building"></i><div><span class="label">Department</span><span class="value" id="profileDepartment">Management</span></div></div>
-                                        <div class="info-item"><i class="fa-regular fa-id-badge"></i><div><span class="label">Employee ID</span><span class="value">ADM-0001</span></div></div>
-                                        <div class="info-item"><i class="fa-regular fa-calendar"></i><div><span class="label">Joined Date</span><span class="value">01 January 2024</span></div></div>
-                                        <div class="info-item"><i class="fa-regular fa-clock"></i><div><span class="label">Last Login</span><span class="value" id="profileLastLogin">15 May 2026, 09:30 AM</span></div></div>
+                                    <div class="info-grid">
+                                        <div class="info-item"><span class="label">Phone</span><span class="value" id="profilePhone">+60 12-345 6789</span></div>
+                                        <div class="info-item"><span class="label">Department</span><span class="value" id="profileDepartment">Management</span></div>
+                                        <div class="info-item"><span class="label">Employee ID</span><span class="value">ADM-0001</span></div>
+                                        <div class="info-item"><span class="label">Joined Date</span><span class="value">01 January 2024</span></div>
+                                        <div class="info-item"><span class="label">Last Login</span><span class="value" id="profileLastLogin">15 May 2026, 09:30 AM</span></div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <!-- Security -->
-                            <div class="card security-card">
-                                <div class="security-intro">
-                                    <div class="security-icon"><i class="fa-solid fa-shield-halved"></i></div>
-                                    <div>
-                                        <h3>Account Security</h3>
-                                        <p>Keep your account secure and updated.</p>
+                        <!-- Edit Profile -->
+                        <div class="card edit-card">
+                            <div class="card-header"><i class="fa-regular fa-pen-to-square"></i> Edit Profile</div>
+                            <div class="card-body">
+                                <div style="font-size:13px; color:#7A7A7A; margin-bottom:14px;">Update your personal information and contact details.</div>
+                                <form id="profileForm">
+                                    <div class="form-grid">
+                                        <div class="form-group">
+                                            <label><i class="fa-regular fa-user"></i>Full Name</label>
+                                            <input class="form-control" id="editFullName" value="Admin" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label><i class="fa-regular fa-envelope"></i>Email</label>
+                                            <input class="form-control" id="editEmail" value="admin@pawcare.com" disabled>
+                                        </div>
+                                        <div class="form-group">
+                                            <label><i class="fa-solid fa-phone"></i>Phone</label>
+                                            <input class="form-control" id="editPhone" value="+60 12-345 6789" required>
+                                        </div>
+                                        <div class="form-group">
+                                            <label><i class="fa-solid fa-building"></i>Department</label>
+                                            <input class="form-control" id="editDepartment" value="Management" disabled>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-top:12px;">
+                                        <label><i class="fa-solid fa-palette"></i>Theme</label>
+                                        <div class="theme-group">
+                                            <span class="theme-option active" data-theme="light">Light</span>
+                                            <span class="theme-option" data-theme="dark">Dark</span>
+                                        </div>
+                                    </div>
+                                    <div class="action-row">
+                                        <button type="submit" class="btn btn-primary"><i class="fa-regular fa-floppy-disk"></i> Save Changes</button>
+                                        <button type="button" class="btn btn-secondary" id="resetProfileBtn">Reset</button>
+                                    </div>
+                                    <div class="message" id="profileUpdateMessage"></div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Preferences -->
+                        <div class="card pref-card">
+                            <div class="card-header"><i class="fa-solid fa-sliders"></i> Preferences</div>
+                            <div class="card-body">
+                                <div style="font-size:13px; color:#7A7A7A; margin-bottom:14px;">Manage your admin dashboard preferences.</div>
+                                <div class="pref-group">
+                                    <div class="pref-item">
+                                        <label><i class="fa-solid fa-globe"></i>Language</label>
+                                        <select id="prefLang">
+                                            <option value="en">English</option>
+                                            <option value="ms">Malay</option>
+                                            <option value="zh">Chinese</option>
+                                        </select>
+                                    </div>
+                                    <div class="pref-item">
+                                        <label><i class="fa-regular fa-calendar"></i>Date Format</label>
+                                        <select id="prefDateFormat">
+                                            <option value="DD MMM YYYY">DD MMM YYYY (16 May 2026)</option>
+                                            <option value="YYYY-MM-DD">YYYY-MM-DD (2026-05-16)</option>
+                                            <option value="MM/DD/YYYY">MM/DD/YYYY (05/16/2026)</option>
+                                        </select>
+                                    </div>
+                                    <div class="pref-item">
+                                        <label><i class="fa-regular fa-clock"></i>Time Format</label>
+                                        <select id="prefTimeFormat">
+                                            <option value="12">12 Hour (02:30 PM)</option>
+                                            <option value="24">24 Hour (14:30)</option>
+                                        </select>
                                     </div>
                                 </div>
+                                <div class="save-pref-row">
+                                    <button class="btn btn-primary" id="savePrefBtn"><i class="fa-regular fa-floppy-disk"></i> Save Preferences</button>
+                                    <span class="msg" id="prefMsg">✓ Saved</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 右侧 -->
+                    <div class="right-stack">
+
+                        <!-- Account Security -->
+                        <div class="card security-card">
+                            <div class="card-header"><i class="fa-solid fa-shield-halved"></i> Account Security</div>
+                            <div class="card-body" style="padding-top:4px;">
+                                <div style="font-size:13px; color:#7A7A7A; margin-bottom:6px;">Keep your account secure and updated.</div>
                                 <div class="security-item">
                                     <div class="left"><i class="fa-solid fa-lock"></i><div><div class="title">Password</div><div class="desc">••••••••</div></div></div>
                                     <div class="right"><button class="btn btn-outline btn-sm" id="changePwdBtn">Change Password</button></div>
@@ -1155,95 +1111,45 @@
                             </div>
                         </div>
 
-                        <div class="bottom-row">
-                            <!-- Edit Profile -->
-                            <div class="card edit-card">
-                                <div class="card-header"><i class="fa-regular fa-pen-to-square"></i> Edit Profile</div>
-                                <div class="sub">Update your personal information and contact details.</div>
-                                <form id="profileForm">
-                                    <div class="form-row">
-                                        <div class="form-group"><label><i class="fa-regular fa-user"></i>Full Name</label><input class="form-control" id="editFullName" value="Admin" required></div>
-                                        <div class="form-group"><label><i class="fa-regular fa-envelope"></i>Email</label><input class="form-control" id="editEmail" value="admin@pawcare.com" disabled></div>
-                                    </div>
-                                    <div class="form-row">
-                                        <div class="form-group"><label><i class="fa-solid fa-phone"></i>Phone</label><input class="form-control" id="editPhone" value="+60 12-345 6789" required></div>
-                                        <div class="form-group"><label><i class="fa-solid fa-building"></i>Department</label><input class="form-control" id="editDepartment" value="Management" disabled></div>
-                                    </div>
-                                    <div class="form-group"><label><i class="fa-solid fa-palette"></i>Theme</label>
-                                        <div class="theme-toggle-group">
-                                            <span class="theme-option active" data-theme="light">Light</span>
-                                            <span class="theme-option" data-theme="dark">Dark</span>
-                                        </div>
-                                    </div>
-                                    <div class="action-row">
-                                        <button type="submit" class="btn btn-primary"><i class="fa-regular fa-floppy-disk"></i> Save Changes</button>
-                                        <button type="button" class="btn btn-secondary" id="resetProfileBtn">Reset</button>
-                                    </div>
-                                    <div class="message" id="profileUpdateMessage"></div>
-                                </form>
-                            </div>
-
-                            <!-- Preferences -->
-                            <div class="card pref-card">
-                                <div class="card-header"><i class="fa-solid fa-sliders"></i> Preferences</div>
-                                <div class="sub">Manage your admin dashboard preferences.</div>
-                                <div class="pref-group">
-                                    <div class="pref-item"><label><i class="fa-solid fa-globe"></i>Language</label><select id="prefLang"><option value="en">English</option><option value="ms">Malay</option><option value="zh">Chinese</option></select></div>
-                                    <div class="pref-item"><label><i class="fa-regular fa-calendar"></i>Date Format</label><select id="prefDateFormat"><option value="DD MMM YYYY">DD MMM YYYY (16 May 2026)</option><option value="YYYY-MM-DD">YYYY-MM-DD (2026-05-16)</option><option value="MM/DD/YYYY">MM/DD/YYYY (05/16/2026)</option></select></div>
-                                    <div class="pref-item"><label><i class="fa-regular fa-clock"></i>Time Format</label><select id="prefTimeFormat"><option value="12">12 Hour (02:30 PM)</option><option value="24">24 Hour (14:30)</option></select></div>
-                                </div>
-                                <div class="save-pref">
-                                    <button class="btn btn-primary" id="savePrefBtn"><i class="fa-regular fa-floppy-disk"></i> Save Preferences</button>
-                                    <span class="message" id="prefMsg" style="display:none; color:#2E7D32;"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="right-stack">
-                        <!-- Activity -->
+                        <!-- Activity Summary -->
                         <div class="card activity-card">
-                            <div class="activity-title"><i class="fa-solid fa-chart-line"></i> Activity Summary</div>
-                            <div class="subtext">Your recent account activity.</div>
-                            <div class="activity-row"><span>Total Logins</span><span class="v" id="totalLoginsStat">128</span></div>
-                            <div class="activity-row"><span>Last Login</span><span class="v" id="lastLoginStat">15 May 2026, 09:30 AM</span></div>
-                            <div class="activity-row"><span>Password Changed</span><span class="v" id="pwdChanged">12 Apr 2026, 11:20 AM</span></div>
-                            <div class="activity-row"><span>Profile Last Updated</span><span class="v" id="profileUpdated">01 May 2026, 02:15 PM</span></div>
+                            <div class="card-header"><i class="fa-solid fa-chart-line"></i> Activity Summary</div>
+                            <div class="card-body" style="padding-top:4px;">
+                                <div style="font-size:13px; color:#7A7A7A; margin-bottom:4px;">Your recent account activity.</div>
+                                <div class="activity-row"><span>Total Logins</span><span class="v" id="totalLoginsStat">128</span></div>
+                                <div class="activity-row"><span>Last Login</span><span class="v" id="lastLoginStat">15 May 2026, 09:30 AM</span></div>
+                                <div class="activity-row"><span>Password Changed</span><span class="v" id="pwdChanged">12 Apr 2026, 11:20 AM</span></div>
+                                <div class="activity-row"><span>Profile Last Updated</span><span class="v" id="profileUpdated">01 May 2026, 02:15 PM</span></div>
+                            </div>
                         </div>
 
                         <!-- Danger Zone -->
                         <div class="card danger-card">
-                            <div class="danger-title"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</div>
-                            <div class="subtext">Irreversible and sensitive actions.</div>
-                            <div class="danger-zone">
-                                <div class="danger-item">
-                                    <div class="danger-item-left">
-                                        <i class="fa-solid fa-right-from-bracket"></i>
+                            <div class="card-header" style="color:#C5221F;"><i class="fa-solid fa-triangle-exclamation"></i> Danger Zone</div>
+                            <div class="card-body" style="padding-top:4px;">
+                                <div style="font-size:13px; color:#7A7A7A; margin-bottom:8px;">Irreversible and sensitive actions.</div>
+                                <div class="danger-zone">
+                                    <div class="danger-item">
                                         <div>
                                             <div class="title">Log Out from All Devices</div>
                                             <div class="desc">Sign out from all active sessions.</div>
                                         </div>
+                                        <button class="btn-danger" id="logoutAllBtn"><i class="fa-solid fa-sign-out-alt"></i> Log Out All</button>
                                     </div>
-                                    <button class="btn btn-danger btn-sm" id="logoutAllBtn">
-                                        <i class="fa-solid fa-sign-out-alt"></i> Log Out All
-                                    </button>
-                                </div>
-                                <div class="danger-item">
-                                    <div class="danger-item-left">
-                                        <i class="fa-solid fa-trash-can"></i>
+                                    <div class="danger-item">
                                         <div>
                                             <div class="title">Delete Admin Account</div>
                                             <div class="desc">Permanently delete your admin account.</div>
                                         </div>
+                                        <button class="btn-danger" id="deleteAccountBtn"><i class="fa-solid fa-trash"></i> Delete Account</button>
                                     </div>
-                                    <button class="btn btn-danger btn-sm" id="deleteAccountBtn">
-                                        <i class="fa-solid fa-trash"></i> Delete Account
-                                    </button>
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
+
             </div>
         </div>
 
@@ -1254,7 +1160,8 @@
     </main>
 
     <!-- ===== MODALS ===== -->
-    <!-- LOGOUT MODAL（已统一为 dashboard 样式：无右上角关闭按钮） -->
+
+    <!-- LOGOUT MODAL（统一 admin 风格，无右上角关闭按钮） -->
     <div class="modal-overlay" id="logoutModal">
         <div class="modal-box" style="text-align:center;">
             <div class="modal-icon-circle warning"><i class="fa-solid fa-sign-out-alt"></i></div>
@@ -1269,16 +1176,25 @@
 
     <!-- CHANGE PASSWORD MODAL -->
     <div class="modal-overlay" id="changePwdModal">
-        <div class="modal-box">
+        <div class="modal-box" style="text-align:left;">
             <button class="close-modal" data-close="changePwdModal"><i class="fa-solid fa-xmark"></i></button>
             <h2 class="modal-title">Change Password</h2>
             <p class="modal-subtitle">Enter your current and new password.</p>
             <form id="changePwdForm">
-                <div class="form-group"><label><i class="fa-solid fa-lock"></i>Current Password</label><input type="password" class="form-control" id="currentPwd" required></div>
-                <div class="form-group"><label><i class="fa-solid fa-key"></i>New Password</label><input type="password" class="form-control" id="newPwd" placeholder="Min 8 chars, 1 uppercase, 1 number, 1 special" required></div>
-                <div class="form-group"><label><i class="fa-solid fa-check"></i>Confirm New Password</label><input type="password" class="form-control" id="confirmPwd" required></div>
-                <div id="pwdChangeMessage" class="message" style="display:block;"></div>
-                <div class="modal-btn-group">
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label style="font-size:13px; font-weight:600; color:#4A3327; display:block; margin-bottom:4px;"><i class="fa-solid fa-lock"></i> Current Password</label>
+                    <input type="password" class="form-control" id="currentPwd" required style="width:100%; border:1.5px solid #E8E2D8; border-radius:8px; padding:8px 14px; font-size:14px; outline:none; font-family:'Poppins',sans-serif;">
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label style="font-size:13px; font-weight:600; color:#4A3327; display:block; margin-bottom:4px;"><i class="fa-solid fa-key"></i> New Password</label>
+                    <input type="password" class="form-control" id="newPwd" placeholder="Min 8 chars, 1 uppercase, 1 number, 1 special" required style="width:100%; border:1.5px solid #E8E2D8; border-radius:8px; padding:8px 14px; font-size:14px; outline:none; font-family:'Poppins',sans-serif;">
+                </div>
+                <div class="form-group" style="margin-bottom:14px;">
+                    <label style="font-size:13px; font-weight:600; color:#4A3327; display:block; margin-bottom:4px;"><i class="fa-solid fa-check"></i> Confirm New Password</label>
+                    <input type="password" class="form-control" id="confirmPwd" required style="width:100%; border:1.5px solid #E8E2D8; border-radius:8px; padding:8px 14px; font-size:14px; outline:none; font-family:'Poppins',sans-serif;">
+                </div>
+                <div id="pwdChangeMessage" class="message" style="display:block; font-size:13px; margin-top:4px;"></div>
+                <div class="modal-btn-group" style="justify-content:flex-end; margin-top:16px;">
                     <button type="button" class="btn btn-secondary" data-close="changePwdModal">Cancel</button>
                     <button type="submit" class="btn btn-primary">Update Password</button>
                 </div>
@@ -1286,13 +1202,12 @@
         </div>
     </div>
 
-    <!-- 2FA MODAL（已优化） -->
+    <!-- 2FA MODAL -->
     <div class="modal-overlay" id="twoFactorModal">
-        <div class="modal-box">
+        <div class="modal-box" style="text-align:left;">
             <button class="close-modal" data-close="twoFactorModal"><i class="fa-solid fa-xmark"></i></button>
             <h2 class="modal-title">Two-Factor Authentication</h2>
             <p class="modal-subtitle">Control the extra security layer for this account.</p>
-
             <div class="twofa-status-card">
                 <div class="twofa-status-left">
                     <div class="twofa-status-indicator">
@@ -1303,7 +1218,6 @@
                 </div>
                 <button class="btn btn-danger btn-md" id="toggle2faBtn">Disable 2FA</button>
             </div>
-
             <div class="twofa-info-row">
                 <i class="fa-solid fa-shield-halved"></i>
                 <span>Adding 2FA adds an extra layer of security to your account.</span>
@@ -1313,7 +1227,7 @@
 
     <!-- SESSIONS MODAL -->
     <div class="modal-overlay" id="sessionsModal">
-        <div class="modal-box">
+        <div class="modal-box" style="text-align:left;">
             <button class="close-modal" data-close="sessionsModal"><i class="fa-solid fa-xmark"></i></button>
             <h2 class="modal-title">Active Login Sessions</h2>
             <p class="modal-subtitle">Review devices currently signed in to your account.</p>
@@ -1327,12 +1241,15 @@
 
     <!-- DELETE ACCOUNT MODAL -->
     <div class="modal-overlay" id="deleteModal">
-        <div class="modal-box" style="max-width:430px;">
+        <div class="modal-box" style="max-width:430px; text-align:left;">
             <button class="close-modal" data-close="deleteModal"><i class="fa-solid fa-xmark"></i></button>
             <h2 class="modal-title" style="color:#C5221F;">Delete Admin Account</h2>
             <p class="modal-subtitle">This action cannot be undone. All locally stored profile data will be removed.</p>
-            <div class="form-group"><label>Type <b>DELETE</b> to confirm</label><input class="form-control" id="deleteConfirmInput" placeholder="DELETE"></div>
-            <div class="modal-btn-group">
+            <div class="form-group" style="margin-bottom:14px;">
+                <label style="font-size:13px; font-weight:600; color:#4A3327; display:block; margin-bottom:4px;">Type <b>DELETE</b> to confirm</label>
+                <input class="form-control" id="deleteConfirmInput" placeholder="DELETE" style="width:100%; border:1.5px solid #E8E2D8; border-radius:8px; padding:8px 14px; font-size:14px; outline:none; font-family:'Poppins',sans-serif;">
+            </div>
+            <div class="modal-btn-group" style="justify-content:flex-end; margin-top:16px;">
                 <button class="btn btn-secondary" data-close="deleteModal">Cancel</button>
                 <button class="btn btn-danger" id="confirmDeleteBtn">Delete Account</button>
             </div>
@@ -1356,17 +1273,11 @@
     <div class="modal-overlay" id="userMenuModal">
         <div class="modal-box" style="max-width:340px; text-align:center;">
             <button class="close-modal" data-close="userMenuModal"><i class="fa-solid fa-xmark"></i></button>
-            <div class="modal-icon-circle" style="background:#FDF3E7; color:#5A361A;">
-                <i class="fa-regular fa-user"></i>
-            </div>
+            <div class="modal-icon-circle" style="background:#FDF3E7; color:#5A361A;"><i class="fa-regular fa-user"></i></div>
             <h2 class="modal-title">Account Menu</h2>
             <div style="display:flex; flex-direction:column; gap:12px; margin:18px 0 10px;">
-                <button class="btn btn-primary" id="userViewProfileBtn" style="width:100%; justify-content:center;">
-                    <i class="fa-regular fa-id-card"></i> View Profile
-                </button>
-                <button class="btn btn-danger" id="userLogoutBtn" style="width:100%; justify-content:center;">
-                    <i class="fa-solid fa-right-from-bracket"></i> Logout
-                </button>
+                <button class="btn btn-primary" id="userViewProfileBtn" style="width:100%; justify-content:center;"><i class="fa-regular fa-id-card"></i> View Profile</button>
+                <button class="btn btn-danger" id="userLogoutBtn" style="width:100%; justify-content:center;"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
             </div>
             <p class="modal-subtitle" style="margin-bottom:0; font-size:12px;">Click outside to close.</p>
         </div>
@@ -1423,7 +1334,6 @@
             return response;
         }
 
-        // 将核心函数暴露为全局（供 HTML onclick 调用）
         var openModal, closeModal, showLogoutModal, closeLogoutModal, confirmLogout;
 
         (function() {
@@ -1493,7 +1403,7 @@
                 });
             });
 
-            // ===== 头像和通知函数 =====
+            // ===== 头像 =====
             function setAvatar(url) {
                 ['headerAvatarImg', 'profileAvatarImg'].forEach(id => {
                     const img = $(id);
@@ -1510,14 +1420,64 @@
                 if (url) setAvatar(url);
             }
 
+            // ===== 格式化日期/时间（根据偏好） =====
+            function formatDate(dateStr) {
+                if (!dateStr) return '';
+                const d = new Date(dateStr);
+                if (isNaN(d.getTime())) return dateStr;
+                const fmt = data.dateFormat || 'DD MMM YYYY';
+                const day = String(d.getDate()).padStart(2, '0');
+                const month = d.toLocaleString('en', { month: 'short' });
+                const year = d.getFullYear();
+                const monthNum = String(d.getMonth() + 1).padStart(2, '0');
+                if (fmt === 'YYYY-MM-DD') return `${year}-${monthNum}-${day}`;
+                if (fmt === 'MM/DD/YYYY') return `${monthNum}/${day}/${year}`;
+                return `${day} ${month} ${year}`;
+            }
+
+            function formatTime(timeStr) {
+                if (!timeStr) return '';
+                // 尝试解析 "15 May 2026, 09:30 AM" 或 "09:30 AM"
+                let hours, minutes, ampm = '';
+                let match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)?/i);
+                if (match) {
+                    hours = parseInt(match[1]);
+                    minutes = match[2];
+                    ampm = match[3] || '';
+                } else {
+                    return timeStr;
+                }
+                const fmt = data.timeFormat || '12';
+                if (fmt === '24') {
+                    if (ampm.toUpperCase() === 'PM' && hours < 12) hours += 12;
+                    if (ampm.toUpperCase() === 'AM' && hours === 12) hours = 0;
+                    return `${String(hours).padStart(2, '0')}:${minutes}`;
+                }
+                const h12 = hours % 12 || 12;
+                const ap = hours >= 12 ? 'PM' : 'AM';
+                return `${h12}:${minutes} ${ap}`;
+            }
+
+            function formatDateTime(dateStr, timeStr) {
+                let result = formatDate(dateStr);
+                if (timeStr) {
+                    const t = formatTime(timeStr);
+                    if (t) result += `, ${t}`;
+                }
+                return result;
+            }
+
+            // ===== 渲染 =====
             function render() {
                 $('headerName').textContent = data.name;
                 $('profileFullName').textContent = data.name;
                 $('profileEmail').textContent = data.email;
                 $('profilePhone').textContent = data.phone;
                 $('profileDepartment').textContent = data.department;
-                $('profileLastLogin').textContent = data.lastLogin;
-                $('lastLoginStat').textContent = data.lastLogin;
+
+                const lastLoginFormatted = formatDateTime(data.lastLogin, data.lastLogin);
+                $('profileLastLogin').textContent = lastLoginFormatted;
+                $('lastLoginStat').textContent = lastLoginFormatted;
                 $('totalLogins').textContent = data.totalLogins;
                 $('totalLoginsStat').textContent = data.totalLogins;
                 $('pwdChanged').textContent = data.pwdChanged;
@@ -1529,25 +1489,26 @@
                 $('prefLang').value = data.lang;
                 $('prefDateFormat').value = data.dateFormat;
                 $('prefTimeFormat').value = data.timeFormat;
+
                 document.querySelectorAll('.theme-option').forEach(o => o.classList.toggle('active', o.dataset.theme === data.theme));
                 document.body.classList.toggle('dark', data.theme === 'dark');
+
                 const badge = $('twoFactorBadge');
                 badge.textContent = data.twoFactor ? 'Enabled' : 'Disabled';
                 badge.classList.toggle('inactive', !data.twoFactor);
                 $('twoFactorDesc').textContent = data.twoFactor ? 'Extra layer of security' : '2FA is currently disabled';
                 $('toggle2faBtn').textContent = data.twoFactor ? 'Disable 2FA' : 'Enable 2FA';
 
-                // 更新 2FA Modal 状态指示器
                 const dot = document.getElementById('twofaStatusDot');
                 if (dot) {
                     dot.className = 'status-dot ' + (data.twoFactor ? 'enabled' : 'disabled');
-                    document.getElementById('twofaStatusLabel').innerHTML = data.twoFactor
-                        ? '2FA is <strong>Enabled</strong>'
-                        : '2FA is <strong>Disabled</strong>';
+                    document.getElementById('twofaStatusLabel').innerHTML = data.twoFactor ?
+                        '2FA is <strong>Enabled</strong>' :
+                        '2FA is <strong>Disabled</strong>';
                 }
             }
 
-            // ===== LOGOUT 全局函数（供 onclick 调用）- 已统一为使用 window.location.replace 防止后退 =====
+            // ===== LOGOUT 全局函数 =====
             showLogoutModal = function() {
                 openModal('logoutModal');
             };
@@ -1557,11 +1518,9 @@
             };
 
             confirmLogout = function() {
-                // 清除所有登录相关数据
                 ['customer', 'customerId', 'token', 'user', 'isLoggedIn', 'pawcareAdminProfile', 'pawcareAvatar'].forEach(k => localStorage.removeItem(k));
                 closeModal('logoutModal');
                 toast('Logged out successfully.');
-                // 使用 replace 替换历史记录，防止用户通过后退按钮回到 admin 页面
                 window.location.replace('index.html');
             };
 
@@ -1575,7 +1534,7 @@
                 openModal('userMenuModal');
             }
 
-            // ===== SIDEBAR TOGGLE =====
+            // ===== SIDEBAR =====
             const menuToggle = $('menuToggle');
             const sidebar = $('sidebar');
             const sidebarClose = $('sidebarClose');
@@ -1586,6 +1545,7 @@
                 overlay.classList.add('active');
                 if (!document.querySelector('.modal-overlay.active')) document.body.style.overflow = 'hidden';
             }
+
             function closeSidebar() {
                 sidebar.classList.remove('active');
                 overlay.classList.remove('active');
@@ -1623,23 +1583,27 @@
                     showLogoutModal();
                 });
 
-                // ===== 所有原有功能 =====
+                // ===== Profile Form =====
                 $('profileForm').addEventListener('submit', function(e) {
                     e.preventDefault();
                     const name = $('editFullName').value.trim();
                     const phone = $('editPhone').value.trim();
                     const msg = $('profileUpdateMessage');
-                    if (name.length < 2) { msg.className = 'message error'; msg.textContent = 'Please enter a valid full name.'; return; }
-                    if (!phone) { msg.className = 'message error'; msg.textContent = 'Phone number is required.'; return; }
+                    if (name.length < 2) { msg.className = 'message error';
+                        msg.textContent = 'Please enter a valid full name.'; return; }
+                    if (!phone) { msg.className = 'message error';
+                        msg.textContent = 'Phone number is required.'; return; }
                     data.name = name;
                     data.phone = phone;
-                    data.profileUpdated = new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    data.profileUpdated = new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short',
+                        year: 'numeric', hour: '2-digit', minute: '2-digit' });
                     saveData();
                     render();
                     msg.className = 'message success';
                     msg.textContent = '✓ Profile updated successfully!';
                     toast('Profile changes saved.');
                 });
+
                 $('resetProfileBtn').addEventListener('click', function() {
                     data = getData();
                     render();
@@ -1648,6 +1612,7 @@
                     toast('Profile form reset.');
                 });
 
+                // ===== Theme =====
                 document.querySelectorAll('.theme-option').forEach(o => o.addEventListener('click', function() {
                     data.theme = this.dataset.theme;
                     saveData();
@@ -1655,35 +1620,45 @@
                     toast('Theme changed to ' + (data.theme === 'dark' ? 'Dark' : 'Light') + ' mode.');
                 }));
 
+                // ===== Avatar =====
                 $('avatarUploadInput').addEventListener('change', function(e) {
                     const file = e.target.files[0];
                     if (!file) return;
-                    if (!file.type.startsWith('image/')) { toast('Please select an image file.'); e.target.value = ''; return; }
-                    if (file.size > 2 * 1024 * 1024) { toast('Image size must be under 2MB.'); e.target.value = ''; return; }
+                    if (!file.type.startsWith('image/')) { toast('Please select an image file.');
+                        e.target.value = ''; return; }
+                    if (file.size > 2 * 1024 * 1024) { toast('Image size must be under 2MB.');
+                        e.target.value = ''; return; }
                     const reader = new FileReader();
-                    reader.onload = ev => { setAvatar(ev.target.result); toast('Profile photo updated.'); };
+                    reader.onload = ev => { setAvatar(ev.target.result);
+                        toast('Profile photo updated.'); };
                     reader.readAsDataURL(file);
                     e.target.value = '';
                 });
 
+                // ===== Preferences - 保存偏好 =====
                 $('savePrefBtn').addEventListener('click', function() {
                     data.lang = $('prefLang').value;
                     data.dateFormat = $('prefDateFormat').value;
                     data.timeFormat = $('prefTimeFormat').value;
                     saveData();
+                    render();
                     const m = $('prefMsg');
-                    m.style.display = 'inline';
+                    m.classList.add('show');
                     m.textContent = '✓ Saved';
-                    setTimeout(() => m.style.display = 'none', 2500);
-                    toast('Preferences saved.');
+                    setTimeout(() => m.classList.remove('show'), 2500);
+                    toast('Preferences saved. UI language will update on refresh.');
+                    // 重新加载页面以应用语言变化（实际项目中可用 i18n 动态更新）
+                    // 这里我们简单提示刷新
                 });
 
+                // ===== Change Password =====
                 $('changePwdBtn').addEventListener('click', function() {
                     ['currentPwd', 'newPwd', 'confirmPwd'].forEach(id => $(id).value = '');
                     $('pwdChangeMessage').className = 'message';
                     $('pwdChangeMessage').textContent = '';
                     openModal('changePwdModal');
                 });
+
                 $('changePwdForm').addEventListener('submit', function(e) {
                     e.preventDefault();
                     const current = $('currentPwd').value;
@@ -1691,10 +1666,16 @@
                     const confirmPwd = $('confirmPwd').value;
                     const msg = $('pwdChangeMessage');
                     const strong = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-                    if (!current || !newPwd || !confirmPwd) { msg.className = 'message error'; msg.textContent = 'All fields are required.'; return; }
-                    if (!strong.test(newPwd)) { msg.className = 'message error'; msg.textContent = 'Password needs 8+ characters, 1 uppercase, 1 number and 1 special character.'; return; }
-                    if (newPwd !== confirmPwd) { msg.className = 'message error'; msg.textContent = 'Passwords do not match.'; return; }
-                    data.pwdChanged = new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                    if (!current || !newPwd || !confirmPwd) { msg.className = 'message error';
+                        msg.textContent = 'All fields are required.'; return; }
+                    if (!strong.test(newPwd)) { msg.className = 'message error';
+                        msg.textContent =
+                        'Password needs 8+ characters, 1 uppercase, 1 number and 1 special character.';
+                        return; }
+                    if (newPwd !== confirmPwd) { msg.className = 'message error';
+                        msg.textContent = 'Passwords do not match.'; return; }
+                    data.pwdChanged = new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short',
+                        year: 'numeric', hour: '2-digit', minute: '2-digit' });
                     saveData();
                     msg.className = 'message success';
                     msg.textContent = '✓ Password updated successfully!';
@@ -1703,6 +1684,7 @@
                     setTimeout(() => closeModal('changePwdModal'), 900);
                 });
 
+                // ===== 2FA =====
                 $('manage2faBtn').addEventListener('click', function() { openModal('twoFactorModal'); });
                 $('toggle2faBtn').addEventListener('click', function() {
                     data.twoFactor = !data.twoFactor;
@@ -1711,6 +1693,7 @@
                     toast(data.twoFactor ? '2FA enabled.' : '2FA disabled.');
                 });
 
+                // ===== Sessions =====
                 $('viewSessionsBtn').addEventListener('click', function() { openModal('sessionsModal'); });
                 document.querySelectorAll('.sessionLogout').forEach(btn => btn.addEventListener('click', function() {
                     this.textContent = 'Logged Out';
@@ -1718,6 +1701,7 @@
                     toast('Session logged out.');
                 }));
 
+                // ===== Danger Zone =====
                 $('logoutAllBtn').addEventListener('click', function() {
                     if (confirm('Log out from all active devices?')) {
                         localStorage.removeItem('token');
@@ -1725,16 +1709,21 @@
                         toast('All other sessions have been logged out.');
                     }
                 });
+
                 $('deleteAccountBtn').addEventListener('click', function() {
                     $('deleteConfirmInput').value = '';
                     openModal('deleteModal');
                 });
+
                 $('confirmDeleteBtn').addEventListener('click', function() {
-                    if ($('deleteConfirmInput').value.trim() !== 'DELETE') { toast('Please type DELETE to confirm.'); return; }
-                    ['pawcareAdminProfile', 'pawcareAvatar', 'token', 'user', 'isLoggedIn', 'customer', 'customerId'].forEach(k => localStorage.removeItem(k));
+                    if ($('deleteConfirmInput').value.trim() !== 'DELETE') { toast('Please type DELETE to confirm.');
+                        return; }
+                    ['pawcareAdminProfile', 'pawcareAvatar', 'token', 'user', 'isLoggedIn', 'customer',
+                        'customerId'
+                    ].forEach(k => localStorage.removeItem(k));
                     closeModal('deleteModal');
                     toast('Admin account deleted.');
-                    setTimeout(() => location.href = 'index.html', 800);
+                    setTimeout(() => window.location.replace('index.html'), 800);
                 });
 
                 loadAvatar();
