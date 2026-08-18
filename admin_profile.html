@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="admin_style.css">
 
     <style>
-        /* ===== PROFILE 页面特有样式 ===== */
+        /* ===== PROFILE 页面特有样式 - 调整 Profile Overview 与 Security 比例 ===== */
         * {
             box-sizing: border-box;
             margin: 0;
@@ -170,10 +170,10 @@
             flex-direction: column;
             gap: 24px;
         }
-        /* ===== 顶部行比例：Profile Overview 与 Security 平衡 ===== */
+        /* ===== 关键调整：顶部行比例从 2fr 1fr 改为 1.5fr 1fr ===== */
         .top-row {
             display: grid;
-            grid-template-columns: 1.1fr 1fr;
+            grid-template-columns: 1.5fr 1fr;
             gap: 24px;
             align-items: stretch;
         }
@@ -207,22 +207,22 @@
         .card-header i { color: #D97706; }
         .card-body { padding: 16px 24px 24px; }
 
-        /* ===== Profile Overview ===== */
+        /* ===== Profile Overview 适当紧凑 ===== */
         .profile-overview {
             padding: 20px 24px 24px;
         }
         .overview-inner {
             display: grid;
-            grid-template-columns: 130px 1fr;
-            gap: 18px;
+            grid-template-columns: 140px 1fr;
+            gap: 20px;
             align-items: start;
         }
         .photo-column {
             text-align: center;
         }
         .profile-avatar-wrapper {
-            width: 85px;
-            height: 85px;
+            width: 90px;
+            height: 90px;
             border-radius: 50%;
             overflow: hidden;
             margin: 0 auto 8px;
@@ -237,7 +237,7 @@
             object-fit: cover;
         }
         .profile-avatar-wrapper .avatar-placeholder {
-            font-size: 36px;
+            font-size: 38px;
         }
         .change-photo {
             position: relative;
@@ -258,7 +258,7 @@
         .overview-info {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 4px 16px;
+            gap: 6px 20px;
         }
         .info-item {
             display: flex;
@@ -269,11 +269,10 @@
             width: 14px;
             color: #8B796A;
             text-align: center;
-            font-size: 12px;
-            flex-shrink: 0;
+            font-size: 13px;
         }
         .info-item .label {
-            font-size: 9px;
+            font-size: 10px;
             color: #7A7A7A;
             display: block;
             text-transform: uppercase;
@@ -297,7 +296,7 @@
             display: inline-block;
         }
 
-        /* ===== Security 卡片 - 完全显示所有内容 ===== */
+        /* ===== Security 卡片保持完整显示 ===== */
         .security-card {
             padding: 20px 24px 24px;
             display: flex;
@@ -331,7 +330,6 @@
             color: #7A7A7A;
             margin: 0;
         }
-
         .security-item {
             display: flex;
             justify-content: space-between;
@@ -339,7 +337,6 @@
             padding: 8px 0;
             border-top: 1px solid #EFECE6;
             gap: 8px;
-            min-height: 44px;
         }
         .security-item:first-of-type { border-top: none; }
         .security-item .left {
@@ -356,11 +353,6 @@
             font-size: 13px;
             flex-shrink: 0;
         }
-        .security-item .left .info-wrap {
-            display: flex;
-            flex-direction: column;
-            min-width: 0;
-        }
         .security-item .title {
             font-size: 12px;
             font-weight: 500;
@@ -371,17 +363,11 @@
             font-size: 10px;
             color: #7A7A7A;
             margin-top: 0;
-            white-space: nowrap;
         }
         .security-item .right {
             display: flex;
             align-items: center;
             gap: 6px;
-            flex-shrink: 0;
-        }
-        .security-item .right .btn {
-            padding: 4px 12px;
-            font-size: 11px;
             white-space: nowrap;
             flex-shrink: 0;
         }
@@ -392,8 +378,6 @@
             border-radius: 20px;
             background: #E8F5E9;
             color: #2E7D32;
-            flex-shrink: 0;
-            white-space: nowrap;
         }
         .badge.inactive {
             background: #FCE8E6;
@@ -446,12 +430,6 @@
         .btn-sm {
             padding: 4px 12px;
             font-size: 11px;
-        }
-
-        /* Danger Zone 按钮统一宽度 */
-        .danger-item .btn {
-            min-width: 100px;
-            justify-content: center;
         }
 
         .edit-card, .pref-card { padding: 24px; }
@@ -758,7 +736,7 @@
             .security-item { flex-direction: column; align-items: flex-start; gap: 6px; }
             .security-item .right { align-self: flex-end; }
             .danger-item { flex-direction: column; align-items: flex-start; gap: 6px; }
-            .danger-item .btn { align-self: flex-end; min-width: 80px; }
+            .danger-item .btn { align-self: flex-end; }
             .modal-box { padding: 24px 20px; }
             .dashboard-container { padding: 0 16px 18px; }
             .overview-inner { grid-template-columns: 1fr; }
@@ -773,11 +751,9 @@
             .profile-avatar-wrapper { width: 70px; height: 70px; }
             .profile-avatar-wrapper .avatar-placeholder { font-size: 34px; }
             .page-heading h1 { font-size: 20px; }
-            .overview-info { gap: 4px 12px; }
-            .info-item .label { font-size: 9px; }
-            .info-item .value { font-size: 12px; }
-            .security-item .desc { font-size: 9px; }
-            .danger-item .btn { min-width: 70px; font-size: 10px; padding: 4px 10px; }
+            .overview-info { gap: 6px 14px; }
+            .info-item .label { font-size: 10px; }
+            .info-item .value { font-size: 13px; }
         }
         .main-content .dashboard-container { padding-top: 0; }
     </style>
@@ -927,53 +903,20 @@
                                     </div>
                                 </div>
                                 <div class="security-item">
-                                    <div class="left">
-                                        <i class="fa-solid fa-lock"></i>
-                                        <div class="info-wrap">
-                                            <div class="title">Password</div>
-                                            <div class="desc">••••••••</div>
-                                        </div>
-                                    </div>
-                                    <div class="right">
-                                        <button class="btn btn-outline btn-sm" id="changePwdBtn">Change Password</button>
-                                    </div>
+                                    <div class="left"><i class="fa-solid fa-lock"></i><div><div class="title">Password</div><div class="desc">••••••••</div></div></div>
+                                    <div class="right"><button class="btn btn-outline btn-sm" id="changePwdBtn">Change Password</button></div>
                                 </div>
                                 <div class="security-item">
-                                    <div class="left">
-                                        <i class="fa-solid fa-shield-halved"></i>
-                                        <div class="info-wrap">
-                                            <div class="title">Two-Factor Authentication</div>
-                                            <div class="desc" id="twoFactorDesc">Extra layer of security</div>
-                                        </div>
-                                    </div>
-                                    <div class="right">
-                                        <span class="badge" id="twoFactorBadge">Enabled</span>
-                                        <button class="btn btn-outline btn-sm" id="manage2faBtn">Manage 2FA</button>
-                                    </div>
+                                    <div class="left"><i class="fa-solid fa-shield-halved"></i><div><div class="title">Two-Factor Authentication</div><div class="desc" id="twoFactorDesc">Extra layer of security</div></div></div>
+                                    <div class="right"><span class="badge" id="twoFactorBadge">Enabled</span><button class="btn btn-outline btn-sm" id="manage2faBtn">Manage 2FA</button></div>
                                 </div>
                                 <div class="security-item">
-                                    <div class="left">
-                                        <i class="fa-solid fa-desktop"></i>
-                                        <div class="info-wrap">
-                                            <div class="title">Login Sessions</div>
-                                            <div class="desc">3 active sessions</div>
-                                        </div>
-                                    </div>
-                                    <div class="right">
-                                        <button class="btn btn-outline btn-sm" id="viewSessionsBtn">View Sessions</button>
-                                    </div>
+                                    <div class="left"><i class="fa-solid fa-desktop"></i><div><div class="title">Login Sessions</div><div class="desc">3 active sessions</div></div></div>
+                                    <div class="right"><button class="btn btn-outline btn-sm" id="viewSessionsBtn">View Sessions</button></div>
                                 </div>
                                 <div class="security-item">
-                                    <div class="left">
-                                        <i class="fa-regular fa-envelope"></i>
-                                        <div class="info-wrap">
-                                            <div class="title">Email Verification</div>
-                                            <div class="desc">admin@pawcare.com</div>
-                                        </div>
-                                    </div>
-                                    <div class="right">
-                                        <span class="badge"><i class="fa-solid fa-check"></i> Verified</span>
-                                    </div>
+                                    <div class="left"><i class="fa-regular fa-envelope"></i><div><div class="title">Email Verification</div><div class="desc">admin@pawcare.com</div></div></div>
+                                    <div class="right"><span class="badge"><i class="fa-solid fa-check"></i> Verified</span></div>
                                 </div>
                             </div>
                         </div>
@@ -1040,17 +983,11 @@
                             <div class="subtext">Irreversible and sensitive actions.</div>
                             <div class="danger-zone">
                                 <div class="danger-item">
-                                    <div>
-                                        <div class="title">Log Out from All Devices</div>
-                                        <div class="desc">Sign out from all active sessions.</div>
-                                    </div>
+                                    <div><div class="title">Log Out from All Devices</div><div class="desc">Sign out from all active sessions.</div></div>
                                     <button class="btn btn-danger btn-sm" id="logoutAllBtn">Log Out All</button>
                                 </div>
                                 <div class="danger-item">
-                                    <div>
-                                        <div class="title">Delete Admin Account</div>
-                                        <div class="desc">Permanently delete your admin account.</div>
-                                    </div>
+                                    <div><div class="title">Delete Admin Account</div><div class="desc">Permanently delete your admin account.</div></div>
                                     <button class="btn btn-danger btn-sm" id="deleteAccountBtn">Delete Account</button>
                                 </div>
                             </div>
