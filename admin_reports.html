@@ -827,105 +827,132 @@
     <!-- JAVASCRIPT -->
     <!-- ================================================================ -->
     <script>
-        // ================================================================
         // AUTH CHECK - ADMIN ONLY
-        // ================================================================
-        (function checkAuth() {
-            const token = localStorage.getItem('token');
-            const user = localStorage.getItem('user');
-            if (!token) {
-                window.location.replace('index.html');
-                return;
-            }
-            try {
-                const userData = JSON.parse(user);
-                if (userData.role !== 'admin') {
-                    window.location.replace('dashboard.html');
-                    return;
-                }
-            } catch {
-                window.location.replace('dashboard.html');
-                return;
-            }
-        })();
+(function checkAuth() {
+    const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    if (!token) {
+        window.location.replace('index.html');
+        return;
+    }
+    // CHECK IF USER IS ADMIN
+    try {
+        const userData = JSON.parse(user);
+        if (userData.role !== 'admin') {
+            window.location.replace('dashboard.html');
+            return;
+        }
+    } catch {
+        window.location.replace('dashboard.html');
+        return;
+    }
+})();
 
-        // ================================================================
-        // SUPABASE CONFIG
-        // ================================================================
-        const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
-        const SUPABASE_ANON_KEY =
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
+// SUPABASE CONFIGURATION
+const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co'; 
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk'; 
 
-        // ================================================================
-        // AUTH FETCH
-        // ================================================================
-        async function authFetch(url, options = {}) {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.href = 'login.html';
-                return;
-            }
-            const headers = {
+
+// WRAPPER FOR API CALLS WITH TOKEN
+async function authFetch(url, options = {}) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = 'login.html';
+        return;
+    }
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...options.headers
+    };
+    const response = await fetch(url, { ...options, headers });
+    if (response.status === 401) {
+        localStorage.clear();
+        window.location.href = 'login.html';
+        throw new Error('Unauthorized');
+    }
+    return response;
+}
+
+// SUPABASE DIRECT QUERY FUNCTIONS
+async function supabaseQuery(query, params = []) {
+    const token = localStorage.getItem('token');
+    if (!token) {
+        window.location.href = 'login.html';
+        return null;
+    }
+    
+    try {
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${query}`, {
+            method: 'POST',
+            headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
-                ...options.headers
-            };
-            const response = await fetch(url, { ...options, headers });
-            if (response.status === 401) {
-                localStorage.clear();
-                window.location.href = 'login.html';
-                throw new Error('Unauthorized');
-            }
-            return response;
+                'apikey': SUPABASE_ANON_KEY
+            },
+            body: JSON.stringify({ params })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Supabase query failed: ${response.status}`);
         }
+        
+        return await response.json();
+    } catch (err) {
+        console.error('Supabase query error:', err);
+        return null;
+    }
+}
 
-        // ================================================================
-        // SCROLLBAR COMPENSATION
-        // ================================================================
-        let modalCount = 0;
+// SCROLLBAR COMPENSATION FOR MODALS
+let modalCount = 0;
 
-        function lockBodyScroll() {
-            if (modalCount === 0) {
-                const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-                if (scrollbarWidth > 0) document.body.style.paddingRight = scrollbarWidth + 'px';
-                document.body.style.overflow = 'hidden';
-            }
-            modalCount++;
+function lockBodyScroll() {
+    if (modalCount === 0) {
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        if (scrollbarWidth > 0) {
+            document.body.style.paddingRight = scrollbarWidth + 'px';
         }
+        document.body.style.overflow = 'hidden';
+    }
+    modalCount++;
+}
 
-        function unlockBodyScroll() {
-            modalCount--;
-            if (modalCount <= 0) {
-                modalCount = 0;
-                document.body.style.paddingRight = '';
-                document.body.style.overflow = '';
-            }
-        }
+function unlockBodyScroll() {
+    modalCount--;
+    if (modalCount <= 0) {
+        modalCount = 0;
+        document.body.style.paddingRight = '';
+        document.body.style.overflow = '';
+    }
+}
 
-        // ================================================================
-        // LOGOUT
-        // ================================================================
-        function showLogoutModal() {
-            const modal = document.getElementById('logoutModal');
-            if (modal) { lockBodyScroll();
-                modal.classList.add('active'); }
-        }
+// LOGOUT FUNCTIONS
+function showLogoutModal() {
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+        lockBodyScroll();
+        modal.classList.add('active');
+    }
+}
 
-        function closeLogoutModal() {
-            const modal = document.getElementById('logoutModal');
-            if (modal) { modal.classList.remove('active');
-                unlockBodyScroll(); }
-        }
+function closeLogoutModal() {
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+        modal.classList.remove('active');
+        unlockBodyScroll();
+    }
+}
 
-        function confirmLogout() {
-            localStorage.removeItem('customer');
-            localStorage.removeItem('customerId');
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-            localStorage.removeItem('isLoggedIn');
-            closeLogoutModal();
-            window.location.replace('index.html');
-        }
+function confirmLogout() {
+    localStorage.removeItem('customer');
+    localStorage.removeItem('customerId');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('isLoggedIn');
+    closeLogoutModal();
+    window.location.replace('index.html');
+}
 
         // ================================================================
         // SIDEBAR TOGGLE
