@@ -43,7 +43,7 @@
         button { cursor: pointer; }
         a { text-decoration: none; color: inherit; }
 
-        /* ===== 排版优化：填满底部，消除留白 ===== */
+        /* ===== 排版优化：填满底部，左右对齐 ===== */
         .main-content {
             flex: 1;
             display: flex;
@@ -80,7 +80,7 @@
         .right-stack {
             display: flex;
             flex-direction: column;
-            gap: 24px;
+            gap: 32px;
             flex: 1;
             justify-content: space-between;
             height: 100%;
@@ -217,7 +217,9 @@
             margin-bottom: 4px;
         }
         .card-header i { color: #D97706; }
-        .card-body { padding: 16px 24px 24px; }
+        .card-body {
+            padding: 20px 24px 24px;
+        }
 
         .profile-overview .overview-inner {
             display: flex;
@@ -776,7 +778,7 @@
         @media (max-width: 1200px) {
             .profile-grid { grid-template-columns: 1fr; }
             .left-stack,
-            .right-stack { justify-content: flex-start; }
+            .right-stack { justify-content: flex-start; gap: 24px; }
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
         @media (max-width: 992px) {
@@ -800,7 +802,7 @@
             .dashboard-container { padding: 0 16px 18px; }
             .page-heading { flex-direction: column; align-items: flex-start; }
             .left-stack,
-            .right-stack { justify-content: flex-start; }
+            .right-stack { justify-content: flex-start; gap: 20px; }
         }
         @media (max-width: 480px) {
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
