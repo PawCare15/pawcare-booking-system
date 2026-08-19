@@ -1,111 +1,31 @@
-// 统一放在页面所有 <script> 的最顶部
+// AUTHENTICATION CHECK
 (function checkAuth() {
-    // 定义检查函数
-    function doAuthCheck() {
-        const token = localStorage.getItem('token');
-        const user = localStorage.getItem('user');
-
-        let shouldRedirect = false;
-        let redirectUrl = 'index.html';
-
-        if (!token) {
-            shouldRedirect = true;
-            redirectUrl = 'index.html';
-        } else {
-            try {
-                const userData = JSON.parse(user);
-                if (userData.role !== 'admin') {
-                    shouldRedirect = true;
-                    redirectUrl = 'dashboard.html';
-                }
-            } catch {
-                shouldRedirect = true;
-                redirectUrl = 'dashboard.html';
-            }
-        }
-
-        if (shouldRedirect) {
-            // 清空整个页面
-            document.documentElement.innerHTML = `
-                <html>
-                    <head><title>Redirecting...</title></head>
-                    <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;background:#FAF7F2;color:#4A3327;">
-                        Redirecting...
-                    </body>
-                </html>
-            `;
-            window.location.replace(redirectUrl);
-        }
-    }
-
-    // 页面初次加载执行
-    doAuthCheck();
-
-    // 监听 pageshow 事件，处理 bfcache 恢复
-    window.addEventListener('pageshow', function(event) {
-        // 如果页面是从 bfcache 恢复，重新执行检查
-        if (event.persisted) {
-            doAuthCheck();
-        }
-    });
-})();
-
-// SUPABASE CONFIGURATION
-const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
-
-// WRAPPER FOR API CALLS WITH TOKEN
-async function authFetch(url, options = {}) {
     const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
     if (!token) {
-        window.location.replace('login.html');
+        window.location.replace('index.html');
         return;
     }
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers
-    };
-    const response = await fetch(url, { ...options, headers });
-    if (response.status === 401) {
-        localStorage.clear();
-        window.location.replace('login.html');
-        throw new Error('Unauthorized');
-    }
-    return response;
-}
-
-// SUPABASE DIRECT QUERY FUNCTIONS
-async function supabaseQuery(query, params = []) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.replace('login.html');
-        return null;
-    }
-
+    
     try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${query}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY
-            },
-            body: JSON.stringify({ params })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Supabase query failed: ${response.status}`);
+        const userData = JSON.parse(user);
+        if (userData.role !== 'admin') {
+            window.location.replace('dashboard.html');
+            return;
         }
-
-        return await response.json();
-    } catch (err) {
-        console.error('Supabase query error:', err);
-        return null;
+    } catch {
+        window.location.replace('dashboard.html');
+        return;
     }
+})();
+
+async function authFetch(url, options = {}) {
+    const token = localStorage.getItem('token');
+    // ... handle API calls with token
 }
 
-// SCROLLBAR COMPENSATION FOR MODALS
+// SCROLLBAR COMPENSATION FOR MODALS  
 let modalCount = 0;
 
 function lockBodyScroll() {
@@ -128,7 +48,7 @@ function unlockBodyScroll() {
     }
 }
 
-// LOGOUT FUNCTIONS
+// LOGOUT FUNCTIONS       
 function showLogoutModal() {
     const modal = document.getElementById('logoutModal');
     if (modal) {
@@ -146,13 +66,17 @@ function closeLogoutModal() {
 }
 
 function confirmLogout() {
-    localStorage.clear();
+    localStorage.removeItem('customer');
+    localStorage.removeItem('customerId');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('isLoggedIn');
     closeLogoutModal();
     window.location.replace('index.html');
 }
 
 // ADMIN CUSTOMERS - JAVASCRIPT                       
-// CUSTOMER DATA (STATIC SAMPLE - 5 CUSTOMERS)                
+// CUSTOMER DATA (STATIC SAMPLE - 10 CUSTOMERS)                
 let customersData = [
     { 
         id: '#CUS-0001', 
@@ -235,12 +159,92 @@ let customersData = [
             { service: 'Check-up (Bobo)', date: '19 May 2026, 01:30 PM' },
             { service: 'Boarding (Bobo)', date: '25 May 2026, 10:00 AM' }
         ]
+    },
+    { 
+        id: '#CUS-0006', 
+        name: 'Nur Aishah', 
+        email: 'nuraishah@gmail.com', 
+        phone: '012-123 4567', 
+        bookings: 3, 
+        joinDate: '05 Apr 2026', 
+        status: 'Active',
+        address: '89, Jalan Bunga Raya 2, 11900 Bayan Lepas, Penang',
+        completed: 3,
+        cancelled: 0,
+        recentBookings: [
+            { service: 'Check-up (Milo)', date: '09 May 2026, 02:00 PM' }
+        ]
+    },
+    { 
+        id: '#CUS-0007', 
+        name: 'Jason Ho', 
+        email: 'jasonho@gmail.com', 
+        phone: '012-456 7890', 
+        bookings: 2, 
+        joinDate: '12 Apr 2026', 
+        status: 'Active',
+        address: '234, Jalan Sri Pinang 1, 10400 George Town, Penang',
+        completed: 2,
+        cancelled: 0,
+        recentBookings: [
+            { service: 'Grooming (Rocky)', date: '11 May 2026, 10:30 AM' }
+        ]
+    },
+    { 
+        id: '#CUS-0008', 
+        name: 'Farhan Rizal', 
+        email: 'farhanr@gmail.com', 
+        phone: '012-789 0123', 
+        bookings: 1, 
+        joinDate: '18 Apr 2026', 
+        status: 'Inactive',
+        address: '567, Jalan Tasek 5, 14100 Simpang Ampat, Penang',
+        completed: 1,
+        cancelled: 0,
+        recentBookings: [
+            { service: 'Grooming (Bella)', date: '02 Apr 2026, 11:00 AM' }
+        ]
+    },
+    { 
+        id: '#CUS-0009', 
+        name: 'Wong Li Hua', 
+        email: 'lihua.wong@gmail.com', 
+        phone: '012-876 5432', 
+        bookings: 9, 
+        joinDate: '10 Jan 2026', 
+        status: 'Active',
+        address: '789, Jalan Pantai 3, 11900 Bayan Lepas, Penang',
+        completed: 8,
+        cancelled: 1,
+        recentBookings: [
+            { service: 'Grooming (Snowy)', date: '20 May 2026, 09:00 AM' },
+            { service: 'Boarding (Snowy)', date: '25 May 2026, 03:00 PM' },
+            { service: 'Grooming (Snowy)', date: '15 May 2026, 11:00 AM' }
+        ]
+    },
+    { 
+        id: '#CUS-0010', 
+        name: 'Ramasamy a/l Krishnan', 
+        email: 'ramasamy@gmail.com', 
+        phone: '012-345 6780', 
+        bookings: 11, 
+        joinDate: '05 Jan 2026', 
+        status: 'Active',
+        address: '100, Jalan Juru 4, 14000 Bukit Mertajam, Penang',
+        completed: 9,
+        cancelled: 2,
+        recentBookings: [
+            { service: 'Grooming (Raja)', date: '22 May 2026, 10:00 AM' },
+            { service: 'Boarding (Raja)', date: '28 May 2026, 01:00 PM' },
+            { service: 'Check-up (Raja)', date: '10 May 2026, 03:00 PM' }
+        ]
     }
 ];
 
 // VARIABLE TO STORE CURRENT CUSTOMER BEING EDITED/DELETED
 let currentCustomerId = null;
 
+// RENDER CUSTOMER TABLE                                        
 // RENDER CUSTOMER TABLE                                        
 function renderCustomerTable(data) {
     const tbody = document.getElementById('customerTableBody');
@@ -274,13 +278,13 @@ function renderCustomerTable(data) {
             <td><span class="status-badge-sm ${statusClass}">${statusDisplay}</span></td>
             <td>
                 <div class="action-btns">
-                    <button class="btn-sm view" onclick="viewCustomerDetail('${customer.id}')" title="View Details">
+                    <button class="btn-action view" onclick="viewCustomerDetail('${customer.id}')" title="View Details">
                         <i class="fa-regular fa-eye"></i>
                     </button>
-                    <button class="btn-sm edit" onclick="openEditModal('${customer.id}')" title="Edit">
+                    <button class="btn-action edit" onclick="openEditModal('${customer.id}')" title="Edit">
                         <i class="fa-regular fa-pen-to-square"></i>
                     </button>
-                    <button class="btn-sm delete" onclick="openDeleteModal('${customer.id}')" title="Delete">
+                    <button class="btn-action delete" onclick="openDeleteModal('${customer.id}')" title="Delete">
                         <i class="fa-regular fa-trash-can"></i>
                     </button>
                 </div>
@@ -385,10 +389,10 @@ function viewCustomerDetail(id) {
         <div class="detail-actions">
             <button class="btn btn-secondary" onclick="closeCustomerDetail()">Close</button>
             <button class="btn btn-primary" onclick="closeCustomerDetail(); openEditModal('${customer.id}')">
-                <i class="fa-regular fa-pen-to-square"></i> Edit
+                <i class="fa fa-pencil" aria-hidden="true"></i> Edit
             </button>
             <button class="btn btn-danger" onclick="closeCustomerDetail(); openDeleteModal('${customer.id}')">
-                <i class="fa-regular fa-trash-can"></i> Delete
+                <i class="fa fa-trash-o" aria-hidden="true"></i> Delete
             </button>
         </div>
     `;
@@ -457,7 +461,7 @@ function openEditModal(id) {
             <div class="edit-actions">
                 <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
                 <button type="submit" class="btn btn-primary">
-                    <i class="fa-regular fa-floppy-disk"></i> Save Changes
+                    <i class="fa fa-pencil" aria-hidden="true"></i> Save Changes
                 </button>
             </div>
         </form>
@@ -485,14 +489,12 @@ function saveEditCustomer(event) {
         return;
     }
     
-    // GET VALUE FROM FORM
     const name = document.getElementById('editName').value.trim();
     const email = document.getElementById('editEmail').value.trim();
     const phone = document.getElementById('editPhone').value.trim();
     const address = document.getElementById('editAddress').value.trim();
     const status = document.getElementById('editStatus').value;
     
-    // VALIDATION
     if (!name) {
         alert('Please enter full name.');
         document.getElementById('editName').focus();
@@ -509,17 +511,13 @@ function saveEditCustomer(event) {
         return;
     }
     
-    // UPDATE CUSTOMER DATA
     customer.name = name;
     customer.email = email;
     customer.phone = phone;
     customer.address = address || customer.address;
     customer.status = status;
     
-    // CLOSE EDIT MODAL
     closeEditModal();
-    
-    // SHOW SUCCESS MODAL WITH CUSTOMER NAME 
     showSuccessModal('Customer Updated Successfully!', `Customer ${customer.name} (${id}) has been updated successfully.`);
 }
 
@@ -540,8 +538,6 @@ function closeSuccessModal() {
     const modal = document.getElementById('successModal');
     modal.classList.remove('active');
     unlockBodyScroll();
-    
-    // Refresh table and stats after closing
     renderCustomerTable(customersData);
     loadCustomerStats();
 }
@@ -560,10 +556,8 @@ function openDeleteModal(id) {
     const message = document.getElementById('deleteConfirmMessage');
     const confirmBtn = document.getElementById('confirmDeleteBtn');
     
-    // SHOW CUSTOMER NAME CLEARLY
     message.innerHTML = `Are you sure you want to delete customer <strong>${customer.name}</strong> (${customer.id})? This action cannot be undone.`;
     
-    // REMOVE PREVIOUS EVENT LISTENER AND ADD NEW ONE
     const newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
     
@@ -597,16 +591,9 @@ function confirmDeleteCustomer() {
         return;
     }
     
-    // GET CUSTOMER NAME FOR MESSAGE
     const customerName = customersData[index].name;
-    
-    // REMOVE CUSTOMER
     customersData.splice(index, 1);
-    
-    // CLOSE DELETE MODAL
     closeDeleteModal();
-    
-    // SHOW SUCCESS MODAL WITH CUSTOMER NAME 
     showSuccessModal('Customer Deleted Successfully!', `Customer ${customerName} (${id}) has been deleted successfully.`);
 }
 
@@ -627,7 +614,6 @@ function loadCustomerStats() {
     const active = customersData.filter(c => c.status === 'Active').length;
     const inactive = customersData.filter(c => c.status === 'Inactive').length;
     
-    // CALCULATE NEW CUSTOMERS THIS MONTH BASED ON JOINDATE
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
     const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -645,22 +631,15 @@ function loadCustomerStats() {
         }
     });
     
-    // UPDATE STATS CARDS
-    const totalEl = document.getElementById('totalCustomers');
-    const newEl = document.getElementById('newCustomers');
-    const activeEl = document.getElementById('activeCustomers');
-    const inactiveEl = document.getElementById('inactiveCustomers');
-    
-    if (totalEl) totalEl.textContent = total;
-    if (newEl) newEl.textContent = newCustomers;
-    if (activeEl) activeEl.textContent = active;
-    if (inactiveEl) inactiveEl.textContent = inactive;
+    document.getElementById('totalCustomers').textContent = total;
+    document.getElementById('newCustomers').textContent = newCustomers;
+    document.getElementById('activeCustomers').textContent = active;
+    document.getElementById('inactiveCustomers').textContent = inactive;
 }
 
 // DOM READY                                                    
 document.addEventListener('DOMContentLoaded', function() {
 
-    // SIDEBAR TOGGLE
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
     const sidebarClose = document.getElementById('sidebarClose');
@@ -682,7 +661,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
     if (overlay) overlay.addEventListener('click', closeSidebar);
 
-    // CLOSE MODALS ON ESCAPE KEY
     document.addEventListener('keydown', function(e) {
         if (e.key === 'Escape') {
             closeSidebar();
@@ -694,7 +672,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // NOTIFICATION BELL
     const notificationBtn = document.getElementById('notificationBtn');
     if (notificationBtn) {
         notificationBtn.addEventListener('click', function() {
@@ -702,7 +679,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // SEARCH INPUT LISTENER
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', function(e) {
@@ -710,7 +686,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // CLOSE MODALS ON OVERLAY CLICK
     document.querySelectorAll('.modal-overlay').forEach(modal => {
         modal.addEventListener('click', function(e) {
             if (e.target === this) {
@@ -724,7 +699,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // LOAD DATA
     loadCustomerStats();
     renderCustomerTable(customersData);
 

@@ -1,108 +1,28 @@
-// 统一放在页面所有 <script> 的最顶部
+// AUTHENTICATION CHECK
 (function checkAuth() {
-    // 定义检查函数
-    function doAuthCheck() {
-        const token = localStorage.getItem('token');
-        const user = localStorage.getItem('user');
-
-        let shouldRedirect = false;
-        let redirectUrl = 'index.html';
-
-        if (!token) {
-            shouldRedirect = true;
-            redirectUrl = 'index.html';
-        } else {
-            try {
-                const userData = JSON.parse(user);
-                if (userData.role !== 'admin') {
-                    shouldRedirect = true;
-                    redirectUrl = 'dashboard.html';
-                }
-            } catch {
-                shouldRedirect = true;
-                redirectUrl = 'dashboard.html';
-            }
-        }
-
-        if (shouldRedirect) {
-            // 清空整个页面
-            document.documentElement.innerHTML = `
-                <html>
-                    <head><title>Redirecting...</title></head>
-                    <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;background:#FAF7F2;color:#4A3327;">
-                        Redirecting...
-                    </body>
-                </html>
-            `;
-            window.location.replace(redirectUrl);
-        }
-    }
-
-    // 页面初次加载执行
-    doAuthCheck();
-
-    // 监听 pageshow 事件，处理 bfcache 恢复
-    window.addEventListener('pageshow', function(event) {
-        // 如果页面是从 bfcache 恢复，重新执行检查
-        if (event.persisted) {
-            doAuthCheck();
-        }
-    });
-})();
-
-// SUPABASE CONFIGURATION
-const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
-
-// WRAPPER FOR API CALLS WITH TOKEN
-async function authFetch(url, options = {}) {
     const token = localStorage.getItem('token');
+    const user = localStorage.getItem('user');
+    
     if (!token) {
-        window.location.replace('login.html');
+        window.location.replace('index.html');
         return;
     }
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers
-    };
-    const response = await fetch(url, { ...options, headers });
-    if (response.status === 401) {
-        localStorage.clear();
-        window.location.replace('login.html');
-        throw new Error('Unauthorized');
-    }
-    return response;
-}
-
-// SUPABASE DIRECT QUERY FUNCTIONS
-async function supabaseQuery(query, params = []) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.replace('login.html');
-        return null;
-    }
-
+    
     try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${query}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY
-            },
-            body: JSON.stringify({ params })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Supabase query failed: ${response.status}`);
+        const userData = JSON.parse(user);
+        if (userData.role !== 'admin') {
+            window.location.replace('dashboard.html');
+            return;
         }
-
-        return await response.json();
-    } catch (err) {
-        console.error('Supabase query error:', err);
-        return null;
+    } catch {
+        window.location.replace('dashboard.html');
+        return;
     }
+})();
+
+async function authFetch(url, options = {}) {
+    const token = localStorage.getItem('token');
+    // ... handle API calls with token
 }
 
 // SCROLLBAR COMPENSATION FOR MODALS
@@ -146,7 +66,11 @@ function closeLogoutModal() {
 }
 
 function confirmLogout() {
-    localStorage.clear();
+    localStorage.removeItem('customer');
+    localStorage.removeItem('customerId');
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    localStorage.removeItem('isLoggedIn');
     closeLogoutModal();
     window.location.replace('index.html');
 }
@@ -308,6 +232,42 @@ let petsData = [
         ownerPhone: '012-789 0123',
         ownerEmail: 'farhanr@gmail.com',
         image: ''
+    },
+    {
+        id: '#PET-0009',
+        name: 'Mimi',
+        ownerId: '#CUS-0003',
+        owner: 'Siti Nur',
+        species: 'Cat',
+        breed: 'Siamese',
+        age: '3 Years',
+        weight: '4.5 kg',
+        status: 'Active',
+        gender: 'Female',
+        medicalNotes: 'Very active and playful.',
+        lastService: '14 May 2026 (Grooming)',
+        totalBookings: 4,
+        ownerPhone: '013-987 6543',
+        ownerEmail: 'sitinur@gmail.com',
+        image: ''
+    },
+    {
+        id: '#PET-0010',
+        name: 'Brownie',
+        ownerId: '#CUS-0004',
+        owner: 'Daniel Tan',
+        species: 'Dog',
+        breed: 'Pug',
+        age: '2 Years',
+        weight: '8.0 kg',
+        status: 'Active',
+        gender: 'Male',
+        medicalNotes: 'Loves to eat. Needs exercise.',
+        lastService: '08 May 2026 (Grooming)',
+        totalBookings: 3,
+        ownerPhone: '012-363 5768',
+        ownerEmail: 'danieltan@gmail.com',
+        image: ''
     }
 ];
 
@@ -330,6 +290,7 @@ function getCustomerById(id) {
 }
 
 // RENDER PET TABLE
+// RENDER PET TABLE
 function renderPetTable(data) {
     const tbody = document.getElementById('petTableBody');
     const countSpan = document.getElementById('petCount');
@@ -347,7 +308,6 @@ function renderPetTable(data) {
         const statusDisplay = pet.status;
         const speciesIcon = pet.species === 'Dog' ? 'fa-solid fa-dog' : 'fa-solid fa-cat';
         
-        // USE PET IMAGE OR DEFAULT AVATAR
         const avatarHtml = pet.image ? 
             `<img src="${pet.image}" alt="${pet.name}" style="width:28px; height:28px; border-radius:50%; object-fit:cover; flex-shrink:0;">` :
             `<div style="width:28px; height:28px; border-radius:50%; background:#FDF3E7; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:11px; color:#5A361A; flex-shrink:0;">${pet.name.charAt(0).toUpperCase()}</div>`;
@@ -368,13 +328,13 @@ function renderPetTable(data) {
             <td><span class="status-badge-sm ${statusClass}">${statusDisplay}</span></td>
             <td>
                 <div class="action-btns">
-                    <button class="btn-sm btn-view" onclick="viewPetDetail('${pet.id}')" title="View Details">
+                    <button class="btn-action view" onclick="viewPetDetail('${pet.id}')" title="View Details">
                         <i class="fa-regular fa-eye"></i>
                     </button>
-                    <button class="btn-sm btn-edit" onclick="openEditPetModal('${pet.id}')" title="Edit">
+                    <button class="btn-action edit" onclick="openEditPetModal('${pet.id}')" title="Edit">
                         <i class="fa-regular fa-pen-to-square"></i>
                     </button>
-                    <button class="btn-sm btn-delete" onclick="openDeleteModal('${pet.id}')" title="Delete">
+                    <button class="btn-action delete" onclick="openDeleteModal('${pet.id}')" title="Delete">
                         <i class="fa-regular fa-trash-can"></i>
                     </button>
                 </div>
@@ -398,7 +358,6 @@ function viewPetDetail(id) {
     const statusClass = pet.status.toLowerCase();
     const speciesIcon = pet.species === 'Dog' ? 'fa-solid fa-dog' : 'fa-solid fa-cat';
     
-    // PET IMAGE FOR DETAIL VIEW
     const petImageHtml = pet.image ? 
         `<img src="${pet.image}" alt="${pet.name}" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:3px solid #EFE4D8;">` :
         `<div class="detail-modal-avatar" style="background:linear-gradient(135deg,#FDF3E7,#F5E6D3);">
@@ -418,7 +377,6 @@ function viewPetDetail(id) {
             </div>
         </div>
         
-        <!-- OWNER INFORMATION -->
         <div class="detail-section">
             <div class="detail-section-title">
                 <i class="fa-regular fa-user"></i> Owner Information
@@ -439,7 +397,6 @@ function viewPetDetail(id) {
             </div>
         </div>
         
-        <!-- PET INFORMATION -->
         <div class="detail-section">
             <div class="detail-section-title">
                 <i class="fa-solid fa-paw"></i> Pet Information
@@ -460,7 +417,6 @@ function viewPetDetail(id) {
             </div>
         </div>
         
-        <!-- PET HISTORY -->
         <div class="detail-section">
             <div class="detail-section-title">
                 <i class="fa-regular fa-clock"></i> Pet History
@@ -480,10 +436,10 @@ function viewPetDetail(id) {
         <div class="detail-actions">
             <button class="btn btn-secondary" onclick="closePetDetail()">Close</button>
             <button class="btn btn-primary" onclick="closePetDetail(); openEditPetModal('${pet.id}')">
-                <i class="fa-regular fa-pen-to-square"></i> Edit Pet
+                <i class="fa fa-pencil" aria-hidden="true"></i> Edit Pet
             </button>
             <button class="btn btn-danger" onclick="closePetDetail(); openDeleteModal('${pet.id}')">
-                <i class="fa-regular fa-trash-can"></i> Delete Pet
+                <i class="fa fa-trash-o" aria-hidden="true"></i> Delete Pet
             </button>
         </div>
     `;
@@ -518,14 +474,12 @@ function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
     
-    // CHECK FILE SIZE (MAX 2MB)
     if (file.size > 2 * 1024 * 1024) {
         alert('Image size must be less than 2MB. Please choose a smaller image.');
         event.target.value = '';
         return;
     }
     
-    // CHECK FILE TYPE
     if (!file.type.startsWith('image/')) {
         alert('Please select a valid image file.');
         event.target.value = '';
@@ -535,7 +489,6 @@ function handleImageUpload(event) {
     const reader = new FileReader();
     reader.onload = function(e) {
         tempImageData = e.target.result;
-        // SHOW PREVIEW
         const preview = document.getElementById('imagePreview');
         if (preview) {
             preview.src = tempImageData;
@@ -588,7 +541,6 @@ function openAddPetModal() {
         </div>
         
         <form id="petForm" onsubmit="savePet(event)">
-            <!-- PET IMAGE UPLOAD -->
             <div style="margin-bottom: 20px;">
                 <div style="font-size:13px; font-weight:600; color:#5A361A; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
                     <i class="fa-regular fa-image" style="color:#D97706;"></i> Pet Photo
@@ -609,14 +561,13 @@ function openAddPetModal() {
                             <input type="file" id="petImageInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
                         </label>
                         <button type="button" class="btn btn-secondary" style="padding:8px 20px; font-size:12px; background:#FCE8E6; color:#C5221F; border-color:#FCE8E6;" onclick="removeImage()">
-                            <i class="fa-regular fa-trash-can"></i> Remove
+                            <i class="fa fa-trash-o" aria-hidden="true"></i> Remove
                         </button>
                         <small style="color:#8A7A6A; font-size:10px;">Max 2MB (JPG, PNG, GIF)</small>
                     </div>
                 </div>
             </div>
 
-            <!-- PET INFORMATION SECTION -->
             <div style="margin-bottom: 20px;">
                 <div style="font-size:13px; font-weight:600; color:#5A361A; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
                     <i class="fa-solid fa-paw" style="color:#D97706;"></i> Pet Information
@@ -668,7 +619,6 @@ function openAddPetModal() {
                 </div>
             </div>
 
-            <!-- OWNER INFORMATION SECTION -->
             <div style="margin-bottom: 8px;">
                 <div style="font-size:13px; font-weight:600; color:#5A361A; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
                     <i class="fa-regular fa-user" style="color:#D97706;"></i> Owner Information
@@ -705,7 +655,6 @@ function openAddPetModal() {
         </form>
     `;
     
-    // RESET IMAGE PREVIEW
     setTimeout(() => {
         const preview = document.getElementById('imagePreview');
         const placeholder = document.getElementById('imagePlaceholder');
@@ -735,7 +684,6 @@ function openEditPetModal(id) {
     
     const ageNum = pet.age.replace(' Years', '').replace(' Year', '').trim();
     const weightNum = pet.weight.replace(' kg', '').trim();
-    
     const hasImage = pet.image && pet.image.length > 0;
     
     content.innerHTML = `
@@ -750,7 +698,6 @@ function openEditPetModal(id) {
         </div>
         
         <form id="petForm" onsubmit="savePet(event)">
-            <!-- PET IMAGE UPLOAD -->
             <div style="margin-bottom: 20px;">
                 <div style="font-size:13px; font-weight:600; color:#5A361A; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
                     <i class="fa-regular fa-image" style="color:#D97706;"></i> Pet Photo
@@ -771,14 +718,13 @@ function openEditPetModal(id) {
                             <input type="file" id="petImageInput" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
                         </label>
                         <button type="button" class="btn btn-secondary" style="padding:8px 20px; font-size:12px; background:#FCE8E6; color:#C5221F; border-color:#FCE8E6;" onclick="removeImage()">
-                            <i class="fa-regular fa-trash-can"></i> Remove
+                            <i class="fa fa-trash-o" aria-hidden="true"></i> Remove
                         </button>
                         <small style="color:#8A7A6A; font-size:10px;">Max 2MB (JPG, PNG, GIF)</small>
                     </div>
                 </div>
             </div>
 
-            <!-- PET INFORMATION SECTION -->
             <div style="margin-bottom: 20px;">
                 <div style="font-size:13px; font-weight:600; color:#5A361A; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
                     <i class="fa-solid fa-paw" style="color:#D97706;"></i> Pet Information
@@ -830,7 +776,6 @@ function openEditPetModal(id) {
                 </div>
             </div>
 
-            <!-- OWNER INFORMATION SECTION -->
             <div style="margin-bottom: 8px;">
                 <div style="font-size:13px; font-weight:600; color:#5A361A; margin-bottom:12px; display:flex; align-items:center; gap:8px;">
                     <i class="fa-regular fa-user" style="color:#D97706;"></i> Owner Information
@@ -949,8 +894,6 @@ function savePet(event) {
     
     const age = formatAge(ageInput);
     const weight = formatWeight(weightInput);
-    
-    // GET IMAGE DATA
     const imageData = tempImageData || '';
     
     if (isEditMode && currentPetId) {
@@ -1078,7 +1021,6 @@ function closeSuccessModal() {
     const modal = document.getElementById('successModal');
     modal.classList.remove('active');
     unlockBodyScroll();
-    
     applyFiltersAndRender();
     loadPetStats();
 }
