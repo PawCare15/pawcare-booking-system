@@ -68,6 +68,15 @@ const getCustomerId = (req) => {
   return decoded.customer_id; // 无论是 admin_id 还是 customer_id，都通过这个字段返回
 };
 
+// ========== 辅助：从 token 解析用户信息 ==========
+function getUserInfo(req) {
+  const auth = req.headers.authorization;
+  if (!auth) throw new Error('No token');
+  const token = auth.split(' ')[1];
+  const decoded = jwt.verify(token, JWT_SECRET);
+  return decoded; // { customer_id, email, role }
+}
+
 // 密码策略
 const passwordPolicy = {
   minLength: 8,
@@ -238,12 +247,25 @@ app.post('/api/login', async (req, res) => {
 // ========== 3. 获取个人资料 ==========
 app.get('/api/profile', async (req, res) => {
   try {
-    const customer_id = getCustomerId(req);
+    const userInfo = getUserInfo(req);
+    const userId = userInfo.customer_id;
+    const role = userInfo.role || 'customer';
+
+    let table = 'customer';
+    let idField = 'customer_id';
+    let selectFields = 'customer_id, full_name, email, phone_number, address, profile_photo, created_at';
+    if (role === 'admin') {
+      table = 'admin';
+      idField = 'admin_id';
+      selectFields = 'admin_id, full_name, email, phone_number, profile_photo, created_at';
+    }
+
     const { data, error } = await supabase
-      .from('customer')
-      .select('customer_id, full_name, email, phone_number, address, profile_photo, created_at')
-      .eq('customer_id', customer_id)
+      .from(table)
+      .select(selectFields)
+      .eq(idField, userId)
       .single();
+
     if (error) throw error;
     res.json({ success: true, data });
   } catch (err) {
@@ -258,12 +280,24 @@ app.get('/api/profile', async (req, res) => {
 // ========== 4. 更新个人资料 ==========
 app.put('/api/profile', async (req, res) => {
   try {
-    const customer_id = getCustomerId(req);
-    const { phone_number, address } = req.body;
+    const userInfo = getUserInfo(req);
+    const userId = userInfo.customer_id;
+    const role = userInfo.role || 'customer';
+    const { phone_number, address, full_name } = req.body; // 增加 full_name
+
+    let table = 'customer';
+    let idField = 'customer_id';
+    let updateData = { phone_number, address };
+    if (role === 'admin') {
+      table = 'admin';
+      idField = 'admin_id';
+      updateData = { phone_number, full_name }; // admin 可更新 full_name 和 phone
+    }
+
     const { error } = await supabase
-      .from('customer')
-      .update({ phone_number, address })
-      .eq('customer_id', customer_id);
+      .from(table)
+      .update(updateData)
+      .eq(idField, userId);
     if (error) throw error;
     res.json({ success: true, message: 'Profile updated.' });
   } catch (err) {
@@ -279,15 +313,17 @@ app.put('/api/profile', async (req, res) => {
 // ========== 5. 上传头像 ==========
 app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
   try {
-    const customer_id = getCustomerId(req);
-    // ===== 确保存储桶存在 =====
-    await ensureBucketExists('profile_photos');   // <-- 加了这一行
+    const userInfo = getUserInfo(req);
+    const userId = userInfo.customer_id;
+    const role = userInfo.role || 'customer';
+
+    await ensureBucketExists('profile_photos');
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded.' });
     }
     const file = req.file;
     const fileExt = file.originalname.split('.').pop();
-    const fileName = `${customer_id}_${Date.now()}.${fileExt}`;
+    const fileName = `${userId}_${Date.now()}.${fileExt}`;
     const filePath = `profile_photos/${fileName}`;
 
     const { error: uploadError } = await supabaseAdmin.storage
@@ -299,15 +335,20 @@ app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
       });
     if (uploadError) throw uploadError;
 
-    const { data: urlData } = supabase.storage
-      .from('profile_photos')
-      .getPublicUrl(filePath);
+    const { data: urlData } = supabase.storage.from('profile_photos').getPublicUrl(filePath);
     const avatarUrl = urlData.publicUrl;
 
+    let table = 'customer';
+    let idField = 'customer_id';
+    if (role === 'admin') {
+      table = 'admin';
+      idField = 'admin_id';
+    }
+
     const { error: updateError } = await supabase
-      .from('customer')
+      .from(table)
       .update({ profile_photo: avatarUrl })
-      .eq('customer_id', customer_id);
+      .eq(idField, userId);
     if (updateError) throw updateError;
 
     res.json({ success: true, avatar_url: avatarUrl });
@@ -327,20 +368,30 @@ app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
 // ========== 6. 修改密码 ==========
 app.put('/api/profile/password', async (req, res) => {
   try {
-    const customer_id = getCustomerId(req);
+    const userInfo = getUserInfo(req);
+    const userId = userInfo.customer_id;
+    const role = userInfo.role || 'customer';
     const { currentPassword, newPassword } = req.body;
 
+    // 校验密码策略 (已有)
     if (!isPasswordValid(newPassword)) {
-      return res.status(400).json({ success: false, message: 'New password does not meet complexity requirements.' });
+      return res.status(400).json({ success: false, message: 'Password must be 8-16 characters with at least 1 uppercase, 1 number, and 1 special character (!@#$%^&*).' });
+    }
+
+    let table = 'customer';
+    let idField = 'customer_id';
+    if (role === 'admin') {
+      table = 'admin';
+      idField = 'admin_id';
     }
 
     const { data: user, error: fetchError } = await supabaseAdmin
-      .from('customer')
+      .from(table)
       .select('password')
-      .eq('customer_id', customer_id)
+      .eq(idField, userId)
       .single();
+
     if (fetchError || !user) {
-      console.error('Fetch user error:', fetchError);
       return res.status(404).json({ success: false, message: 'User not found.' });
     }
 
@@ -350,19 +401,12 @@ app.put('/api/profile/password', async (req, res) => {
     }
 
     const hashed = await bcrypt.hash(newPassword, 10);
-    console.log('Generated hash:', hashed); // 打印哈希
-
     const { error: updateError } = await supabaseAdmin
-      .from('customer')
+      .from(table)
       .update({ password: hashed })
-      .eq('customer_id', customer_id);
+      .eq(idField, userId);
 
-    if (updateError) {
-      console.error('Update password error:', updateError);
-      throw updateError;
-    }
-
-    console.log(`Password updated for customer ${customer_id}`);
+    if (updateError) throw updateError;
     res.json({ success: true, message: 'Password updated successfully.' });
   } catch (err) {
     console.error('Password update exception:', err);
@@ -376,13 +420,20 @@ app.put('/api/profile/password', async (req, res) => {
 // ========== 7. 宠物 CRUD ==========
 app.get('/api/pets', async (req, res) => {
   try {
-    const customer_id = getCustomerId(req);
-    const { data, error } = await supabaseAdmin
-      .from('pet')
-      .select('*')
-      .eq('customer_id', customer_id)
-      .order('pet_id', { ascending: false });
+    const userInfo = getUserInfo(req);
+    const userId = userInfo.customer_id;
+    const role = userInfo.role || 'customer';
+
+    let query = supabaseAdmin.from('pet').select('*');
+    if (role === 'customer') {
+      query = query.eq('customer_id', userId);
+    }
+    // 如果是 admin，不加过滤，返回所有宠物
+
+    const { data, error } = await query;
     if (error) throw error;
+
+    // 映射字段（保持原有格式）
     const mapped = data.map(pet => ({
       pet_id: pet.pet_id,
       name: pet.pet_name,
@@ -407,21 +458,45 @@ app.get('/api/pets', async (req, res) => {
 
 app.post('/api/pets', async (req, res) => {
   try {
-    const customer_id = getCustomerId(req);
-    const { name, breed, dob, gender, weight, notes, photo_url, species } = req.body;
+    const userInfo = getUserInfo(req);
+    const userId = userInfo.customer_id;
+    const role = userInfo.role || 'customer';
+
+    const { name, breed, dob, gender, weight, notes, photo_url, species, customer_id } = req.body;
+
+    let insertData = {
+      pet_name: name,
+      breed,
+      date_of_birth: dob,
+      gender,
+      weight,
+      special_notes: notes,
+      pet_photo: photo_url,
+      species: species || 'dog'
+    };
+
+    if (role === 'customer') {
+      insertData.customer_id = userId;
+    } else if (role === 'admin') {
+      // admin 必须提供 customer_id
+      if (!customer_id) {
+        return res.status(400).json({ success: false, message: 'Customer ID is required for admin.' });
+      }
+      // 验证该客户是否存在（可选）
+      const { data: cust } = await supabaseAdmin
+        .from('customer')
+        .select('customer_id')
+        .eq('customer_id', customer_id)
+        .single();
+      if (!cust) {
+        return res.status(404).json({ success: false, message: 'Customer not found.' });
+      }
+      insertData.customer_id = customer_id;
+    }
+
     const { data, error } = await supabaseAdmin
       .from('pet')
-      .insert([{
-        customer_id,
-        pet_name: name,
-        breed,
-        date_of_birth: dob,
-        gender,
-        weight,
-        special_notes: notes,
-        pet_photo: photo_url,
-        species: species || 'dog'
-      }])
+      .insert([insertData])
       .select('*');
     if (error) throw error;
     const pet = data[0];
@@ -449,23 +524,21 @@ app.post('/api/pets', async (req, res) => {
 
 app.put('/api/pets/:pet_id', async (req, res) => {
   try {
-    const customer_id = getCustomerId(req);
+    const userInfo = getUserInfo(req);
+    const userId = userInfo.customer_id;
+    const role = userInfo.role || 'customer';
     const { pet_id } = req.params;
-    const { name, breed, dob, gender, weight, notes, photo_url, species } = req.body;
-    const { error } = await supabaseAdmin
-      .from('pet')
-      .update({
-        pet_name: name,
-        breed,
-        date_of_birth: dob,
-        gender,
-        weight,
-        special_notes: notes,
-        pet_photo: photo_url,
-        species
-      })
-      .eq('pet_id', pet_id)
-      .eq('customer_id', customer_id);
+    const { name, breed, dob, gender, weight, notes, photo_url, species, customer_id } = req.body;
+
+    let updateData = { pet_name: name, breed, date_of_birth: dob, gender, weight, special_notes: notes, pet_photo: photo_url, species };
+
+    let query = supabaseAdmin.from('pet').update(updateData).eq('pet_id', pet_id);
+    if (role === 'customer') {
+      query = query.eq('customer_id', userId);
+    }
+    // admin 不追加 customer_id 条件，可以修改任意宠物（也可以要求传入 customer_id 做双重验证）
+
+    const { error } = await query;
     if (error) throw error;
     res.json({ success: true, message: 'Pet updated.' });
   } catch (err) {
@@ -480,9 +553,12 @@ app.put('/api/pets/:pet_id', async (req, res) => {
 
 app.delete('/api/pets/:pet_id', async (req, res) => {
   try {
-    const customer_id = getCustomerId(req);
+    const userInfo = getUserInfo(req);
+    const userId = userInfo.customer_id;
+    const role = userInfo.role || 'customer';
     const { pet_id } = req.params;
 
+    // 检查是否有待处理预约（所有角色都需要检查）
     const { data: bookings, error: checkError } = await supabaseAdmin
       .from('booking')
       .select('booking_id')
@@ -493,16 +569,21 @@ app.delete('/api/pets/:pet_id', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Cannot delete pet with pending or upcoming bookings.' });
     }
 
-    const { error } = await supabaseAdmin
-      .from('pet')
-      .delete()
-      .eq('pet_id', pet_id)
-      .eq('customer_id', customer_id);
+    let query = supabaseAdmin.from('pet').delete().eq('pet_id', pet_id);
+    if (role === 'customer') {
+      query = query.eq('customer_id', userId);
+    }
+    // admin 不加 customer_id 条件
+
+        const { error } = await query;
     if (error) throw error;
+    
+    // 添加日志
+    console.log(`✅ Pet ${pet_id} deleted by user ${userId} (role: ${role})`);
+    
     res.json({ success: true, message: 'Pet deleted.' });
   } catch (err) {
     console.error(err);
-    // ==== 修改点：认证错误返回 401 ====
     if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
@@ -548,11 +629,229 @@ app.get('/api/services', async (req, res) => {
   }
 });
 
+// ========== Admin Reports APIs ==========
+
+// 1. 总览统计
+app.get('/api/admin/stats', async (req, res) => {
+  try {
+    const { count: totalBookings } = await supabaseAdmin
+      .from('booking')
+      .select('*', { count: 'exact', head: true });
+
+    const { count: totalCustomers } = await supabaseAdmin
+      .from('customer')
+      .select('*', { count: 'exact', head: true });
+
+    const { count: totalPets } = await supabaseAdmin
+      .from('pet')
+      .select('*', { count: 'exact', head: true });
+
+    const { count: completedBookings } = await supabaseAdmin
+      .from('booking')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'completed');
+
+    const { data: reviews } = await supabaseAdmin
+      .from('review')
+      .select('rating');
+    let avgRating = 0;
+    if (reviews && reviews.length > 0) {
+      const sum = reviews.reduce((a, b) => a + b.rating, 0);
+      avgRating = sum / reviews.length;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        totalBookings,
+        totalCustomers,
+        totalPets,
+        completedBookings,
+        avgRating: parseFloat(avgRating.toFixed(1))
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// 2. 预约趋势（最近30天）
+app.get('/api/admin/bookings-trend', async (req, res) => {
+  try {
+    const today = new Date();
+    const dates = [];
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      dates.push(d.toISOString().split('T')[0]);
+    }
+
+    const { data, error } = await supabaseAdmin
+      .from('booking')
+      .select('booking_date')
+      .gte('booking_date', dates[0])
+      .lte('booking_date', dates[29]);
+
+    if (error) throw error;
+
+    const countMap = {};
+    data.forEach(b => {
+      const date = b.booking_date;
+      countMap[date] = (countMap[date] || 0) + 1;
+    });
+
+    const trend = dates.map(date => ({
+      date,
+      count: countMap[date] || 0
+    }));
+
+    res.json({ success: true, data: trend });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// 3. 热门服务
+app.get('/api/admin/popular-services', async (req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('booking_service')
+      .select(`
+        service_id,
+        service:service_id (service_name)
+      `);
+
+    if (error) throw error;
+
+    const countMap = {};
+    data.forEach(item => {
+      const name = item.service?.service_name || 'Unknown';
+      countMap[name] = (countMap[name] || 0) + 1;
+    });
+
+    const total = data.length;
+    const result = Object.entries(countMap).map(([name, count]) => ({
+      service_name: name,
+      count,
+      percentage: total ? ((count / total) * 100).toFixed(1) : 0
+    })).sort((a, b) => b.count - a.count);
+
+    res.json({ success: true, data: result });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// 4. 最活跃客户（前5）
+app.get('/api/admin/top-customers', async (req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('booking')
+      .select(`
+        customer_id,
+        customer:customer_id (full_name)
+      `);
+
+    if (error) throw error;
+
+    const countMap = {};
+    data.forEach(b => {
+      const id = b.customer_id;
+      if (!countMap[id]) {
+        countMap[id] = { name: b.customer?.full_name || 'Unknown', count: 0 };
+      }
+      countMap[id].count++;
+    });
+
+    const sorted = Object.values(countMap)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5)
+      .map((item, index) => ({ rank: index + 1, ...item }));
+
+    res.json({ success: true, data: sorted });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// 5. 月度趋势（近12个月）
+app.get('/api/admin/monthly-trend', async (req, res) => {
+  try {
+    const today = new Date();
+    const months = [];
+    const labels = [];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      months.push(`${year}-${month}`);
+      labels.push(`${year}-${month}`);
+    }
+
+    // 查询 booking 按月份分组计数
+    const { data, error } = await supabaseAdmin
+      .from('booking')
+      .select('booking_date')
+      .gte('booking_date', months[0] + '-01')
+      .lte('booking_date', months[months.length - 1] + '-31');
+
+    if (error) throw error;
+
+    const countMap = {};
+    data.forEach(b => {
+      const date = b.booking_date;
+      if (date) {
+        const monthKey = date.substring(0, 7); // "YYYY-MM"
+        countMap[monthKey] = (countMap[monthKey] || 0) + 1;
+      }
+    });
+
+    const trend = months.map(month => ({
+      month,
+      count: countMap[month] || 0
+    }));
+
+    // 同时获取 completed 数据（可选）
+    const { data: completedData, error: completedError } = await supabaseAdmin
+      .from('booking')
+      .select('booking_date')
+      .eq('status', 'completed')
+      .gte('booking_date', months[0] + '-01')
+      .lte('booking_date', months[months.length - 1] + '-31');
+
+    if (!completedError) {
+      const completedMap = {};
+      completedData.forEach(b => {
+        const date = b.booking_date;
+        if (date) {
+          const monthKey = date.substring(0, 7);
+          completedMap[monthKey] = (completedMap[monthKey] || 0) + 1;
+        }
+      });
+      trend.forEach(item => {
+        item.completed = completedMap[item.month] || 0;
+      });
+    }
+
+    res.json({ success: true, data: { labels, trend } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ========== 9. 预约 CRUD ==========
 app.get('/api/bookings', async (req, res) => {
   try {
-    const customer_id = getCustomerId(req);
-    const { data, error } = await supabaseAdmin
+    const userInfo = getUserInfo(req);
+    const userId = userInfo.customer_id;
+    const role = userInfo.role || 'customer';
+
+    let query = supabaseAdmin
       .from('booking')
       .select(`
         booking_id,
@@ -572,10 +871,17 @@ app.get('/api/bookings', async (req, res) => {
           service:service_id(service_name, category)
         )
       `)
-      .eq('customer_id', customer_id)
       .order('booking_date', { ascending: false });
+
+    if (role === 'customer') {
+      query = query.eq('customer_id', userId);
+    }
+    // admin 不加过滤，查看全部
+
+    const { data, error } = await query;
     if (error) throw error;
 
+    // 映射数据（与原来相同）
     const bookings = data.map(b => {
       const services = b.booking_service || [];
       return {
@@ -594,7 +900,7 @@ app.get('/api/bookings', async (req, res) => {
           name: b.pet.pet_name,
           breed: b.pet.breed,
           species: b.pet.species,
-          photo_url: b.pet.pet_photo   // 新增，用于显示宠物照片
+          photo_url: b.pet.pet_photo
         } : null,
         services: services.map(s => ({
           service_id: s.service_id,
@@ -947,7 +1253,8 @@ app.put('/api/bookings/:booking_id/cancel', async (req, res) => {
 // ========== 10. 评价 (修改版，包含回复) ==========
 app.get('/api/reviews', async (req, res) => {
   try {
-    const customer_id = getCustomerId(req);
+    const userInfo = getUserInfo(req);
+    const userId = userInfo.customer_id;
     
     // 1. 获取所有 Review
     const { data: reviews, error } = await supabaseAdmin
@@ -974,28 +1281,31 @@ app.get('/api/reviews', async (req, res) => {
     if (likesError) throw likesError;
 
     // 3. 获取所有回复 (新增)
-        // 3. 获取所有回复 (新增)
     const { data: repliesData, error: repliesError } = await supabaseAdmin
-        .from('review_replies')
-        // 👇 加上 , profile_photo 即可
-        .select('reply_id, review_id, reply_text, created_at, customer:customer_id (full_name, profile_photo)')
-        .order('created_at', { ascending: true });
+      .from('review_replies')
+      .select(`
+        reply_id, review_id, reply_text, created_at,
+        customer:customer_id (full_name, profile_photo),
+        admin:admin_id (full_name, profile_photo)
+      `)
+      .order('created_at', { ascending: true });
     if (repliesError) throw repliesError;
 
     // 4. 数据映射组装
-    const myLikes = likes.filter(l => l.customer_id === customer_id).map(l => l.review_id);
+    const myLikes = likes.filter(l => l.customer_id === userId).map(l => l.review_id);
     const likeCountMap = {};
     likes.forEach(l => { likeCountMap[l.review_id] = (likeCountMap[l.review_id] || 0) + 1; });
 
     const repliesMap = {};
-    (repliesData || []).forEach(r => {
-        if (!repliesMap[r.review_id]) repliesMap[r.review_id] = [];
-        repliesMap[r.review_id].push({
-            reply_id: r.reply_id,
-            reply_text: r.reply_text,
-            created_at: r.created_at,
-            customer: r.customer ? { full_name: r.customer.full_name, profile_photo: r.customer.profile_photo } : null
-        });
+    repliesData.forEach(r => {
+      const user = r.customer || r.admin;
+      if (!repliesMap[r.review_id]) repliesMap[r.review_id] = [];
+      repliesMap[r.review_id].push({
+        reply_id: r.reply_id,
+        reply_text: r.reply_text,
+        created_at: r.created_at,
+        customer: user ? { full_name: user.full_name, profile_photo: user.profile_photo } : null
+      });
     });
 
     const mapped = reviews.map(r => ({
@@ -1210,20 +1520,31 @@ app.post('/api/send-otp', async (req, res) => {
   const { email } = req.body;
   if (!email) return res.status(400).json({ success: false, message: 'Email required.' });
 
-  // 验证邮箱是否已注册
-  const { data: user, error: userError } = await supabase
+  // 验证邮箱是否已注册（先查 customer，再查 admin）
+  let userExists = false;
+  const { data: customer, error: customerError } = await supabase
     .from('customer')
     .select('email')
     .eq('email', email)
     .maybeSingle();
-  if (userError) {
-    console.error(userError);
-    return res.status(500).json({ success: false, message: 'Database error.' });
+  if (!customerError && customer) {
+    userExists = true;
+  } else {
+    const { data: admin, error: adminError } = await supabase
+      .from('admin')
+      .select('email')
+      .eq('email', email)
+      .maybeSingle();
+    if (!adminError && admin) {
+      userExists = true;
+    }
   }
-  if (!user) {
+
+  if (!userExists) {
     return res.status(404).json({ success: false, message: 'Email not registered.' });
   }
 
+  // 生成 OTP（后续代码不变）
   const otp = Math.floor(100000 + Math.random() * 900000).toString();
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
 
@@ -1257,7 +1578,6 @@ app.post('/api/reset-password', async (req, res) => {
   if (!email || !otp || !newPassword) {
     return res.status(400).json({ success: false, message: 'All fields required.' });
   }
-  // 👇 补充密码策略校验
   if (!isPasswordValid(newPassword)) {
     return res.status(400).json({ success: false, message: 'Password does not meet complexity requirements.' });
   }
@@ -1279,28 +1599,41 @@ app.post('/api/reset-password', async (req, res) => {
   }
 
   const hashed = await bcrypt.hash(newPassword, 10);
-  const { error: updateError } = await supabase
+
+  // 先尝试更新 customer 表
+  const { data: customerData, error: customerUpdateError } = await supabaseAdmin
     .from('customer')
     .update({ password: hashed })
-    .eq('email', email);
-  if (updateError) {
-    console.error(updateError);
+    .eq('email', email)
+    .select('email');
+
+  if (customerUpdateError) {
+    console.error(customerUpdateError);
     return res.status(500).json({ success: false, message: 'Failed to update password.' });
   }
 
-  await supabase.from('otp_codes').delete().eq('email', email);
+  // 如果 customer 表没有匹配的行，则尝试更新 admin 表
+  if (!customerData || customerData.length === 0) {
+    const { error: adminUpdateError } = await supabaseAdmin
+      .from('admin')
+      .update({ password: hashed })
+      .eq('email', email);
+    if (adminUpdateError) {
+      console.error(adminUpdateError);
+      return res.status(500).json({ success: false, message: 'Failed to update password.' });
+    }
+  }
 
+  await supabase.from('otp_codes').delete().eq('email', email);
   res.json({ success: true, message: 'Password reset successful.' });
 });
 
 // ========== 新增: 回复评论 ==========
 app.post('/api/reviews/:review_id/reply', async (req, res) => {
-  // 🔍 新增两行日志，看看请求到底进没进后端！
-  console.log('✅ [Reply后端] 请求收到！Params:', req.params);
-  console.log('✅ [Reply后端] 请求Body:', req.body);
-
   try {
-    const customer_id = getCustomerId(req);
+    const userInfo = getUserInfo(req);
+    const userId = userInfo.customer_id;
+    const role = userInfo.role || 'customer';
     const { review_id } = req.params;
     const { reply_text } = req.body;
 
@@ -1308,20 +1641,44 @@ app.post('/api/reviews/:review_id/reply', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Reply text is required.' });
     }
 
-    // 插入回复到数据库
+    let insertData = { review_id, reply_text: reply_text.trim() };
+    if (role === 'admin') {
+      insertData.admin_id = userId;
+      insertData.customer_id = null;
+    } else {
+      insertData.customer_id = userId;
+      insertData.admin_id = null;
+    }
+
     const { data, error } = await supabaseAdmin
       .from('review_replies')
-      .insert([{
-        review_id,
-        customer_id,
-        reply_text: reply_text.trim()
-      }])
-      .select('reply_id, reply_text, created_at, customer:customer_id (full_name)');
+      .insert([insertData])
+      .select('reply_id, reply_text, created_at, customer_id, admin_id');
 
     if (error) throw error;
 
-    res.status(201).json({ success: true, data: data[0] });
-      } catch (err) {
+    // 为了前端展示，需要把 customer 或 admin 的信息附上
+    const reply = data[0];
+    let replyWithUser = { ...reply };
+    if (reply.customer_id) {
+      const { data: cust } = await supabaseAdmin
+        .from('customer')
+        .select('full_name, profile_photo')
+        .eq('customer_id', reply.customer_id)
+        .single();
+      replyWithUser.customer = cust;
+    } else if (reply.admin_id) {
+      const { data: adm } = await supabaseAdmin
+        .from('admin')
+        .select('full_name, profile_photo')
+        .eq('admin_id', reply.admin_id)
+        .single();
+      replyWithUser.customer = adm; // 前端统一用 customer 字段，但实际是 admin
+      replyWithUser.isAdmin = true; // 可以加标记
+    }
+
+    res.status(201).json({ success: true, data: replyWithUser });
+  } catch (err) {
         // 👇 这样打印会显示非常详细的报错结构，方便你直接去 Render Logs 里看
         console.error('❌ Reply 发送失败详细报错:', JSON.stringify(err, null, 2)); 
 
@@ -1331,6 +1688,35 @@ app.post('/api/reviews/:review_id/reply', async (req, res) => {
         res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
       }
   });
+
+// ========== 删除评论（仅限 Admin） ==========
+app.delete('/api/reviews/:review_id', async (req, res) => {
+  try {
+    const userInfo = getUserInfo(req);
+    if (userInfo.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Admin only.' });
+    }
+    const { review_id } = req.params;
+
+    // 先删除关联的点赞和回复（如果外键没有级联删除）
+    await supabaseAdmin.from('review_likes').delete().eq('review_id', review_id);
+    await supabaseAdmin.from('review_replies').delete().eq('review_id', review_id);
+
+    const { error } = await supabaseAdmin
+      .from('review')
+      .delete()
+      .eq('review_id', review_id);
+    if (error) throw error;
+
+    res.json({ success: true, message: 'Review deleted successfully.' });
+  } catch (err) {
+    console.error('Delete review error:', err);
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
+  }
+});
 
 // ========== 启动服务器 ==========
 const PORT = process.env.PORT || 5000;

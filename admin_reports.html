@@ -826,6 +826,19 @@
         </div>
     </div>
 
+    <!-- INFO MODAL -->
+    <div class="modal-overlay" id="infoModal">
+        <div class="modal-box" style="max-width:400px; text-align:center;">
+            <button class="close-modal" data-close="infoModal"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-icon-circle info"><i class="fa-regular fa-bell"></i></div>
+            <h2 class="modal-title" id="infoModalTitle">Notification</h2>
+            <p class="modal-subtitle" id="infoModalMessage">No new notifications.</p>
+            <div class="modal-btn-group" style="justify-content:center;">
+                <button class="btn btn-primary" data-close="infoModal">OK</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ================================================================ -->
     <!-- JAVASCRIPT -->
     <!-- ================================================================ -->
@@ -1014,7 +1027,7 @@ function confirmLogout() {
             // NOTIFICATIONS
             // ================================================================
             document.getElementById('notificationBtn').addEventListener('click', function() {
-                alert('No new notifications.');
+                showInfoModal('Notifications', 'No new notifications.');
             });
 
             // ================================================================
@@ -1038,6 +1051,147 @@ function confirmLogout() {
                 }
             }
             loadAdminProfile();
+
+            // ===== Info Modal 控制 =====
+            function showInfoModal(title, message) {
+                document.getElementById('infoModalTitle').textContent = title || 'Notification';
+                document.getElementById('infoModalMessage').textContent = message || 'No new notifications.';
+                const modal = document.getElementById('infoModal');
+                lockBodyScroll();
+                modal.classList.add('active');
+            }
+
+            function hideInfoModal() {
+                const modal = document.getElementById('infoModal');
+                modal.classList.remove('active');
+                unlockBodyScroll();
+            }
+
+            // 绑定关闭事件 (data-close)
+            document.querySelectorAll('[data-close="infoModal"]').forEach(btn => {
+                btn.addEventListener('click', hideInfoModal);
+            });
+            // 点击 overlay 关闭
+            document.getElementById('infoModal').addEventListener('click', function(e) {
+                if (e.target === this) hideInfoModal();
+            });
+
+            // 加载统计数据
+            async function loadStats() {
+                try {
+                    const res = await authFetch('/api/admin/stats');
+                    const data = await res.json();
+                    if (data.success) {
+                        const s = data.data;
+                        document.getElementById('rTotalBookings').textContent = s.totalBookings || 0;
+                        document.getElementById('rTotalCustomers').textContent = s.totalCustomers || 0;
+                        document.getElementById('rTotalPets').textContent = s.totalPets || 0;
+                        document.getElementById('rCompleted').textContent = s.completedBookings || 0;
+                        const avg = s.avgRating || 0;
+                        document.querySelector('.stat-report-card:last-child h3').innerHTML = avg.toFixed(1) + ' ★';
+                    }
+                } catch (err) { console.error('Stats error:', err); }
+            }
+
+            // 加载预约趋势图
+            async function loadTrendChart() {
+                try {
+                    const res = await authFetch('/api/admin/bookings-trend');
+                    const data = await res.json();
+                    if (data.success) {
+                        const trend = data.data;
+                        const labels = trend.map(d => d.date.slice(5)); // "MM-DD"
+                        const counts = trend.map(d => d.count);
+                        const chart = Chart.getChart('bookingsTrendChart');
+                        if (chart) {
+                            chart.data.labels = labels;
+                            chart.data.datasets[0].data = counts;
+                            chart.update();
+                        }
+                    }
+                } catch (err) { console.error('Trend error:', err); }
+            }
+
+            // 加载热门服务
+            async function loadPopularServices() {
+                try {
+                    const res = await authFetch('/api/admin/popular-services');
+                    const data = await res.json();
+                    if (data.success) {
+                        const services = data.data.slice(0, 5);
+                        const list = document.querySelector('.service-list');
+                        list.innerHTML = '';
+                        services.forEach(svc => {
+                            const row = document.createElement('div');
+                            row.className = 'service-row';
+                            row.innerHTML = `
+                                <span class="s-name">${svc.service_name}</span>
+                                <div class="s-bar"><div class="fill" style="width:${svc.percentage}%;"></div></div>
+                                <span class="s-pct">${svc.percentage}%</span>
+                                <span class="s-count">${svc.count}</span>
+                            `;
+                            list.appendChild(row);
+                        });
+                    }
+                } catch (err) { console.error('Popular services error:', err); }
+            }
+
+            // 加载 top customers
+            async function loadTopCustomers() {
+                try {
+                    const res = await authFetch('/api/admin/top-customers');
+                    const data = await res.json();
+                    if (data.success) {
+                        const customers = data.data;
+                        const tbody = document.querySelector('.data-table tbody');
+                        tbody.innerHTML = '';
+                        customers.forEach((c, idx) => {
+                            const tr = document.createElement('tr');
+                            const rankClass = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
+                            tr.innerHTML = `
+                                <td><span class="rank-badge ${rankClass}">${c.rank}</span></td>
+                                <td><strong>${c.name}</strong></td>
+                                <td>${c.count}</td>
+                            `;
+                            tbody.appendChild(tr);
+                        });
+                    }
+                } catch (err) { console.error('Top customers error:', err); }
+            }
+
+            // 加载月度比较图
+            async function loadMonthlyComparison() {
+            try {
+                const res = await authFetch('/api/admin/monthly-trend');
+                const data = await res.json();
+                if (data.success) {
+                const { labels, trend } = data.data;
+                const chart = Chart.getChart('monthlyComparisonChart');
+                if (chart) {
+                    // 更新 labels
+                    chart.data.labels = labels.map(label => {
+                    const parts = label.split('-');
+                    return new Date(parts[0], parts[1]-1).toLocaleString('default', { month: 'short' });
+                    });
+                    // 更新 datasets
+                    chart.data.datasets[0].data = trend.map(item => item.count);
+                    // 如果有 completed 数据，更新第二个数据集
+                    if (chart.data.datasets.length > 1 && trend[0]?.completed !== undefined) {
+                    chart.data.datasets[1].data = trend.map(item => item.completed || 0);
+                    }
+                    chart.update();
+                }
+                }
+            } catch (err) {
+                console.error('Monthly comparison error:', err);
+            }
+            }
+
+            // 调用这些函数
+            loadStats();
+            loadTrendChart();
+            loadPopularServices();
+            loadTopCustomers();
 
             // ================================================================
             // SET DATE

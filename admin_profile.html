@@ -1581,24 +1581,38 @@ function confirmLogout() {
                 });
 
                 // ===== Profile Form =====
-                $('profileForm').addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const name = $('editFullName').value.trim();
-                    const phone = $('editPhone').value.trim();
-                    const msg = $('profileUpdateMessage');
-                    if (name.length < 2) { msg.className = 'message error';
-                        msg.textContent = 'Please enter a valid full name.'; return; }
-                    if (!phone) { msg.className = 'message error';
-                        msg.textContent = 'Phone number is required.'; return; }
-                    data.name = name;
-                    data.phone = phone;
-                    data.profileUpdated = new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short',
-                        year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                    saveData();
+                $('profileForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const name = $('editFullName').value.trim();
+                const phone = $('editPhone').value.trim();
+                const msg = $('profileUpdateMessage');
+                if (name.length < 2) { msg.className = 'message error'; msg.textContent = 'Please enter a valid full name.'; return; }
+                if (!phone) { msg.className = 'message error'; msg.textContent = 'Phone number is required.'; return; }
+
+                try {
+                    const res = await authFetch('/api/profile', {
+                    method: 'PUT',
+                    body: JSON.stringify({ full_name: name, phone_number: phone })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                    // 更新本地存储的 profile 数据
+                    data = { ...data, full_name: name, phone_number: phone };
+                    saveData(); // 如果用 localStorage 保存，可更新
                     render();
                     msg.className = 'message success';
                     msg.textContent = '✓ Profile updated successfully!';
                     toast('Profile changes saved.');
+                    // 重新加载 header
+                    loadAdminProfile();
+                    } else {
+                    msg.className = 'message error';
+                    msg.textContent = data.message || 'Update failed.';
+                    }
+                } catch (err) {
+                    msg.className = 'message error';
+                    msg.textContent = 'Unable to connect to server.';
+                }
                 });
 
                 $('resetProfileBtn').addEventListener('click', function() {
@@ -1618,18 +1632,46 @@ function confirmLogout() {
                 }));
 
                 // ===== Avatar =====
-                $('avatarUploadInput').addEventListener('change', function(e) {
+                $('avatarUploadInput').addEventListener('change', async function(e) {
                     const file = e.target.files[0];
                     if (!file) return;
-                    if (!file.type.startsWith('image/')) { toast('Please select an image file.');
-                        e.target.value = ''; return; }
-                    if (file.size > 2 * 1024 * 1024) { toast('Image size must be under 2MB.');
-                        e.target.value = ''; return; }
-                    const reader = new FileReader();
-                    reader.onload = ev => { setAvatar(ev.target.result);
-                        toast('Profile photo updated.'); };
-                    reader.readAsDataURL(file);
-                    e.target.value = '';
+                    if (!file.type.startsWith('image/')) {
+                        toast('Please select an image file.');
+                        this.value = '';
+                        return;
+                    }
+                    if (file.size > 2 * 1024 * 1024) {
+                        toast('Image size must be under 2MB.');
+                        this.value = '';
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('avatar', file);
+
+                    try {
+                        const token = localStorage.getItem('token');
+                        const res = await fetch('/api/profile/avatar', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                                // 不要设置 Content-Type，浏览器自动用 multipart/form-data
+                            },
+                            body: formData
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            setAvatar(data.avatar_url);
+                            toast('Profile photo updated.');
+                            // 重新加载 profile 以更新数据库中的头像链接
+                            loadAdminProfile();
+                        } else {
+                            toast(data.message || 'Upload failed.');
+                        }
+                    } catch (err) {
+                        toast('Unable to connect to server.');
+                    }
+                    this.value = '';
                 });
 
                 // ===== Change Password =====
@@ -1640,29 +1682,36 @@ function confirmLogout() {
                     openModal('changePwdModal');
                 });
 
-                $('changePwdForm').addEventListener('submit', function(e) {
-                    e.preventDefault();
-                    const current = $('currentPwd').value;
-                    const newPwd = $('newPwd').value;
-                    const confirmPwd = $('confirmPwd').value;
-                    const msg = $('pwdChangeMessage');
-                    const strong = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-                    if (!current || !newPwd || !confirmPwd) { msg.className = 'message error';
-                        msg.textContent = 'All fields are required.'; return; }
-                    if (!strong.test(newPwd)) { msg.className = 'message error';
-                        msg.textContent =
-                        'Password needs 8+ characters, 1 uppercase, 1 number and 1 special character.';
-                        return; }
-                    if (newPwd !== confirmPwd) { msg.className = 'message error';
-                        msg.textContent = 'Passwords do not match.'; return; }
-                    data.pwdChanged = new Date().toLocaleString('en-GB', { day: '2-digit', month: 'short',
-                        year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                    saveData();
+                $('changePwdForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const current = $('currentPwd').value;
+                const newPwd = $('newPwd').value;
+                const confirmPwd = $('confirmPwd').value;
+                const msg = $('pwdChangeMessage');
+                const strong = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+                if (!current || !newPwd || !confirmPwd) { msg.className = 'message error'; msg.textContent = 'All fields are required.'; return; }
+                if (!strong.test(newPwd)) { msg.className = 'message error'; msg.textContent = 'Password must meet complexity requirements.'; return; }
+                if (newPwd !== confirmPwd) { msg.className = 'message error'; msg.textContent = 'Passwords do not match.'; return; }
+
+                try {
+                    const res = await authFetch('/api/profile/password', {
+                    method: 'PUT',
+                    body: JSON.stringify({ currentPassword: current, newPassword: newPwd })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
                     msg.className = 'message success';
                     msg.textContent = '✓ Password updated successfully!';
-                    render();
                     toast('Password changed successfully.');
                     setTimeout(() => closeModal('changePwdModal'), 900);
+                    } else {
+                    msg.className = 'message error';
+                    msg.textContent = data.message || 'Failed to update password.';
+                    }
+                } catch (err) {
+                    msg.className = 'message error';
+                    msg.textContent = 'Unable to connect to server.';
+                }
                 });
 
                 // ===== 2FA =====
@@ -1709,6 +1758,38 @@ function confirmLogout() {
 
                 loadAvatar();
                 render();
+                // 加载管理员个人资料（真实数据）
+                async function loadAdminProfile() {
+                    try {
+                        const res = await authFetch('/api/profile');
+                        const data = await res.json();
+                        if (data.success) {
+                            const admin = data.data;
+                            document.getElementById('headerName').textContent = admin.full_name || 'Admin';
+                            document.getElementById('profileFullName').textContent = admin.full_name || 'Admin';
+                            document.getElementById('profileEmail').textContent = admin.email || 'admin@pawcare.com';
+                            document.getElementById('profilePhone').textContent = admin.phone_number || '';
+                            document.getElementById('profileDepartment').textContent = 'Management';
+                            document.getElementById('editFullName').value = admin.full_name || '';
+                            document.getElementById('editEmail').value = admin.email || '';
+                            document.getElementById('editPhone').value = admin.phone_number || '';
+                            document.getElementById('editDepartment').value = 'Management';
+                            if (admin.profile_photo) {
+                                document.getElementById('headerAvatarImg').src = admin.profile_photo;
+                                document.getElementById('headerAvatarImg').style.display = 'block';
+                                document.getElementById('headerAvatarPlaceholder').style.display = 'none';
+                                document.getElementById('profileAvatarImg').src = admin.profile_photo;
+                                document.getElementById('profileAvatarImg').style.display = 'block';
+                                document.getElementById('profileAvatarPlaceholder').style.display = 'none';
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Error loading admin profile:', err);
+                    }
+                }
+
+                // 在 DOMContentLoaded 内部调用
+                loadAdminProfile();
                 console.log('PawCare Admin Profile loaded.');
             });
 

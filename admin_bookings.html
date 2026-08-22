@@ -463,6 +463,24 @@
             color: #B00020;
         }
 
+        /* Loading spinner */
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            gap: 12px;
+            color: #7A7A7A;
+        }
+        .loading-spinner i {
+            font-size: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
         /* ===== PAGINATION ===== */
         .pagination-area {
             display: flex;
@@ -491,6 +509,16 @@
         .pagination-area .pages .active-page {
             background: #4A3327;
             color: #fff;
+        }
+        .pagination-area .pages span.disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+        .pagination-area .pages span:not(.disabled):not(.active-page) {
+            cursor: pointer;
+        }
+        .pagination-area .pages span:not(.disabled):not(.active-page):hover {
+            background: #E0D9D0;
         }
 
         /* ===== MODAL COMMON ===== */
@@ -809,6 +837,86 @@
             background: #2D1F14;
         }
 
+        /* ===== LOGOUT MODAL ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 5000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-box {
+            background: #FFFFFF;
+            border-radius: 20px;
+            max-width: 420px;
+            width: 100%;
+            padding: 32px 36px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            animation: slideUp 0.3s ease;
+        }
+        .modal-icon-circle {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+            font-size: 28px;
+        }
+        .modal-icon-circle.warning {
+            background: #FFF3E0;
+            color: #E65100;
+        }
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 6px;
+        }
+        .modal-subtitle {
+            font-size: 14px;
+            color: #7A7A7A;
+            margin-bottom: 24px;
+        }
+        .modal-btn-group {
+            display: flex;
+            gap: 12px;
+        }
+        .modal-btn-group .btn {
+            flex: 1;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            font-family: 'Poppins', sans-serif;
+        }
+        .modal-btn-group .btn-secondary {
+            background: #EFECE6;
+            color: #7A7A7A;
+        }
+        .modal-btn-group .btn-secondary:hover {
+            background: #E0D9D0;
+        }
+        .modal-btn-group .btn-danger {
+            background: #C62828;
+            color: #fff;
+        }
+        .modal-btn-group .btn-danger:hover {
+            background: #B71C1C;
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1200px) {
             .stats-row { grid-template-columns: repeat(3, 1fr); gap: 14px; }
@@ -875,6 +983,7 @@
             .pagination-area .pages span { font-size: 12px; padding: 3px 10px; }
             .modal-box-base { padding: 20px 16px; }
             .view-modal-box .modal-header h2 { font-size: 16px; }
+            .modal-box { padding: 24px 20px; }
         }
         @media (max-width: 380px) {
             .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
@@ -960,46 +1069,46 @@
             </div>
 
             <!-- STATS ROW -->
-            <div class="stats-row">
+            <div class="stats-row" id="statsRow">
                 <div class="stat-row-card stat-row-total">
                     <div class="stat-icon" style="background: rgba(255,152,0,0.20); color:#E65100;">
                         <i class="fa-regular fa-calendar-check"></i>
                     </div>
-                    <div class="stat-number">126</div>
+                    <div class="stat-number" id="statTotal">0</div>
                     <div class="stat-label">Total Bookings</div>
-                    <span class="stat-change positive">↑ 12% from last month</span>
+                    <span class="stat-sub">Loading...</span>
                 </div>
                 <div class="stat-row-card">
                     <div class="stat-icon" style="background: #FEF7E0; color: #B06000;">
                         <i class="fa-regular fa-clock"></i>
                     </div>
-                    <div class="stat-number">28</div>
+                    <div class="stat-number" id="statPending">0</div>
                     <div class="stat-label">Pending Bookings</div>
-                    <span class="stat-change positive">↑ 8% from last month</span>
+                    <span class="stat-sub">Loading...</span>
                 </div>
                 <div class="stat-row-card">
                     <div class="stat-icon" style="background: #E3F2FD; color: #0D47A1;">
                         <i class="fa-regular fa-circle-check"></i>
                     </div>
-                    <div class="stat-number">45</div>
+                    <div class="stat-number" id="statConfirmed">0</div>
                     <div class="stat-label">Confirmed Bookings</div>
-                    <span class="stat-change positive">↑ 15% from last month</span>
+                    <span class="stat-sub">Loading...</span>
                 </div>
                 <div class="stat-row-card">
                     <div class="stat-icon" style="background: #E8F5E9; color: #2E7D32;">
                         <i class="fa-regular fa-circle-check"></i>
                     </div>
-                    <div class="stat-number">48</div>
+                    <div class="stat-number" id="statCompleted">0</div>
                     <div class="stat-label">Completed Bookings</div>
-                    <span class="stat-change positive">↑ 10% from last month</span>
+                    <span class="stat-sub">Loading...</span>
                 </div>
                 <div class="stat-row-card">
                     <div class="stat-icon" style="background: #FBE9E7; color: #BF360C;">
                         <i class="fa-regular fa-circle-xmark"></i>
                     </div>
-                    <div class="stat-number">5</div>
+                    <div class="stat-number" id="statCancelled">0</div>
                     <div class="stat-label">Cancelled Bookings</div>
-                    <span class="stat-change positive">↑ 20% from last month</span>
+                    <span class="stat-sub">Loading...</span>
                 </div>
                 <div class="stat-row-card" style="background: #F9F6F0; border-color: #E8E2D8;">
                     <div class="stat-icon" style="background: #EFECE6; color: #7A6B5A;">
@@ -1018,17 +1127,9 @@
                     <input type="text" id="searchInput" placeholder="Search booking ID, customer or pet name..." />
                 </div>
 
-                <!-- ===== UPDATED SERVICES DROPDOWN ===== -->
                 <select id="serviceFilter">
                     <option value="all">All Services</option>
-                    <option value="pet-herb-spa">Pet Herb Spa</option>
-                    <option value="pet-transportation">Pet Transportation</option>
-                    <option value="boarding">Boarding</option>
-                    <option value="nail-care">Nail Care</option>
-                    <option value="de-shedding">De-shedding Treatment</option>
-                    <option value="haircut-styling">Haircut &amp; Styling</option>
-                    <option value="full-grooming">Full Grooming Package</option>
-                    <option value="bath-blowdry">Bath &amp; Blow Dry</option>
+                    <!-- Will be populated from database -->
                 </select>
 
                 <select id="statusFilter">
@@ -1041,9 +1142,9 @@
 
                 <div class="date-range">
                     <i class="fa-regular fa-calendar-alt"></i>
-                    <input type="date" id="startDate" value="2026-05-01" />
+                    <input type="date" id="startDate" />
                     <span>—</span>
-                    <input type="date" id="endDate" value="2026-05-31" />
+                    <input type="date" id="endDate" />
                 </div>
 
                 <button class="btn-filter" id="applyFilterBtn"><i class="fa-solid fa-sliders"></i> Filter</button>
@@ -1066,22 +1167,23 @@
                         </tr>
                     </thead>
                     <tbody id="bookingTableBody">
-                        <!-- rows rendered by JS -->
+                        <tr>
+                            <td colspan="8" style="text-align:center; padding:30px;">
+                                <div class="loading-spinner">
+                                    <i class="fa-solid fa-spinner"></i>
+                                    Loading bookings...
+                                </div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
 
             <!-- PAGINATION -->
             <div class="pagination-area">
-                <span id="entriesInfo">Showing 1 to 8 of 126 entries</span>
+                <span id="entriesInfo">Loading...</span>
                 <div class="pages" id="paginationControls">
-                    <span>‹</span>
-                    <span class="active-page">1</span>
-                    <span>2</span>
-                    <span>3</span>
-                    <span>…</span>
-                    <span>16</span>
-                    <span>›</span>
+                    <!-- Pagination will be rendered by JS -->
                 </div>
             </div>
 
@@ -1112,38 +1214,45 @@
                 <div class="view-detail-grid" id="viewDetailGrid">
                     <div class="view-detail-item">
                         <span class="label">Booking ID</span>
-                        <span class="value" id="viewBookingId">#BKG-00126</span>
+                        <span class="value" id="viewBookingId">-</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="label">Customer</span>
-                        <span class="value" id="viewCustomer">Jenny Lee</span>
+                        <span class="value" id="viewCustomer">-</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="label">Phone</span>
-                        <span class="value" id="viewPhone">012-345 6789</span>
+                        <span class="value" id="viewPhone">-</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="label">Pet</span>
-                        <span class="value" id="viewPet">Buddy (Golden Retriever)</span>
+                        <span class="value" id="viewPet">-</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="label">Service</span>
-                        <span class="value" id="viewService">Grooming</span>
+                        <span class="value" id="viewService">-</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="label">Date &amp; Time</span>
-                        <span class="value" id="viewDateTime">16 May 2026, 10:00 AM</span>
+                        <span class="value" id="viewDateTime">-</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="label">Status</span>
-                        <span class="value" id="viewStatus"><span class="status-pill pending">Pending</span></span>
+                        <span class="value" id="viewStatus">-</span>
                     </div>
                     <div class="view-detail-item">
                         <span class="label">Payment</span>
-                        <span class="value" id="viewPayment"><span class="badge-payment unpaid">Unpaid</span></span>
+                        <span class="value" id="viewPayment">-</span>
+                    </div>
+                    <div class="view-detail-item full-width">
+                        <span class="label">Special Notes</span>
+                        <span class="value" id="viewSpecialNotes">-</span>
+                    </div>
+                    <div class="view-detail-item full-width">
+                        <span class="label">Reschedule Status</span>
+                        <span class="value" id="viewRescheduleStatus">-</span>
                     </div>
                 </div>
-                <!-- Close button centered -->
                 <div class="modal-actions">
                     <button class="btn btn-primary" id="closeViewBtn">Close</button>
                 </div>
@@ -1157,7 +1266,7 @@
                     <h2><i class="fa-regular fa-pen-to-square" style="color:#D97706;"></i> Edit Booking</h2>
                     <button class="close-modal" id="closeEditModal">&times;</button>
                 </div>
-                <div class="booking-id-display" id="editBookingId">#BKG-00126</div>
+                <div class="booking-id-display" id="editBookingId">-</div>
 
                 <div class="form-group">
                     <label for="editStatus">Status</label>
@@ -1196,15 +1305,15 @@
                 <div class="success-details" id="successDetails">
                     <div class="detail-row">
                         <span class="label">Booking ID</span>
-                        <span class="value" id="successBookingId">#BKG-00126</span>
+                        <span class="value" id="successBookingId">-</span>
                     </div>
                     <div class="detail-row">
                         <span class="label">Status</span>
-                        <span class="value" id="successStatus">Confirmed</span>
+                        <span class="value" id="successStatus">-</span>
                     </div>
                     <div class="detail-row">
                         <span class="label">Payment</span>
-                        <span class="value" id="successPayment">Paid</span>
+                        <span class="value" id="successPayment">-</span>
                     </div>
                 </div>
                 <button class="btn-success-close" id="closeSuccessBtn">OK, Got it!</button>
@@ -1220,315 +1329,270 @@
 
     <!-- ===== JAVASCRIPT ===== -->
     <script>
-// 统一放在页面所有 <script> 的最顶部
-(function checkAuth() {
-    // 定义检查函数
-    function doAuthCheck() {
-        const token = localStorage.getItem('token');
-        const user = localStorage.getItem('user');
+        // ===== AUTH CHECK - MUST BE FIRST =====
+        (function checkAuth() {
+            function doAuthCheck() {
+                const token = localStorage.getItem('token');
+                const user = localStorage.getItem('user');
 
-        let shouldRedirect = false;
-        let redirectUrl = 'index.html';
+                let shouldRedirect = false;
+                let redirectUrl = 'index.html';
 
-        if (!token) {
-            shouldRedirect = true;
-            redirectUrl = 'index.html';
-        } else {
-            try {
-                const userData = JSON.parse(user);
-                if (userData.role !== 'admin') {
+                if (!token) {
                     shouldRedirect = true;
-                    redirectUrl = 'dashboard.html';
+                    redirectUrl = 'index.html';
+                } else {
+                    try {
+                        const userData = JSON.parse(user);
+                        if (userData.role !== 'admin') {
+                            shouldRedirect = true;
+                            redirectUrl = 'dashboard.html';
+                        }
+                    } catch {
+                        shouldRedirect = true;
+                        redirectUrl = 'dashboard.html';
+                    }
                 }
-            } catch {
-                shouldRedirect = true;
-                redirectUrl = 'dashboard.html';
+
+                if (shouldRedirect) {
+                    document.documentElement.innerHTML = `
+                        <html>
+                            <head><title>Redirecting...</title></head>
+                            <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;background:#FAF7F2;color:#4A3327;">
+                                Redirecting...
+                            </body>
+                        </html>
+                    `;
+                    window.location.replace(redirectUrl);
+                }
+            }
+
+            doAuthCheck();
+
+            window.addEventListener('pageshow', function(event) {
+                if (event.persisted) {
+                    doAuthCheck();
+                }
+            });
+        })();
+
+        // ===== SUPABASE CONFIGURATION =====
+        const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
+
+        // ===== STATE =====
+        let allBookings = [];
+        let filteredBookings = [];
+        let currentPage = 1;
+        const rowsPerPage = 8;
+        let currentEditId = null;
+
+        // ===== UTILITY FUNCTIONS =====
+        function getToken() {
+            return localStorage.getItem('token');
+        }
+
+        function isAuthenticated() {
+            const token = getToken();
+            if (!token) {
+                window.location.replace('login.html');
+                return false;
+            }
+            return true;
+        }
+
+        // ===== SUPABASE API CALLS =====
+        async function fetchFromSupabase(endpoint, options = {}) {
+            if (!isAuthenticated()) return null;
+
+            const token = getToken();
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                'apikey': SUPABASE_ANON_KEY,
+                ...options.headers
+            };
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/${endpoint}`, {
+                    ...options,
+                    headers
+                });
+
+                if (response.status === 401) {
+                    localStorage.clear();
+                    window.location.replace('login.html');
+                    return null;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                console.error('Supabase fetch error:', error);
+                return null;
             }
         }
 
-        if (shouldRedirect) {
-            // 清空整个页面
-            document.documentElement.innerHTML = `
-                <html>
-                    <head><title>Redirecting...</title></head>
-                    <body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;background:#FAF7F2;color:#4A3327;">
-                        Redirecting...
-                    </body>
-                </html>
-            `;
-            window.location.replace(redirectUrl);
-        }
-    }
+        // ===== FETCH BOOKINGS WITH JOINED DATA =====
+        async function fetchBookings() {
+            if (!isAuthenticated()) return;
 
-    // 页面初次加载执行
-    doAuthCheck();
+            const token = getToken();
 
-    // 监听 pageshow 事件，处理 bfcache 恢复
-    window.addEventListener('pageshow', function(event) {
-        // 如果页面是从 bfcache 恢复，重新执行检查
-        if (event.persisted) {
-            doAuthCheck();
-        }
-    });
-})();
+            try {
+                // Fetch bookings with customer and pet data using a custom query
+                // Using the Supabase REST API with select and expand
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/booking?select=*,customer:customer_id(*),pet:pet_id(*),admin:admin_id(*)`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'apikey': SUPABASE_ANON_KEY
+                    }
+                });
 
-// SUPABASE CONFIGURATION
-const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
+                if (response.status === 401) {
+                    localStorage.clear();
+                    window.location.replace('login.html');
+                    return;
+                }
 
-// WRAPPER FOR API CALLS WITH TOKEN
-async function authFetch(url, options = {}) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.replace('login.html');
-        return;
-    }
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers
-    };
-    const response = await fetch(url, { ...options, headers });
-    if (response.status === 401) {
-        localStorage.clear();
-        window.location.replace('login.html');
-        throw new Error('Unauthorized');
-    }
-    return response;
-}
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch bookings: ${response.status}`);
+                }
 
-// SUPABASE DIRECT QUERY FUNCTIONS
-async function supabaseQuery(query, params = []) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.replace('login.html');
-        return null;
-    }
+                const data = await response.json();
 
-    try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${query}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY
-            },
-            body: JSON.stringify({ params })
-        });
+                // Transform the data for display
+                allBookings = data.map(b => ({
+                    id: b.booking_id || 'N/A',
+                    customer: b.customer ? b.customer.name : 'Unknown',
+                    phone: b.customer ? b.customer.phone : 'N/A',
+                    pet: b.pet ? b.pet.name : 'Unknown',
+                    breed: b.pet ? b.pet.breed || 'N/A' : 'N/A',
+                    petEmoji: getPetEmoji(b.pet ? b.pet.species : ''),
+                    service: b.service_type || 'N/A',
+                    date: formatBookingDate(b.booking_date, b.booking_time),
+                    status: b.status || 'pending',
+                    payment: b.payment_status || 'unpaid',
+                    paymentClass: b.payment_status || 'unpaid',
+                    statusClass: b.status || 'pending',
+                    // Store all original data for editing
+                    raw: b,
+                    customer_id: b.customer_id,
+                    pet_id: b.pet_id,
+                    admin_id: b.admin_id,
+                    booking_date: b.booking_date,
+                    booking_time: b.booking_time,
+                    check_in_datetime: b.check_in_datetime,
+                    check_out_datetime: b.check_out_datetime,
+                    special_notes: b.special_notes || 'N/A',
+                    reschedule_requested_date: b.reschedule_requested_date,
+                    reschedule_requested_time: b.reschedule_requested_time,
+                    reschedule_status: b.reschedule_status || 'N/A'
+                }));
 
-        if (!response.ok) {
-            throw new Error(`Supabase query failed: ${response.status}`);
-        }
+                // Also fetch service types for the filter dropdown
+                await fetchServiceTypes();
 
-        return await response.json();
-    } catch (err) {
-        console.error('Supabase query error:', err);
-        return null;
-    }
-}
+                filteredBookings = [...allBookings];
+                renderStats(allBookings);
+                renderBookings(filteredBookings);
+                updatePagination(filteredBookings);
 
-// SCROLLBAR COMPENSATION FOR MODALS
-let modalCount = 0;
-
-function lockBodyScroll() {
-    if (modalCount === 0) {
-        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-        if (scrollbarWidth > 0) {
-            document.body.style.paddingRight = scrollbarWidth + 'px';
-        }
-        document.body.style.overflow = 'hidden';
-    }
-    modalCount++;
-}
-
-function unlockBodyScroll() {
-    modalCount--;
-    if (modalCount <= 0) {
-        modalCount = 0;
-        document.body.style.paddingRight = '';
-        document.body.style.overflow = '';
-    }
-}
-
-// LOGOUT FUNCTIONS
-function showLogoutModal() {
-    const modal = document.getElementById('logoutModal');
-    if (modal) {
-        lockBodyScroll();
-        modal.classList.add('active');
-    }
-}
-
-function closeLogoutModal() {
-    const modal = document.getElementById('logoutModal');
-    if (modal) {
-        modal.classList.remove('active');
-        unlockBodyScroll();
-    }
-}
-
-function confirmLogout() {
-    localStorage.clear();
-    closeLogoutModal();
-    window.location.replace('index.html');
-}
-        
-        // ===== SIDEBAR TOGGLE =====
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
-        const sidebarClose = document.getElementById('sidebarClose');
-        const overlay = document.getElementById('sidebarOverlay');
-
-        function openSidebar() {
-            sidebar.classList.add('active');
-            overlay.classList.add('active');
-            document.body.style.overflow = 'hidden';
+            } catch (error) {
+                console.error('Error fetching bookings:', error);
+                document.getElementById('bookingTableBody').innerHTML = `
+                    <tr><td colspan="8" style="text-align:center; padding:30px; color:#C62828;">
+                        <i class="fa-solid fa-circle-exclamation"></i> 
+                        Failed to load bookings. Please try again.
+                    </td></tr>
+                `;
+            }
         }
 
-        function closeSidebar() {
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
-            document.body.style.overflow = '';
+        // ===== FETCH SERVICE TYPES =====
+        async function fetchServiceTypes() {
+            const token = getToken();
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/service?select=service_id,name`, {
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'apikey': SUPABASE_ANON_KEY
+                    }
+                });
+
+                if (response.ok) {
+                    const services = await response.json();
+                    const select = document.getElementById('serviceFilter');
+                    // Keep the "All Services" option
+                    select.innerHTML = '<option value="all">All Services</option>';
+                    services.forEach(s => {
+                        const option = document.createElement('option');
+                        option.value = s.name;
+                        option.textContent = s.name;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching services:', error);
+            }
         }
-        if (menuToggle) menuToggle.addEventListener('click', openSidebar);
-        if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
-        if (overlay) overlay.addEventListener('click', closeSidebar);
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') closeSidebar();
-        });
 
-        document.getElementById('notificationBtn')?.addEventListener('click', function() {
-            alert('No new notifications.');
-        });
-
-        // ===== SET DATE =====
-        function setCurrentDate() {
-            const now = new Date();
-            const options = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
-            const el = document.getElementById('headerCurrentDate');
-            if (el) el.textContent = now.toLocaleDateString('en-US', options);
+        // ===== HELPER FUNCTIONS =====
+        function getPetEmoji(species) {
+            if (!species) return '🐾';
+            const s = species.toLowerCase();
+            if (s.includes('dog') || s.includes('canine')) return '🐕';
+            if (s.includes('cat') || s.includes('feline')) return '🐈';
+            if (s.includes('rabbit')) return '🐇';
+            if (s.includes('bird')) return '🐦';
+            if (s.includes('fish')) return '🐟';
+            if (s.includes('hamster') || s.includes('rodent')) return '🐹';
+            if (s.includes('reptile') || s.includes('snake')) return '🐍';
+            if (s.includes('turtle') || s.includes('tortoise')) return '🐢';
+            return '🐾';
         }
-        setCurrentDate();
-        document.getElementById('headerName').textContent = 'Admin';
 
-        // ===== BOOKING DATA =====
-        let bookingData = [{
-            id: '#BKG-00126',
-            customer: 'Jenny Lee',
-            phone: '012-345 6789',
-            pet: 'Buddy',
-            breed: 'Golden Retriever',
-            petEmoji: '🐕',
-            service: 'Grooming',
-            date: '16 May 2026, 10:00 AM',
-            status: 'Pending',
-            payment: 'Unpaid',
-            paymentClass: 'unpaid',
-            statusClass: 'pending'
-        }, {
-            id: '#BKG-00125',
-            customer: 'Ahmad Firdaus',
-            phone: '013-987 6543',
-            pet: 'Luna',
-            breed: 'Vaccination',
-            petEmoji: '🐈',
-            service: 'Vaccination',
-            date: '16 May 2026, 11:30 AM',
-            status: 'Confirmed',
-            payment: 'Paid',
-            paymentClass: 'paid',
-            statusClass: 'confirmed'
-        }, {
-            id: '#BKG-00124',
-            customer: 'Siti Nur',
-            phone: '011-254 6789',
-            pet: 'Max',
-            breed: 'Cat',
-            petEmoji: '🐈',
-            service: 'Boarding (1 Night)',
-            date: '16 May 2026, 02:00 PM',
-            status: 'Confirmed',
-            payment: 'Paid',
-            paymentClass: 'paid',
-            statusClass: 'confirmed'
-        }, {
-            id: '#BKG-00123',
-            customer: 'Daniel Tan',
-            phone: '017-456 7890',
-            pet: 'Coco',
-            breed: 'Poodle',
-            petEmoji: '🐩',
-            service: 'Check-up',
-            date: '16 May 2026, 04:00 PM',
-            status: 'Pending',
-            payment: 'Unpaid',
-            paymentClass: 'unpaid',
-            statusClass: 'pending'
-        }, {
-            id: '#BKG-00122',
-            customer: 'Mei Ling',
-            phone: '016-321 0987',
-            pet: 'Charlie',
-            breed: 'Shih Tzu',
-            petEmoji: '🐕',
-            service: 'Grooming',
-            date: '17 May 2026, 09:30 AM',
-            status: 'Completed',
-            payment: 'Paid',
-            paymentClass: 'paid',
-            statusClass: 'completed'
-        }, {
-            id: '#BKG-00121',
-            customer: 'Jason Ho',
-            phone: '019-876 5432',
-            pet: 'Bella',
-            breed: 'Beagle',
-            petEmoji: '🐕',
-            service: 'Boarding (2 Nights)',
-            date: '17 May 2026, 02:00 PM',
-            status: 'Completed',
-            payment: 'Paid',
-            paymentClass: 'paid',
-            statusClass: 'completed'
-        }, {
-            id: '#BKG-00120',
-            customer: 'Nur Aishah',
-            phone: '018-234 5678',
-            pet: 'Milo',
-            breed: 'Cat',
-            petEmoji: '🐈',
-            service: 'Grooming',
-            date: '18 May 2026, 10:00 AM',
-            status: 'Confirmed',
-            payment: 'Paid',
-            paymentClass: 'paid',
-            statusClass: 'confirmed'
-        }, {
-            id: '#BKG-00119',
-            customer: 'Farhan Rizal',
-            phone: '014-567 8901',
-            pet: 'Rocky',
-            breed: 'Husky',
-            petEmoji: '🐕',
-            service: 'Check-up',
-            date: '18 May 2026, 03:30 PM',
-            status: 'Cancelled',
-            payment: 'Refunded',
-            paymentClass: 'refunded',
-            statusClass: 'cancelled'
-        }];
+        function formatBookingDate(date, time) {
+            if (!date) return 'N/A';
+            try {
+                const d = new Date(date);
+                const dateStr = d.toLocaleDateString('en-US', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                const timeStr = time ? formatTime(time) : 'N/A';
+                return `${dateStr}, ${timeStr}`;
+            } catch {
+                return date;
+            }
+        }
 
-        // ===== UPDATED SERVICE MAP =====
-        const serviceMap = {
-            'pet-herb-spa': 'Pet Herb Spa',
-            'pet-transportation': 'Pet Transportation',
-            'boarding': 'Boarding',
-            'nail-care': 'Nail Care',
-            'de-shedding': 'De-shedding Treatment',
-            'haircut-styling': 'Haircut & Styling',
-            'full-grooming': 'Full Grooming Package',
-            'bath-blowdry': 'Bath & Blow Dry'
-        };
+        function formatTime(timeStr) {
+            if (!timeStr) return 'N/A';
+            try {
+                const [hours, minutes] = timeStr.split(':');
+                const h = parseInt(hours);
+                const ampm = h >= 12 ? 'PM' : 'AM';
+                const h12 = h % 12 || 12;
+                return `${h12}:${minutes} ${ampm}`;
+            } catch {
+                return timeStr;
+            }
+        }
+
+        function getInitials(name) {
+            if (!name) return '??';
+            return name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+        }
 
         // ===== STATUS / PAYMENT MAPPING =====
         const statusMap = {
@@ -1543,24 +1607,47 @@ function confirmLogout() {
             'refunded': { label: 'Refunded', class: 'refunded' }
         };
 
+        // ===== RENDER STATS =====
+        function renderStats(bookings) {
+            const total = bookings.length;
+            const pending = bookings.filter(b => b.statusClass === 'pending').length;
+            const confirmed = bookings.filter(b => b.statusClass === 'confirmed').length;
+            const completed = bookings.filter(b => b.statusClass === 'completed').length;
+            const cancelled = bookings.filter(b => b.statusClass === 'cancelled').length;
+
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statPending').textContent = pending;
+            document.getElementById('statConfirmed').textContent = confirmed;
+            document.getElementById('statCompleted').textContent = completed;
+            document.getElementById('statCancelled').textContent = cancelled;
+        }
+
         // ===== RENDER TABLE =====
-        function renderBookings(data) {
+        function renderBookings(bookings) {
             const tbody = document.getElementById('bookingTableBody');
-            if (!data || data.length === 0) {
-                tbody.innerHTML =
-                    `<tr><td colspan="8" style="text-align:center; padding:30px; color:#7A7A7A;">No bookings found</td></tr>`;
+
+            // Pagination
+            const start = (currentPage - 1) * rowsPerPage;
+            const end = Math.min(start + rowsPerPage, bookings.length);
+            const pageData = bookings.slice(start, end);
+
+            if (pageData.length === 0) {
+                tbody.innerHTML = `
+                    <tr><td colspan="8" style="text-align:center; padding:30px; color:#7A7A7A;">
+                        No bookings found
+                    </td></tr>
+                `;
                 document.getElementById('entriesInfo').textContent = 'Showing 0 entries';
                 return;
             }
 
-            tbody.innerHTML = data.map(b => {
-                const initials = b.customer.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-                const custColors = ['#FDF3E7', '#E8F5E9', '#E3F2FD', '#FCE4EC', '#F3E5F5', '#FFF3E0', '#E0F7FA'];
-                const cIdx = b.customer.length % custColors.length;
+            const custColors = ['#FDF3E7', '#E8F5E9', '#E3F2FD', '#FCE4EC', '#F3E5F5', '#FFF3E0', '#E0F7FA'];
+            const petColors = ['#FFF8E1', '#E8F5E9', '#E3F2FD', '#FCE4EC', '#F3E5F5', '#FFF3E0', '#E0F7FA'];
 
-                const petColors = ['#FFF8E1', '#E8F5E9', '#E3F2FD', '#FCE4EC', '#F3E5F5', '#FFF3E0', '#E0F7FA'];
-                const pIdx = b.pet.length % petColors.length;
-
+            tbody.innerHTML = pageData.map((b, index) => {
+                const initials = getInitials(b.customer);
+                const cIdx = index % custColors.length;
+                const pIdx = index % petColors.length;
                 const statusInfo = statusMap[b.statusClass] || { label: b.status, class: 'pending' };
                 const paymentInfo = paymentMap[b.paymentClass] || { label: b.payment, class: 'unpaid' };
 
@@ -1604,12 +1691,118 @@ function confirmLogout() {
             `}).join('');
 
             document.getElementById('entriesInfo').textContent =
-                `Showing 1 to ${data.length} of ${data.length} entries`;
+                `Showing ${start + 1} to ${end} of ${bookings.length} entries`;
+        }
+
+        // ===== UPDATE PAGINATION =====
+        function updatePagination(bookings) {
+            const totalPages = Math.ceil(bookings.length / rowsPerPage);
+            const container = document.getElementById('paginationControls');
+
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            // Previous
+            html += `<span class="${currentPage === 1 ? 'disabled' : ''}" onclick="goToPage(${currentPage - 1})">‹</span>`;
+
+            // Page numbers
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+
+            if (startPage > 1) {
+                html += `<span onclick="goToPage(1)">1</span>`;
+                if (startPage > 2) html += `<span>…</span>`;
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<span class="${i === currentPage ? 'active-page' : ''}" onclick="goToPage(${i})">${i}</span>`;
+            }
+
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += `<span>…</span>`;
+                html += `<span onclick="goToPage(${totalPages})">${totalPages}</span>`;
+            }
+
+            // Next
+            html += `<span class="${currentPage === totalPages ? 'disabled' : ''}" onclick="goToPage(${currentPage + 1})">›</span>`;
+
+            container.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            const totalPages = Math.ceil(filteredBookings.length / rowsPerPage);
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            renderBookings(filteredBookings);
+            updatePagination(filteredBookings);
+            document.querySelector('.table-wrap')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ===== APPLY FILTERS =====
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
+            const serviceFilter = document.getElementById('serviceFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            filteredBookings = allBookings.filter(b => {
+                // Search
+                if (searchTerm) {
+                    const match = b.id.toLowerCase().includes(searchTerm) ||
+                        b.customer.toLowerCase().includes(searchTerm) ||
+                        b.pet.toLowerCase().includes(searchTerm);
+                    if (!match) return false;
+                }
+
+                // Service
+                if (serviceFilter !== 'all') {
+                    if (!b.service.toLowerCase().includes(serviceFilter.toLowerCase())) return false;
+                }
+
+                // Status
+                if (statusFilter !== 'all') {
+                    if (b.statusClass !== statusFilter) return false;
+                }
+
+                // Date range
+                if (startDate || endDate) {
+                    const bookingDate = b.booking_date;
+                    if (!bookingDate) return false;
+                    if (startDate && bookingDate < startDate) return false;
+                    if (endDate && bookingDate > endDate) return false;
+                }
+
+                return true;
+            });
+
+            currentPage = 1;
+            renderBookings(filteredBookings);
+            updatePagination(filteredBookings);
+            renderStats(filteredBookings);
+        }
+
+        // ===== CLEAR FILTERS =====
+        function clearFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('serviceFilter').value = 'all';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('startDate').value = '';
+            document.getElementById('endDate').value = '';
+
+            filteredBookings = [...allBookings];
+            currentPage = 1;
+            renderBookings(filteredBookings);
+            updatePagination(filteredBookings);
+            renderStats(allBookings);
         }
 
         // ===== VIEW MODAL =====
         function openViewModal(bookingId) {
-            const booking = bookingData.find(b => b.id === bookingId);
+            const booking = allBookings.find(b => b.id === bookingId);
             if (!booking) return;
 
             document.getElementById('viewBookingId').textContent = booking.id;
@@ -1627,6 +1820,9 @@ function confirmLogout() {
             document.getElementById('viewPayment').innerHTML =
                 `<span class="badge-payment ${paymentInfo.class}">${paymentInfo.label}</span>`;
 
+            document.getElementById('viewSpecialNotes').textContent = booking.special_notes || 'No notes';
+            document.getElementById('viewRescheduleStatus').textContent = booking.reschedule_status || 'N/A';
+
             document.getElementById('viewModal').classList.add('active');
             lockBodyScroll();
         }
@@ -1637,10 +1833,8 @@ function confirmLogout() {
         }
 
         // ===== EDIT MODAL =====
-        let currentEditId = null;
-
         function openEditModal(bookingId) {
-            const booking = bookingData.find(b => b.id === bookingId);
+            const booking = allBookings.find(b => b.id === bookingId);
             if (!booking) return;
 
             currentEditId = bookingId;
@@ -1658,6 +1852,61 @@ function confirmLogout() {
             currentEditId = null;
         }
 
+        // ===== SAVE EDIT =====
+        async function saveEditChanges() {
+            if (!currentEditId) return;
+
+            const newStatus = document.getElementById('editStatus').value;
+            const newPayment = document.getElementById('editPayment').value;
+
+            const booking = allBookings.find(b => b.id === currentEditId);
+            if (!booking) return;
+
+            // Update in database
+            const token = getToken();
+            if (!token) return;
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/booking?booking_id=eq.${currentEditId}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({
+                        status: newStatus,
+                        payment_status: newPayment
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Failed to update: ${response.status}`);
+                }
+
+                // Update local data
+                booking.statusClass = newStatus;
+                booking.status = statusMap[newStatus].label;
+                booking.paymentClass = newPayment;
+                booking.payment = paymentMap[newPayment].label;
+
+                // Also update raw data
+                if (booking.raw) {
+                    booking.raw.status = newStatus;
+                    booking.raw.payment_status = newPayment;
+                }
+
+                closeEditModal();
+                applyFilters();
+                showSuccessModal(currentEditId, newStatus, newPayment);
+
+            } catch (error) {
+                console.error('Error updating booking:', error);
+                alert('Failed to update booking. Please try again.');
+            }
+        }
+
         // ===== SUCCESS MODAL =====
         function showSuccessModal(bookingId, newStatus, newPayment) {
             const statusInfo = statusMap[newStatus];
@@ -1673,6 +1922,10 @@ function confirmLogout() {
             paymentEl.textContent = paymentInfo.label;
             paymentEl.className = 'value payment-' + newPayment;
 
+            document.querySelector('#successModal h3').textContent = 'Booking Updated!';
+            document.querySelector('#successModal .success-subtitle').textContent =
+                'The booking has been successfully updated.';
+
             document.getElementById('successModal').classList.add('active');
             lockBodyScroll();
         }
@@ -1682,86 +1935,145 @@ function confirmLogout() {
             unlockBodyScroll();
         }
 
-        // ===== SAVE EDIT =====
-        function saveEditChanges() {
-            if (!currentEditId) return;
+        // ===== DELETE BOOKING =====
+        async function deleteBooking(bookingId) {
+            if (!confirm(`Are you sure you want to delete ${bookingId}?`)) return;
 
-            const newStatus = document.getElementById('editStatus').value;
-            const newPayment = document.getElementById('editPayment').value;
+            const token = getToken();
+            if (!token) return;
 
-            const booking = bookingData.find(b => b.id === currentEditId);
-            if (!booking) return;
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/booking?booking_id=eq.${bookingId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Prefer': 'return=minimal'
+                    }
+                });
 
-            const statusInfo = statusMap[newStatus];
-            const paymentInfo = paymentMap[newPayment];
+                if (!response.ok) {
+                    throw new Error(`Failed to delete: ${response.status}`);
+                }
 
-            booking.statusClass = newStatus;
-            booking.status = statusInfo.label;
-            booking.paymentClass = newPayment;
-            booking.payment = paymentInfo.label;
+                // Remove from local data
+                allBookings = allBookings.filter(b => b.id !== bookingId);
+                filteredBookings = filteredBookings.filter(b => b.id !== bookingId);
 
-            closeEditModal();
-            applyFilters();
-            showSuccessModal(currentEditId, newStatus, newPayment);
+                renderBookings(filteredBookings);
+                updatePagination(filteredBookings);
+                renderStats(allBookings);
+
+                // Show success
+                document.querySelector('#successModal h3').textContent = 'Booking Deleted!';
+                document.querySelector('#successModal .success-subtitle').textContent =
+                    'The booking has been successfully removed.';
+                document.getElementById('successBookingId').textContent = bookingId;
+                document.getElementById('successStatus').textContent = 'Deleted';
+                document.getElementById('successStatus').className = 'value status-cancelled';
+                document.getElementById('successPayment').textContent = 'N/A';
+                document.getElementById('successPayment').className = 'value';
+                document.getElementById('successModal').classList.add('active');
+                lockBodyScroll();
+
+                // Reset success modal text after close
+                document.getElementById('closeSuccessBtn').addEventListener('click', function reset() {
+                    document.querySelector('#successModal h3').textContent = 'Booking Updated!';
+                    document.querySelector('#successModal .success-subtitle').textContent =
+                        'The booking has been successfully updated.';
+                    document.getElementById('closeSuccessBtn').removeEventListener('click', reset);
+                });
+
+            } catch (error) {
+                console.error('Error deleting booking:', error);
+                alert('Failed to delete booking. Please try again.');
+            }
         }
 
-        // ===== FILTER FUNCTION =====
-        function applyFilters() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase().trim();
-            const serviceFilter = document.getElementById('serviceFilter').value;
-            const statusFilter = document.getElementById('statusFilter').value;
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
+        // ===== SCROLLBAR COMPENSATION =====
+        let modalCount = 0;
 
-            let filtered = bookingData.filter(b => {
-                if (searchTerm) {
-                    const match = b.id.toLowerCase().includes(searchTerm) ||
-                        b.customer.toLowerCase().includes(searchTerm) ||
-                        b.pet.toLowerCase().includes(searchTerm);
-                    if (!match) return false;
+        function lockBodyScroll() {
+            if (modalCount === 0) {
+                const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+                if (scrollbarWidth > 0) {
+                    document.body.style.paddingRight = scrollbarWidth + 'px';
                 }
-
-                if (serviceFilter !== 'all') {
-                    // Map the filter value to the actual service name
-                    const serviceName = serviceMap[serviceFilter];
-                    if (serviceName && !b.service.includes(serviceName)) return false;
-                    // Fallback for backward compatibility
-                    if (!serviceName && !b.service.includes(serviceFilter)) return false;
-                }
-
-                if (statusFilter !== 'all') {
-                    if (b.statusClass !== statusFilter) return false;
-                }
-
-                if (startDate || endDate) {
-                    const bookingDateStr = b.date.split(',')[0].trim();
-                    const monthMap = { 'Jan': '01', 'Feb': '02', 'Mar': '03', 'Apr': '04', 'May': '05', 'Jun': '06',
-                        'Jul': '07', 'Aug': '08', 'Sep': '09', 'Oct': '10', 'Nov': '11', 'Dec': '12' };
-                    const parts = bookingDateStr.split(' ');
-                    const day = parts[0].padStart(2, '0');
-                    const month = monthMap[parts[1]] || '01';
-                    const year = parts[2] || '2026';
-                    const bookingDate = `${year}-${month}-${day}`;
-
-                    if (startDate && bookingDate < startDate) return false;
-                    if (endDate && bookingDate > endDate) return false;
-                }
-
-                return true;
-            });
-
-            renderBookings(filtered);
+                document.body.style.overflow = 'hidden';
+            }
+            modalCount++;
         }
 
-        // ===== CLEAR FILTERS =====
-        function clearFilters() {
-            document.getElementById('searchInput').value = '';
-            document.getElementById('serviceFilter').value = 'all';
-            document.getElementById('statusFilter').value = 'all';
-            document.getElementById('startDate').value = '2026-05-01';
-            document.getElementById('endDate').value = '2026-05-31';
-            renderBookings(bookingData);
+        function unlockBodyScroll() {
+            modalCount--;
+            if (modalCount <= 0) {
+                modalCount = 0;
+                document.body.style.paddingRight = '';
+                document.body.style.overflow = '';
+            }
         }
+
+        // ===== LOGOUT FUNCTIONS =====
+        function showLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            if (modal) {
+                lockBodyScroll();
+                modal.classList.add('active');
+            }
+        }
+
+        function closeLogoutModal() {
+            const modal = document.getElementById('logoutModal');
+            if (modal) {
+                modal.classList.remove('active');
+                unlockBodyScroll();
+            }
+        }
+
+        function confirmLogout() {
+            localStorage.clear();
+            closeLogoutModal();
+            window.location.replace('index.html');
+        }
+
+        // ===== SIDEBAR TOGGLE =====
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarClose = document.getElementById('sidebarClose');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        function openSidebar() {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSidebar() {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        if (menuToggle) menuToggle.addEventListener('click', openSidebar);
+        if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
+        if (overlay) overlay.addEventListener('click', closeSidebar);
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeSidebar();
+        });
+
+        document.getElementById('notificationBtn')?.addEventListener('click', function() {
+            alert('No new notifications.');
+        });
+
+        // ===== SET DATE =====
+        function setCurrentDate() {
+            const now = new Date();
+            const options = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+            const el = document.getElementById('headerCurrentDate');
+            if (el) el.textContent = now.toLocaleDateString('en-US', options);
+        }
+        setCurrentDate();
+        document.getElementById('headerName').textContent = 'Admin';
 
         // ===== EVENT LISTENERS =====
         document.getElementById('applyFilterBtn').addEventListener('click', applyFilters);
@@ -1771,10 +2083,12 @@ function confirmLogout() {
             if (e.key === 'Enter') applyFilters();
         });
 
-        document.getElementById('serviceFilter').addEventListener('change', applyFilters);
-        document.getElementById('statusFilter').addEventListener('change', applyFilters);
-        document.getElementById('startDate').addEventListener('change', applyFilters);
-        document.getElementById('endDate').addEventListener('change', applyFilters);
+        document.getElementById('startDate').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') applyFilters();
+        });
+        document.getElementById('endDate').addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') applyFilters();
+        });
 
         // View modal events
         document.getElementById('closeViewModal').addEventListener('click', closeViewModal);
@@ -1811,40 +2125,32 @@ function confirmLogout() {
             const icon = e.target.closest('.action-icons i');
             if (!icon) return;
             const row = icon.closest('tr');
-            const id = row?.querySelector('td:first-child strong')?.textContent || 'Unknown';
+            const id = row?.querySelector('td:first-child strong')?.textContent || '';
 
             if (icon.classList.contains('view-btn')) {
                 openViewModal(id);
             } else if (icon.classList.contains('edit-btn')) {
                 openEditModal(id);
             } else if (icon.classList.contains('delete-btn')) {
-                if (confirm(`Are you sure you want to delete ${id}?`)) {
-                    bookingData = bookingData.filter(b => b.id !== id);
-                    applyFilters();
-                    const modal = document.getElementById('successModal');
-                    document.querySelector('#successModal h3').textContent = 'Booking Deleted!';
-                    document.querySelector('#successModal .success-subtitle').textContent =
-                        'The booking has been successfully removed.';
-                    document.getElementById('successBookingId').textContent = id;
-                    document.getElementById('successStatus').textContent = 'Deleted';
-                    document.getElementById('successStatus').className = 'value status-cancelled';
-                    document.getElementById('successPayment').textContent = 'N/A';
-                    document.getElementById('successPayment').className = 'value';
-                    modal.classList.add('active');
-                    lockBodyScroll();
-                    document.getElementById('closeSuccessBtn').addEventListener('click', function reset() {
-                        document.querySelector('#successModal h3').textContent = 'Booking Updated!';
-                        document.querySelector('#successModal .success-subtitle').textContent =
-                            'The booking has been successfully updated.';
-                        document.getElementById('closeSuccessBtn').removeEventListener('click', reset);
-                    });
-                }
+                deleteBooking(id);
             }
         });
 
         // ===== INIT =====
-        renderBookings(bookingData);
-        console.log('PawCare Admin Booking Management (Updated Services dropdown) loaded.');
+        // Check authentication and load data
+        if (isAuthenticated()) {
+            // Set default date range
+            const now = new Date();
+            const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+            const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+            document.getElementById('startDate').value = firstDay.toISOString().split('T')[0];
+            document.getElementById('endDate').value = lastDay.toISOString().split('T')[0];
+
+            fetchBookings();
+        }
+
+        console.log('PawCare Admin Booking Management (Database Connected) loaded.');
     </script>
 
 </body>

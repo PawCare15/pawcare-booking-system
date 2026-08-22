@@ -563,6 +563,21 @@
         </div>
     </div>
 
+    <!-- DELETE CONFIRM MODAL -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal-box">
+            <div class="modal-icon-circle warning">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h2 class="modal-title">Confirm Delete</h2>
+            <p class="modal-subtitle">Are you sure you want to delete this review? This action cannot be undone.</p>
+            <div class="modal-btn-group">
+                <button class="btn btn-secondary" id="deleteCancelBtn">Cancel</button>
+                <button class="btn btn-danger" id="deleteConfirmBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ===== CONFIRMATION MODAL (通用) ===== -->
     <div class="modal-overlay" id="confirmationModal">
         <div class="modal-box">
@@ -1053,10 +1068,57 @@ function confirmLogout() {
             document.getElementById('filterRating').addEventListener('change', filterReviews);
             document.getElementById('filterSortAdmin').addEventListener('change', filterReviews);
 
+            // ===== 删除确认相关 =====
+            let pendingDeleteReviewId = null;
+
+            function showDeleteConfirm(reviewId) {
+                pendingDeleteReviewId = reviewId;
+                const modal = document.getElementById('deleteConfirmModal');
+                lockBodyScroll();
+                modal.classList.add('active');
+            }
+
+            function hideDeleteConfirm() {
+                const modal = document.getElementById('deleteConfirmModal');
+                modal.classList.remove('active');
+                unlockBodyScroll();
+                pendingDeleteReviewId = null;
+            }
+
+            // 绑定删除确认按钮事件
+            document.getElementById('deleteCancelBtn').addEventListener('click', hideDeleteConfirm);
+            document.getElementById('deleteConfirmBtn').addEventListener('click', async function() {
+                if (!pendingDeleteReviewId) return;
+                const reviewId = pendingDeleteReviewId;
+                hideDeleteConfirm();
+
+                try {
+                    const res = await authFetch(`/api/reviews/${reviewId}`, { method: 'DELETE' });
+                    const data = await res.json();
+                    if (data.success) {
+                        showConfirmation('Review deleted successfully.');
+                        allReviews = allReviews.filter(r => r.review_id !== reviewId);
+                        filterReviews();
+                        updateStats(allReviews);
+                        updateRatingOverview(allReviews);
+                        loadFilterServices(allReviews);
+                    } else {
+                        showError(data.message || 'Failed to delete review.');
+                    }
+                } catch (err) {
+                    showError('Unable to connect to server.');
+                }
+            });
+
+            // 点击 overlay 关闭
+            document.getElementById('deleteConfirmModal').addEventListener('click', function(e) {
+                if (e.target === this) hideDeleteConfirm();
+            });
+
             // ================================================================
-            // 回复按钮 (事件委托)
+            // 回复按钮 & 删除按钮 (事件委托) - 修复：将 function(e) 改为 async function(e)
             // ================================================================
-            document.getElementById('reviewListAdmin').addEventListener('click', function(e) {
+            document.getElementById('reviewListAdmin').addEventListener('click', async function(e) {
                 const target = e.target.closest('button');
                 if (!target) return;
 
@@ -1111,8 +1173,27 @@ function confirmLogout() {
                             if (data.success) {
                                 box.remove();
                                 showConfirmation('Reply sent successfully!');
-                                // 刷新评论列表
-                                await loadReviews();
+                                // 直接在 DOM 中插入新回复
+                                const replierName = document.getElementById('headerName')?.textContent || 'Admin';
+                                const replyHtml = `
+                                    <div class="reply-item">
+                                        <div class="reply-avatar">${replierName.substring(0, 2).toUpperCase()}</div>
+                                        <div class="reply-content">
+                                            <span class="reply-author">${replierName}</span>
+                                            <span class="reply-text">${text}</span>
+                                            <div class="reply-date">Just now</div>
+                                        </div>
+                                    </div>
+                                `;
+                                const repliesSection = parentItem.querySelector('.replies-section') || document.createElement('div');
+                                if (!parentItem.querySelector('.replies-section')) {
+                                    repliesSection.className = 'replies-section';
+                                    parentItem.querySelector('.review-body-admin').appendChild(repliesSection);
+                                }
+                                repliesSection.insertAdjacentHTML('beforeend', replyHtml);
+                                // 更新统计（只增加回复数）
+                                const totalRepliesEl = document.getElementById('totalReplies');
+                                totalRepliesEl.textContent = parseInt(totalRepliesEl.textContent) + 1;
                             } else {
                                 showError(data.message || 'Failed to send reply.');
                             }
@@ -1128,29 +1209,7 @@ function confirmLogout() {
                 // 删除按钮
                 if (target.classList.contains('delete-btn-admin')) {
                     const reviewId = target.dataset.reviewId;
-                    if (!confirm('Are you sure you want to delete this review? This action cannot be undone.')) return;
-
-                    // 调用删除API (暂用模拟，后端需实现 DELETE /api/reviews/:review_id)
-                    // 这里我们调用一个模拟函数，实际应调用后端删除接口
-                    // 因后端未提供删除接口，我们模拟前端删除并显示成功
-                    // 实际生产需调用 DELETE /api/reviews/:review_id
-                    // 此处模拟删除成功
-                    try {
-                        // 模拟删除请求（实际请替换为真实API）
-                        // const res = await authFetch(`/api/reviews/${reviewId}`, { method: 'DELETE' });
-                        // if (res.ok) { ... }
-                        // 模拟：
-                        showConfirmation('Review deleted successfully (demo).');
-                        // 从本地数据移除
-                        allReviews = allReviews.filter(r => r.review_id != reviewId);
-                        filterReviews(); // 刷新显示
-                        updateStats(allReviews);
-                        updateRatingOverview(allReviews);
-                        // 更新筛选下拉
-                        loadFilterServices(allReviews);
-                    } catch (err) {
-                        showError('Failed to delete review.');
-                    }
+                    showDeleteConfirm(reviewId);
                 }
             });
 
@@ -1158,7 +1217,7 @@ function confirmLogout() {
             // NOTIFICATIONS (placeholder)
             // ================================================================
             document.getElementById('notificationBtn').addEventListener('click', function() {
-                alert('No new notifications.');
+                showConfirmation('No new notifications.');
             });
 
             // ================================================================
