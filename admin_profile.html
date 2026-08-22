@@ -1649,13 +1649,18 @@ function confirmLogout() {
                     const formData = new FormData();
                     formData.append('avatar', file);
 
+                    // 在 try 里面，fetch 之前
+                    const uploadBtn = document.querySelector('.change-photo-btn');
+                    uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
+                    uploadBtn.disabled = true;
+
                     try {
                         const token = localStorage.getItem('token');
                         const res = await fetch('/api/profile/avatar', {
                             method: 'POST',
                             headers: {
                                 'Authorization': `Bearer ${token}`
-                                // 不要设置 Content-Type，浏览器自动用 multipart/form-data
+                                // 注意：不要设置 Content-Type，浏览器会自动用 multipart/form-data
                             },
                             body: formData
                         });
@@ -1663,13 +1668,12 @@ function confirmLogout() {
                         if (data.success) {
                             setAvatar(data.avatar_url);
                             toast('Profile photo updated.');
-                            // 重新加载 profile 以更新数据库中的头像链接
                             loadAdminProfile();
-                        } else {
-                            toast(data.message || 'Upload failed.');
-                        }
-                    } catch (err) {
-                        toast('Unable to connect to server.');
+                        } else { toast(data.message || 'Upload failed.'); }
+                    } catch (err) { toast('Unable to connect to server.'); } 
+                    finally {
+                        uploadBtn.innerHTML = '<i class="fa-solid fa-camera"></i> Change Photo';
+                        uploadBtn.disabled = false;
                     }
                     this.value = '';
                 });
@@ -1734,28 +1738,46 @@ function confirmLogout() {
                 // ===== Sessions =====
                 $('viewSessionsBtn').addEventListener('click', async function() {
                     openModal('sessionsModal');
-                    // 尝试加载真实的会话数据（如果接口调不通，页面仍保留静态占位符）
-                    try {
-                        const res = await authFetch('/api/admin/sessions');
-                        const data = await res.json();
-                        if (data.success && data.data.length > 0) {
-                            // 更新 session 列表
-                            const list = document.querySelector('.session-list');
-                            let html = '';
-                            data.data.forEach(s => {
-                                html += `<div class="session"><span><b>${s.device}</b><br><small>${s.browser}</small></span>${s.current ? '<span class="badge">Current</span>' : '<button class="btn btn-outline btn-sm sessionLogout" data-id="'+s.id+'">Log Out</button>'}</div>`;
-                            });
-                            list.innerHTML = html;
-                        }
-                    } catch (e) { console.log('Sessions fallback to static'); }
+
+                    // 优先读取本地缓存的会话状态
+                    let sessions = JSON.parse(localStorage.getItem('pawcareSessions') || 'null');
+                    
+                    // 如果没有本地缓存，就向后端请求（后端返回3个默认设备）
+                    if (!sessions) {
+                        try {
+                            const res = await authFetch('/api/admin/sessions');
+                            const data = await res.json();
+                            if (data.success) {
+                                sessions = data.data;
+                                // 存到本地防止重置
+                                localStorage.setItem('pawcareSessions', JSON.stringify(sessions));
+                            }
+                        } catch (e) { /* fallback */ }
+                    }
+
+                    // 渲染列表
+                    const list = document.querySelector('.session-list');
+                    let html = '';
+                    sessions.forEach(s => {
+                        html += `<div class="session"><span><b>${s.device}</b><br><small>${s.browser}</small></span>${s.current || s.loggedOut ? '<span class="badge">Current / Logged Out</span>' : '<button class="btn btn-outline btn-sm sessionLogout" data-id="'+s.id+'">Log Out</button>'}</div>`;
+                    });
+                    list.innerHTML = html;
                 });
 
                 // 重新绑定单个 Session 登出
                 document.getElementById('sessionsModal').addEventListener('click', async function(e) {
                     if (e.target.classList.contains('sessionLogout')) {
                         const btn = e.target;
+                        const deviceId = btn.dataset.id;
+                        
                         btn.textContent = 'Logged Out';
                         btn.disabled = true;
+                        
+                        // 更新本地缓存中的状态
+                        let sessions = JSON.parse(localStorage.getItem('pawcareSessions') || '[]');
+                        sessions = sessions.map(s => s.id == deviceId ? { ...s, loggedOut: true } : s);
+                        localStorage.setItem('pawcareSessions', JSON.stringify(sessions));
+
                         toast('Session logged out.');
                     }
                 });
@@ -1803,15 +1825,21 @@ function confirmLogout() {
                         const data = await res.json();
                         if (data.success) {
                             const admin = data.data;
+                            // 1. 更新全局 data 对象（必须做！）
+                            data = { ...data, name: admin.full_name, email: admin.email, phone: admin.phone_number, profile_photo: admin.profile_photo };
+                            saveData(); // 保存到 localStorage
+                            render();   // 强制重新渲染
+
+                            // 2. 再次更新 DOM（确保万无一失）
                             document.getElementById('headerName').textContent = admin.full_name || 'Admin';
                             document.getElementById('profileFullName').textContent = admin.full_name || 'Admin';
                             document.getElementById('profileEmail').textContent = admin.email || 'admin@pawcare.com';
                             document.getElementById('profilePhone').textContent = admin.phone_number || '';
-                            document.getElementById('profileDepartment').textContent = 'Management';
                             document.getElementById('editFullName').value = admin.full_name || '';
                             document.getElementById('editEmail').value = admin.email || '';
                             document.getElementById('editPhone').value = admin.phone_number || '';
-                            document.getElementById('editDepartment').value = 'Management';
+
+                            // 头像处理...
                             if (admin.profile_photo) {
                                 document.getElementById('headerAvatarImg').src = admin.profile_photo;
                                 document.getElementById('headerAvatarImg').style.display = 'block';
@@ -1821,9 +1849,7 @@ function confirmLogout() {
                                 document.getElementById('profileAvatarPlaceholder').style.display = 'none';
                             }
                         }
-                    } catch (err) {
-                        console.error('Error loading admin profile:', err);
-                    }
+                    } catch (err) { console.error('Error loading admin profile:', err); }
                 }
 
                 // 在 DOMContentLoaded 内部调用

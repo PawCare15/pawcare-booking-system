@@ -1106,6 +1106,8 @@ function confirmLogout() {
                         if (chart) {
                             chart.data.labels = labels;
                             chart.data.datasets[0].data = counts;
+                            // 将第二个数据集（Completed）的数据也设为 0 或根据后端处理
+                            chart.data.datasets[1].data = trend.map(() => 0); 
                             chart.update();
                         }
                     }

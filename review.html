@@ -2222,26 +2222,25 @@ async function loadReviews() {
                         const replierName = reply.customer ? reply.customer.full_name : 'User';
                         const repDate = new Date(reply.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
                         repliesHtml += `
-                            <div style="display: flex; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
+                            <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; background: #FAF7F2; border: 1px solid #EFECE6; border-radius: 8px; padding: 10px;">
                                 <div style="width: 28px; height: 28px; border-radius: 50%; background: #FDF3E7; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #5A361A;">
-                                    ${reply.customer?.profile_photo 
-                                        ? `<img src="${reply.customer.profile_photo}" style="width:100%; height:100%; object-fit:cover;">` 
-                                        : (reply.customer?.full_name ? reply.customer.full_name.substring(0, 2).toUpperCase() : 'U')}
+                                    ${reply.customer?.profile_photo ? `<img src="${reply.customer.profile_photo}" style="width:100%; height:100%; object-fit:cover;">` : (reply.customer?.full_name ? reply.customer.full_name.substring(0, 2).toUpperCase() : 'U')}
                                 </div>
                                 <div style="font-size: 13px; display: flex; flex-direction: column;">
                                     <span style="font-weight: 600; color: #5A361A;">${replierName}</span>
-                                    <span style="color: #444;">${reply.reply_text}</span>
-                                    <div style="font-size: 11px; color: #B0A090;">${repDate}</div>
+                                    <span style="color: #444; margin-top: 2px;">${reply.reply_text}</span>
+                                    <div style="font-size: 11px; color: #B0A090; margin-top: 4px;">${repDate}</div>
                                 </div>
-                            </div>
-                        `;
+                            </div>`;
                     });
-                    repliesHtml += '</div>';
-                    // 插入到 review-body 的最底部
+                    
+                    // 👇 这两行是缺失的关键代码！用于闭合外层容器并插入DOM
+                    repliesHtml += '</div>'; 
                     item.querySelector('.review-body').insertAdjacentHTML('beforeend', repliesHtml);
-                }
-            });
-        }
+                }  // 结束 if (replies)
+
+            });   // 👈 必须加这个！结束 reviews.forEach
+        }         // 👈 必须加这个！结束 if (data.success)
     } catch (err) {
         console.error('Error loading reviews:', err);
     }
