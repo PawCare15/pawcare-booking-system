@@ -1253,7 +1253,7 @@
       <div class="header-right">
         <div class="notification-badge" id="notificationBtn">
           <i class="fa-regular fa-bell"></i>
-          <span class="count">0</span>
+          <span class="count" id="notifCount">0</span>
         </div>
         <div class="user-profile" id="profileBtn">
           <div class="avatar-wrapper" id="headerAvatarWrapper">
@@ -1495,7 +1495,7 @@
     </div>
 
     <!-- ================================================================
-    NOTIFICATIONS MODAL (显示所有 upcoming appointments)
+    NOTIFICATIONS MODAL (显示所有 upcoming appointments + pet deletion)
     =============================================================== -->
     <div class="modal-overlay" id="notificationsModal">
         <div class="modal-box" style="max-width: 480px; text-align: left; padding: 28px 30px;">
@@ -1605,127 +1605,329 @@
     }
 
     // ================================================================
-// NOTIFICATIONS MODAL CONTROLS
-// ================================================================
-const notificationBtn = document.getElementById('notificationBtn');
-const notificationsModal = document.getElementById('notificationsModal');
-const closeNotificationsModal = document.getElementById('closeNotificationsModal');
-const notificationsModalOkBtn = document.getElementById('notificationsModalOkBtn');
+    // SUPABASE URL & KEY (Untuk customer_notifications)
+    // ================================================================
+    const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
 
-function showNotificationsModal() {
-    const content = document.getElementById('notificationsModalContent');
-    if (!content) return;
-    
-    // 复用 dashboard 的 notifications 渲染逻辑
-    // 但需要获取最新的 bookings 数据
-    fetchNotificationsData().then(html => {
-        content.innerHTML = html || '<div style="text-align:center; padding:20px; color:#7A7A7A;">No upcoming appointments.</div>';
-        lockBodyScroll();
-        notificationsModal.classList.add('active');
-    });
-}
+    // ================================================================
+    // NOTIFICATIONS MODAL CONTROLS - ORIGINAL (Untuk booking)
+    // ================================================================
+    const notificationBtn = document.getElementById('notificationBtn');
+    const notificationsModal = document.getElementById('notificationsModal');
+    const closeNotificationsModal = document.getElementById('closeNotificationsModal');
+    const notificationsModalOkBtn = document.getElementById('notificationsModalOkBtn');
 
-function hideNotificationsModal() {
-    notificationsModal.classList.remove('active');
-    unlockBodyScroll();
-}
-
-if (notificationBtn) {
-    notificationBtn.addEventListener('click', showNotificationsModal);
-}
-if (closeNotificationsModal) {
-    closeNotificationsModal.addEventListener('click', hideNotificationsModal);
-}
-if (notificationsModalOkBtn) {
-    notificationsModalOkBtn.addEventListener('click', hideNotificationsModal);
-}
-notificationsModal.addEventListener('click', function(e) {
-    if (e.target === this) hideNotificationsModal();
-});
-
-// 辅助函数：获取通知列表 HTML（复用 renderNotifications 的逻辑）
-async function fetchNotificationsData() {
-    try {
-        const res = await authFetch('/api/bookings');
-        const data = await res.json();
-        if (!data.success) return '<div style="text-align:center; color:#7A7A7A; padding:20px;">Unable to load notifications.</div>';
+    function showNotificationsModal() {
+        const content = document.getElementById('notificationsModalContent');
+        if (!content) return;
         
-        const bookings = data.data || [];
+        fetchNotificationsData().then(html => {
+            content.innerHTML = html || '<div style="text-align:center; padding:20px; color:#7A7A7A;">No upcoming appointments.</div>';
+            lockBodyScroll();
+            notificationsModal.classList.add('active');
+        });
+    }
+
+    function hideNotificationsModal() {
+        notificationsModal.classList.remove('active');
+        unlockBodyScroll();
+    }
+
+    // ================================================================
+    // LOAD CUSTOMER NOTIFICATIONS (PET DELETION + SYSTEM NOTIFICATIONS) - BARU
+    // ================================================================
+    async function loadCustomerNotifications() {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const response = await fetch(
+                `${SUPABASE_URL}/rest/v1/customer_notifications?select=*&order=created_at.desc&limit=20`,
+                {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'apikey': SUPABASE_ANON_KEY
+                    }
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error(`Failed to fetch notifications: ${response.status}`);
+            }
+
+            const notifications = await response.json();
+
+            // Count unread
+            const unread = notifications.filter(n => !n.is_read).length;
+
+            // Update notification badge - combine with existing booking notifications
+            const existingCount = document.getElementById('notifCount');
+            const bookingNotifCount = window.notificationData?.total || 0;
+            const totalUnread = unread + bookingNotifCount;
+
+            if (existingCount) {
+                if (totalUnread > 0) {
+                    existingCount.textContent = totalUnread;
+                    existingCount.style.display = 'flex';
+                } else {
+                    existingCount.style.display = 'none';
+                }
+            }
+
+            // Store notifications
+            window.customerNotifications = notifications;
+            window.customerUnreadCount = unread;
+
+            return notifications;
+        } catch (err) {
+            console.error('Error loading customer notifications:', err);
+            return [];
+        }
+    }
+
+    // ================================================================
+    // SHOW COMBINED NOTIFICATIONS MODAL - BARU
+    // ================================================================
+    function showCombinedNotificationsModal() {
+        const modal = document.getElementById('notificationsModal');
+        const content = document.getElementById('notificationsModalContent');
+
+        if (!content || !modal) return;
+
+        const petNotifs = window.customerNotifications || [];
+
+        // Also get upcoming bookings
+        const bookings = window.dashboardBookings || [];
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        
-        const tomorrowBookings = bookings.filter(b => {
-            const bookingDate = new Date(b.booking_date);
-            bookingDate.setHours(0, 0, 0, 0);
-            return bookingDate.getTime() === tomorrow.getTime() && b.status !== 'cancelled';
-        });
-        
         const threeDaysLater = new Date(today);
         threeDaysLater.setDate(threeDaysLater.getDate() + 3);
-        
+
         const upcomingBookings = bookings.filter(b => {
             const bookingDate = new Date(b.booking_date);
             bookingDate.setHours(0, 0, 0, 0);
-            return bookingDate >= today && 
-                   bookingDate <= threeDaysLater && 
-                   b.status !== 'cancelled' &&
-                   bookingDate.getTime() !== tomorrow.getTime();
+            return bookingDate >= today && bookingDate <= threeDaysLater && b.status !== 'cancelled';
         });
-        
+
         let html = '';
-        
-        if (tomorrowBookings.length > 0) {
-            tomorrowBookings.forEach(b => {
-                const petName = b.pet ? b.pet.name : 'Unknown';
-                const time = b.booking_time || 'N/A';
+        let hasNotifications = false;
+
+        // ===== SECTION 1: PET DELETION NOTIFICATIONS =====
+        const deletionNotifs = petNotifs.filter(n => n.type === 'pet_deleted');
+        if (deletionNotifs.length > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="margin-bottom: 16px;">
+                    <h4 style="color: #D97706; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-paw"></i> Pet Updates (${deletionNotifs.length})
+                    </h4>
+            `;
+            deletionNotifs.forEach(notif => {
+                const date = new Date(notif.created_at).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
                 html += `
-                    <div style="background: #FEF7E0; border-radius: 8px; padding: 10px 14px; border: 1px solid #FDE68A; margin-bottom: 10px;">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <i class="fa-solid fa-clock" style="color: #D97706;"></i>
-                            <strong>⏰ Tomorrow!</strong>
-                            <span style="margin-left:auto; font-size:12px; color:#B06000;">${tomorrow.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short' })}</span>
+                    <div style="background: #FEF7E0; border-left: 4px solid #FDE68A; border-radius: 8px; padding: 12px 16px; margin-bottom: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 20px;">🐾</span>
+                            <div style="flex: 1;">
+                                <h4 style="font-size: 14px; font-weight: 600; color: #333333; margin: 0;">${notif.title}</h4>
+                                <p style="font-size: 13px; color: #555; margin: 4px 0 0 0;">${notif.message}</p>
+                                <p style="font-size: 11px; color: #B0A090; margin: 4px 0 0 0;">${date}</p>
+                            </div>
+                            ${!notif.is_read ? '<span style="font-size: 8px; color: #DC2626;">●</span>' : ''}
                         </div>
-                        <div style="margin-top:4px;">Appointment for <strong>${petName}</strong> at <strong>${time}</strong></div>
                     </div>
                 `;
             });
+            html += `</div>`;
         }
-        
+
+        // ===== SECTION 2: UPCOMING APPOINTMENTS =====
         if (upcomingBookings.length > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="margin-bottom: 16px; padding-top: ${deletionNotifs.length > 0 ? '12px' : '0'}; ${deletionNotifs.length > 0 ? 'border-top: 1px solid #EFECE6;' : ''}">
+                    <h4 style="color: #0D47A1; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-regular fa-calendar"></i> Upcoming Appointments (${upcomingBookings.length})
+                    </h4>
+            `;
             upcomingBookings.slice(0, 5).forEach(b => {
                 const petName = b.pet ? b.pet.name : 'Unknown';
-                const date = new Date(b.booking_date);
-                const dateDisplay = date.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short' });
-                const daysUntil = Math.ceil((date - today) / (1000 * 60 * 60 * 24));
-                let timeDisplay = '';
-                if (daysUntil === 0) timeDisplay = 'Today';
-                else if (daysUntil === 1) timeDisplay = 'Tomorrow';
-                else timeDisplay = `In ${daysUntil} days`;
-                
+                const date = new Date(b.booking_date).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                const daysUntil = Math.ceil((new Date(b.booking_date) - today) / (1000 * 60 * 60 * 24));
+                let timeDisplay = daysUntil === 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : `In ${daysUntil} days`;
                 html += `
-                    <div style="display:flex; align-items:center; padding:8px 0; border-bottom:1px solid #EFECE6;">
-                        <i class="fa-regular fa-calendar" style="color:#D97706; width:24px;"></i>
-                        <div style="flex:1; margin-left:8px;">
-                            <strong>${petName}</strong> on ${dateDisplay}
+                    <div style="background: #E3F2FD; border-radius: 6px; padding: 8px 12px; margin-bottom: 4px; border-left: 3px solid #0D47A1;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                            <span><strong>${petName}</strong></span>
+                            <span style="color: #7A7A7A; font-size: 12px;">${date}</span>
                         </div>
-                        <span style="font-size:12px; color:#7A7A7A;">${timeDisplay}</span>
+                        <div style="font-size: 11px; color: #7A7A7A;">${timeDisplay}</div>
                     </div>
                 `;
             });
+            html += `</div>`;
         }
-        
-        if (!html) {
-            html = '<div style="text-align:center; padding:30px; color:#7A7A7A;"><i class="fa-regular fa-bell" style="font-size:32px; display:block; margin-bottom:10px;"></i>No upcoming appointments.</div>';
+
+        // ===== SECTION 3: EMPTY STATE =====
+        if (!hasNotifications) {
+            html = `
+                <div style="text-align: center; padding: 30px 20px; color: #7A7A7A;">
+                    <i class="fa-regular fa-bell" style="font-size: 40px; display: block; margin-bottom: 10px; color: #D3C4B8;"></i>
+                    <p style="font-size: 14px;">No notifications</p>
+                    <p style="font-size: 12px; margin-top: 4px;">You're all caught up!</p>
+                </div>
+            `;
         }
-        return html;
-    } catch (err) {
-        console.error('Error fetching notifications:', err);
-        return '<div style="text-align:center; color:#7A7A7A; padding:20px;">Error loading notifications.</div>';
+
+        content.innerHTML = html;
+        lockBodyScroll();
+        modal.classList.add('active');
+
+        // Mark all pet deletion notifications as read
+        markNotificationsAsRead();
     }
-}
+
+    // ================================================================
+    // MARK NOTIFICATIONS AS READ - BARU
+    // ================================================================
+    async function markNotificationsAsRead() {
+        try {
+            const token = localStorage.getItem('token');
+            const notifications = window.customerNotifications || [];
+            const unreadIds = notifications.filter(n => !n.is_read).map(n => n.notification_id);
+
+            if (unreadIds.length === 0) return;
+
+            for (const id of unreadIds) {
+                await fetch(`${SUPABASE_URL}/rest/v1/customer_notifications?notification_id=eq.${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({ is_read: true })
+                });
+            }
+
+            // Update local data
+            window.customerNotifications.forEach(n => { n.is_read = true; });
+
+            // Update badge - keep booking notifications count if any
+            const notifCount = document.getElementById('notifCount');
+            if (notifCount) {
+                const bookingCount = window.notificationData?.total || 0;
+                if (bookingCount > 0) {
+                    notifCount.textContent = bookingCount;
+                } else {
+                    notifCount.style.display = 'none';
+                }
+            }
+        } catch (err) {
+            console.error('Error marking notifications as read:', err);
+        }
+    }
+
+    // ================================================================
+    // 辅助函数：获取通知列表 HTML (ORIGINAL - untuk booking)
+    // ================================================================
+    async function fetchNotificationsData() {
+        try {
+            const res = await authFetch('/api/bookings');
+            const data = await res.json();
+            if (!data.success) return '<div style="text-align:center; color:#7A7A7A; padding:20px;">Unable to load notifications.</div>';
+            
+            const bookings = data.data || [];
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const tomorrowBookings = bookings.filter(b => {
+                const bookingDate = new Date(b.booking_date);
+                bookingDate.setHours(0, 0, 0, 0);
+                return bookingDate.getTime() === tomorrow.getTime() && b.status !== 'cancelled';
+            });
+            
+            const threeDaysLater = new Date(today);
+            threeDaysLater.setDate(threeDaysLater.getDate() + 3);
+            
+            const upcomingBookings = bookings.filter(b => {
+                const bookingDate = new Date(b.booking_date);
+                bookingDate.setHours(0, 0, 0, 0);
+                return bookingDate >= today && 
+                       bookingDate <= threeDaysLater && 
+                       b.status !== 'cancelled' &&
+                       bookingDate.getTime() !== tomorrow.getTime();
+            });
+            
+            let html = '';
+            
+            if (tomorrowBookings.length > 0) {
+                tomorrowBookings.forEach(b => {
+                    const petName = b.pet ? b.pet.name : 'Unknown';
+                    const time = b.booking_time || 'N/A';
+                    html += `
+                        <div style="background: #FEF7E0; border-radius: 8px; padding: 10px 14px; border: 1px solid #FDE68A; margin-bottom: 10px;">
+                            <div style="display:flex; align-items:center; gap:8px;">
+                                <i class="fa-solid fa-clock" style="color: #D97706;"></i>
+                                <strong>⏰ Tomorrow!</strong>
+                                <span style="margin-left:auto; font-size:12px; color:#B06000;">${tomorrow.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short' })}</span>
+                            </div>
+                            <div style="margin-top:4px;">Appointment for <strong>${petName}</strong> at <strong>${time}</strong></div>
+                        </div>
+                    `;
+                });
+            }
+            
+            if (upcomingBookings.length > 0) {
+                upcomingBookings.slice(0, 5).forEach(b => {
+                    const petName = b.pet ? b.pet.name : 'Unknown';
+                    const date = new Date(b.booking_date);
+                    const dateDisplay = date.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short' });
+                    const daysUntil = Math.ceil((date - today) / (1000 * 60 * 60 * 24));
+                    let timeDisplay = '';
+                    if (daysUntil === 0) timeDisplay = 'Today';
+                    else if (daysUntil === 1) timeDisplay = 'Tomorrow';
+                    else timeDisplay = `In ${daysUntil} days`;
+                    
+                    html += `
+                        <div style="display:flex; align-items:center; padding:8px 0; border-bottom:1px solid #EFECE6;">
+                            <i class="fa-regular fa-calendar" style="color:#D97706; width:24px;"></i>
+                            <div style="flex:1; margin-left:8px;">
+                                <strong>${petName}</strong> on ${dateDisplay}
+                            </div>
+                            <span style="font-size:12px; color:#7A7A7A;">${timeDisplay}</span>
+                        </div>
+                    `;
+                });
+            }
+            
+            if (!html) {
+                html = '<div style="text-align:center; padding:30px; color:#7A7A7A;"><i class="fa-regular fa-bell" style="font-size:32px; display:block; margin-bottom:10px;"></i>No upcoming appointments.</div>';
+            }
+            return html;
+        } catch (err) {
+            console.error('Error fetching notifications:', err);
+            return '<div style="text-align:center; color:#7A7A7A; padding:20px;">Error loading notifications.</div>';
+        }
+    }
 
     // ================================================================
     // LOGOUT MODAL CONTROLS
@@ -1786,12 +1988,10 @@ async function fetchNotificationsData() {
                     document.getElementById('headerAvatarImg').style.display = 'none';
                     document.getElementById('headerAvatarPlaceholder').style.display = 'inline';
                 }
-                // 同时更新 welcome 横幅（若还未更新）
                 const welcomeSpan = document.querySelector('#welcomeUserName span');
                 if (welcomeSpan) {
                     welcomeSpan.textContent = profile.full_name;
                 }
-                // 更新 localStorage 以便其他页面使用
                 const customer = JSON.parse(localStorage.getItem('customer') || '{}');
                 customer.full_name = profile.full_name;
                 customer.profile_photo = profile.profile_photo;
@@ -1966,7 +2166,7 @@ async function fetchNotificationsData() {
     }
 
     // ================================================================
-    // RENDER NOTIFICATIONS
+    // RENDER NOTIFICATIONS (ORIGINAL)
     // ================================================================
     async function renderNotifications() {
         const container = document.getElementById('notificationList');
@@ -2079,7 +2279,6 @@ async function fetchNotificationsData() {
     }
 
     async function updateWelcomeName() {
-        // 从 localStorage 读取客户信息
         let customer = localStorage.getItem('customer');
         if (customer) {
             try {
@@ -2089,14 +2288,12 @@ async function fetchNotificationsData() {
                 return;
             } catch (e) {}
         }
-        // 如果 localStorage 没有，调用 API
         try {
             const res = await authFetch('/api/profile');
             const data = await res.json();
             if (data.success) {
                 const name = data.data.full_name || 'User';
                 document.getElementById('welcomeUserName').innerHTML = `Welcome back, ${name}! 😻`;
-                // 更新 localStorage
                 const cust = JSON.parse(localStorage.getItem('customer') || '{}');
                 cust.full_name = name;
                 localStorage.setItem('customer', JSON.stringify(cust));
@@ -2106,83 +2303,83 @@ async function fetchNotificationsData() {
         }
     }
 
-async function renderUpcomingAppointment() {
-    const container = document.getElementById('upcomingAppointmentContainer');
-    const bookings = window.dashboardBookings || [];
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    async function renderUpcomingAppointment() {
+        const container = document.getElementById('upcomingAppointmentContainer');
+        const bookings = window.dashboardBookings || [];
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
 
-    const upcoming = bookings
-        .filter(b => {
-            if (b.status !== 'pending' && b.status !== 'upcoming') return false;
-            const bookingDate = new Date(b.booking_date);
-            bookingDate.setHours(0, 0, 0, 0);
-            return bookingDate >= today;
-        })
-        .sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date))[0];
+        const upcoming = bookings
+            .filter(b => {
+                if (b.status !== 'pending' && b.status !== 'upcoming') return false;
+                const bookingDate = new Date(b.booking_date);
+                bookingDate.setHours(0, 0, 0, 0);
+                return bookingDate >= today;
+            })
+            .sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date))[0];
 
-    if (!upcoming) {
+        if (!upcoming) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:20px; color:#7A7A7A;">
+                    <i class="fa-regular fa-calendar" style="font-size:32px; display:block; margin-bottom:10px;"></i>
+                    <p>No upcoming appointments. <a href="booking.html">Book now</a></p>
+                </div>
+            `;
+            return;
+        }
+
+        const petName = upcoming.pet ? upcoming.pet.name : 'Unknown Pet';
+        const breed = upcoming.pet ? upcoming.pet.breed : '';
+        const serviceName = upcoming.services && upcoming.services.length > 0 
+            ? upcoming.services.map(s => s.service_name).join(', ') 
+            : 'Service';
+        const date = new Date(upcoming.booking_date).toLocaleDateString('en-GB', {
+            day: '2-digit', month: 'short', year: 'numeric'
+        });
+        const time = upcoming.booking_time || 'N/A';
+        let statusClass = upcoming.status === 'pending' ? 'warning' : upcoming.status === 'completed' ? 'success' : 'danger';
+        let statusLabel = upcoming.status.charAt(0).toUpperCase() + upcoming.status.slice(1);
+
+        if (upcoming.reschedule_status === 'pending') {
+            statusLabel = 'Pending Approval';
+            statusClass = 'warning';
+        }
+
+        const bookingDateTime = new Date(upcoming.booking_date + 'T' + upcoming.booking_time);
+        const diffHours = (bookingDateTime - new Date()) / (1000 * 60 * 60);
+        const canReschedule = (upcoming.status === 'pending' || upcoming.status === 'upcoming') 
+                              && diffHours >= 24
+                              && (upcoming.reschedule_status !== 'pending' && upcoming.reschedule_status !== 'approved');
+
         container.innerHTML = `
-            <div style="text-align:center; padding:20px; color:#7A7A7A;">
-                <i class="fa-regular fa-calendar" style="font-size:32px; display:block; margin-bottom:10px;"></i>
-                <p>No upcoming appointments. <a href="booking.html">Book now</a></p>
+            <div class="appointment-card">
+                <div class="appointment-img" style="display:flex; align-items:center; justify-content:center; background:#FDF3E7; color:#5A361A; font-weight:600; font-size:24px; text-transform:uppercase; overflow:hidden;">
+                    ${upcoming.pet && upcoming.pet.photo_url 
+                        ? `<img src="${upcoming.pet.photo_url}" alt="${petName}" style="width:100%; height:100%; object-fit:cover;">`
+                        : `<span>${petName.substring(0,2)}</span>`
+                    }
+                </div>
+                <div class="appointment-info">
+                    <div class="pet-title-bar">
+                        <h4>${petName} ${breed ? `<span>(${breed})</span>` : ''}</h4>
+                        <span class="badge ${statusClass}">${statusLabel}</span>
+                    </div>
+                    <ul class="details-list">
+                        <li><i class="fa-solid fa-scissors"></i> <span>Service</span> <strong>${serviceName}</strong></li>
+                        <li><i class="fa-regular fa-calendar"></i> <span>Date</span> <strong>${date}</strong></li>
+                        <li><i class="fa-regular fa-clock"></i> <span>Time</span> <strong>${time}</strong></li>
+                        <li><i class="fa-solid fa-location-dot"></i> <span>Location</span> <strong>PAW WALKER GROOMING HOUSE</strong></li>
+                    </ul>
+                    <div class="action-btns">
+                        <button class="btn btn-primary" onclick="showAppointmentModal('${upcoming.booking_id}')">View Details</button>
+                        ${canReschedule ? `<button class="btn btn-secondary" onclick="showRescheduleModal()">Reschedule</button>` : ''}
+                        ${upcoming.reschedule_status === 'pending' ? `<button class="btn btn-danger" onclick="cancelRescheduleRequestFromDashboard('${upcoming.booking_id}')">Cancel Request</button>` : ''}
+                        ${(upcoming.status === 'pending' && upcoming.reschedule_status !== 'pending') ? `<button class="btn btn-danger" onclick="cancelBookingFromDashboard('${upcoming.booking_id}')">Cancel</button>` : ''}
+                    </div>
+                </div>
             </div>
         `;
-        return;
     }
-
-    const petName = upcoming.pet ? upcoming.pet.name : 'Unknown Pet';
-    const breed = upcoming.pet ? upcoming.pet.breed : '';
-    const serviceName = upcoming.services && upcoming.services.length > 0 
-        ? upcoming.services.map(s => s.service_name).join(', ') 
-        : 'Service';
-    const date = new Date(upcoming.booking_date).toLocaleDateString('en-GB', {
-        day: '2-digit', month: 'short', year: 'numeric'
-    });
-    const time = upcoming.booking_time || 'N/A';
-    let statusClass = upcoming.status === 'pending' ? 'warning' : upcoming.status === 'completed' ? 'success' : 'danger';
-    let statusLabel = upcoming.status.charAt(0).toUpperCase() + upcoming.status.slice(1);
-
-    if (upcoming.reschedule_status === 'pending') {
-        statusLabel = 'Pending Approval';
-        statusClass = 'warning';
-    }
-
-    const bookingDateTime = new Date(upcoming.booking_date + 'T' + upcoming.booking_time);
-    const diffHours = (bookingDateTime - new Date()) / (1000 * 60 * 60);
-    const canReschedule = (upcoming.status === 'pending' || upcoming.status === 'upcoming') 
-                          && diffHours >= 24
-                          && (upcoming.reschedule_status !== 'pending' && upcoming.reschedule_status !== 'approved');
-
-    container.innerHTML = `
-        <div class="appointment-card">
-            <div class="appointment-img" style="display:flex; align-items:center; justify-content:center; background:#FDF3E7; color:#5A361A; font-weight:600; font-size:24px; text-transform:uppercase; overflow:hidden;">
-                ${upcoming.pet && upcoming.pet.photo_url 
-                    ? `<img src="${upcoming.pet.photo_url}" alt="${petName}" style="width:100%; height:100%; object-fit:cover;">`
-                    : `<span>${petName.substring(0,2)}</span>`
-                }
-            </div>
-            <div class="appointment-info">
-                <div class="pet-title-bar">
-                    <h4>${petName} ${breed ? `<span>(${breed})</span>` : ''}</h4>
-                    <span class="badge ${statusClass}">${statusLabel}</span>
-                </div>
-                <ul class="details-list">
-                    <li><i class="fa-solid fa-scissors"></i> <span>Service</span> <strong>${serviceName}</strong></li>
-                    <li><i class="fa-regular fa-calendar"></i> <span>Date</span> <strong>${date}</strong></li>
-                    <li><i class="fa-regular fa-clock"></i> <span>Time</span> <strong>${time}</strong></li>
-                    <li><i class="fa-solid fa-location-dot"></i> <span>Location</span> <strong>PAW WALKER GROOMING HOUSE</strong></li>
-                </ul>
-                <div class="action-btns">
-                    <button class="btn btn-primary" onclick="showAppointmentModal('${upcoming.booking_id}')">View Details</button>
-                    ${canReschedule ? `<button class="btn btn-secondary" onclick="showRescheduleModal()">Reschedule</button>` : ''}
-                    ${upcoming.reschedule_status === 'pending' ? `<button class="btn btn-danger" onclick="cancelRescheduleRequestFromDashboard('${upcoming.booking_id}')">Cancel Request</button>` : ''}
-                    ${(upcoming.status === 'pending' && upcoming.reschedule_status !== 'pending') ? `<button class="btn btn-danger" onclick="cancelBookingFromDashboard('${upcoming.booking_id}')">Cancel</button>` : ''}
-                </div>
-            </div>
-        </div>
-    `;
-}
 
     // ================================================================
     // DOM READY
@@ -2226,6 +2423,30 @@ async function renderUpcomingAppointment() {
             }
         });
 
+        // ================================================================
+        // NOTIFICATION BUTTON - UPDATE TO USE COMBINED MODAL
+        // ================================================================
+        if (notificationBtn) {
+            // Remove existing listeners to prevent duplicates
+            notificationBtn.removeEventListener('click', showNotificationsModal);
+            notificationBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                console.log('🔔 Notification button clicked - Combined modal');
+                showCombinedNotificationsModal();
+            });
+        }
+
+        // Close notification modal
+        if (closeNotificationsModal) {
+            closeNotificationsModal.addEventListener('click', hideNotificationsModal);
+        }
+        if (notificationsModalOkBtn) {
+            notificationsModalOkBtn.addEventListener('click', hideNotificationsModal);
+        }
+        notificationsModal.addEventListener('click', function(e) {
+            if (e.target === this) hideNotificationsModal();
+        });
+
         // 加载数据
         await renderDashboardPets();
         await renderRecentBookings();
@@ -2237,6 +2458,11 @@ async function renderUpcomingAppointment() {
 
         // 加载 header 头像和名字
         loadHeaderProfile();
+
+        // ================================================================
+        // LOAD CUSTOMER NOTIFICATIONS (PET DELETION)
+        // ================================================================
+        await loadCustomerNotifications();
 
         // 点击头像跳转到 Profile
         const profileBtn = document.getElementById('profileBtn');
@@ -2355,7 +2581,7 @@ async function renderUpcomingAppointment() {
     });
 
     // ================================================================
-    // RESCHEDULE MODAL CONTROLS - 申请重预约
+    // RESCHEDULE MODAL CONTROLS
     // ================================================================
     let dashboardRescheduleBookingId = null;
 
@@ -2476,24 +2702,24 @@ async function renderUpcomingAppointment() {
     }
 
     async function cancelBookingFromDashboard(bookingId) {
-    if (!confirm('Are you sure you want to cancel this booking?')) return;
-    try {
-        const res = await authFetch(`/api/bookings/${bookingId}/cancel`, { method: 'PUT' });
-        const data = await res.json();
-        if (data.success) {
-            const booking = window.dashboardBookings.find(b => b.booking_id === bookingId);
-            if (booking) booking.status = 'cancelled';
-            renderUpcomingAppointment();
-            renderRecentBookings();
-            showDashboardMessage('✅ Booking cancelled successfully.', true);
-        } else {
-            showDashboardMessage('❌ ' + (data.message || 'Failed to cancel.'), false);
+        if (!confirm('Are you sure you want to cancel this booking?')) return;
+        try {
+            const res = await authFetch(`/api/bookings/${bookingId}/cancel`, { method: 'PUT' });
+            const data = await res.json();
+            if (data.success) {
+                const booking = window.dashboardBookings.find(b => b.booking_id === bookingId);
+                if (booking) booking.status = 'cancelled';
+                renderUpcomingAppointment();
+                renderRecentBookings();
+                showDashboardMessage('✅ Booking cancelled successfully.', true);
+            } else {
+                showDashboardMessage('❌ ' + (data.message || 'Failed to cancel.'), false);
+            }
+        } catch (err) {
+            console.error(err);
+            showDashboardMessage('❌ Unable to connect to server.', false);
         }
-    } catch (err) {
-        console.error(err);
-        showDashboardMessage('❌ Unable to connect to server.', false);
     }
-}
 
     // ================================================================
     // 显示消息模态框（替代 alert）
@@ -2547,105 +2773,48 @@ async function renderUpcomingAppointment() {
     }
 
     // ================================================================
-// 自定义确认模态框
-// ================================================================
-let confirmActionCallback = null;
+    // 自定义确认模态框
+    // ================================================================
+    let confirmActionCallback = null;
 
-function showConfirmActionModal(title, message, onConfirm, note = '') {
-    const modal = document.getElementById('confirmActionModal');
-    const titleEl = document.getElementById('confirmActionTitle');
-    const msgEl = document.getElementById('confirmActionMessage');
-    const noteEl = document.getElementById('confirmActionNote');
-    if (!modal) return;
+    function showConfirmActionModal(title, message, onConfirm, note = '') {
+        const modal = document.getElementById('confirmActionModal');
+        const titleEl = document.getElementById('confirmActionTitle');
+        const msgEl = document.getElementById('confirmActionMessage');
+        const noteEl = document.getElementById('confirmActionNote');
+        if (!modal) return;
 
-    titleEl.textContent = title || 'Confirm Action';
-    msgEl.textContent = message || 'Are you sure you want to proceed?';
-    noteEl.textContent = note;
-    noteEl.style.display = note ? 'block' : 'none';
+        titleEl.textContent = title || 'Confirm Action';
+        msgEl.textContent = message || 'Are you sure you want to proceed?';
+        noteEl.textContent = note;
+        noteEl.style.display = note ? 'block' : 'none';
 
-    confirmActionCallback = onConfirm || null;
-    lockBodyScroll();
-    modal.classList.add('active');
-}
-
-function hideConfirmActionModal() {
-    const modal = document.getElementById('confirmActionModal');
-    if (modal) {
-        modal.classList.remove('active');
-        unlockBodyScroll();
-        confirmActionCallback = null;
+        confirmActionCallback = onConfirm || null;
+        lockBodyScroll();
+        modal.classList.add('active');
     }
-}
 
-document.getElementById('confirmActionYesBtn').addEventListener('click', function() {
-    if (typeof confirmActionCallback === 'function') {
-        confirmActionCallback();
-    }
-    hideConfirmActionModal();
-});
-
-document.getElementById('confirmActionNoBtn').addEventListener('click', hideConfirmActionModal);
-document.getElementById('confirmActionModal').addEventListener('click', function(e) {
-    if (e.target === this) hideConfirmActionModal();
-});
-
-// 修改 cancelBookingFromDashboard 使用自定义模态框
-async function cancelBookingFromDashboard(bookingId) {
-    showConfirmActionModal(
-        'Cancel Booking',
-        'Are you sure you want to cancel this booking?',
-        async function() {
-            try {
-                const res = await authFetch(`/api/bookings/${bookingId}/cancel`, { method: 'PUT' });
-                const data = await res.json();
-                if (data.success) {
-                    const booking = window.dashboardBookings.find(b => b.booking_id === bookingId);
-                    if (booking) booking.status = 'cancelled';
-                    renderUpcomingAppointment();
-                    renderRecentBookings();
-                    showDashboardMessage('✅ Booking cancelled successfully.', true);
-                } else {
-                    showDashboardMessage('❌ ' + (data.message || 'Failed to cancel.'), false);
-                }
-            } catch (err) {
-                console.error(err);
-                showDashboardMessage('❌ Unable to connect to server.', false);
-            }
+    function hideConfirmActionModal() {
+        const modal = document.getElementById('confirmActionModal');
+        if (modal) {
+            modal.classList.remove('active');
+            unlockBodyScroll();
+            confirmActionCallback = null;
         }
-    );
-}
+    }
 
-// 修改 cancelRescheduleRequestFromDashboard 使用自定义模态框
-async function cancelRescheduleRequestFromDashboard(bookingId) {
-    showConfirmActionModal(
-        'Cancel Request',
-        'Are you sure you want to cancel the reschedule request?',
-        async function() {
-            try {
-                const res = await authFetch(`/api/bookings/${bookingId}/reschedule-cancel`, { method: 'PUT' });
-                const data = await res.json();
-                if (data.success) {
-                    const booking = window.dashboardBookings.find(b => b.booking_id === bookingId);
-                    if (booking) {
-                        booking.reschedule_status = 'none';
-                        booking.reschedule_requested_date = null;
-                        booking.reschedule_requested_time = null;
-                    }
-                    renderUpcomingAppointment();
-                    renderRecentBookings();
-                    showDashboardMessage('✅ Reschedule request cancelled.', true);
-                } else {
-                    showDashboardMessage('❌ ' + (data.message || 'Failed to cancel request.'), false);
-                }
-            } catch (err) {
-                console.error(err);
-                showDashboardMessage('❌ Unable to connect to server.', false);
-            }
-        },
-        'Reschedule requests must be made at least 24 hours before the original appointment time.' // 可选备注
-    );
-}
-    
+    document.getElementById('confirmActionYesBtn').addEventListener('click', function() {
+        if (typeof confirmActionCallback === 'function') {
+            confirmActionCallback();
+        }
+        hideConfirmActionModal();
+    });
+
+    document.getElementById('confirmActionNoBtn').addEventListener('click', hideConfirmActionModal);
+    document.getElementById('confirmActionModal').addEventListener('click', function(e) {
+        if (e.target === this) hideConfirmActionModal();
+    });
+
   </script>
 
 </body>

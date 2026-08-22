@@ -8,6 +8,7 @@ const { createClient } = require('@supabase/supabase-js');
 const emailjs = require('@emailjs/nodejs');
 const multer = require('multer');
 const path = require('path');
+const nodemailer = require('nodemailer'); // ✅ TAMBAH BARU
 
 const app = express();
 
@@ -24,6 +25,15 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // 安全托管静态文件
 app.use(express.static(__dirname));
+
+// ========== Email Configuration (Nodemailer) ========== ✅ TAMBAH BARU
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER || 'pawcare@gmail.com',
+        pass: process.env.EMAIL_PASS || 'xxxx xxxx xxxx xxxx'
+    }
+});
 
 // ========== Supabase 初始化 ==========
 const supabase = createClient(
@@ -56,6 +66,160 @@ async function ensureBucketExists(bucketName) {
         return false;
     }
 }   // <-- 到这里结束
+
+// ================================================================ ✅ TAMBAH BARU
+// SEND DELETE CONFIRMATION EMAIL (With direct delete link)
+// ================================================================
+async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteToken) {
+    const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+    const deleteLink = `${baseUrl}/api/delete-account?token=${deleteToken}&email=${encodeURIComponent(customerEmail)}`;
+    
+    const mailOptions = {
+        from: `"PawCare Booking System" <${process.env.EMAIL_USER || 'pawcare@gmail.com'}>`,
+        to: customerEmail,
+        subject: '⚠️ Account Deletion Request - PawCare',
+        html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; background: #f5f0eb; padding: 20px; }
+                    .container { max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+                    .header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid #efebe6; }
+                    .header h1 { color: #a75e31; margin: 0; }
+                    .content { padding: 20px 0; }
+                    .content p { color: #555; line-height: 1.6; }
+                    .warning { background: #fef7e0; border-left: 4px solid #d97706; padding: 12px 16px; border-radius: 4px; margin: 16px 0; }
+                    .warning strong { color: #92400e; }
+                    .btn { display: inline-block; padding: 14px 36px; background: #dc2626; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 16px 0; }
+                    .btn:hover { background: #b91c1c; }
+                    .btn-container { text-align: center; }
+                    .footer { text-align: center; padding-top: 20px; border-top: 1px solid #efebe6; font-size: 12px; color: #999; }
+                    .link-expiry { color: #7a7a7a; font-size: 13px; margin-top: 8px; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🐾 PawCare</h1>
+                        <p style="color: #7a7a7a; margin: 0;">Booking System</p>
+                    </div>
+                    <div class="content">
+                        <h2>Account Deletion Request</h2>
+                        <p>Dear <strong>${customerName}</strong>,</p>
+                        <p>An admin has initiated a request to delete your PawCare account.</p>
+                        
+                        <div class="warning">
+                            <strong>⚠️ Important:</strong> This action will permanently delete all your data including:
+                            <ul style="margin: 8px 0 0 20px; color: #555;">
+                                <li>Your profile information</li>
+                                <li>Pet profiles</li>
+                                <li>Booking history</li>
+                                <li>Reviews</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="btn-container">
+                            <a href="${deleteLink}" class="btn">🗑️ Delete My Account Now</a>
+                        </div>
+                        
+                        <p style="text-align: center; font-size: 14px; color: #7a7a7a;">
+                            <strong>OR</strong> copy this link into your browser:<br>
+                            <span style="word-break: break-all; font-size: 12px; color: #999;">${deleteLink}</span>
+                        </p>
+                        
+                        <p class="link-expiry">⏳ This link will expire in <strong>7 days</strong>.</p>
+                        
+                        <p style="margin-top: 16px; color: #7a7a7a; font-size: 13px;">
+                            If you did not request this deletion, please <a href="mailto:${process.env.EMAIL_USER || 'pawcare@gmail.com'}" style="color: #a75e31;">contact us</a> immediately.
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 PawCare Booking System — Paw Walker Grooming House</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Deletion email sent to ${customerEmail}`);
+        return true;
+    } catch (error) {
+        console.error('❌ Error sending email:', error);
+        return false;
+    }
+}
+
+// ================================================================ ✅ TAMBAH BARU
+// SEND DELETION CONFIRMATION EMAIL (After successful delete)
+// ================================================================
+async function sendDeletionConfirmedEmail(customerEmail, customerName) {
+    const mailOptions = {
+        from: `"PawCare Booking System" <${process.env.EMAIL_USER || 'pawcare@gmail.com'}>`,
+        to: customerEmail,
+        subject: '✅ Account Deleted Successfully - PawCare',
+        html: `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <style>
+                    body { font-family: Arial, sans-serif; background: #f5f0eb; padding: 20px; }
+                    .container { max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+                    .header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid #efebe6; }
+                    .header h1 { color: #a75e31; margin: 0; }
+                    .content { padding: 20px 0; text-align: center; }
+                    .content p { color: #555; line-height: 1.6; }
+                    .success-icon { font-size: 64px; margin: 16px 0; }
+                    .footer { text-align: center; padding-top: 20px; border-top: 1px solid #efebe6; font-size: 12px; color: #999; }
+                    .btn { display: inline-block; padding: 12px 32px; background: #5a361a; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 8px 0; }
+                    .btn:hover { background: #402410; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <h1>🐾 PawCare</h1>
+                        <p style="color: #7a7a7a; margin: 0;">Booking System</p>
+                    </div>
+                    <div class="content">
+                        <div class="success-icon">✅</div>
+                        <h2>Account Deleted Successfully</h2>
+                        <p>Dear <strong>${customerName}</strong>,</p>
+                        <p>Your PawCare account has been successfully deleted as requested.</p>
+                        <p>All your data has been permanently removed from our system.</p>
+                        <br>
+                        <p style="color: #7a7a7a; font-size: 13px;">
+                            If you wish to use our services again in the future,<br>
+                            you are welcome to create a new account anytime.
+                        </p>
+                        <p style="color: #7a7a7a; font-size: 13px; margin-top: 16px;">
+                            Thank you for being part of PawCare! 🐾
+                        </p>
+                        <div style="margin-top: 16px;">
+                            <a href="${process.env.BASE_URL || 'http://localhost:5000'}" class="btn">🏠 Back to Home</a>
+                        </div>
+                    </div>
+                    <div class="footer">
+                        <p>© 2026 PawCare Booking System — Paw Walker Grooming House</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log(`✅ Deletion confirmed email sent to ${customerEmail}`);
+        return true;
+    } catch (error) {
+        console.error('❌ Error sending confirmation email:', error);
+        return false;
+    }
+}
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
@@ -272,7 +436,8 @@ app.get('/api/profile', async (req, res) => {
     if (role === 'admin') {
       table = 'admin';
       idField = 'admin_id';
-      selectFields = 'admin_id, full_name, email, phone_number, profile_photo, created_at';
+      // 管理员表没有 created_at 字段，必须删掉以免报错
+      selectFields = 'admin_id, full_name, email, phone_number, profile_photo'; 
     }
 
     const { data, error } = await supabase
@@ -1300,26 +1465,40 @@ app.get('/api/reviews', async (req, res) => {
     const { data: repliesData, error: repliesError } = await supabaseAdmin
       .from('review_replies')
       .select(`
-        reply_id, review_id, reply_text, created_at,
+        reply_id, review_id, reply_text, created_at, parent_id,
         customer:customer_id (full_name, profile_photo),
         admin:admin_id (full_name, profile_photo)
       `)
       .order('created_at', { ascending: true });
     if (repliesError) throw repliesError;
 
+    // 3.5 获取回复的点赞数据
+    const { data: replyLikes, error: replyLikesError } = await supabaseAdmin
+      .from('review_reply_likes')
+      .select('reply_id, customer_id');
+    if (replyLikesError) throw replyLikesError;
+
+    const replyLikeCountMap = {};
+    const myReplyLikes = replyLikes.filter(l => l.customer_id === userId).map(l => l.reply_id);
+    replyLikes.forEach(l => { replyLikeCountMap[l.reply_id] = (replyLikeCountMap[l.reply_id] || 0) + 1; });
+
     // 4. 数据映射组装
     const myLikes = likes.filter(l => l.customer_id === userId).map(l => l.review_id);
     const likeCountMap = {};
     likes.forEach(l => { likeCountMap[l.review_id] = (likeCountMap[l.review_id] || 0) + 1; });
 
+    // 4. 数据映射组装
     const repliesMap = {};
     repliesData.forEach(r => {
       const user = r.customer || r.admin;
       if (!repliesMap[r.review_id]) repliesMap[r.review_id] = [];
       repliesMap[r.review_id].push({
         reply_id: r.reply_id,
+        parent_id: r.parent_id || null, // 👈 添加
         reply_text: r.reply_text,
         created_at: r.created_at,
+        reply_like_count: replyLikeCountMap[r.reply_id] || 0, // 👈 添加
+        reply_liked_by_me: myReplyLikes.includes(r.reply_id), // 👈 添加
         customer: user ? { full_name: user.full_name, profile_photo: user.profile_photo } : null
       });
     });
@@ -1705,6 +1884,72 @@ app.post('/api/reviews/:review_id/reply', async (req, res) => {
       }
   });
 
+// ========== 新增: 回复点赞 ==========
+app.post('/api/replies/:reply_id/like', async (req, res) => {
+  try {
+    const customer_id = getCustomerId(req);
+    const { reply_id } = req.params;
+
+    const { data: existing } = await supabaseAdmin
+      .from('review_reply_likes')
+      .select('id')
+      .eq('reply_id', reply_id)
+      .eq('customer_id', customer_id)
+      .maybeSingle();
+
+    let action = 'liked';
+    if (existing) {
+      await supabaseAdmin.from('review_reply_likes').delete().eq('reply_id', reply_id).eq('customer_id', customer_id);
+      action = 'unliked';
+    } else {
+      await supabaseAdmin.from('review_reply_likes').insert([{ reply_id, customer_id }]);
+    }
+
+    const { count } = await supabaseAdmin.from('review_reply_likes').select('id', { count: 'exact', head: true }).eq('reply_id', reply_id);
+    res.json({ success: true, action, like_count: count || 0 });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
+  }
+});
+
+// ========== 新增: 回复评论的回复 (子回复) ==========
+app.post('/api/replies/:reply_id/reply', async (req, res) => {
+  try {
+    const userInfo = await getUserInfo(req);
+    const userId = userInfo.customer_id;
+    const role = userInfo.role || 'customer';
+    const { reply_id } = req.params;
+    const { reply_text } = req.body;
+
+    if (!reply_text || reply_text.trim() === '') return res.status(400).json({ success: false, message: 'Reply text is required.' });
+
+    // 找到这条子回复属于哪条主评论
+    const { data: targetReply } = await supabaseAdmin.from('review_replies').select('review_id').eq('reply_id', reply_id).single();
+    if (!targetReply) return res.status(404).json({ success: false, message: 'Reply not found.' });
+
+    let insertData = { review_id: targetReply.review_id, reply_text: reply_text.trim(), parent_id: reply_id };
+    if (role === 'admin') {
+      insertData.admin_id = userId;
+      insertData.customer_id = null;
+    } else {
+      insertData.customer_id = userId;
+      insertData.admin_id = null;
+    }
+
+    const { data, error } = await supabaseAdmin.from('review_replies').insert([insertData]).select('*');
+    if (error) throw error;
+
+    res.status(201).json({ success: true, data: data[0] });
+  } catch (err) {
+    console.error(err);
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
+  }
+});
+
 // ========== 删除评论（仅限 Admin） ==========
 app.delete('/api/reviews/:review_id', async (req, res) => {
   try {
@@ -1762,6 +2007,264 @@ app.post('/api/admin/logout-all', async (req, res) => {
     console.error(err);
     res.status(500).json({ success: false, message: 'Server error' });
   }
+});
+
+// ================================================================ ✅ TAMBAH BARU
+// ========== 12. DELETE CUSTOMER WITH EMAIL ==========
+// ================================================================
+
+// API: INITIATE CUSTOMER DELETION (Admin)
+app.post('/api/customers/:customerId/delete-request', async (req, res) => {
+    try {
+        const { customerId } = req.params;
+        const token = req.headers.authorization?.split(' ')[1];
+        
+        if (!token) {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+
+        const decoded = jwt.verify(token, JWT_SECRET);
+        if (decoded.role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'Forbidden' });
+        }
+
+        const { data: customer, error: customerError } = await supabaseAdmin
+            .from('customer')
+            .select('customer_id, full_name, email, phone_number, status')
+            .eq('customer_id', customerId)
+            .single();
+
+        if (customerError || !customer) {
+            return res.status(404).json({ success: false, message: 'Customer not found' });
+        }
+
+        // Check if customer already has pending deletion
+        if (customer.status === 'pending_deletion') {
+            return res.status(400).json({ 
+                success: false, 
+                message: 'Customer already has a pending deletion request. They need to click the link in their email.' 
+            });
+        }
+
+        // Generate unique delete token
+        const deleteToken = crypto.randomBytes(32).toString('hex');
+        const tokenExpiry = new Date();
+        tokenExpiry.setDate(tokenExpiry.getDate() + 7);
+
+        // Update customer with deletion token
+        const { error: updateError } = await supabaseAdmin
+            .from('customer')
+            .update({
+                status: 'pending_deletion',
+                delete_token: deleteToken,
+                delete_token_expiry: tokenExpiry.toISOString()
+            })
+            .eq('customer_id', customerId);
+
+        if (updateError) {
+            throw updateError;
+        }
+
+        // Send email to customer
+        const emailSent = await sendDeleteConfirmationEmail(
+            customer.email,
+            customer.full_name,
+            deleteToken
+        );
+
+        if (!emailSent) {
+            // Revert status if email fails
+            await supabaseAdmin
+                .from('customer')
+                .update({
+                    status: 'Active',
+                    delete_token: null,
+                    delete_token_expiry: null
+                })
+                .eq('customer_id', customerId);
+                
+            return res.status(500).json({ 
+                success: false, 
+                message: 'Failed to send deletion email. Please try again.' 
+            });
+        }
+
+        res.json({
+            success: true,
+            message: `Deletion request sent to ${customer.full_name}. They will receive an email to confirm.`,
+            data: {
+                customer_id: customer.customer_id,
+                email: customer.email,
+                status: 'pending_deletion'
+            }
+        });
+
+    } catch (error) {
+        console.error('Error initiating deletion:', error);
+        res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+});
+
+// API: DIRECT DELETE ACCOUNT (Customer clicks link in email)
+app.get('/api/delete-account', async (req, res) => {
+    try {
+        const { token, email } = req.query;
+
+        if (!token || !email) {
+            return res.status(400).send(`
+                <!DOCTYPE html>
+                <html>
+                <head><title>Invalid Request</title></head>
+                <body style="font-family: Arial; text-align: center; padding: 50px;">
+                    <h1>❌ Invalid Request</h1>
+                    <p>Missing required parameters. Please use the link from your email.</p>
+                    <a href="/">Back to Home</a>
+                </body>
+                </html>
+            `);
+        }
+
+        // Find customer with matching token and email
+        const { data: customer, error: customerError } = await supabaseAdmin
+            .from('customer')
+            .select('customer_id, full_name, email, delete_token, delete_token_expiry, status')
+            .eq('email', email)
+            .eq('delete_token', token)
+            .single();
+
+        if (customerError || !customer) {
+            return res.status(404).send(`
+                <!DOCTYPE html>
+                <html>
+                <head><title>Invalid Link</title></head>
+                <body style="font-family: Arial; text-align: center; padding: 50px;">
+                    <h1>❌ Invalid Link</h1>
+                    <p>The deletion link is invalid or has expired.</p>
+                    <a href="/">Back to Home</a>
+                </body>
+                </html>
+            `);
+        }
+
+        // Check token expiry
+        const expiryDate = new Date(customer.delete_token_expiry);
+        if (new Date() > expiryDate) {
+            return res.status(400).send(`
+                <!DOCTYPE html>
+                <html>
+                <head><title>Link Expired</title></head>
+                <body style="font-family: Arial; text-align: center; padding: 50px;">
+                    <h1>⏳ Link Expired</h1>
+                    <p>The deletion link has expired. Please request a new one from the admin.</p>
+                    <a href="/">Back to Home</a>
+                </body>
+                </html>
+            `);
+        }
+
+        // Check if already deleted
+        if (customer.status === 'deleted') {
+            return res.status(400).send(`
+                <!DOCTYPE html>
+                <html>
+                <head><title>Already Deleted</title></head>
+                <body style="font-family: Arial; text-align: center; padding: 50px;">
+                    <h1>✅ Already Deleted</h1>
+                    <p>This account has already been deleted.</p>
+                    <a href="/">Back to Home</a>
+                </body>
+                </html>
+            `);
+        }
+
+        const customerName = customer.full_name;
+        const customerId = customer.customer_id;
+        const customerEmail = customer.email;
+
+        // ============================================================
+        // DELETE ALL CUSTOMER DATA
+        // ============================================================
+
+        // 1. Delete bookings
+        await supabaseAdmin
+            .from('booking')
+            .delete()
+            .eq('customer_id', customerId);
+
+        // 2. Delete pets
+        await supabaseAdmin
+            .from('pet')
+            .delete()
+            .eq('customer_id', customerId);
+
+        // 3. Delete reviews
+        await supabaseAdmin
+            .from('review')
+            .delete()
+            .eq('customer_id', customerId);
+
+        // 4. Delete customer
+        const { error: deleteError } = await supabaseAdmin
+            .from('customer')
+            .delete()
+            .eq('customer_id', customerId);
+
+        if (deleteError) {
+            throw deleteError;
+        }
+
+        // Send confirmation email
+        await sendDeletionConfirmedEmail(customerEmail, customerName);
+
+        // Show success page
+        res.send(`
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <title>Account Deleted - PawCare</title>
+                <style>
+                    body { font-family: 'Arial', sans-serif; background: #f5f0eb; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; padding: 20px; }
+                    .container { max-width: 480px; background: #ffffff; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.1); }
+                    .icon { font-size: 72px; margin-bottom: 16px; }
+                    h1 { color: #2E7D32; margin-bottom: 8px; }
+                    p { color: #555; line-height: 1.6; }
+                    .btn { display: inline-block; padding: 12px 32px; background: #5a361a; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 16px; }
+                    .btn:hover { background: #402410; }
+                    .footer { margin-top: 20px; padding-top: 16px; border-top: 1px solid #eee; font-size: 12px; color: #999; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="icon">✅</div>
+                    <h1>Account Deleted</h1>
+                    <p>Your PawCare account has been <strong>successfully deleted</strong>.</p>
+                    <p style="font-size: 14px; color: #7a7a7a;">
+                        A confirmation email has been sent to your registered email address.
+                    </p>
+                    <a href="/" class="btn">🏠 Back to Home</a>
+                    <div class="footer">
+                        <p>© 2026 PawCare Booking System — Paw Walker Grooming House</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `);
+
+    } catch (error) {
+        console.error('Error deleting account:', error);
+        res.status(500).send(`
+            <!DOCTYPE html>
+            <html>
+            <head><title>Error</title></head>
+            <body style="font-family: Arial; text-align: center; padding: 50px;">
+                <h1>❌ Something Went Wrong</h1>
+                <p>We encountered an error while processing your request.</p>
+                <p style="color: #7a7a7a;">Please try again or contact support.</p>
+                <a href="/">Back to Home</a>
+            </body>
+            </html>
+        `);
+    }
 });
 
 // ========== 启动服务器 ==========

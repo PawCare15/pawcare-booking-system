@@ -901,23 +901,32 @@ function confirmLogout() {
                     // 回复列表
                     let repliesHtml = '';
                     if (review.replies && review.replies.length > 0) {
-                        repliesHtml = '<div class="replies-section">';
+                        repliesHtml = '<div style="margin-top: 12px; padding-left: 16px; border-left: 2px solid #E8DCC8; margin-bottom: 5px;">';
                         review.replies.forEach(reply => {
                             const replierName = reply.customer ? reply.customer.full_name : 'User';
                             const repDate = reply.created_at ? new Date(reply.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                            const isLiked = reply.reply_liked_by_me;
+                            const likeColor = isLiked ? 'style="color:#5A361A;"' : '';
+                            const likeIcon = isLiked ? 'fa-solid' : 'fa-regular';
                             const repAvatar = reply.customer?.profile_photo ?
-                                `<img src="${reply.customer.profile_photo}">` :
+                                `<img src="${reply.customer.profile_photo}" style="width:100%; height:100%; object-fit:cover;">` :
                                 replierName.substring(0, 2).toUpperCase();
+
                             repliesHtml += `
-                                <div class="reply-item">
-                                    <div class="reply-avatar">${repAvatar}</div>
-                                    <div class="reply-content">
-                                        <span class="reply-author">${replierName}</span>
-                                        <span class="reply-text">${reply.reply_text}</span>
-                                        <div class="reply-date">${repDate}</div>
+                                <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; background: #FAF7F2; border: 1px solid #EFECE6; border-radius: 8px; padding: 10px;">
+                                    <div style="width: 28px; height: 28px; border-radius: 50%; background: #FDF3E7; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #5A361A;">
+                                        ${repAvatar}
                                     </div>
-                                </div>
-                            `;
+                                    <div style="font-size: 13px; display: flex; flex-direction: column; flex: 1;">
+                                        <span style="font-weight: 600; color: #5A361A;">${replierName}</span>
+                                        <span style="color: #444; margin-top: 2px;">${reply.reply_text}</span>
+                                        <div style="font-size: 11px; color: #B0A090; margin-top: 4px;">
+                                            ${repDate} 
+                                            <button class="reply-reply-btn" data-review-id="${review.review_id}" data-reply-id="${reply.reply_id}" style="border:none; background:none; color:#5A361A; cursor:pointer; margin-left:5px;"><i class="fa-regular fa-comment"></i> Reply</button>
+                                            <button class="reply-like-btn" ${likeColor} data-reply-id="${reply.reply_id}" style="border:none; background:none; cursor:pointer; margin-left:5px;"><i class="${likeIcon} fa-thumbs-up"></i> <span class="r-like-count">${reply.reply_like_count || 0}</span></button>
+                                        </div>
+                                    </div>
+                                </div>`;
                         });
                         repliesHtml += '</div>';
                     }
@@ -1202,6 +1211,70 @@ function confirmLogout() {
                         } finally {
                             btn.innerHTML = originalHtml;
                             btn.disabled = false;
+                        }
+                    });
+                }
+
+                // ===== 新增: 回复的点赞和回复子回复 =====
+                if (target.classList.contains('reply-like-btn')) {
+                    const replyId = target.dataset.replyId;
+                    const icon = target.querySelector('i');
+                    const countSpan = target.querySelector('.r-like-count');
+                    try {
+                        const token = localStorage.getItem('token');
+                        const res = await fetch(`/api/replies/${replyId}/like`, {
+                            method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            countSpan.textContent = data.like_count;
+                            if (data.action === 'liked') {
+                                target.style.color = '#5A361A';
+                                icon.className = 'fa-solid fa-thumbs-up';
+                            } else {
+                                target.style.color = '';
+                                icon.className = 'fa-regular fa-thumbs-up';
+                            }
+                        }
+                    } catch (err) { console.error('Reply like error:', err); }
+                }
+
+                if (target.classList.contains('reply-reply-btn')) {
+                    const parentItem = target.closest('.review-item-admin');
+                    const replyId = target.dataset.replyId;
+                    let existingReply = parentItem.querySelector('.reply-to-reply-box');
+                    if (existingReply) { existingReply.remove(); return; }
+
+                    const box = document.createElement('div');
+                    box.className = 'reply-to-reply-box';
+                    box.style.marginTop = '8px';
+                    box.style.padding = '10px';
+                    box.style.background = '#FFF';
+                    box.style.borderRadius = '8px';
+                    box.style.border = '1px solid #E8DCC8';
+                    box.innerHTML = `
+                        <textarea placeholder="Reply to this comment..." rows="2" style="width:100%; padding:8px; border-radius:6px; border:1px solid #EFECE6; font-family:'Poppins',sans-serif; resize:vertical;"></textarea>
+                        <div style="display:flex; gap:8px; margin-top:8px; justify-content:flex-end;">
+                            <button class="reply-submit-child" style="background:#5A361A; color:#fff; border:none; padding:6px 16px; border-radius:6px; cursor:pointer;">Send</button>
+                            <button class="reply-cancel-child" style="background:#EFECE6; border:none; padding:6px 16px; border-radius:6px; cursor:pointer;">Cancel</button>
+                        </div>
+                    `;
+                    parentItem.querySelector('.review-body-admin').appendChild(box);
+                    box.querySelector('textarea').focus();
+
+                    box.querySelector('.reply-cancel-child').addEventListener('click', () => box.remove());
+                    box.querySelector('.reply-submit-child').addEventListener('click', async function() {
+                        const text = box.querySelector('textarea').value.trim();
+                        if (!text) return;
+                        const token = localStorage.getItem('token');
+                        const res = await fetch(`/api/replies/${replyId}/reply`, {
+                            method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ reply_text: text })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            box.remove();
+                            await loadReviews(); // 重新加载整个列表以显示最新回复
                         }
                     });
                 }

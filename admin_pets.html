@@ -256,6 +256,23 @@
 
     </main>
 
+    <!-- ===== VALIDATION MODAL ===== -->
+    <div class="modal-overlay" id="validationModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="hideValidationModal()">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="modal-icon-circle danger">
+                <i class="fa-solid fa-circle-exclamation"></i>
+            </div>
+            <h2 class="modal-title">Oops!</h2>
+            <p class="modal-subtitle" id="validationMessage">Please fill in all required fields.</p>
+            <div class="modal-btn-group">
+                <button class="btn btn-primary" onclick="hideValidationModal()">OK</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- LOGOUT CONFIRM MODAL -->
     <div class="modal-overlay" id="logoutModal">
         <div class="modal-box">

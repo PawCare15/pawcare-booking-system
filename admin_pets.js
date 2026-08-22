@@ -151,222 +151,675 @@ function confirmLogout() {
     window.location.replace('index.html');
 }
 
-// CUSTOMER DATA - DROPDOWN OWNER
-let customersData = [
-    { id: '#CUS-0001', name: 'Jenny Lee', phone: '012-345 6789', email: 'jennylee@gmail.com' },
-    { id: '#CUS-0002', name: 'Ahmad Firdaus', phone: '013-987 6543', email: 'ahmadf@gmail.com' },
-    { id: '#CUS-0003', name: 'Siti Nur', phone: '013-987 6543', email: 'sitinur@gmail.com' },
-    { id: '#CUS-0004', name: 'Daniel Tan', phone: '012-363 5768', email: 'danieltan@gmail.com' },
-    { id: '#CUS-0005', name: 'Mei Ling', phone: '012-263 3289', email: 'meiling@gmail.com' },
-    { id: '#CUS-0006', name: 'Nur Aishah', phone: '012-123 4567', email: 'nuraishah@gmail.com' },
-    { id: '#CUS-0007', name: 'Jason Ho', phone: '012-456 7890', email: 'jasonho@gmail.com' },
-    { id: '#CUS-0008', name: 'Farhan Rizal', phone: '012-789 0123', email: 'farhanr@gmail.com' }
-];
-
-// PET DATA - SAMPLE PETS
-let petsData = [
-    {
-        id: '#PET-0001',
-        name: 'Buddy',
-        ownerId: '#CUS-0001',
-        owner: 'Jenny Lee',
-        species: 'Dog',
-        breed: 'Golden Retriever',
-        age: '3 Years',
-        weight: '25 kg',
-        status: 'Active',
-        gender: 'Male',
-        medicalNotes: 'No allergies. Healthy.',
-        lastService: '10 May 2026 (Grooming)',
-        totalBookings: 8,
-        ownerPhone: '012-345 6789',
-        ownerEmail: 'jennylee@gmail.com',
-        image: ''
-    },
-    {
-        id: '#PET-0002',
-        name: 'Luna',
-        ownerId: '#CUS-0002',
-        owner: 'Ahmad Firdaus',
-        species: 'Cat',
-        breed: 'Persian',
-        age: '2 Years',
-        weight: '4.2 kg',
-        status: 'Active',
-        gender: 'Female',
-        medicalNotes: 'Indoor cat. Shy with strangers.',
-        lastService: '08 May 2026 (Grooming)',
-        totalBookings: 5,
-        ownerPhone: '013-987 6543',
-        ownerEmail: 'ahmadf@gmail.com',
-        image: ''
-    },
-    {
-        id: '#PET-0003',
-        name: 'Max',
-        ownerId: '#CUS-0003',
-        owner: 'Siti Nur',
-        species: 'Dog',
-        breed: 'Poodle',
-        age: '4 Years',
-        weight: '7.8 kg',
-        status: 'Active',
-        gender: 'Male',
-        medicalNotes: 'Energetic. Loves treats.',
-        lastService: '12 May 2026 (Grooming)',
-        totalBookings: 6,
-        ownerPhone: '013-987 6543',
-        ownerEmail: 'sitinur@gmail.com',
-        image: ''
-    },
-    {
-        id: '#PET-0004',
-        name: 'Coco',
-        ownerId: '#CUS-0004',
-        owner: 'Daniel Tan',
-        species: 'Dog',
-        breed: 'Shih Tzu',
-        age: '5 Years',
-        weight: '6.1 kg',
-        status: 'Active',
-        gender: 'Female',
-        medicalNotes: 'Gentle and calm. Needs extra care for eyes.',
-        lastService: '15 May 2026 (Grooming)',
-        totalBookings: 4,
-        ownerPhone: '012-363 5768',
-        ownerEmail: 'danieltan@gmail.com',
-        image: ''
-    },
-    {
-        id: '#PET-0005',
-        name: 'Charlie',
-        ownerId: '#CUS-0005',
-        owner: 'Mei Ling',
-        species: 'Dog',
-        breed: 'Beagle',
-        age: '3 Years',
-        weight: '10.2 kg',
-        status: 'Active',
-        gender: 'Male',
-        medicalNotes: 'Very playful. Food motivated.',
-        lastService: '05 May 2026 (Grooming)',
-        totalBookings: 7,
-        ownerPhone: '012-263 3289',
-        ownerEmail: 'meiling@gmail.com',
-        image: ''
-    },
-    {
-        id: '#PET-0006',
-        name: 'Milo',
-        ownerId: '#CUS-0006',
-        owner: 'Nur Aishah',
-        species: 'Cat',
-        breed: 'British Shorthair',
-        age: '2 Years',
-        weight: '5.0 kg',
-        status: 'Active',
-        gender: 'Male',
-        medicalNotes: 'Loves to nap. Affectionate.',
-        lastService: '09 May 2026 (Check-up)',
-        totalBookings: 3,
-        ownerPhone: '012-123 4567',
-        ownerEmail: 'nuraishah@gmail.com',
-        image: ''
-    },
-    {
-        id: '#PET-0007',
-        name: 'Rocky',
-        ownerId: '#CUS-0007',
-        owner: 'Jason Ho',
-        species: 'Dog',
-        breed: 'Pomeranian',
-        age: '1 Year',
-        weight: '3.5 kg',
-        status: 'Active',
-        gender: 'Male',
-        medicalNotes: 'Small but brave. Needs gentle handling.',
-        lastService: '11 May 2026 (Grooming)',
-        totalBookings: 2,
-        ownerPhone: '012-456 7890',
-        ownerEmail: 'jasonho@gmail.com',
-        image: ''
-    },
-    {
-        id: '#PET-0008',
-        name: 'Bella',
-        ownerId: '#CUS-0008',
-        owner: 'Farhan Rizal',
-        species: 'Dog',
-        breed: 'Bulldog',
-        age: '4 Years',
-        weight: '15.0 kg',
-        status: 'Inactive',
-        gender: 'Female',
-        medicalNotes: 'Has skin allergy. Requires special shampoo.',
-        lastService: '02 Apr 2026 (Grooming)',
-        totalBookings: 1,
-        ownerPhone: '012-789 0123',
-        ownerEmail: 'farhanr@gmail.com',
-        image: ''
-    },
-    {
-        id: '#PET-0009',
-        name: 'Mimi',
-        ownerId: '#CUS-0003',
-        owner: 'Siti Nur',
-        species: 'Cat',
-        breed: 'Siamese',
-        age: '3 Years',
-        weight: '4.5 kg',
-        status: 'Active',
-        gender: 'Female',
-        medicalNotes: 'Very active and playful.',
-        lastService: '14 May 2026 (Grooming)',
-        totalBookings: 4,
-        ownerPhone: '013-987 6543',
-        ownerEmail: 'sitinur@gmail.com',
-        image: ''
-    },
-    {
-        id: '#PET-0010',
-        name: 'Brownie',
-        ownerId: '#CUS-0004',
-        owner: 'Daniel Tan',
-        species: 'Dog',
-        breed: 'Pug',
-        age: '2 Years',
-        weight: '8.0 kg',
-        status: 'Active',
-        gender: 'Male',
-        medicalNotes: 'Loves to eat. Needs exercise.',
-        lastService: '08 May 2026 (Grooming)',
-        totalBookings: 3,
-        ownerPhone: '012-363 5768',
-        ownerEmail: 'danieltan@gmail.com',
-        image: ''
-    }
-];
-
-// VARIABLES
+// ================================================================
+// PET DATA - LOAD FROM SUPABASE
+// ================================================================
+let petsData = [];
+let customersData = [];
 let currentPetId = null;
 let isEditMode = false;
 let tempImageData = null;
 
-// GET CUSTOMER DROPDOWN OPTIONS
-function getCustomerOptions(selectedId) {
-    return customersData.map(customer => {
-        const selected = customer.id === selectedId ? 'selected' : '';
-        return `<option value="${customer.id}" ${selected}>${customer.name} (${customer.id})</option>`;
-    }).join('');
+// ================================================================
+// LOAD ADMIN PROFILE FROM SUPABASE
+// ================================================================
+async function loadAdminProfile() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/admin?select=admin_id,full_name,email,phone_number,profile_photo`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'apikey': SUPABASE_ANON_KEY
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch admin profile: ${response.status}`);
+        }
+
+        const admins = await response.json();
+        
+        if (admins && admins.length > 0) {
+            const adminData = admins[0];
+            
+            const headerName = document.getElementById('headerName');
+            const headerAvatarImg = document.getElementById('headerAvatarImg');
+            const headerAvatarPlaceholder = document.getElementById('headerAvatarPlaceholder');
+            
+            if (headerName) headerName.textContent = adminData.full_name || 'Admin';
+            
+            if (adminData.profile_photo) {
+                if (headerAvatarImg) {
+                    headerAvatarImg.src = adminData.profile_photo;
+                    headerAvatarImg.style.display = 'block';
+                }
+                if (headerAvatarPlaceholder) headerAvatarPlaceholder.style.display = 'none';
+            } else {
+                if (headerAvatarImg) headerAvatarImg.style.display = 'none';
+                if (headerAvatarPlaceholder) headerAvatarPlaceholder.style.display = 'inline';
+            }
+            
+            console.log('✅ Admin profile loaded:', adminData.full_name);
+        }
+    } catch (err) {
+        console.error('Error loading admin profile:', err);
+        const headerName = document.getElementById('headerName');
+        if (headerName) headerName.textContent = 'Admin';
+    }
 }
 
-// GET CUSTOMER BY ID
-function getCustomerById(id) {
-    return customersData.find(c => c.id === id);
+// ================================================================
+// NOTIFICATION FUNCTIONS - PET PAGE
+// ================================================================
+
+// 1. GET NEW PETS TODAY
+async function getNewPetsToday() {
+    try {
+        const token = localStorage.getItem('token');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayStr = today.toISOString();
+        
+        const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/pet?select=pet_id,pet_name,species,breed,customer_id,created_at&created_at=gte.${todayStr}&order=created_at.desc`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'apikey': SUPABASE_ANON_KEY
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch new pets: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (err) {
+        console.error('Error getting new pets today:', err);
+        return [];
+    }
 }
 
+// 2. GET PETS WITH UPCOMING BOOKINGS (within 3 days)
+async function getPetsWithUpcomingBookings() {
+    try {
+        const token = localStorage.getItem('token');
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayStr = today.toISOString();
+        
+        const threeDaysLater = new Date(today);
+        threeDaysLater.setDate(threeDaysLater.getDate() + 3);
+        const threeDaysStr = threeDaysLater.toISOString();
+        
+        const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/booking?select=pet_id,booking_date,booking_time,status&status=in.(pending,upcoming)&booking_date=gte.${todayStr}&booking_date=lte.${threeDaysStr}&order=booking_date.asc`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'apikey': SUPABASE_ANON_KEY
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch upcoming bookings: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (err) {
+        console.error('Error getting pets with upcoming bookings:', err);
+        return [];
+    }
+}
+
+// 3. GET PETS WITH SPECIAL NOTES
+async function getPetsWithSpecialNotes() {
+    try {
+        const token = localStorage.getItem('token');
+        
+        const response = await fetch(
+            `${SUPABASE_URL}/rest/v1/pet?select=pet_id,pet_name,species,breed,special_notes,customer_id&special_notes=not.is.null&special_notes=neq.`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'apikey': SUPABASE_ANON_KEY
+                }
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch pets with special notes: ${response.status}`);
+        }
+
+        return await response.json();
+    } catch (err) {
+        console.error('Error getting pets with special notes:', err);
+        return [];
+    }
+}
+
+// 4. GET INACTIVE PETS (> 6 months no booking)
+async function getInactivePets() {
+    try {
+        const token = localStorage.getItem('token');
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        const sixMonthsStr = sixMonthsAgo.toISOString();
+        
+        // Get all pets
+        const petResponse = await fetch(
+            `${SUPABASE_URL}/rest/v1/pet?select=pet_id,pet_name,species,breed,customer_id,created_at`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'apikey': SUPABASE_ANON_KEY
+                }
+            }
+        );
+
+        if (!petResponse.ok) {
+            throw new Error(`Failed to fetch pets: ${petResponse.status}`);
+        }
+
+        const allPets = await petResponse.json();
+        
+        // Get bookings in last 6 months
+        const bookingResponse = await fetch(
+            `${SUPABASE_URL}/rest/v1/booking?select=pet_id,booking_date&booking_date=gte.${sixMonthsStr}`,
+            {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'apikey': SUPABASE_ANON_KEY
+                }
+            }
+        );
+
+        if (!bookingResponse.ok) {
+            throw new Error(`Failed to fetch bookings: ${bookingResponse.status}`);
+        }
+
+        const recentBookings = await bookingResponse.json();
+        
+        // Get pet IDs with recent bookings
+        const activePetIds = new Set();
+        recentBookings.forEach(b => {
+            if (b.pet_id) activePetIds.add(b.pet_id);
+        });
+        
+        // Filter pets with no recent bookings
+        const inactivePets = allPets.filter(p => 
+            !activePetIds.has(p.pet_id) && p.created_at < sixMonthsStr
+        );
+        
+        return inactivePets;
+    } catch (err) {
+        console.error('Error getting inactive pets:', err);
+        return [];
+    }
+}
+
+// ================================================================
+// LOAD NOTIFICATION COUNT - PET PAGE
+// ================================================================
+async function loadNotificationCount() {
+    try {
+        const newPets = await getNewPetsToday();
+        const upcomingBookings = await getPetsWithUpcomingBookings();
+        
+        const uniquePetsWithUpcoming = new Set();
+        upcomingBookings.forEach(b => {
+            if (b.pet_id) uniquePetsWithUpcoming.add(b.pet_id);
+        });
+        
+        const totalNotifications = newPets.length + uniquePetsWithUpcoming.size;
+        
+        const notifCount = document.getElementById('notifCount');
+        if (notifCount) {
+            if (totalNotifications > 0) {
+                notifCount.textContent = totalNotifications;
+                notifCount.classList.add('show');
+                notifCount.style.display = 'flex';
+            } else {
+                notifCount.textContent = '';
+                notifCount.classList.remove('show');
+                notifCount.style.display = 'none';
+            }
+        }
+
+        window.notificationData = {
+            newPets: newPets,
+            upcomingBookings: upcomingBookings,
+            total: totalNotifications
+        };
+
+        console.log(`🔔 Pet Notifications: ${totalNotifications} (New: ${newPets.length}, Upcoming: ${uniquePetsWithUpcoming.size})`);
+        
+        return totalNotifications;
+
+    } catch (err) {
+        console.error('Error loading notification count:', err);
+        const notifCount = document.getElementById('notifCount');
+        if (notifCount) {
+            notifCount.textContent = '';
+            notifCount.classList.remove('show');
+            notifCount.style.display = 'none';
+        }
+        return 0;
+    }
+}
+
+// ================================================================
+// SHOW NOTIFICATION DETAILS - PET PAGE
+// ================================================================
+async function showNotificationDetails() {
+    try {
+        const modal = document.getElementById('notificationsModal');
+        const content = document.getElementById('notificationsModalContent');
+        if (content) {
+            content.innerHTML = `
+                <div style="text-align: center; padding: 30px 20px; color: #7A7A7A;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 30px; display: block; margin-bottom: 10px;"></i>
+                    <p>Loading notifications...</p>
+                </div>
+            `;
+        }
+        
+        if (modal) {
+            lockBodyScroll();
+            modal.classList.add('active');
+        }
+
+        const newPets = await getNewPetsToday();
+        const upcomingBookings = await getPetsWithUpcomingBookings();
+        const specialNotesPets = await getPetsWithSpecialNotes();
+        const inactivePets = await getInactivePets();
+        
+        const uniquePetsWithUpcoming = new Set();
+        upcomingBookings.forEach(b => {
+            if (b.pet_id) uniquePetsWithUpcoming.add(b.pet_id);
+        });
+        
+        let html = '';
+        let hasNotifications = false;
+
+        // SECTION 1: NEW PETS TODAY
+        if (newPets.length > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="margin-bottom: 16px;">
+                    <h4 style="color: #2E7D32; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-paw"></i> New Pets Today (${newPets.length})
+                    </h4>
+            `;
+            newPets.forEach(pet => {
+                const speciesIcon = pet.species === 'Dog' ? '🐕' : '🐈';
+                const createdTime = new Date(pet.created_at).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                html += `
+                    <div style="background: #E8F5E9; border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; border-left: 3px solid #2E7D32; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="font-size: 14px;">${speciesIcon} ${pet.pet_name}</strong>
+                            <div style="font-size: 12px; color: #7A7A7A;">${pet.breed || 'Unknown breed'}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 11px; color: #7A7A7A;">${pet.species}</span>
+                            <div style="font-size: 10px; color: #B0A090;">Added ${createdTime}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `
+                    <div style="margin-top: 8px;">
+                        <a href="admin_pets.html" style="font-size: 12px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View All Pets
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // SECTION 2: PETS WITH UPCOMING BOOKINGS
+        if (upcomingBookings.length > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="margin-bottom: 16px;">
+                    <h4 style="color: #D97706; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-regular fa-calendar"></i> Pets with Upcoming Bookings (${upcomingBookings.length})
+                    </h4>
+            `;
+            upcomingBookings.forEach(booking => {
+                const date = new Date(booking.booking_date).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                html += `
+                    <div style="background: #FEF7E0; border-radius: 8px; padding: 8px 14px; margin-bottom: 6px; border-left: 3px solid #D97706;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                            <span><strong>Pet ID: ${booking.pet_id || 'N/A'}</strong></span>
+                            <span style="color: #7A7A7A; font-size: 12px;">${date} ${booking.booking_time || ''}</span>
+                        </div>
+                        <div style="font-size: 12px; color: #7A7A7A; margin-top: 2px;">
+                            Status: ${booking.status || 'Pending'}
+                        </div>
+                        <a href="admin_bookings.html" style="font-size: 11px; color: #5A361A; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 4px;">
+                            <i class="fa-regular fa-eye"></i> View Bookings
+                        </a>
+                    </div>
+                `;
+            });
+            html += `
+                    <div style="margin-top: 8px;">
+                        <a href="admin_bookings.html" style="font-size: 12px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View All Bookings
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // SECTION 3: PETS WITH SPECIAL NOTES
+        if (specialNotesPets.length > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="margin-bottom: 16px; padding-top: 12px; border-top: 1px solid #EFECE6;">
+                    <h4 style="color: #4A148C; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-pen"></i> Pets with Special Notes (${specialNotesPets.length})
+                    </h4>
+            `;
+            const displaySpecial = specialNotesPets.slice(0, 5);
+            displaySpecial.forEach(pet => {
+                const speciesIcon = pet.species === 'Dog' ? '🐕' : '🐈';
+                html += `
+                    <div style="background: #F3E5F5; border-radius: 6px; padding: 8px 12px; margin-bottom: 4px; border-left: 3px solid #7B1FA2; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="font-size: 13px;">${speciesIcon} ${pet.pet_name}</strong>
+                            <span style="color: #7A7A7A; font-size: 11px; margin-left: 8px;">${pet.breed || ''}</span>
+                        </div>
+                        <a href="admin_pets.html" style="font-size: 11px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View
+                        </a>
+                    </div>
+                `;
+            });
+            if (specialNotesPets.length > 5) {
+                html += `
+                    <div style="font-size: 12px; color: #7A7A7A; text-align: center; margin-top: 4px;">
+                        + ${specialNotesPets.length - 5} more pets with special notes
+                    </div>
+                `;
+            }
+            html += `
+                    <div style="margin-top: 8px;">
+                        <a href="admin_pets.html" style="font-size: 12px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View All Pets
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // SECTION 4: INACTIVE PETS
+        if (inactivePets.length > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="margin-bottom: 4px; padding-top: 12px; border-top: 1px solid #EFECE6;">
+                    <h4 style="color: #BF360C; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-regular fa-circle-xmark"></i> Inactive Pets (${inactivePets.length})
+                    </h4>
+                    <div style="font-size: 12px; color: #7A7A7A; margin-bottom: 8px;">
+                        No bookings in the last 6 months
+                    </div>
+            `;
+            const displayInactive = inactivePets.slice(0, 5);
+            displayInactive.forEach(pet => {
+                const speciesIcon = pet.species === 'Dog' ? '🐕' : '🐈';
+                const joinedDate = new Date(pet.created_at).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                html += `
+                    <div style="background: #FBE9E7; border-radius: 6px; padding: 8px 12px; margin-bottom: 4px; border-left: 3px solid #BF360C; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="font-size: 13px;">${speciesIcon} ${pet.pet_name}</strong>
+                            <span style="color: #7A7A7A; font-size: 11px; margin-left: 8px;">Joined: ${joinedDate}</span>
+                        </div>
+                        <a href="admin_pets.html" style="font-size: 11px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View
+                        </a>
+                    </div>
+                `;
+            });
+            if (inactivePets.length > 5) {
+                html += `
+                    <div style="font-size: 12px; color: #7A7A7A; text-align: center; margin-top: 4px;">
+                        + ${inactivePets.length - 5} more inactive pets
+                    </div>
+                `;
+            }
+            html += `
+                    <div style="margin-top: 8px;">
+                        <a href="admin_pets.html" style="font-size: 12px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View All Pets
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // EMPTY STATE
+        if (!hasNotifications) {
+            html = `
+                <div style="text-align: center; padding: 40px 20px;">
+                    <i class="fa-regular fa-bell" style="font-size: 56px; display: block; margin-bottom: 16px; color: #D3C4B8;"></i>
+                    <h3 style="font-size: 18px; font-weight: 600; color: #333333; margin-bottom: 6px;">No Pet Notifications</h3>
+                    <p style="font-size: 14px; color: #7A7A7A; max-width: 280px; margin: 0 auto;">
+                        No new pets, upcoming bookings, or inactive pets at the moment.
+                    </p>
+                    <div style="margin-top: 16px; padding: 10px 20px; background: #F5F0EB; border-radius: 8px; display: inline-block; font-size: 12px; color: #7A7A7A;">
+                        <i class="fa-regular fa-circle-check" style="color: #2E7D32;"></i> All caught up!
+                    </div>
+                </div>
+            `;
+        }
+
+        if (content) {
+            content.innerHTML = html;
+        }
+
+    } catch (err) {
+        console.error('Error loading notification details:', err);
+        const content = document.getElementById('notificationsModalContent');
+        if (content) {
+            content.innerHTML = `
+                <div style="text-align: center; padding: 30px 20px; color: #DC2626;">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size: 30px; display: block; margin-bottom: 10px;"></i>
+                    <p>Failed to load notifications. Please try again.</p>
+                    <button onclick="showNotificationDetails()" style="margin-top: 10px; padding: 8px 20px; background: #5A361A; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
+    }
+}
+
+// ================================================================
+// LOAD CUSTOMERS FROM SUPABASE (for dropdown)
+// ================================================================
+async function loadCustomersForDropdown() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/customer?select=customer_id,full_name,email,phone_number&order=full_name.asc`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'apikey': SUPABASE_ANON_KEY
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch customers: ${response.status}`);
+        }
+
+        customersData = await response.json();
+        
+        const select = document.getElementById('petOwnerId');
+        if (select) {
+            const currentValue = select.value;
+            select.innerHTML = '<option value="">-- Select Existing Customer --</option>';
+            customersData.forEach(customer => {
+                const option = document.createElement('option');
+                option.value = customer.customer_id;
+                option.textContent = `${customer.full_name} (${customer.customer_id})`;
+                if (customer.customer_id === currentValue) {
+                    option.selected = true;
+                }
+                select.appendChild(option);
+            });
+        }
+        
+        return customersData;
+    } catch (err) {
+        console.error('Error loading customers for dropdown:', err);
+        return [];
+    }
+}
+
+// ================================================================
+// LOAD PETS FROM SUPABASE
+// ================================================================
+async function loadPetsFromSupabase() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/pet?select=*,customer:customer_id(full_name,email,phone_number)&order=created_at.desc`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'apikey': SUPABASE_ANON_KEY
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch pets: ${response.status}`);
+        }
+
+        const pets = await response.json();
+        
+        petsData = pets.map(pet => {
+            let ageDisplay = 'N/A';
+            if (pet.date_of_birth) {
+                const dob = new Date(pet.date_of_birth);
+                const today = new Date();
+                let years = today.getFullYear() - dob.getFullYear();
+                const months = today.getMonth() - dob.getMonth();
+                if (months < 0 || (months === 0 && today.getDate() < dob.getDate())) {
+                    years--;
+                }
+                if (years > 0) {
+                    ageDisplay = `${years} ${years === 1 ? 'Year' : 'Years'}`;
+                } else {
+                    const monthDiff = (today.getMonth() - dob.getMonth() + 12) % 12;
+                    ageDisplay = `${monthDiff} ${monthDiff === 1 ? 'Month' : 'Months'}`;
+                }
+            }
+            
+            return {
+                id: pet.pet_id || '#PET-' + String(Math.floor(Math.random() * 10000)).padStart(4, '0'),
+                pet_id: pet.pet_id,
+                name: pet.pet_name || 'Unknown',
+                ownerId: pet.customer_id || '',
+                owner: pet.customer?.full_name || 'Unknown',
+                species: pet.species || 'Dog',
+                breed: pet.breed || '',
+                age: ageDisplay,
+                weight: pet.weight ? `${pet.weight} kg` : 'N/A',
+                status: 'Active',
+                gender: pet.gender || 'Male',
+                medicalNotes: pet.special_notes || '',
+                lastService: 'None scheduled',
+                totalBookings: 0,
+                ownerPhone: pet.customer?.phone_number || 'N/A',
+                ownerEmail: pet.customer?.email || 'N/A',
+                image: pet.pet_photo || '',
+                created_at: pet.created_at || new Date().toISOString()
+            };
+        });
+
+        await loadPetBookingStats();
+
+        renderPetTable(petsData);
+        loadPetStats();
+        loadNotificationCount();
+        
+        return petsData;
+    } catch (err) {
+        console.error('Error loading pets from Supabase:', err);
+        showValidationModal('Failed to load pets from database. Please refresh.');
+        return [];
+    }
+}
+
+// ================================================================
+// LOAD PET BOOKING STATS
+// ================================================================
+async function loadPetBookingStats() {
+    try {
+        const token = localStorage.getItem('token');
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/booking?select=pet_id,status,booking_date`, {
+            method: 'GET',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'apikey': SUPABASE_ANON_KEY
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch bookings: ${response.status}`);
+        }
+
+        const bookings = await response.json();
+
+        const bookingMap = {};
+        bookings.forEach(booking => {
+            const petId = booking.pet_id;
+            if (!bookingMap[petId]) {
+                bookingMap[petId] = {
+                    total: 0,
+                    completed: 0
+                };
+            }
+            bookingMap[petId].total++;
+            if (booking.status === 'completed') bookingMap[petId].completed++;
+        });
+
+        petsData.forEach(pet => {
+            const stats = bookingMap[pet.pet_id] || { total: 0, completed: 0 };
+            pet.totalBookings = stats.total;
+            if (stats.total > 0 && stats.completed > 0) {
+                pet.lastService = 'Has bookings';
+            }
+        });
+
+    } catch (err) {
+        console.error('Error loading pet booking stats:', err);
+    }
+}
+
+// ================================================================
 // RENDER PET TABLE
-// RENDER PET TABLE
+// ================================================================
 function renderPetTable(data) {
     const tbody = document.getElementById('petTableBody');
     const countSpan = document.getElementById('petCount');
@@ -380,8 +833,8 @@ function renderPetTable(data) {
     if (countSpan) countSpan.textContent = data.length;
     
     tbody.innerHTML = data.map(pet => {
-        const statusClass = pet.status.toLowerCase();
-        const statusDisplay = pet.status;
+        const statusClass = pet.status ? pet.status.toLowerCase() : 'active';
+        const statusDisplay = pet.status || 'Active';
         const speciesIcon = pet.species === 'Dog' ? 'fa-solid fa-dog' : 'fa-solid fa-cat';
         
         const avatarHtml = pet.image ? 
@@ -389,7 +842,7 @@ function renderPetTable(data) {
             `<div style="width:28px; height:28px; border-radius:50%; background:#FDF3E7; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:11px; color:#5A361A; flex-shrink:0;">${pet.name.charAt(0).toUpperCase()}</div>`;
         
         return `<tr>
-            <td><strong>${pet.id}</strong></td>
+            <td><strong>${pet.id || pet.pet_id || 'N/A'}</strong></td>
             <td>
                 <div style="display:flex; align-items:center; gap:8px;">
                     ${avatarHtml}
@@ -398,19 +851,19 @@ function renderPetTable(data) {
             </td>
             <td>${pet.owner}</td>
             <td><i class="${speciesIcon}" style="margin-right:4px; color:#5A361A;"></i> ${pet.species}</td>
-            <td>${pet.breed}</td>
+            <td>${pet.breed || 'N/A'}</td>
             <td>${pet.age}</td>
             <td>${pet.weight}</td>
             <td><span class="status-badge-sm ${statusClass}">${statusDisplay}</span></td>
             <td>
                 <div class="action-btns">
-                    <button class="btn-action view" onclick="viewPetDetail('${pet.id}')" title="View Details">
+                    <button class="btn-action view" onclick="viewPetDetail('${pet.pet_id}')" title="View Details">
                         <i class="fa-regular fa-eye"></i>
                     </button>
-                    <button class="btn-action edit" onclick="openEditPetModal('${pet.id}')" title="Edit">
+                    <button class="btn-action edit" onclick="openEditPetModal('${pet.pet_id}')" title="Edit">
                         <i class="fa-regular fa-pen-to-square"></i>
                     </button>
-                    <button class="btn-action delete" onclick="openDeleteModal('${pet.id}')" title="Delete">
+                    <button class="btn-action delete" onclick="openDeleteModal('${pet.pet_id}')" title="Delete">
                         <i class="fa-regular fa-trash-can"></i>
                     </button>
                 </div>
@@ -419,19 +872,21 @@ function renderPetTable(data) {
     }).join('');
 }
 
+// ================================================================
 // VIEW PET DETAIL
+// ================================================================
 function viewPetDetail(id) {
-    const pet = petsData.find(p => p.id === id);
+    const pet = petsData.find(p => p.pet_id === id);
     
     if (!pet) {
-        alert('PET NOT FOUND!');
+        showValidationModal('Pet not found!');
         return;
     }
     
     const modal = document.getElementById('petDetailModal');
     const content = document.getElementById('petDetailContent');
     
-    const statusClass = pet.status.toLowerCase();
+    const statusClass = pet.status ? pet.status.toLowerCase() : 'active';
     const speciesIcon = pet.species === 'Dog' ? 'fa-solid fa-dog' : 'fa-solid fa-cat';
     
     const petImageHtml = pet.image ? 
@@ -446,9 +901,9 @@ function viewPetDetail(id) {
             <div>
                 <div class="detail-modal-name">${pet.name}</div>
                 <div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:4px; align-items:center;">
-                    <span class="detail-modal-id"><i class="fa-regular fa-id-card"></i> ${pet.id}</span>
-                    <span style="font-size:12px; color:#8A7A6A;"><i class="fa-regular fa-calendar"></i> ${pet.breed}</span>
-                    <span class="detail-modal-status ${statusClass}">${pet.status}</span>
+                    <span class="detail-modal-id"><i class="fa-regular fa-id-card"></i> ${pet.id || pet.pet_id}</span>
+                    <span style="font-size:12px; color:#8A7A6A;"><i class="fa-regular fa-calendar"></i> ${pet.breed || 'Unknown breed'}</span>
+                    <span class="detail-modal-status ${statusClass}">${pet.status || 'Active'}</span>
                 </div>
             </div>
         </div>
@@ -511,10 +966,10 @@ function viewPetDetail(id) {
         
         <div class="detail-actions">
             <button class="btn btn-secondary" onclick="closePetDetail()">Close</button>
-            <button class="btn btn-primary" onclick="closePetDetail(); openEditPetModal('${pet.id}')">
+            <button class="btn btn-primary" onclick="closePetDetail(); openEditPetModal('${pet.pet_id}')">
                 <i class="fa fa-pencil" aria-hidden="true"></i> Edit Pet
             </button>
-            <button class="btn btn-danger" onclick="closePetDetail(); openDeleteModal('${pet.id}')">
+            <button class="btn btn-danger" onclick="closePetDetail(); openDeleteModal('${pet.pet_id}')">
                 <i class="fa fa-trash-o" aria-hidden="true"></i> Delete Pet
             </button>
         </div>
@@ -530,7 +985,9 @@ function closePetDetail() {
     unlockBodyScroll();
 }
 
-// FORMAT AGE 
+// ================================================================
+// FORMAT AGE
+// ================================================================
 function formatAge(value) {
     const num = parseInt(value);
     if (isNaN(num) || num < 0) return '';
@@ -538,26 +995,30 @@ function formatAge(value) {
     return num + ' Years';
 }
 
-// FORMAT WEIGHT 
+// ================================================================
+// FORMAT WEIGHT
+// ================================================================
 function formatWeight(value) {
     const num = parseFloat(value);
     if (isNaN(num) || num < 0) return '';
     return num + ' kg';
 }
 
-// HANDLE IMAGE UPLOAD 
+// ================================================================
+// HANDLE IMAGE UPLOAD
+// ================================================================
 function handleImageUpload(event) {
     const file = event.target.files[0];
     if (!file) return;
     
     if (file.size > 2 * 1024 * 1024) {
-        alert('Image size must be less than 2MB. Please choose a smaller image.');
+        showValidationModal('Image size must be less than 2MB. Please choose a smaller image.');
         event.target.value = '';
         return;
     }
     
     if (!file.type.startsWith('image/')) {
-        alert('Please select a valid image file.');
+        showValidationModal('Please select a valid image file.');
         event.target.value = '';
         return;
     }
@@ -578,7 +1039,9 @@ function handleImageUpload(event) {
     reader.readAsDataURL(file);
 }
 
+// ================================================================
 // REMOVE IMAGE
+// ================================================================
 function removeImage() {
     tempImageData = null;
     const preview = document.getElementById('imagePreview');
@@ -596,7 +1059,47 @@ function removeImage() {
     }
 }
 
-// ADD PET MODAL
+// ================================================================
+// GET CUSTOMER DROPDOWN OPTIONS
+// ================================================================
+function getCustomerOptions(selectedId) {
+    return customersData.map(customer => {
+        const selected = customer.customer_id === selectedId ? 'selected' : '';
+        return `<option value="${customer.customer_id}" ${selected}>${customer.full_name} (${customer.customer_id})</option>`;
+    }).join('');
+}
+
+// ================================================================
+// GET CUSTOMER BY ID
+// ================================================================
+function getCustomerById(id) {
+    return customersData.find(c => c.customer_id === id);
+}
+
+// ================================================================
+// AUTO FILL OWNER DETAILS
+// ================================================================
+function autoFillOwnerDetails() {
+    const select = document.getElementById('petOwnerId');
+    const customerId = select.value;
+    
+    if (customerId) {
+        const customer = getCustomerById(customerId);
+        if (customer) {
+            document.getElementById('petOwnerName').value = customer.full_name;
+            document.getElementById('petOwnerPhone').value = customer.phone_number || '';
+            document.getElementById('petOwnerEmail').value = customer.email || '';
+        }
+    } else {
+        document.getElementById('petOwnerName').value = '';
+        document.getElementById('petOwnerPhone').value = '';
+        document.getElementById('petOwnerEmail').value = '';
+    }
+}
+
+// ================================================================
+// OPEN ADD PET MODAL
+// ================================================================
 function openAddPetModal() {
     isEditMode = false;
     currentPetId = null;
@@ -665,14 +1168,12 @@ function openAddPetModal() {
                         <input type="text" id="petBreed" placeholder="e.g. Golden Retriever" required>
                     </div>
                     <div class="field">
-                        <label>Age (number) <span class="required">*</span></label>
-                        <input type="number" id="petAge" placeholder="e.g. 3" min="0" step="0.5" required>
-                        <small style="color:#8A7A6A; font-size:10px; margin-top:4px;">Auto format: 3 → 3 Years</small>
+                        <label>Date of Birth</label>
+                        <input type="date" id="petDob">
                     </div>
                     <div class="field">
-                        <label>Weight (number) <span class="required">*</span></label>
+                        <label>Weight (kg) <span class="required">*</span></label>
                         <input type="number" id="petWeight" placeholder="e.g. 25" min="0" step="0.1" required>
-                        <small style="color:#8A7A6A; font-size:10px; margin-top:4px;">Auto format: 25 → 25 kg</small>
                     </div>
                     <div class="field">
                         <label>Gender</label>
@@ -742,12 +1243,14 @@ function openAddPetModal() {
     lockBodyScroll();
 }
 
-// EDIT PET MODAL
+// ================================================================
+// OPEN EDIT PET MODAL
+// ================================================================
 function openEditPetModal(id) {
-    const pet = petsData.find(p => p.id === id);
+    const pet = petsData.find(p => p.pet_id === id);
     
     if (!pet) {
-        alert('PET NOT FOUND!');
+        showValidationModal('Pet not found!');
         return;
     }
     
@@ -758,7 +1261,6 @@ function openEditPetModal(id) {
     const modal = document.getElementById('petFormModal');
     const content = document.getElementById('petFormContent');
     
-    const ageNum = pet.age.replace(' Years', '').replace(' Year', '').trim();
     const weightNum = pet.weight.replace(' kg', '').trim();
     const hasImage = pet.image && pet.image.length > 0;
     
@@ -769,7 +1271,7 @@ function openEditPetModal(id) {
             </div>
             <div class="edit-title">
                 <h3>Edit Pet</h3>
-                <span>${pet.id}</span>
+                <span>${pet.id || pet.pet_id}</span>
             </div>
         </div>
         
@@ -822,14 +1324,12 @@ function openEditPetModal(id) {
                         <input type="text" id="petBreed" value="${pet.breed}" required>
                     </div>
                     <div class="field">
-                        <label>Age (number) <span class="required">*</span></label>
-                        <input type="number" id="petAge" value="${ageNum}" min="0" step="0.5" required>
-                        <small style="color:#8A7A6A; font-size:10px; margin-top:4px;">Auto format: 3 → 3 Years</small>
+                        <label>Date of Birth</label>
+                        <input type="date" id="petDob">
                     </div>
                     <div class="field">
-                        <label>Weight (number) <span class="required">*</span></label>
+                        <label>Weight (kg) <span class="required">*</span></label>
                         <input type="number" id="petWeight" value="${weightNum}" min="0" step="0.1" required>
-                        <small style="color:#8A7A6A; font-size:10px; margin-top:4px;">Auto format: 25 → 25 kg</small>
                     </div>
                     <div class="field">
                         <label>Gender</label>
@@ -892,25 +1392,9 @@ function openEditPetModal(id) {
     lockBodyScroll();
 }
 
-// AUTO FILL OWNER DETAILS
-function autoFillOwnerDetails() {
-    const select = document.getElementById('petOwnerId');
-    const customerId = select.value;
-    
-    if (customerId) {
-        const customer = getCustomerById(customerId);
-        if (customer) {
-            document.getElementById('petOwnerName').value = customer.name;
-            document.getElementById('petOwnerPhone').value = customer.phone || '';
-            document.getElementById('petOwnerEmail').value = customer.email || '';
-        }
-    } else {
-        document.getElementById('petOwnerName').value = '';
-        document.getElementById('petOwnerPhone').value = '';
-        document.getElementById('petOwnerEmail').value = '';
-    }
-}
-
+// ================================================================
+// CLOSE PET FORM MODAL
+// ================================================================
 function closePetFormModal() {
     const modal = document.getElementById('petFormModal');
     modal.classList.remove('active');
@@ -920,14 +1404,16 @@ function closePetFormModal() {
     tempImageData = null;
 }
 
-// SAVE PET
-function savePet(event) {
+// ================================================================
+// SAVE PET (Add or Update) - CONNECT TO SUPABASE
+// ================================================================
+async function savePet(event) {
     event.preventDefault();
     
     const name = document.getElementById('petName').value.trim();
     const species = document.getElementById('petSpecies').value;
     const breed = document.getElementById('petBreed').value.trim();
-    const ageInput = document.getElementById('petAge').value.trim();
+    const dob = document.getElementById('petDob').value;
     const weightInput = document.getElementById('petWeight').value.trim();
     const gender = document.getElementById('petGender').value;
     const medicalNotes = document.getElementById('petMedicalNotes').value.trim();
@@ -937,98 +1423,97 @@ function savePet(event) {
     const ownerPhone = document.getElementById('petOwnerPhone').value.trim();
     const ownerEmail = document.getElementById('petOwnerEmail').value.trim();
     
+    // Validation
     if (!name) {
-        alert('Please enter pet name.');
+        showValidationModal('Please enter pet name.');
         document.getElementById('petName').focus();
         return;
     }
     if (!ownerId) {
-        alert('Please select an existing owner.');
+        showValidationModal('Please select an existing owner.');
         document.getElementById('petOwnerId').focus();
         return;
     }
     if (!ownerName) {
-        alert('Owner name is required. Please select a valid customer.');
+        showValidationModal('Owner name is required. Please select a valid customer.');
         document.getElementById('petOwnerId').focus();
         return;
     }
     if (!breed) {
-        alert('Please enter breed.');
+        showValidationModal('Please enter breed.');
         document.getElementById('petBreed').focus();
         return;
     }
-    if (!ageInput || isNaN(ageInput) || parseFloat(ageInput) < 0) {
-        alert('Please enter a valid age (number).');
-        document.getElementById('petAge').focus();
-        return;
-    }
     if (!weightInput || isNaN(weightInput) || parseFloat(weightInput) <= 0) {
-        alert('Please enter a valid weight (number).');
+        showValidationModal('Please enter a valid weight (number).');
         document.getElementById('petWeight').focus();
         return;
     }
     
-    const age = formatAge(ageInput);
-    const weight = formatWeight(weightInput);
+    const weight = parseFloat(weightInput);
     const imageData = tempImageData || '';
     
-    if (isEditMode && currentPetId) {
-        const pet = petsData.find(p => p.id === currentPetId);
+    const petData = {
+        pet_name: name,
+        customer_id: ownerId,
+        species: species,
+        breed: breed,
+        date_of_birth: dob || null,
+        weight: weight,
+        gender: gender,
+        special_notes: medicalNotes || '',
+        pet_photo: imageData || null
+    };
+    
+    try {
+        const token = localStorage.getItem('token');
+        let url = `${SUPABASE_URL}/rest/v1/pet`;
+        let method = 'POST';
         
-        if (pet) {
-            pet.name = name;
-            pet.ownerId = ownerId;
-            pet.owner = ownerName;
-            pet.species = species;
-            pet.breed = breed;
-            pet.age = age;
-            pet.weight = weight;
-            pet.gender = gender;
-            pet.medicalNotes = medicalNotes || 'No medical notes.';
-            pet.status = status;
-            pet.ownerPhone = ownerPhone || 'N/A';
-            pet.ownerEmail = ownerEmail || 'N/A';
-            pet.image = imageData;
+        if (isEditMode && currentPetId) {
+            url = `${SUPABASE_URL}/rest/v1/pet?pet_id=eq.${currentPetId}`;
+            method = 'PATCH';
         }
         
-        closePetFormModal();
-        showSuccessModal('Pet Updated Successfully!', `Pet ${name} (${currentPetId}) has been updated successfully.`);
-        
-    } else {
-        const newId = '#PET-' + String(petsData.length + 1).padStart(4, '0');
-        
-        const newPet = {
-            id: newId,
-            name: name,
-            ownerId: ownerId,
-            owner: ownerName,
-            species: species,
-            breed: breed,
-            age: age,
-            weight: weight,
-            status: status,
-            gender: gender,
-            medicalNotes: medicalNotes || 'No medical notes.',
-            lastService: 'None scheduled',
-            totalBookings: 0,
-            ownerPhone: ownerPhone || 'N/A',
-            ownerEmail: ownerEmail || 'N/A',
-            image: imageData
-        };
-        
-        petsData.push(newPet);
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'apikey': SUPABASE_ANON_KEY,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify(petData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to save pet: ${response.status}`);
+        }
+
+        // Reload pets
+        await loadPetsFromSupabase();
+        await loadCustomersForDropdown();
         
         closePetFormModal();
-        showSuccessModal('Pet Added Successfully!', `Pet ${name} (${newId}) has been added successfully.`);
+        showSuccessModal(
+            isEditMode ? 'Pet Updated Successfully!' : 'Pet Added Successfully!',
+            `${name} has been ${isEditMode ? 'updated' : 'added'} successfully.`
+        );
+        
+    } catch (err) {
+        console.error('Error saving pet:', err);
+        showValidationModal('Failed to save pet. Please try again.');
     }
 }
 
-// DELETE PET
+// ================================================================
+// DELETE PET - WITH CUSTOMER NOTIFICATION
+// ================================================================
 function openDeleteModal(id) {
-    const pet = petsData.find(p => p.id === id);
+    const pet = petsData.find(p => p.pet_id === id);
     
     if (!pet) {
-        alert('PET NOT FOUND!');
+        showValidationModal('Pet not found!');
         return;
     }
     
@@ -1037,50 +1522,155 @@ function openDeleteModal(id) {
     const message = document.getElementById('deleteConfirmMessage');
     const confirmBtn = document.getElementById('confirmDeleteBtn');
     
-    message.innerHTML = `Are you sure you want to delete pet <strong>${pet.name}</strong> (${pet.id})? This action cannot be undone.`;
+    document.querySelector('#deleteConfirmModal .modal-title').textContent = '🗑️ Delete Pet';
+    
+    message.innerHTML = `
+        <div style="text-align: left;">
+            <p>Are you sure you want to delete <strong>${pet.name}</strong>?</p>
+            <div style="background: #FEF7E0; border-left: 4px solid #D97706; padding: 12px 16px; border-radius: 8px; margin: 12px 0;">
+                <p style="font-size: 13px; color: #92400E; margin: 0 0 4px 0;">
+                    <i class="fa-regular fa-bell"></i> 
+                    Customer <strong>${pet.owner}</strong> will receive a notification
+                </p>
+                <p style="font-size: 12px; color: #92400E; margin: 0;">
+                    📱 They will see it on their dashboard when they log in.
+                </p>
+            </div>
+            <div style="background: #FCE8E6; border-left: 4px solid #DC2626; padding: 10px 14px; border-radius: 8px; margin: 8px 0;">
+                <p style="font-size: 12px; color: #B91C1C; margin: 0;">
+                    <i class="fa-solid fa-triangle-exclamation"></i> 
+                    All data for this pet will be permanently deleted.
+                </p>
+            </div>
+            <div style="margin-top: 12px;">
+                <label style="font-size: 12px; font-weight: 600; color: #4A3327; display: block; margin-bottom: 4px;">
+                    <i class="fa-regular fa-pen"></i> Note to Customer (Optional)
+                </label>
+                <textarea id="adminDeleteNote" style="width: 100%; padding: 8px 12px; border: 1.5px solid #EFECE6; border-radius: 8px; font-family: 'Poppins', sans-serif; font-size: 13px; resize: vertical; min-height: 50px;" placeholder="Add a note for the customer..."></textarea>
+            </div>
+        </div>
+    `;
     
     const newConfirmBtn = confirmBtn.cloneNode(true);
     confirmBtn.parentNode.replaceChild(newConfirmBtn, confirmBtn);
     
+    newConfirmBtn.textContent = '🗑️ Delete Pet';
+    newConfirmBtn.className = 'btn btn-danger';
     newConfirmBtn.addEventListener('click', function() {
-        confirmDeletePet();
+        confirmDeletePetWithNotification();
     });
     
     modal.classList.add('active');
     lockBodyScroll();
 }
 
-function closeDeleteModal() {
-    const modal = document.getElementById('deleteConfirmModal');
-    modal.classList.remove('active');
-    unlockBodyScroll();
-    currentPetId = null;
-}
-
-function confirmDeletePet() {
+// ================================================================
+// CONFIRM DELETE PET - WITH NOTIFICATION TO CUSTOMER
+// ================================================================
+async function confirmDeletePetWithNotification() {
     const id = currentPetId;
     
     if (!id) {
-        alert('No pet selected for deletion.');
+        showValidationModal('No pet selected for deletion.');
         return;
     }
     
-    const index = petsData.findIndex(p => p.id === id);
-    
-    if (index === -1) {
-        alert('Pet not found!');
+    const pet = petsData.find(p => p.pet_id === id);
+    if (!pet) {
+        showValidationModal('Pet not found!');
         return;
     }
     
-    const petName = petsData[index].name;
+    const adminNote = document.getElementById('adminDeleteNote')?.value.trim() || '';
+    const petName = pet.name;
+    const customerId = pet.ownerId;
+    const customerName = pet.owner;
     
-    petsData.splice(index, 1);
+    const confirmBtn = document.getElementById('confirmDeleteBtn');
+    const originalText = confirmBtn.textContent;
+    confirmBtn.textContent = '⏳ Deleting...';
+    confirmBtn.disabled = true;
     
-    closeDeleteModal();
-    showSuccessModal('Pet Deleted Successfully!', `Pet ${petName} (${id}) has been deleted successfully.`);
+    try {
+        const token = localStorage.getItem('token');
+        
+        // 1. Delete pet from database
+        const response = await fetch(`${SUPABASE_URL}/rest/v1/pet?pet_id=eq.${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'apikey': SUPABASE_ANON_KEY,
+                'Prefer': 'return=minimal'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to delete pet: ${response.status}`);
+        }
+
+        // 2. Create notification for customer
+        const notificationData = {
+            customer_id: customerId,
+            type: 'pet_deleted',
+            title: `🐾 Pet Removed: ${petName}`,
+            message: `Admin has removed "${petName}" from your profile.${adminNote ? ` Note: ${adminNote}` : ''}`,
+            data: {
+                pet_id: id,
+                pet_name: petName,
+                admin_note: adminNote,
+                deleted_at: new Date().toISOString()
+            },
+            is_read: false
+        };
+
+        const notifResponse = await fetch(`${SUPABASE_URL}/rest/v1/customer_notifications`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'apikey': SUPABASE_ANON_KEY,
+                'Content-Type': 'application/json',
+                'Prefer': 'return=minimal'
+            },
+            body: JSON.stringify(notificationData)
+        });
+
+        if (!notifResponse.ok) {
+            console.warn('Notification creation failed, but pet was deleted.');
+        }
+
+        // Remove from local data
+        const index = petsData.findIndex(p => p.pet_id === id);
+        if (index !== -1) {
+            petsData.splice(index, 1);
+        }
+        
+        closeDeleteModal();
+        renderPetTable(petsData);
+        loadPetStats();
+        loadNotificationCount();
+        
+        showSuccessModal(
+            '🗑️ Pet Deleted Successfully!', 
+            `Pet "${petName}" has been deleted.<br><br>
+            <i class="fa-regular fa-bell" style="color: #D97706;"></i> 
+            <strong>${customerName}</strong> will receive a notification on their dashboard.<br><br>
+            <span style="font-size: 13px; color: #7A7A7A;">
+                ${adminNote ? `📝 Note sent: "${adminNote}"` : 'No additional note sent.'}
+            </span>`
+        );
+        
+    } catch (err) {
+        console.error('Error deleting pet:', err);
+        showValidationModal('Failed to delete pet. Please try again.');
+    } finally {
+        confirmBtn.textContent = originalText;
+        confirmBtn.disabled = false;
+    }
 }
 
+// ================================================================
 // SUCCESS MODAL
+// ================================================================
 function showSuccessModal(title, message) {
     const modal = document.getElementById('successModal');
     const titleEl = document.getElementById('successTitle');
@@ -1101,7 +1691,30 @@ function closeSuccessModal() {
     loadPetStats();
 }
 
+// ================================================================
+// VALIDATION MODAL
+// ================================================================
+function showValidationModal(message) {
+    const modal = document.getElementById('validationModal');
+    const msgEl = document.getElementById('validationMessage');
+    if (modal && msgEl) {
+        msgEl.textContent = message;
+        lockBodyScroll();
+        modal.classList.add('active');
+    }
+}
+
+function hideValidationModal() {
+    const modal = document.getElementById('validationModal');
+    if (modal) {
+        modal.classList.remove('active');
+        unlockBodyScroll();
+    }
+}
+
+// ================================================================
 // SEARCH AND FILTER
+// ================================================================
 function applyFiltersAndRender() {
     const searchQuery = document.getElementById('searchInput').value.toLowerCase().trim();
     const speciesFilter = document.getElementById('speciesFilter').value;
@@ -1121,7 +1734,9 @@ function applyFiltersAndRender() {
     renderPetTable(filtered);
 }
 
-// LOAD PET STATS 
+// ================================================================
+// LOAD PET STATS
+// ================================================================
 function loadPetStats() {
     const total = petsData.length;
     const dogs = petsData.filter(p => p.species === 'Dog').length;
@@ -1138,9 +1753,12 @@ function loadPetStats() {
     document.getElementById('catPercentage').textContent = `${catPercent}% of total`;
 }
 
-// DOM READY
+// ================================================================
+// DOM READY - INITIALIZATION
+// ================================================================
 document.addEventListener('DOMContentLoaded', function() {
 
+    // SIDEBAR TOGGLE
     const menuToggle = document.getElementById('menuToggle');
     const sidebar = document.getElementById('sidebar');
     const sidebarClose = document.getElementById('sidebarClose');
@@ -1170,16 +1788,27 @@ document.addEventListener('DOMContentLoaded', function() {
             closePetFormModal();
             closeDeleteModal();
             closeSuccessModal();
+            hideValidationModal();
+            const notifModal = document.getElementById('notificationsModal');
+            if (notifModal && notifModal.classList.contains('active')) {
+                notifModal.classList.remove('active');
+                unlockBodyScroll();
+            }
         }
     });
 
+    // NOTIFICATION BUTTON
     const notificationBtn = document.getElementById('notificationBtn');
     if (notificationBtn) {
-        notificationBtn.addEventListener('click', function() {
-            alert('NO NEW NOTIFICATIONS.');
+        notificationBtn.removeEventListener('click', showNotificationDetails);
+        notificationBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            console.log('🔔 Notification button clicked!');
+            showNotificationDetails();
         });
     }
 
+    // Search input
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
         searchInput.addEventListener('input', function(e) {
@@ -1201,6 +1830,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Click outside modal to close
     document.querySelectorAll('.modal-overlay').forEach(modal => {
         modal.addEventListener('click', function(e) {
             if (e.target === this) {
@@ -1214,8 +1844,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    loadPetStats();
-    renderPetTable(petsData);
+    // LOAD DATA
+    loadAdminProfile();
+    loadCustomersForDropdown().then(() => {
+        loadPetsFromSupabase();
+    });
 
     console.log('PAWCARE ADMIN PETS LOADED SUCCESSFULLY!');
 });

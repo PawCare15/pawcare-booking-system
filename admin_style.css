@@ -243,6 +243,9 @@ body {
     flex-shrink: 0;
 }
 
+/* ============================================================ */
+/* NOTIFICATION BADGE - CUSTOMER PAGE */
+/* ============================================================ */
 .notification-badge {
     position: relative;
     font-size: 18px;
@@ -256,6 +259,7 @@ body {
 }
 
 .notification-badge .count {
+    display: none;  /* Hidden by default */
     position: absolute;
     top: -6px;
     right: -8px;
@@ -266,9 +270,23 @@ body {
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.3s ease;
+}
+
+/* Show only when there are notifications */
+.notification-badge .count.show {
+    display: flex;
+}
+
+/* Force hide when empty or display none */
+.notification-badge .count:empty {
+    display: none !important;
+}
+
+.notification-badge .count[style*="display: none"] {
+    display: none !important;
 }
 
 .user-profile {
