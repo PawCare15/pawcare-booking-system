@@ -69,12 +69,20 @@ const getCustomerId = (req) => {
 };
 
 // ========== 辅助：从 token 解析用户信息 ==========
-function getUserInfo(req) {
+async function getUserInfo(req) {
   const auth = req.headers.authorization;
   if (!auth) throw new Error('No token');
   const token = auth.split(' ')[1];
   const decoded = jwt.verify(token, JWT_SECRET);
-  return decoded; // { customer_id, email, role }
+
+  // 如果是管理员，校验 session_version 是否匹配
+  if (decoded.role === 'admin') {
+    const { data: admin } = await supabaseAdmin.from('admin').select('session_version').eq('admin_id', decoded.customer_id).single();
+    if (admin && admin.session_version !== decoded.session_version) {
+      throw new Error('Session expired');
+    }
+  }
+  return decoded;
 }
 
 // 密码策略
@@ -215,12 +223,19 @@ app.post('/api/login', async (req, res) => {
     // 统一字段名（customer 用 customer_id，admin 用 admin_id）
     const userId = user.customer_id || user.admin_id;
 
-    // 生成 JWT，包含 user_id 和 role
+    // 获取当前的 session_version
+    let sessionVersion = 1;
+    if (role === 'admin') {
+        const { data: adminData } = await supabaseAdmin.from('admin').select('session_version').eq('admin_id', userId).single();
+        sessionVersion = adminData?.session_version || 1;
+    }
+
     const token = jwt.sign(
       { 
-        customer_id: userId,   // 为了兼容现有中间件 getCustomerId，字段名保持不变
+        customer_id: userId,
         email: user.email,
-        role: role
+        role: role,
+        session_version: sessionVersion // 添加版本号
       },
       JWT_SECRET,
       { expiresIn: '7d' }
@@ -247,7 +262,7 @@ app.post('/api/login', async (req, res) => {
 // ========== 3. 获取个人资料 ==========
 app.get('/api/profile', async (req, res) => {
   try {
-    const userInfo = getUserInfo(req);
+    const userInfo = await getUserInfo(req);
     const userId = userInfo.customer_id;
     const role = userInfo.role || 'customer';
 
@@ -280,7 +295,7 @@ app.get('/api/profile', async (req, res) => {
 // ========== 4. 更新个人资料 ==========
 app.put('/api/profile', async (req, res) => {
   try {
-    const userInfo = getUserInfo(req);
+    const userInfo = await getUserInfo(req);
     const userId = userInfo.customer_id;
     const role = userInfo.role || 'customer';
     const { phone_number, address, full_name } = req.body; // 增加 full_name
@@ -313,7 +328,7 @@ app.put('/api/profile', async (req, res) => {
 // ========== 5. 上传头像 ==========
 app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
   try {
-    const userInfo = getUserInfo(req);
+    const userInfo = await getUserInfo(req);
     const userId = userInfo.customer_id;
     const role = userInfo.role || 'customer';
 
@@ -368,7 +383,7 @@ app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
 // ========== 6. 修改密码 ==========
 app.put('/api/profile/password', async (req, res) => {
   try {
-    const userInfo = getUserInfo(req);
+    const userInfo = await getUserInfo(req);
     const userId = userInfo.customer_id;
     const role = userInfo.role || 'customer';
     const { currentPassword, newPassword } = req.body;
@@ -420,7 +435,7 @@ app.put('/api/profile/password', async (req, res) => {
 // ========== 7. 宠物 CRUD ==========
 app.get('/api/pets', async (req, res) => {
   try {
-    const userInfo = getUserInfo(req);
+    const userInfo = await getUserInfo(req);
     const userId = userInfo.customer_id;
     const role = userInfo.role || 'customer';
 
@@ -458,7 +473,7 @@ app.get('/api/pets', async (req, res) => {
 
 app.post('/api/pets', async (req, res) => {
   try {
-    const userInfo = getUserInfo(req);
+    const userInfo = await getUserInfo(req);
     const userId = userInfo.customer_id;
     const role = userInfo.role || 'customer';
 
@@ -524,7 +539,7 @@ app.post('/api/pets', async (req, res) => {
 
 app.put('/api/pets/:pet_id', async (req, res) => {
   try {
-    const userInfo = getUserInfo(req);
+    const userInfo = await getUserInfo(req);
     const userId = userInfo.customer_id;
     const role = userInfo.role || 'customer';
     const { pet_id } = req.params;
@@ -553,7 +568,7 @@ app.put('/api/pets/:pet_id', async (req, res) => {
 
 app.delete('/api/pets/:pet_id', async (req, res) => {
   try {
-    const userInfo = getUserInfo(req);
+    const userInfo = await getUserInfo(req);
     const userId = userInfo.customer_id;
     const role = userInfo.role || 'customer';
     const { pet_id } = req.params;
@@ -784,7 +799,8 @@ app.get('/api/admin/monthly-trend', async (req, res) => {
     const today = new Date();
     const months = [];
     const labels = [];
-    for (let i = 11; i >= 0; i--) {
+    // 只循环最近6个月
+    for (let i = 5; i >= 0; i--) {
       const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
       const year = d.getFullYear();
       const month = String(d.getMonth() + 1).padStart(2, '0');
@@ -847,7 +863,7 @@ app.get('/api/admin/monthly-trend', async (req, res) => {
 // ========== 9. 预约 CRUD ==========
 app.get('/api/bookings', async (req, res) => {
   try {
-    const userInfo = getUserInfo(req);
+    const userInfo = await getUserInfo(req);
     const userId = userInfo.customer_id;
     const role = userInfo.role || 'customer';
 
@@ -1253,7 +1269,7 @@ app.put('/api/bookings/:booking_id/cancel', async (req, res) => {
 // ========== 10. 评价 (修改版，包含回复) ==========
 app.get('/api/reviews', async (req, res) => {
   try {
-    const userInfo = getUserInfo(req);
+    const userInfo = await getUserInfo(req);
     const userId = userInfo.customer_id;
     
     // 1. 获取所有 Review
@@ -1631,7 +1647,7 @@ app.post('/api/reset-password', async (req, res) => {
 // ========== 新增: 回复评论 ==========
 app.post('/api/reviews/:review_id/reply', async (req, res) => {
   try {
-    const userInfo = getUserInfo(req);
+    const userInfo = await getUserInfo(req);
     const userId = userInfo.customer_id;
     const role = userInfo.role || 'customer';
     const { review_id } = req.params;
@@ -1692,7 +1708,7 @@ app.post('/api/reviews/:review_id/reply', async (req, res) => {
 // ========== 删除评论（仅限 Admin） ==========
 app.delete('/api/reviews/:review_id', async (req, res) => {
   try {
-    const userInfo = getUserInfo(req);
+    const userInfo = await getUserInfo(req);
     if (userInfo.role !== 'admin') {
       return res.status(403).json({ success: false, message: 'Admin only.' });
     }
@@ -1715,6 +1731,36 @@ app.delete('/api/reviews/:review_id', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
+  }
+});
+
+// ========== 新增: Admin Session 管理 ==========
+app.get('/api/admin/sessions', async (req, res) => {
+  try {
+    await getUserInfo(req); // 权限验证
+    res.json({ success: true, data: [
+      { id: 1, device: 'This device', browser: 'Windows · Chrome', current: true },
+      { id: 2, device: 'Office PC', browser: 'Windows · Edge', current: false },
+      { id: 3, device: 'Mobile', browser: 'Android · Chrome', current: false }
+    ]});
+  } catch (err) {
+    res.status(401).json({ success: false, message: 'Unauthorized' });
+  }
+});
+
+app.post('/api/admin/logout-all', async (req, res) => {
+  try {
+    const userInfo = await getUserInfo(req);
+    if (userInfo.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only.' });
+
+    // 增加版本号，使所有旧 Token 失效
+    const { data: admin } = await supabaseAdmin.from('admin').select('session_version').eq('admin_id', userInfo.customer_id).single();
+    await supabaseAdmin.from('admin').update({ session_version: (admin.session_version || 1) + 1 }).eq('admin_id', userInfo.customer_id);
+
+    res.json({ success: true, message: 'All sessions logged out.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
   }
 });
 

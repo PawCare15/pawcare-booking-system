@@ -1192,6 +1192,7 @@ function confirmLogout() {
             loadTrendChart();
             loadPopularServices();
             loadTopCustomers();
+            loadMonthlyComparison(); 
 
             // ================================================================
             // SET DATE
@@ -1258,20 +1259,21 @@ function confirmLogout() {
             });
 
             // 2. Monthly Comparisons (Bar)
+                        // 2. Monthly Comparisons (Bar)
             const ctx4 = document.getElementById('monthlyComparisonChart').getContext('2d');
             new Chart(ctx4, {
                 type: 'bar',
                 data: {
-                    labels: ['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'],
+                    labels: [], // 清空初始标签
                     datasets: [{
                         label: 'Bookings',
-                        data: [80, 100, 120, 140, 160, 180],
+                        data: [], // 清空初始数据
                         backgroundColor: 'rgba(74, 51, 39, 0.7)',
                         borderRadius: 4,
                         barPercentage: 0.5
                     }, {
                         label: 'Completed',
-                        data: [60, 80, 96, 112, 128, 144],
+                        data: [], // 清空初始数据
                         backgroundColor: 'rgba(46, 125, 50, 0.7)',
                         borderRadius: 4,
                         barPercentage: 0.5

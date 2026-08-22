@@ -2375,6 +2375,8 @@ async function loadServiceStats() {
                     previewRow.innerHTML = '';
                     photoInput.value = '';
                     showModal();
+                    // 新增：提交后自动滚动到评论区
+                    document.getElementById('reviewList').scrollIntoView({ behavior: 'smooth' });
                 } else {
                     showValidationModal(data.message || 'Failed to submit review.');
                 }

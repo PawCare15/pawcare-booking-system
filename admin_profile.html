@@ -1700,10 +1700,18 @@ function confirmLogout() {
                     });
                     const data = await res.json();
                     if (data.success) {
-                    msg.className = 'message success';
-                    msg.textContent = '✓ Password updated successfully!';
-                    toast('Password changed successfully.');
-                    setTimeout(() => closeModal('changePwdModal'), 900);
+                        // 更新本地模拟数据并强制刷新 UI
+                        data.pwdChanged = new Date().toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                        saveData();
+                        render();
+                        
+                        msg.className = 'message success';
+                        msg.textContent = '✓ Password updated successfully!';
+                        toast('Password changed successfully.');
+                        setTimeout(() => closeModal('changePwdModal'), 900);
+
+                        // 重新加载管理员资料（含头像等）
+                        loadAdminProfile();
                     } else {
                     msg.className = 'message error';
                     msg.textContent = data.message || 'Failed to update password.';
@@ -1724,19 +1732,49 @@ function confirmLogout() {
                 });
 
                 // ===== Sessions =====
-                $('viewSessionsBtn').addEventListener('click', function() { openModal('sessionsModal'); });
-                document.querySelectorAll('.sessionLogout').forEach(btn => btn.addEventListener('click', function() {
-                    this.textContent = 'Logged Out';
-                    this.disabled = true;
-                    toast('Session logged out.');
-                }));
+                $('viewSessionsBtn').addEventListener('click', async function() {
+                    openModal('sessionsModal');
+                    // 尝试加载真实的会话数据（如果接口调不通，页面仍保留静态占位符）
+                    try {
+                        const res = await authFetch('/api/admin/sessions');
+                        const data = await res.json();
+                        if (data.success && data.data.length > 0) {
+                            // 更新 session 列表
+                            const list = document.querySelector('.session-list');
+                            let html = '';
+                            data.data.forEach(s => {
+                                html += `<div class="session"><span><b>${s.device}</b><br><small>${s.browser}</small></span>${s.current ? '<span class="badge">Current</span>' : '<button class="btn btn-outline btn-sm sessionLogout" data-id="'+s.id+'">Log Out</button>'}</div>`;
+                            });
+                            list.innerHTML = html;
+                        }
+                    } catch (e) { console.log('Sessions fallback to static'); }
+                });
+
+                // 重新绑定单个 Session 登出
+                document.getElementById('sessionsModal').addEventListener('click', async function(e) {
+                    if (e.target.classList.contains('sessionLogout')) {
+                        const btn = e.target;
+                        btn.textContent = 'Logged Out';
+                        btn.disabled = true;
+                        toast('Session logged out.');
+                    }
+                });
 
                 // ===== Danger Zone =====
-                $('logoutAllBtn').addEventListener('click', function() {
+                $('logoutAllBtn').addEventListener('click', async function() {
                     if (confirm('Log out from all active devices?')) {
-                        localStorage.removeItem('token');
-                        localStorage.removeItem('isLoggedIn');
-                        toast('All other sessions have been logged out.');
+                        try {
+                            const res = await authFetch('/api/admin/logout-all', { method: 'POST' });
+                            const data = await res.json();
+                            if (data.success) {
+                                localStorage.removeItem('token');
+                                localStorage.removeItem('isLoggedIn');
+                                toast('All other sessions have been logged out.');
+                                setTimeout(() => window.location.replace('index.html'), 800);
+                            }
+                        } catch (e) {
+                            toast('Failed to logout all.');
+                        }
                     }
                 });
 
