@@ -2555,10 +2555,11 @@ async function loadServiceStats() {
             }
 
             // ===== 新增: 回复的点赞和回复子回复 =====
-            if (target.classList.contains('reply-like-btn')) {
-                const replyId = target.dataset.replyId;
-                const icon = target.querySelector('i');
-                const countSpan = target.querySelector('.r-like-count');
+            const likeReplyBtn = target.closest('.reply-like-btn');
+            if (likeReplyBtn) {
+                const replyId = likeReplyBtn.dataset.replyId;
+                const icon = likeReplyBtn.querySelector('i');
+                const countSpan = likeReplyBtn.querySelector('.r-like-count');
                 try {
                     const token = localStorage.getItem('token');
                     const res = await fetch(`/api/replies/${replyId}/like`, {
@@ -2568,10 +2569,10 @@ async function loadServiceStats() {
                     if (data.success) {
                         countSpan.textContent = data.like_count;
                         if (data.action === 'liked') {
-                            target.style.color = '#5A361A';
+                            likeReplyBtn.style.color = '#5A361A';
                             icon.className = 'fa-solid fa-thumbs-up';
                         } else if (data.action === 'unliked') {
-                            target.style.color = '';
+                            likeReplyBtn.style.color = '';
                             icon.className = 'fa-regular fa-thumbs-up';
                         }
                     } else {
@@ -2582,10 +2583,11 @@ async function loadServiceStats() {
                 } catch (err) { console.error('Reply like error:', err); }
             }
 
-            if (target.classList.contains('reply-reply-btn')) {
-                const parent = target.closest('.review-item');
-                const replyId = target.dataset.replyId;
-                let existingReply = parent.querySelector('.reply-to-reply-box');
+            const replyReplyBtn = target.closest('.reply-reply-btn');
+            if (replyReplyBtn) {
+                const replyId = replyReplyBtn.dataset.replyId;
+                const parentItem = target.closest('.review-item');   // ✅ 与 review.html 中的类名一致
+                let existingReply = parentItem.querySelector('.reply-to-reply-box');
                 if (existingReply) { existingReply.remove(); return; }
 
                 const box = document.createElement('div');
@@ -2602,7 +2604,7 @@ async function loadServiceStats() {
                         <button class="reply-cancel-child" style="background:#EFECE6; border:none; padding:6px 16px; border-radius:6px; cursor:pointer;">Cancel</button>
                     </div>
                 `;
-                target.closest('.review-body').appendChild(box);
+                parentItem.querySelector('.review-body').appendChild(box);
                 box.querySelector('textarea').focus();
 
                 box.querySelector('.reply-cancel-child').addEventListener('click', () => box.remove());
