@@ -503,6 +503,7 @@ app.get('/api/profile', async (req, res) => {
 // ========== 4. 更新个人资料 ==========
 app.put('/api/profile', async (req, res) => {
   try {
+    console.log('Profile update request received:', req.body);
     const userInfo = await getUserInfo(req);
     const userId = userInfo.customer_id;
     const role = userInfo.role || 'customer';

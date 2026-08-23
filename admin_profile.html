@@ -1617,7 +1617,7 @@ function confirmLogout() {
                                 localStorage.setItem('user', JSON.stringify(user));
                             }
                             // 重新加载资料
-                            loadAdminProfile();
+                            await loadAdminProfile();
                             msg.className = 'message success';
                             msg.textContent = '✓ Profile updated successfully!';
                             toast('Profile changes saved.');
@@ -1631,117 +1631,6 @@ function confirmLogout() {
                         msg.textContent = 'Unable to connect to server. Please check your network.';
                         toast('Update failed: ' + err.message);
                     }
-                });
-
-                $('resetProfileBtn').addEventListener('click', function() {
-                    data = getData();
-                    render();
-                    $('profileUpdateMessage').className = 'message';
-                    $('profileUpdateMessage').textContent = '';
-                    toast('Profile form reset.');
-                });
-
-                // ===== Theme =====
-                document.querySelectorAll('.theme-option').forEach(o => o.addEventListener('click', function() {
-                    data.theme = this.dataset.theme;
-                    saveData();
-                    render();
-                    toast('Theme changed to ' + (data.theme === 'dark' ? 'Dark' : 'Light') + ' mode.');
-                }));
-
-                // ===== Avatar =====
-                $('avatarUploadInput').addEventListener('change', async function(e) {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    if (!file.type.startsWith('image/')) {
-                        toast('Please select an image file.');
-                        this.value = '';
-                        return;
-                    }
-                    if (file.size > 2 * 1024 * 1024) {
-                        toast('Image size must be under 2MB.');
-                        this.value = '';
-                        return;
-                    }
-
-                    const formData = new FormData();
-                    formData.append('avatar', file);
-
-                    // 在 try 里面，fetch 之前
-                    const uploadBtn = document.querySelector('.change-photo-btn');
-                    uploadBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading...';
-                    uploadBtn.disabled = true;
-
-                    try {
-                        const token = localStorage.getItem('token');
-                        const res = await fetch('/api/profile/avatar', {
-                            method: 'POST',
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                                // 注意：不要设置 Content-Type，浏览器会自动用 multipart/form-data
-                            },
-                            body: formData
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                            setAvatar(data.avatar_url);
-                            toast('Profile photo updated.');
-                            loadAdminProfile();
-                        } else { toast(data.message || 'Upload failed.'); }
-                    } catch (err) { toast('Unable to connect to server.'); } 
-                    finally {
-                        uploadBtn.innerHTML = '<i class="fa-solid fa-camera"></i> Change Photo';
-                        uploadBtn.disabled = false;
-                    }
-                    this.value = '';
-                });
-
-                // ===== Change Password =====
-                $('changePwdBtn').addEventListener('click', function() {
-                    ['currentPwd', 'newPwd', 'confirmPwd'].forEach(id => $(id).value = '');
-                    $('pwdChangeMessage').className = 'message';
-                    $('pwdChangeMessage').textContent = '';
-                    openModal('changePwdModal');
-                });
-
-                $('changePwdForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const current = $('currentPwd').value;
-                const newPwd = $('newPwd').value;
-                const confirmPwd = $('confirmPwd').value;
-                const msg = $('pwdChangeMessage');
-                const strong = /^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
-                if (!current || !newPwd || !confirmPwd) { msg.className = 'message error'; msg.textContent = 'All fields are required.'; return; }
-                if (!strong.test(newPwd)) { msg.className = 'message error'; msg.textContent = 'Password must meet complexity requirements.'; return; }
-                if (newPwd !== confirmPwd) { msg.className = 'message error'; msg.textContent = 'Passwords do not match.'; return; }
-
-                try {
-                    const res = await authFetch('/api/profile/password', {
-                    method: 'PUT',
-                    body: JSON.stringify({ currentPassword: current, newPassword: newPwd })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                        // 更新本地模拟数据并强制刷新 UI
-                        data.pwdChanged = new Date().toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                        saveData();
-                        render();
-                        
-                        msg.className = 'message success';
-                        msg.textContent = '✓ Password updated successfully!';
-                        toast('Password changed successfully.');
-                        setTimeout(() => closeModal('changePwdModal'), 900);
-
-                        // 重新加载管理员资料（含头像等）
-                        loadAdminProfile();
-                    } else {
-                    msg.className = 'message error';
-                    msg.textContent = data.message || 'Failed to update password.';
-                    }
-                } catch (err) {
-                    msg.className = 'message error';
-                    msg.textContent = 'Unable to connect to server.';
-                }
                 });
 
                 // ===== 2FA =====
