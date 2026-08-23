@@ -897,15 +897,11 @@ function confirmLogout() {
                     const avatarContent = review.customer?.profile_photo ?
                         `<img src="${review.customer.profile_photo}" alt="Avatar">` :
                         customerName.substring(0, 2).toUpperCase();
-
-                    // 仅在 Admin 页面添加删除按钮
-                    const replyDeleteButton = `
-                        <button class="reply-delete-btn" data-reply-id="${reply.reply_id}" style="border:none; background:none; color:#DC2626; cursor:pointer; margin-left:5px;"><i class="fa-regular fa-trash-can"></i> Delete</button>
-                    `;
                     
-                        // 回复列表 (支持真嵌套)
+                    // 回复列表 (支持真嵌套)
                     let repliesHtml = '';
                     if (review.replies && review.replies.length > 0) {
+
                         // 构建树结构
                         const replyMap = {};
                         review.replies.forEach(r => {
@@ -926,6 +922,10 @@ function confirmLogout() {
                         const renderReplies = (replies) => {
                             let html = '';
                             replies.forEach(reply => {
+                                // 👇 将其移到循环里面
+                                const replyDeleteButton = `
+                                    <button class="reply-delete-btn" data-reply-id="${reply.reply_id}" style="border:none; background:none; color:#DC2626; cursor:pointer; margin-left:5px;"><i class="fa-regular fa-trash-can"></i> Delete</button>
+                                `;
                                 const replierName = reply.customer ? reply.customer.full_name : 'User';
                                 const repDate = reply.created_at ? new Date(reply.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
                                 const isLiked = reply.reply_liked_by_me;

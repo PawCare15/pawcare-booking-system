@@ -238,9 +238,10 @@ async function getUserInfo(req) {
   const decoded = jwt.verify(token, JWT_SECRET);
 
   // 如果是管理员，校验 session_version 是否匹配
-  if (decoded.role === 'admin') {
-    const { data: admin } = await supabaseAdmin.from('admin').select('session_version').eq('admin_id', decoded.customer_id).maybeSingle();
-    if (admin && admin.session_version !== decoded.session_version) {
+    if (decoded.role === 'admin') {
+    const { data: admin, error: adminErr } = await supabaseAdmin.from('admin').select('session_version').eq('admin_id', decoded.customer_id).maybeSingle();
+    // 即使报错也不阻断登录，只在成功查到并且版本不匹配时才踢下线
+    if (!adminErr && admin && admin.session_version !== decoded.session_version) {
       throw new Error('Session expired');
     }
   }
@@ -259,16 +260,17 @@ async function isAdmin(req, res, next) {
         if (decoded.role !== 'admin') {
             return res.status(403).json({ success: false, message: 'Admin access required' });
         }
-        
+
         // Verify session version
-                if (decoded.role === 'admin') {
-            const { data: admin } = await supabaseAdmin
+        if (decoded.role === 'admin') {
+            const { data: admin, error: adminErr } = await supabaseAdmin
                 .from('admin')
                 .select('session_version')
                 .eq('admin_id', decoded.customer_id)
-                .maybeSingle(); // <--- 改为 maybeSingle
-            
-            if (admin && admin.session_version !== decoded.session_version) {
+                .maybeSingle();
+
+            // 只要没报错，且用户存在且版本不一致才判定为过期
+            if (!adminErr && admin && admin.session_version !== decoded.session_version) {
                 return res.status(401).json({ success: false, message: 'Session expired' });
             }
         }

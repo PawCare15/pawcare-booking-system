@@ -2266,8 +2266,7 @@ async function loadReviews() {
                                                 ${repDate} 
                                                 <button class="reply-reply-btn" data-review-id="${review.review_id}" data-reply-id="${reply.reply_id}" style="border:none; background:none; color:#5A361A; cursor:pointer; margin-left:5px;"><i class="fa-regular fa-comment"></i> Reply</button>
                                                 <button class="reply-like-btn" ${likeColor} data-reply-id="${reply.reply_id}" style="border:none; background:none; cursor:pointer; margin-left:5px;"><i class="${likeIcon} fa-thumbs-up"></i> <span class="r-like-count">${reply.reply_like_count || 0}</span></button>
-                                                <!-- 这里在 admin_reviews.html 中额外添加删除按钮 -->
-                                                ${replyDeleteButton}
+                                                <!-- 删除按钮仅存在于 Admin 页面，Customer端无需添加 -->
                                             </div>
                                         </div>
                                     </div>
