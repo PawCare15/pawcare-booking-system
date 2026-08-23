@@ -475,11 +475,17 @@ app.get('/api/profile', async (req, res) => {
       selectFields = 'admin_id, full_name, email, phone_number, profile_photo'; 
     }
 
-    const { data, error } = await supabase
+    // 使用 supabaseAdmin 绕过 RLS，且改为 maybeSingle() 防止报错
+    const { data, error } = await supabaseAdmin
       .from(table)
       .select(selectFields)
       .eq(idField, userId)
-      .single();
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!data) {
+      return res.status(404).json({ success: false, message: 'User not found.' });
+    }
 
     if (error) throw error;
     res.json({ success: true, data });
@@ -509,10 +515,11 @@ app.put('/api/profile', async (req, res) => {
       updateData = { phone_number, full_name }; // admin 可更新 full_name 和 phone
     }
 
-    const { error } = await supabase
-      .from(table)
-      .update(updateData)
-      .eq(idField, userId);
+  // 防止 RLS 阻止 Admin 更新自己的资料
+  const { error } = await supabaseAdmin
+    .from(table)
+    .update(updateData)
+    .eq(idField, userId);
     if (error) throw error;
     res.json({ success: true, message: 'Profile updated.' });
   } catch (err) {
@@ -560,7 +567,7 @@ app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
       idField = 'admin_id';
     }
 
-    const { error: updateError } = await supabase
+    const { error: updateError } = await supabaseAdmin
       .from(table)
       .update({ profile_photo: avatarUrl })
       .eq(idField, userId);

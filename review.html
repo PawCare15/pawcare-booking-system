@@ -2225,8 +2225,14 @@ async function loadReviews() {
                         const likeColor = isLiked ? 'style="color:#5A361A;"' : '';
                         const likeIcon = isLiked ? 'fa-solid' : 'fa-regular';
 
+                        // 判断是否为子回复
+                        const isChild = reply.parent_id ? true : false;
+                        const replyStyle = isChild 
+                            ? `margin-left: 30px; background: #FFFFFF; border: 1px dashed #E8DCC8;` 
+                            : `background: #FAF7F2; border: 1px solid #EFECE6;`;
+
                         repliesHtml += `
-                            <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; background: #FAF7F2; border: 1px solid #EFECE6; border-radius: 8px; padding: 10px;">
+                            <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; ${replyStyle} border-radius: 8px; padding: 10px;">
                                 <div style="width: 28px; height: 28px; border-radius: 50%; background: #FDF3E7; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #5A361A;">
                                     ${reply.customer?.profile_photo ? `<img src="${reply.customer.profile_photo}" style="width:100%; height:100%; object-fit:cover;">` : (reply.customer?.full_name ? reply.customer.full_name.substring(0, 2).toUpperCase() : 'U')}
                                 </div>
@@ -2531,10 +2537,14 @@ async function loadServiceStats() {
                         if (data.action === 'liked') {
                             target.style.color = '#5A361A';
                             icon.className = 'fa-solid fa-thumbs-up';
-                        } else {
+                        } else if (data.action === 'unliked') {
                             target.style.color = '';
                             icon.className = 'fa-regular fa-thumbs-up';
                         }
+                    } else {
+                        // 后端报错时给出提示
+                        console.error('Reply like server error:', data.message);
+                        alert('Unable to update like. Please check server.');
                     }
                 } catch (err) { console.error('Reply like error:', err); }
             }
