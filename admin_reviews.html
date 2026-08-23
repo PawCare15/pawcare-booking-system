@@ -1329,25 +1329,24 @@ function confirmLogout() {
                     showDeleteConfirm(reviewId);
                 }
 
-                // 🆕 处理删除回复按钮
+                // 🆕 处理删除回复按钮 (使用项目内的弹窗代替原生 confirm/alert)
                 if (target.classList.contains('reply-delete-btn')) {
                     const replyId = target.dataset.replyId;
-                    if(confirm('Are you sure you want to delete this reply?')) {
-                        const token = localStorage.getItem('token');
-                        fetch(`/api/replies/${replyId}`, {
-                            method: 'DELETE',
-                            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-                        })
-                        .then(res => res.json())
-                        .then(res => {
-                            if(res.success) {
-                                loadReviews();
-                            } else {
-                                alert(res.message || 'Failed to delete reply.');
-                            }
-                        })
-                        .catch(() => alert('Unable to connect to server.'));
-                    }
+                    const token = localStorage.getItem('token');
+                    fetch(`/api/replies/${replyId}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                    })
+                    .then(res => res.json())
+                    .then(res => {
+                        if(res.success) {
+                            showConfirmation('Reply deleted successfully.'); // 使用成功弹窗
+                            loadReviews();
+                        } else {
+                            showError(res.message || 'Failed to delete reply.'); // 使用错误弹窗
+                        }
+                    })
+                    .catch(() => showError('Unable to connect to server.'));
                 }
             });
 

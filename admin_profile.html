@@ -1825,12 +1825,23 @@ function confirmLogout() {
                         const data = await res.json();
                         if (data.success) {
                             const admin = data.data;
-                            // 1. 更新全局 data 对象（必须做！）
-                            data = { ...data, name: admin.full_name, email: admin.email, phone: admin.phone_number, profile_photo: admin.profile_photo };
-                            saveData(); // 保存到 localStorage
-                            render();   // 强制重新渲染
 
-                            // 2. 再次更新 DOM（确保万无一失）
+                            // --- 更新本地 data 对象 ---
+                            data = { ...data, name: admin.full_name, email: admin.email, phone: admin.phone_number, profile_photo: admin.profile_photo };
+                            saveData();
+
+                            // --- 重要：同步更新 localStorage 中的 user 对象 ---
+                            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+                            if (storedUser && storedUser.email) {
+                                storedUser.email = admin.email;
+                                storedUser.name = admin.full_name;
+                                localStorage.setItem('user', JSON.stringify(storedUser));
+                            }
+
+                            // --- 渲染界面 ---
+                            render();
+
+                            // --- 手动更新 DOM 中的邮箱（以防渲染遗漏） ---
                             document.getElementById('headerName').textContent = admin.full_name || 'Admin';
                             document.getElementById('profileFullName').textContent = admin.full_name || 'Admin';
                             document.getElementById('profileEmail').textContent = admin.email || 'admin@pawcare.com';
@@ -1839,17 +1850,24 @@ function confirmLogout() {
                             document.getElementById('editEmail').value = admin.email || '';
                             document.getElementById('editPhone').value = admin.phone_number || '';
 
-                            // 头像处理...
+                            // 头像处理
                             if (admin.profile_photo) {
-                                document.getElementById('headerAvatarImg').src = admin.profile_photo;
-                                document.getElementById('headerAvatarImg').style.display = 'block';
+                                ['headerAvatarImg', 'profileAvatarImg'].forEach(id => {
+                                    const img = document.getElementById(id);
+                                    img.src = admin.profile_photo;
+                                    img.style.display = 'block';
+                                });
                                 document.getElementById('headerAvatarPlaceholder').style.display = 'none';
-                                document.getElementById('profileAvatarImg').src = admin.profile_photo;
-                                document.getElementById('profileAvatarImg').style.display = 'block';
                                 document.getElementById('profileAvatarPlaceholder').style.display = 'none';
+                                localStorage.setItem('pawcareAvatar', admin.profile_photo);
                             }
+                            loadAdminProfile(); // 重新加载，也会同步 user
+                            toast('Profile updated.');
                         }
-                    } catch (err) { console.error('Error loading admin profile:', err); }
+                    } catch (err) {
+                        console.error('Error loading admin profile:', err);
+                        toast('Failed to load profile. Please refresh.');
+                    }
                 }
 
                 // 在 DOMContentLoaded 内部调用

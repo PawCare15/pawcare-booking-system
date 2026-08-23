@@ -2281,10 +2281,12 @@ async function loadReviews() {
                         };
 
                         repliesHtml = `<div style="margin-top: 12px; padding-left: 16px; border-left: 2px solid #E8DCC8; margin-bottom: 5px;">${renderReplies(roots)}</div>`;
+                        
+                        // 👇 这里必须加上这一行！将渲染好的回复插入到当前评价的 review-body 里
+                        item.querySelector('.review-body').insertAdjacentHTML('beforeend', repliesHtml);
                     }
-
-            });   // 👈 必须加这个！结束 reviews.forEach
-        }         // 👈 必须加这个！结束 if (data.success)
+            });   // 结束 reviews.forEach
+        }         // 结束 if (data.success)
     } catch (err) {
         console.error('Error loading reviews:', err);
     }
