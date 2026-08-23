@@ -680,6 +680,11 @@ async function showNotificationDetails() {
 async function loadCustomersFromSupabase() {
     try {
         const token = localStorage.getItem('token');
+        
+        // 🆕 TAMBAHAN: Debug logging
+        console.log('🔍 Loading customers...');
+        console.log('🔍 Token exists:', !!token);
+        
         const response = await fetch(`${SUPABASE_URL}/rest/v1/customer?select=*&order=created_at.desc`, {
             method: 'GET',
             headers: {
@@ -688,11 +693,38 @@ async function loadCustomersFromSupabase() {
             }
         });
 
+        // 🆕 TAMBAHAN: Log response status
+        console.log('📡 Response status:', response.status);
+
+        // 🆕 TAMBAHAN: Handle specific error codes
+        if (response.status === 401) {
+            console.error('❌ Unauthorized - token expired or invalid');
+            showValidationModal('Your session has expired. Please login again.');
+            localStorage.clear();
+            window.location.replace('index.html');
+            return [];
+        }
+
+        if (response.status === 403) {
+            console.error('❌ Forbidden - RLS policy blocking access');
+            showValidationModal('Permission denied. Please contact admin.');
+            return [];
+        }
+
         if (!response.ok) {
-            throw new Error(`Failed to fetch customers: ${response.status}`);
+            // 🆕 TAMBAHAN: Get detailed error
+            let errorText = '';
+            try {
+                errorText = await response.text();
+            } catch (e) {
+                errorText = 'No error details available';
+            }
+            console.error('❌ Supabase error response:', errorText);
+            throw new Error(`Failed to fetch customers: ${response.status} - ${errorText}`);
         }
 
         const customers = await response.json();
+        console.log('✅ Customers loaded successfully:', customers.length);
         
         customersData = customers.map(customer => ({
             id: customer.customer_id || '#CUS-' + String(Math.floor(Math.random() * 10000)).padStart(4, '0'),
@@ -719,7 +751,8 @@ async function loadCustomersFromSupabase() {
         return customersData;
     } catch (err) {
         console.error('Error loading customers from Supabase:', err);
-        showValidationModal('Failed to load customers from database. Please refresh.');
+        // 🆕 TAMBAHAN: Better error message
+        showValidationModal(`Failed to load customers from database: ${err.message}. Please refresh.`);
         return [];
     }
 }
@@ -1409,7 +1442,12 @@ function showSuccessModal(title, message) {
     const messageEl = document.getElementById('successMessage');
     
     titleEl.textContent = title;
-    messageEl.textContent = message;
+    // 🆕 TAMBAHAN: Handle HTML message for better formatting
+    if (message.includes('<')) {
+        messageEl.innerHTML = message;
+    } else {
+        messageEl.textContent = message;
+    }
     
     modal.classList.add('active');
     lockBodyScroll();
@@ -1428,7 +1466,12 @@ function showValidationModal(message) {
     const modal = document.getElementById('validationModal');
     const msgEl = document.getElementById('validationMessage');
     if (modal && msgEl) {
-        msgEl.textContent = message;
+        // 🆕 TAMBAHAN: Handle HTML message
+        if (message.includes('<')) {
+            msgEl.innerHTML = message;
+        } else {
+            msgEl.textContent = message;
+        }
         lockBodyScroll();
         modal.classList.add('active');
     }
@@ -1624,4 +1667,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     console.log('PAWCARE ADMIN CUSTOMERS LOADED SUCCESSFULLY!');
     console.log('Connected to Supabase customer table.');
+    
+    // 🆕 TAMBAHAN: Log environment info for debugging
+    console.log('🔧 Environment:');
+    console.log('  - SUPABASE_URL:', SUPABASE_URL);
+    console.log('  - Token exists:', !!localStorage.getItem('token'));
+    console.log('  - User role:', localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')).role : 'None');
 });

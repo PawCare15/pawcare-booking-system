@@ -138,7 +138,6 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
                         <p>© 2026 PawCare Booking System — Paw Walker Grooming House</p>
                     </div>
                 </div>
-            </body>
             </html>
         `
     };
@@ -206,7 +205,6 @@ async function sendDeletionConfirmedEmail(customerEmail, customerName) {
                         <p>© 2026 PawCare Booking System — Paw Walker Grooming House</p>
                     </div>
                 </div>
-            </body>
             </html>
         `
     };
@@ -247,6 +245,43 @@ async function getUserInfo(req) {
     }
   }
   return decoded;
+}
+
+// 🆕 TAMBAHAN: Middleware untuk Admin Authentication
+async function isAdmin(req, res, next) {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token) {
+            return res.status(401).json({ success: false, message: 'No token provided' });
+        }
+        
+        const decoded = jwt.verify(token, JWT_SECRET);
+        if (decoded.role !== 'admin') {
+            return res.status(403).json({ success: false, message: 'Admin access required' });
+        }
+        
+        // Verify session version
+        if (decoded.role === 'admin') {
+            const { data: admin } = await supabaseAdmin
+                .from('admin')
+                .select('session_version')
+                .eq('admin_id', decoded.customer_id)
+                .single();
+            
+            if (admin && admin.session_version !== decoded.session_version) {
+                return res.status(401).json({ success: false, message: 'Session expired' });
+            }
+        }
+        
+        req.user = decoded;
+        next();
+    } catch (err) {
+        console.error('Admin auth error:', err);
+        if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+            return res.status(401).json({ success: false, message: 'Unauthorized' });
+        }
+        res.status(500).json({ success: false, message: 'Authentication error' });
+    }
 }
 
 // 密码策略
@@ -2264,6 +2299,464 @@ app.get('/api/delete-account', async (req, res) => {
             </body>
             </html>
         `);
+    }
+});
+
+// 🆕 TAMBAHAN: ========== ADMIN CUSTOMER MANAGEMENT ==========
+app.get('/api/admin/customers', isAdmin, async (req, res) => {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('customer')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        res.json({ success: true, data });
+    } catch (err) {
+        console.error('Error fetching customers:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+app.get('/api/admin/customers/:id', isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { data, error } = await supabaseAdmin
+            .from('customer')
+            .select('*')
+            .eq('customer_id', id)
+            .single();
+
+        if (error) throw error;
+        res.json({ success: true, data });
+    } catch (err) {
+        console.error('Error fetching customer:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+app.put('/api/admin/customers/:id', isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { full_name, email, phone_number, address, status } = req.body;
+
+        const updateData = {
+            full_name,
+            email,
+            phone_number,
+            address: address || null,
+            updated_at: new Date().toISOString()
+        };
+        if (status) updateData.status = status;
+
+        const { data, error } = await supabaseAdmin
+            .from('customer')
+            .update(updateData)
+            .eq('customer_id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json({ success: true, data });
+    } catch (err) {
+        console.error('Error updating customer:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+app.delete('/api/admin/customers/:id', isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const { data: customer, error: checkError } = await supabaseAdmin
+            .from('customer')
+            .select('full_name')
+            .eq('customer_id', id)
+            .single();
+        
+        if (checkError || !customer) {
+            return res.status(404).json({ success: false, message: 'Customer not found' });
+        }
+        
+        await supabaseAdmin.from('booking').delete().eq('customer_id', id);
+        await supabaseAdmin.from('pet').delete().eq('customer_id', id);
+        await supabaseAdmin.from('review').delete().eq('customer_id', id);
+        
+        const { error } = await supabaseAdmin
+            .from('customer')
+            .delete()
+            .eq('customer_id', id);
+        
+        if (error) throw error;
+        res.json({ success: true, message: `Customer deleted successfully` });
+    } catch (err) {
+        console.error('Error deleting customer:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+app.get('/api/admin/customers/:id/bookings', isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { data, error } = await supabaseAdmin
+            .from('booking')
+            .select(`
+                booking_id,
+                booking_date,
+                booking_time,
+                status,
+                pet:pet_id(pet_name, breed, species),
+                booking_service(
+                    service_id,
+                    estimated_price,
+                    service:service_id(service_name)
+                )
+            `)
+            .eq('customer_id', id)
+            .order('booking_date', { ascending: false });
+
+        if (error) throw error;
+        res.json({ success: true, data });
+    } catch (err) {
+        console.error('Error fetching customer bookings:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+app.get('/api/admin/customers/stats', isAdmin, async (req, res) => {
+    try {
+        const { count: total } = await supabaseAdmin
+            .from('customer')
+            .select('*', { count: 'exact', head: true });
+        
+        const { count: active } = await supabaseAdmin
+            .from('customer')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'Active');
+        
+        const { count: inactive } = await supabaseAdmin
+            .from('customer')
+            .select('*', { count: 'exact', head: true })
+            .eq('status', 'Inactive');
+        
+        const firstDayOfMonth = new Date();
+        firstDayOfMonth.setDate(1);
+        firstDayOfMonth.setHours(0, 0, 0, 0);
+        
+        const { count: newThisMonth } = await supabaseAdmin
+            .from('customer')
+            .select('*', { count: 'exact', head: true })
+            .gte('created_at', firstDayOfMonth.toISOString());
+
+        res.json({
+            success: true,
+            data: {
+                total: total || 0,
+                active: active || 0,
+                inactive: inactive || 0,
+                newThisMonth: newThisMonth || 0
+            }
+        });
+    } catch (err) {
+        console.error('Error fetching customer stats:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// 🆕 TAMBAHAN: ========== ADMIN BOOKING MANAGEMENT ==========
+app.get('/api/admin/bookings', isAdmin, async (req, res) => {
+    try {
+        const { status, start_date, end_date, search } = req.query;
+        
+        let query = supabaseAdmin
+            .from('booking')
+            .select(`
+                booking_id,
+                booking_date,
+                booking_time,
+                status,
+                special_notes,
+                reschedule_status,
+                reschedule_requested_date,
+                reschedule_requested_time,
+                customer:customer_id(full_name, email, phone_number),
+                pet:pet_id(pet_name, breed, species, pet_photo),
+                booking_service(
+                    service_id,
+                    estimated_price,
+                    service:service_id(service_name, category)
+                )
+            `)
+            .order('booking_date', { ascending: false });
+
+        if (status && status !== 'all') query = query.eq('status', status);
+        if (start_date) query = query.gte('booking_date', start_date);
+        if (end_date) query = query.lte('booking_date', end_date);
+        if (search) {
+            const { data: customers } = await supabaseAdmin
+                .from('customer')
+                .select('customer_id')
+                .ilike('full_name', `%${search}%`);
+            
+            const customerIds = customers.map(c => c.customer_id);
+            
+            const { data: pets } = await supabaseAdmin
+                .from('pet')
+                .select('pet_id')
+                .ilike('pet_name', `%${search}%`);
+            
+            const petIds = pets.map(p => p.pet_id);
+            
+            if (customerIds.length > 0 || petIds.length > 0) {
+                let orConditions = [`booking_id.ilike.%${search}%`];
+                if (customerIds.length > 0) orConditions.push(`customer_id.in.(${customerIds.join(',')})`);
+                if (petIds.length > 0) orConditions.push(`pet_id.in.(${petIds.join(',')})`);
+                query = query.or(orConditions.join(','));
+            } else {
+                query = query.ilike('booking_id', `%${search}%`);
+            }
+        }
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        const bookings = data.map(b => ({
+            booking_id: b.booking_id,
+            booking_date: b.booking_date,
+            booking_time: b.booking_time,
+            status: b.status,
+            reschedule_status: b.reschedule_status || 'none',
+            reschedule_requested_date: b.reschedule_requested_date,
+            reschedule_requested_time: b.reschedule_requested_time,
+            special_notes: b.special_notes,
+            total_price: (b.booking_service || []).reduce((sum, s) => sum + (s.estimated_price || 0), 0),
+            customer: b.customer ? {
+                full_name: b.customer.full_name,
+                email: b.customer.email,
+                phone_number: b.customer.phone_number
+            } : null,
+            pet: b.pet ? {
+                name: b.pet.pet_name,
+                breed: b.pet.breed,
+                species: b.pet.species,
+                photo_url: b.pet.pet_photo
+            } : null,
+            services: (b.booking_service || []).map(s => ({
+                service_id: s.service_id,
+                service_name: s.service?.service_name,
+                category: s.service?.category,
+                estimated_price: s.estimated_price
+            }))
+        }));
+
+        res.json({ success: true, data: bookings });
+    } catch (err) {
+        console.error('Error fetching bookings:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+app.put('/api/admin/bookings/:id', isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status, payment_status, reschedule_status } = req.body;
+
+        const updateData = { updated_at: new Date().toISOString() };
+        if (status) updateData.status = status;
+        if (payment_status) updateData.payment_status = payment_status;
+        if (reschedule_status) updateData.reschedule_status = reschedule_status;
+
+        if (reschedule_status === 'approved') {
+            const { data: booking } = await supabaseAdmin
+                .from('booking')
+                .select('reschedule_requested_date, reschedule_requested_time')
+                .eq('booking_id', id)
+                .single();
+            
+            if (booking) {
+                updateData.booking_date = booking.reschedule_requested_date;
+                updateData.booking_time = booking.reschedule_requested_time;
+            }
+        }
+
+        const { data, error } = await supabaseAdmin
+            .from('booking')
+            .update(updateData)
+            .eq('booking_id', id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        res.json({ success: true, data });
+    } catch (err) {
+        console.error('Error updating booking:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+app.delete('/api/admin/bookings/:id', isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        await supabaseAdmin.from('booking_service').delete().eq('booking_id', id);
+        
+        const { error } = await supabaseAdmin
+            .from('booking')
+            .delete()
+            .eq('booking_id', id);
+        
+        if (error) throw error;
+        res.json({ success: true, message: 'Booking deleted successfully' });
+    } catch (err) {
+        console.error('Error deleting booking:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+app.get('/api/admin/bookings/stats', isAdmin, async (req, res) => {
+    try {
+        const { data, error } = await supabaseAdmin
+            .from('booking')
+            .select('status');
+
+        if (error) throw error;
+
+        const stats = {
+            total: data.length,
+            pending: data.filter(b => b.status === 'pending').length,
+            confirmed: data.filter(b => b.status === 'confirmed').length,
+            completed: data.filter(b => b.status === 'completed').length,
+            cancelled: data.filter(b => b.status === 'cancelled').length,
+            upcoming: data.filter(b => b.status === 'upcoming').length
+        };
+
+        res.json({ success: true, data: stats });
+    } catch (err) {
+        console.error('Error fetching booking stats:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+app.put('/api/admin/bookings/:id/reschedule', isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { action } = req.body;
+
+        if (!['approve', 'reject'].includes(action)) {
+            return res.status(400).json({ success: false, message: 'Invalid action' });
+        }
+
+        const { data: booking, error: fetchError } = await supabaseAdmin
+            .from('booking')
+            .select('reschedule_status, reschedule_requested_date, reschedule_requested_time')
+            .eq('booking_id', id)
+            .single();
+
+        if (fetchError || !booking) {
+            return res.status(404).json({ success: false, message: 'Booking not found' });
+        }
+
+        if (booking.reschedule_status !== 'pending') {
+            return res.status(400).json({ success: false, message: 'No pending reschedule request' });
+        }
+
+        let updateData;
+        if (action === 'approve') {
+            updateData = {
+                booking_date: booking.reschedule_requested_date,
+                booking_time: booking.reschedule_requested_time,
+                reschedule_status: 'approved',
+                status: 'upcoming'
+            };
+        } else {
+            updateData = { reschedule_status: 'rejected' };
+        }
+
+        const { error: updateError } = await supabaseAdmin
+            .from('booking')
+            .update(updateData)
+            .eq('booking_id', id);
+
+        if (updateError) throw updateError;
+        res.json({ success: true, message: `Reschedule ${action === 'approve' ? 'approved' : 'rejected'}` });
+    } catch (err) {
+        console.error('Error processing reschedule:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// 🆕 TAMBAHAN: ========== ADMIN PET MANAGEMENT ==========
+app.get('/api/admin/pets', isAdmin, async (req, res) => {
+    try {
+        const { species, status, search } = req.query;
+        
+        let query = supabaseAdmin
+            .from('pet')
+            .select(`
+                *,
+                customer:customer_id(full_name, email, phone_number)
+            `)
+            .order('created_at', { ascending: false });
+
+        if (species && species !== 'all') query = query.eq('species', species);
+        if (status && status !== 'all') query = query.eq('status', status);
+        if (search) query = query.or(`pet_name.ilike.%${search}%,breed.ilike.%${search}%`);
+
+        const { data, error } = await query;
+        if (error) throw error;
+
+        const pets = data.map(pet => ({
+            pet_id: pet.pet_id,
+            pet_name: pet.pet_name,
+            species: pet.species,
+            breed: pet.breed,
+            date_of_birth: pet.date_of_birth,
+            gender: pet.gender,
+            weight: pet.weight,
+            special_notes: pet.special_notes,
+            pet_photo: pet.pet_photo,
+            status: pet.status || 'Active',
+            created_at: pet.created_at,
+            customer: pet.customer ? {
+                full_name: pet.customer.full_name,
+                email: pet.customer.email,
+                phone_number: pet.customer.phone_number
+            } : null
+        }));
+
+        res.json({ success: true, data: pets });
+    } catch (err) {
+        console.error('Error fetching pets:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+app.get('/api/admin/pets/stats', isAdmin, async (req, res) => {
+    try {
+        const { count: total } = await supabaseAdmin
+            .from('pet')
+            .select('*', { count: 'exact', head: true });
+        
+        const { count: dogs } = await supabaseAdmin
+            .from('pet')
+            .select('*', { count: 'exact', head: true })
+            .eq('species', 'dog');
+        
+        const { count: cats } = await supabaseAdmin
+            .from('pet')
+            .select('*', { count: 'exact', head: true })
+            .eq('species', 'cat');
+
+        res.json({
+            success: true,
+            data: {
+                total: total || 0,
+                dogs: dogs || 0,
+                cats: cats || 0
+            }
+        });
+    } catch (err) {
+        console.error('Error fetching pet stats:', err);
+        res.status(500).json({ success: false, message: err.message });
     }
 });
 

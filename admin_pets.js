@@ -43,7 +43,6 @@
 
     // 监听 pageshow 事件，处理 bfcache 恢复
     window.addEventListener('pageshow', function(event) {
-        // 如果页面是从 bfcache 恢复，重新执行检查
         if (event.persisted) {
             doAuthCheck();
         }
@@ -75,7 +74,7 @@ async function authFetch(url, options = {}) {
     return response;
 }
 
-// SUPABASE DIRECT QUERY FUNCTIONS
+// SUPABASE DIRECT QUERY FUNCTIONS - KEEP FOR BACKWARD COMPATIBILITY
 async function supabaseQuery(query, params = []) {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -312,7 +311,6 @@ async function getInactivePets() {
         sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
         const sixMonthsStr = sixMonthsAgo.toISOString();
         
-        // Get all pets
         const petResponse = await fetch(
             `${SUPABASE_URL}/rest/v1/pet?select=pet_id,pet_name,species,breed,customer_id,created_at`,
             {
@@ -330,7 +328,6 @@ async function getInactivePets() {
 
         const allPets = await petResponse.json();
         
-        // Get bookings in last 6 months
         const bookingResponse = await fetch(
             `${SUPABASE_URL}/rest/v1/booking?select=pet_id,booking_date&booking_date=gte.${sixMonthsStr}`,
             {
@@ -348,13 +345,11 @@ async function getInactivePets() {
 
         const recentBookings = await bookingResponse.json();
         
-        // Get pet IDs with recent bookings
         const activePetIds = new Set();
         recentBookings.forEach(b => {
             if (b.pet_id) activePetIds.add(b.pet_id);
         });
         
-        // Filter pets with no recent bookings
         const inactivePets = allPets.filter(p => 
             !activePetIds.has(p.pet_id) && p.created_at < sixMonthsStr
         );
@@ -660,20 +655,16 @@ async function showNotificationDetails() {
 // ================================================================
 async function loadCustomersForDropdown() {
     try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/customer?select=customer_id,full_name,email,phone_number&order=full_name.asc`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch customers: ${response.status}`);
+        // 🆕 TAMBAHAN: Guna authFetch ke backend API
+        const response = await authFetch('/api/admin/customers');
+        if (!response) return [];
+        
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to load customers');
         }
 
-        customersData = await response.json();
+        customersData = result.data || [];
         
         const select = document.getElementById('petOwnerId');
         if (select) {
@@ -698,24 +689,23 @@ async function loadCustomersForDropdown() {
 }
 
 // ================================================================
-// LOAD PETS FROM SUPABASE
+// LOAD PETS FROM SUPABASE - 🆕 GUNA BACKEND API
 // ================================================================
 async function loadPetsFromSupabase() {
     try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/pet?select=*,customer:customer_id(full_name,email,phone_number)&order=created_at.desc`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch pets: ${response.status}`);
+        console.log('🔍 Loading pets from admin API...');
+        
+        // 🆕 TAMBAHAN: Guna authFetch ke backend API
+        const response = await authFetch('/api/admin/pets');
+        if (!response) return [];
+        
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to load pets');
         }
 
-        const pets = await response.json();
+        const pets = result.data || [];
+        console.log('✅ Pets loaded successfully:', pets.length);
         
         petsData = pets.map(pet => {
             let ageDisplay = 'N/A';
@@ -735,23 +725,26 @@ async function loadPetsFromSupabase() {
                 }
             }
             
+            // 🆕 TAMBAHAN: Use pet data from API response
+            const customer = pet.customer || {};
+            
             return {
                 id: pet.pet_id || '#PET-' + String(Math.floor(Math.random() * 10000)).padStart(4, '0'),
                 pet_id: pet.pet_id,
                 name: pet.pet_name || 'Unknown',
                 ownerId: pet.customer_id || '',
-                owner: pet.customer?.full_name || 'Unknown',
+                owner: customer.full_name || 'Unknown',
                 species: pet.species || 'Dog',
                 breed: pet.breed || '',
                 age: ageDisplay,
                 weight: pet.weight ? `${pet.weight} kg` : 'N/A',
-                status: 'Active',
+                status: pet.status || 'Active',
                 gender: pet.gender || 'Male',
                 medicalNotes: pet.special_notes || '',
                 lastService: 'None scheduled',
                 totalBookings: 0,
-                ownerPhone: pet.customer?.phone_number || 'N/A',
-                ownerEmail: pet.customer?.email || 'N/A',
+                ownerPhone: customer.phone_number || 'N/A',
+                ownerEmail: customer.email || 'N/A',
                 image: pet.pet_photo || '',
                 created_at: pet.created_at || new Date().toISOString()
             };
@@ -765,35 +758,38 @@ async function loadPetsFromSupabase() {
         
         return petsData;
     } catch (err) {
-        console.error('Error loading pets from Supabase:', err);
+        console.error('Error loading pets from API:', err);
         showValidationModal('Failed to load pets from database. Please refresh.');
         return [];
     }
 }
 
 // ================================================================
-// LOAD PET BOOKING STATS
+// LOAD PET BOOKING STATS - 🆕 GUNA BACKEND API
 // ================================================================
 async function loadPetBookingStats() {
     try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/booking?select=pet_id,status,booking_date`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY
-            }
-        });
+        // 🆕 TAMBAHAN: Guna authFetch ke backend API untuk booking stats
+        const response = await authFetch('/api/admin/bookings/stats');
+        if (!response) return;
+        
+        const result = await response.json();
+        if (!result.success) return;
 
-        if (!response.ok) {
-            throw new Error(`Failed to fetch bookings: ${response.status}`);
-        }
-
-        const bookings = await response.json();
+        // We also need individual pet booking counts
+        const bookingsResponse = await authFetch('/api/bookings');
+        if (!bookingsResponse) return;
+        
+        const bookingsResult = await bookingsResponse.json();
+        if (!bookingsResult.success) return;
+        
+        const bookings = bookingsResult.data || [];
 
         const bookingMap = {};
         bookings.forEach(booking => {
-            const petId = booking.pet_id;
+            const petId = booking.pet?.pet_id || booking.pet_id;
+            if (!petId) return;
+            
             if (!bookingMap[petId]) {
                 bookingMap[petId] = {
                     total: 0,
@@ -1405,7 +1401,7 @@ function closePetFormModal() {
 }
 
 // ================================================================
-// SAVE PET (Add or Update) - CONNECT TO SUPABASE
+// SAVE PET (Add or Update) - 🆕 GUNA BACKEND API
 // ================================================================
 async function savePet(event) {
     event.preventDefault();
@@ -1454,40 +1450,38 @@ async function savePet(event) {
     const imageData = tempImageData || '';
     
     const petData = {
-        pet_name: name,
+        name: name,
         customer_id: ownerId,
-        species: species,
+        species: species.toLowerCase(),
         breed: breed,
-        date_of_birth: dob || null,
+        dob: dob || null,
         weight: weight,
         gender: gender,
-        special_notes: medicalNotes || '',
-        pet_photo: imageData || null
+        notes: medicalNotes || '',
+        photo_url: imageData || null,
+        status: status
     };
     
     try {
-        const token = localStorage.getItem('token');
-        let url = `${SUPABASE_URL}/rest/v1/pet`;
+        let url = '/api/admin/pets';
         let method = 'POST';
         
         if (isEditMode && currentPetId) {
-            url = `${SUPABASE_URL}/rest/v1/pet?pet_id=eq.${currentPetId}`;
-            method = 'PATCH';
+            url = `/api/admin/pets/${currentPetId}`;
+            method = 'PUT';
         }
         
-        const response = await fetch(url, {
+        // 🆕 TAMBAHAN: Guna authFetch ke backend API
+        const response = await authFetch(url, {
             method: method,
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY,
-                'Content-Type': 'application/json',
-                'Prefer': 'return=minimal'
-            },
             body: JSON.stringify(petData)
         });
 
-        if (!response.ok) {
-            throw new Error(`Failed to save pet: ${response.status}`);
+        if (!response) return;
+        
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to save pet');
         }
 
         // Reload pets
@@ -1565,7 +1559,7 @@ function openDeleteModal(id) {
 }
 
 // ================================================================
-// CONFIRM DELETE PET - WITH NOTIFICATION TO CUSTOMER
+// CONFIRM DELETE PET - 🆕 GUNA BACKEND API
 // ================================================================
 async function confirmDeletePetWithNotification() {
     const id = currentPetId;
@@ -1592,50 +1586,16 @@ async function confirmDeletePetWithNotification() {
     confirmBtn.disabled = true;
     
     try {
-        const token = localStorage.getItem('token');
+        // 🆕 TAMBAHAN: Guna authFetch ke backend API untuk delete
+        const response = await authFetch(`/api/admin/pets/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (!response) return;
         
-        // 1. Delete pet from database
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/pet?pet_id=eq.${id}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY,
-                'Prefer': 'return=minimal'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to delete pet: ${response.status}`);
-        }
-
-        // 2. Create notification for customer
-        const notificationData = {
-            customer_id: customerId,
-            type: 'pet_deleted',
-            title: `🐾 Pet Removed: ${petName}`,
-            message: `Admin has removed "${petName}" from your profile.${adminNote ? ` Note: ${adminNote}` : ''}`,
-            data: {
-                pet_id: id,
-                pet_name: petName,
-                admin_note: adminNote,
-                deleted_at: new Date().toISOString()
-            },
-            is_read: false
-        };
-
-        const notifResponse = await fetch(`${SUPABASE_URL}/rest/v1/customer_notifications`, {
-            method: 'POST',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY,
-                'Content-Type': 'application/json',
-                'Prefer': 'return=minimal'
-            },
-            body: JSON.stringify(notificationData)
-        });
-
-        if (!notifResponse.ok) {
-            console.warn('Notification creation failed, but pet was deleted.');
+        const result = await response.json();
+        if (!result.success) {
+            throw new Error(result.message || 'Failed to delete pet');
         }
 
         // Remove from local data
@@ -1677,7 +1637,12 @@ function showSuccessModal(title, message) {
     const messageEl = document.getElementById('successMessage');
     
     titleEl.textContent = title;
-    messageEl.textContent = message;
+    // 🆕 TAMBAHAN: Support HTML message
+    if (message.includes('<')) {
+        messageEl.innerHTML = message;
+    } else {
+        messageEl.textContent = message;
+    }
     
     modal.classList.add('active');
     lockBodyScroll();
@@ -1698,7 +1663,12 @@ function showValidationModal(message) {
     const modal = document.getElementById('validationModal');
     const msgEl = document.getElementById('validationMessage');
     if (modal && msgEl) {
-        msgEl.textContent = message;
+        // 🆕 TAMBAHAN: Support HTML message
+        if (message.includes('<')) {
+            msgEl.innerHTML = message;
+        } else {
+            msgEl.textContent = message;
+        }
         lockBodyScroll();
         modal.classList.add('active');
     }
@@ -1735,22 +1705,49 @@ function applyFiltersAndRender() {
 }
 
 // ================================================================
-// LOAD PET STATS
+// LOAD PET STATS - 🆕 GUNA BACKEND API
 // ================================================================
-function loadPetStats() {
-    const total = petsData.length;
-    const dogs = petsData.filter(p => p.species === 'Dog').length;
-    const cats = petsData.filter(p => p.species === 'Cat').length;
-    
-    const dogPercent = total > 0 ? ((dogs / total) * 100).toFixed(1) : 0;
-    const catPercent = total > 0 ? ((cats / total) * 100).toFixed(1) : 0;
-    
-    document.getElementById('totalPets').textContent = total;
-    document.getElementById('totalDogs').textContent = dogs;
-    document.getElementById('totalCats').textContent = cats;
-    
-    document.getElementById('dogPercentage').textContent = `${dogPercent}% of total`;
-    document.getElementById('catPercentage').textContent = `${catPercent}% of total`;
+async function loadPetStats() {
+    try {
+        // 🆕 TAMBAHAN: Guna authFetch ke backend API untuk stats
+        const response = await authFetch('/api/admin/pets/stats');
+        if (!response) return;
+        
+        const result = await response.json();
+        if (!result.success) return;
+        
+        const stats = result.data || {};
+        
+        document.getElementById('totalPets').textContent = stats.total || 0;
+        document.getElementById('totalDogs').textContent = stats.dogs || 0;
+        document.getElementById('totalCats').textContent = stats.cats || 0;
+        
+        const total = stats.total || 0;
+        const dogs = stats.dogs || 0;
+        const cats = stats.cats || 0;
+        const dogPercent = total > 0 ? ((dogs / total) * 100).toFixed(1) : 0;
+        const catPercent = total > 0 ? ((cats / total) * 100).toFixed(1) : 0;
+        
+        document.getElementById('dogPercentage').textContent = `${dogPercent}% of total`;
+        document.getElementById('catPercentage').textContent = `${catPercent}% of total`;
+        
+    } catch (err) {
+        console.error('Error loading pet stats:', err);
+        // Fallback to local calculation if API fails
+        const total = petsData.length;
+        const dogs = petsData.filter(p => p.species === 'Dog').length;
+        const cats = petsData.filter(p => p.species === 'Cat').length;
+        
+        document.getElementById('totalPets').textContent = total;
+        document.getElementById('totalDogs').textContent = dogs;
+        document.getElementById('totalCats').textContent = cats;
+        
+        const dogPercent = total > 0 ? ((dogs / total) * 100).toFixed(1) : 0;
+        const catPercent = total > 0 ? ((cats / total) * 100).toFixed(1) : 0;
+        
+        document.getElementById('dogPercentage').textContent = `${dogPercent}% of total`;
+        document.getElementById('catPercentage').textContent = `${catPercent}% of total`;
+    }
 }
 
 // ================================================================
@@ -1851,4 +1848,5 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     console.log('PAWCARE ADMIN PETS LOADED SUCCESSFULLY!');
+    console.log('🔧 Using backend API for all pet operations');
 });
