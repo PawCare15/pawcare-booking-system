@@ -1582,37 +1582,55 @@ function confirmLogout() {
 
                 // ===== Profile Form =====
                 $('profileForm').addEventListener('submit', async function(e) {
-                e.preventDefault();
-                const name = $('editFullName').value.trim();
-                const phone = $('editPhone').value.trim();
-                const msg = $('profileUpdateMessage');
-                if (name.length < 2) { msg.className = 'message error'; msg.textContent = 'Please enter a valid full name.'; return; }
-                if (!phone) { msg.className = 'message error'; msg.textContent = 'Phone number is required.'; return; }
+                    e.preventDefault();
+                    const name = $('editFullName').value.trim();
+                    const phone = $('editPhone').value.trim();
+                    const msg = $('profileUpdateMessage');
+                    if (name.length < 2) { msg.className = 'message error'; msg.textContent = 'Please enter a valid full name.'; return; }
+                    if (!phone) { msg.className = 'message error'; msg.textContent = 'Phone number is required.'; return; }
 
-                try {
-                    const res = await authFetch('/api/profile', {
-                    method: 'PUT',
-                    body: JSON.stringify({ full_name: name, phone_number: phone })
-                    });
-                    const data = await res.json();
-                    if (data.success) {
-                    // 更新本地存储的 profile 数据
-                    data = { ...data, full_name: name, phone_number: phone };
-                    saveData(); // 如果用 localStorage 保存，可更新
-                    render();
-                    msg.className = 'message success';
-                    msg.textContent = '✓ Profile updated successfully!';
-                    toast('Profile changes saved.');
-                    // 重新加载 header
-                    loadAdminProfile();
-                    } else {
-                    msg.className = 'message error';
-                    msg.textContent = data.message || 'Update failed.';
+                    try {
+                        const res = await authFetch('/api/profile', {
+                            method: 'PUT',
+                            body: JSON.stringify({ full_name: name, phone_number: phone })
+                        });
+                        // 检查响应是否成功
+                        if (!res.ok) {
+                            let errMsg = 'Server error';
+                            try {
+                                const errData = await res.json();
+                                errMsg = errData.message || errMsg;
+                            } catch (_) {}
+                            throw new Error(errMsg);
+                        }
+                        const data = await res.json();
+                        if (data.success) {
+                            // 更新本地存储（可选）
+                            const profile = JSON.parse(localStorage.getItem('pawcareAdminProfile') || '{}');
+                            profile.full_name = name;
+                            profile.phone_number = phone;
+                            localStorage.setItem('pawcareAdminProfile', JSON.stringify(profile));
+                            // 更新 user 对象
+                            const user = JSON.parse(localStorage.getItem('user') || '{}');
+                            if (user && user.id) {
+                                user.name = name;
+                                localStorage.setItem('user', JSON.stringify(user));
+                            }
+                            // 重新加载资料
+                            loadAdminProfile();
+                            msg.className = 'message success';
+                            msg.textContent = '✓ Profile updated successfully!';
+                            toast('Profile changes saved.');
+                        } else {
+                            msg.className = 'message error';
+                            msg.textContent = data.message || 'Update failed.';
+                        }
+                    } catch (err) {
+                        console.error('Profile update error:', err);
+                        msg.className = 'message error';
+                        msg.textContent = 'Unable to connect to server. Please check your network.';
+                        toast('Update failed: ' + err.message);
                     }
-                } catch (err) {
-                    msg.className = 'message error';
-                    msg.textContent = 'Unable to connect to server.';
-                }
                 });
 
                 $('resetProfileBtn').addEventListener('click', function() {
@@ -1729,39 +1747,45 @@ function confirmLogout() {
                 // ===== 2FA =====
                 $('manage2faBtn').addEventListener('click', function() { openModal('twoFactorModal'); });
                 $('toggle2faBtn').addEventListener('click', function() {
+                    toast('2FA feature is under development. Actual security not enabled.');
                     data.twoFactor = !data.twoFactor;
                     saveData();
                     render();
-                    toast(data.twoFactor ? '2FA enabled.' : '2FA disabled.');
+                    toast(data.twoFactor ? '2FA enabled (UI only).' : '2FA disabled (UI only).');
                 });
 
                 // ===== Sessions =====
+                function renderSessions(sessions) {
+                    const list = document.querySelector('.session-list');
+                    if (!list) return;
+                    let html = '';
+                    sessions.forEach(s => {
+                        const isLoggedOut = s.loggedOut || false;
+                        const isCurrent = s.current || false;
+                        let statusText = '';
+                        if (isCurrent) statusText = '<span class="badge">Current</span>';
+                        else if (isLoggedOut) statusText = '<span class="badge">Logged Out</span>';
+                        else statusText = '<button class="btn btn-outline btn-sm sessionLogout" data-id="'+s.id+'">Log Out</button>';
+                        html += `<div class="session"><span><b>${s.device}</b><br><small>${s.browser}</small></span>${statusText}</div>`;
+                    });
+                    list.innerHTML = html;
+                }
+
                 $('viewSessionsBtn').addEventListener('click', async function() {
                     openModal('sessionsModal');
-
-                    // 优先读取本地缓存的会话状态
                     let sessions = JSON.parse(localStorage.getItem('pawcareSessions') || 'null');
-                    
-                    // 如果没有本地缓存，就向后端请求（后端返回3个默认设备）
                     if (!sessions) {
                         try {
                             const res = await authFetch('/api/admin/sessions');
                             const data = await res.json();
                             if (data.success) {
                                 sessions = data.data;
-                                // 存到本地防止重置
                                 localStorage.setItem('pawcareSessions', JSON.stringify(sessions));
                             }
                         } catch (e) { /* fallback */ }
                     }
-
-                    // 渲染列表
-                    const list = document.querySelector('.session-list');
-                    let html = '';
-                    sessions.forEach(s => {
-                        html += `<div class="session"><span><b>${s.device}</b><br><small>${s.browser}</small></span>${s.current || s.loggedOut ? '<span class="badge">Current / Logged Out</span>' : '<button class="btn btn-outline btn-sm sessionLogout" data-id="'+s.id+'">Log Out</button>'}</div>`;
-                    });
-                    list.innerHTML = html;
+                    if (!sessions) sessions = [];
+                    renderSessions(sessions);
                 });
 
                 // 重新绑定单个 Session 登出
@@ -1789,10 +1813,19 @@ function confirmLogout() {
                             const res = await authFetch('/api/admin/logout-all', { method: 'POST' });
                             const data = await res.json();
                             if (data.success) {
+                                // 更新本地 sessions 全部标记为 loggedOut
+                                let sessions = JSON.parse(localStorage.getItem('pawcareSessions') || '[]');
+                                sessions = sessions.map(s => ({ ...s, loggedOut: true }));
+                                localStorage.setItem('pawcareSessions', JSON.stringify(sessions));
+                                // 重新渲染列表（如果模态框打开）
+                                renderSessions(sessions);
+                                toast('All sessions have been logged out.');
+                                // 移除 token 并跳转登录
                                 localStorage.removeItem('token');
                                 localStorage.removeItem('isLoggedIn');
-                                toast('All other sessions have been logged out.');
                                 setTimeout(() => window.location.replace('index.html'), 800);
+                            } else {
+                                toast('Failed to logout all: ' + (data.message || 'Unknown error'));
                             }
                         } catch (e) {
                             toast('Failed to logout all.');
@@ -1859,6 +1892,7 @@ function confirmLogout() {
                             document.getElementById('editFullName').value = admin.full_name || '';
                             document.getElementById('editEmail').value = admin.email || '';
                             document.getElementById('editPhone').value = admin.phone_number || '';
+                            document.getElementById('emailVerificationDesc').textContent = admin.email || 'admin@pawcare.com';
 
                             // 头像处理
                             if (admin.profile_photo) {

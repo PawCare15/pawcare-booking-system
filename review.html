@@ -2576,9 +2576,8 @@ async function loadServiceStats() {
                             icon.className = 'fa-regular fa-thumbs-up';
                         }
                     } else {
-                        // 后端报错时给出提示
                         console.error('Reply like server error:', data.message);
-                        alert('Unable to update like. Please check server.');
+                        showValidationModal('Unable to update like: ' + (data.message || 'Please check server.'));
                     }
                 } catch (err) { console.error('Reply like error:', err); }
             }

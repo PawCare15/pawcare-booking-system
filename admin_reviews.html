@@ -1121,13 +1121,14 @@ function confirmLogout() {
             let pendingDeleteReviewId = null;
 
             function showDeleteConfirm(reviewId) {
+                console.log('showDeleteConfirm called with reviewId:', reviewId);
                 pendingDeleteReviewId = reviewId;
                 const modal = document.getElementById('deleteConfirmModal');
-                // 重置确认按钮文字和启用状态
                 document.getElementById('deleteConfirmBtn').innerHTML = 'Delete';
                 document.getElementById('deleteConfirmBtn').disabled = false;
                 lockBodyScroll();
                 modal.classList.add('active');
+                console.log('Modal active class added:', modal.classList.contains('active'));
             }
 
             function hideDeleteConfirm() {
@@ -1280,10 +1281,9 @@ function confirmLogout() {
                                 icon.className = 'fa-regular fa-thumbs-up';
                             }
                         } else {
-                            // 后端报错时给出提示
                             console.error('Reply like server error:', data.message);
-                            alert('Unable to update like. Please check server.');
-                        }   
+                            showError('Unable to update like: ' + (data.message || 'Please check server.'));
+                        }
                     } catch (err) { console.error('Reply like error:', err); }
                 }
 
@@ -1371,4 +1371,5 @@ function confirmLogout() {
     </script>
 
 </body>
+</html>dy>
 </html>
