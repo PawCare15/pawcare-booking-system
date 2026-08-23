@@ -898,43 +898,77 @@ function confirmLogout() {
                         `<img src="${review.customer.profile_photo}" alt="Avatar">` :
                         customerName.substring(0, 2).toUpperCase();
 
-                    // 回复列表
+                    // 仅在 Admin 页面添加删除按钮
+                    const replyDeleteButton = `
+                        <button class="reply-delete-btn" data-reply-id="${reply.reply_id}" style="border:none; background:none; color:#DC2626; cursor:pointer; margin-left:5px;"><i class="fa-regular fa-trash-can"></i> Delete</button>
+                    `;
+                    
+                        // 回复列表 (支持真嵌套)
                     let repliesHtml = '';
                     if (review.replies && review.replies.length > 0) {
-                        repliesHtml = '<div style="margin-top: 12px; padding-left: 16px; border-left: 2px solid #E8DCC8; margin-bottom: 5px;">';
-                        review.replies.forEach(reply => {
-                            const replierName = reply.customer ? reply.customer.full_name : 'User';
-                            const repDate = reply.created_at ? new Date(reply.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-                            const isLiked = reply.reply_liked_by_me;
-                            const likeColor = isLiked ? 'style="color:#5A361A;"' : '';
-                            const likeIcon = isLiked ? 'fa-solid' : 'fa-regular';
-                            const repAvatar = reply.customer?.profile_photo ?
-                                `<img src="${reply.customer.profile_photo}" style="width:100%; height:100%; object-fit:cover;">` :
-                                replierName.substring(0, 2).toUpperCase();
+                        // 构建树结构
+                        const replyMap = {};
+                        review.replies.forEach(r => {
+                            r.children = [];
+                            replyMap[r.reply_id] = r;
+                        });
 
-                            // 判断是否为子回复
-                            const isChild = reply.parent_id ? true : false;
-                            const replyStyle = isChild 
-                                ? `margin-left: 30px; background: #FFFFFF; border: 1px dashed #E8DCC8;` 
-                                : `background: #FAF7F2; border: 1px solid #EFECE6;`;
+                        const roots = [];
+                        review.replies.forEach(r => {
+                            if (r.parent_id && replyMap[r.parent_id]) {
+                                replyMap[r.parent_id].children.push(r);
+                            } else {
+                                roots.push(r);
+                            }
+                        });
 
-                            repliesHtml += `
-                                <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; ${replyStyle} border-radius: 8px; padding: 10px;">
-                                    <div style="width: 28px; height: 28px; border-radius: 50%; background: #FDF3E7; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #5A361A;">
-                                        ${repAvatar}
-                                    </div>
-                                    <div style="font-size: 13px; display: flex; flex-direction: column; flex: 1;">
-                                        <span style="font-weight: 600; color: #5A361A;">${replierName}</span>
-                                        <span style="color: #444; margin-top: 2px;">${reply.reply_text}</span>
-                                        <div style="font-size: 11px; color: #B0A090; margin-top: 4px;">
-                                            ${repDate} 
-                                            <button class="reply-reply-btn" data-review-id="${review.review_id}" data-reply-id="${reply.reply_id}" style="border:none; background:none; color:#5A361A; cursor:pointer; margin-left:5px;"><i class="fa-regular fa-comment"></i> Reply</button>
-                                            <button class="reply-like-btn" ${likeColor} data-reply-id="${reply.reply_id}" style="border:none; background:none; cursor:pointer; margin-left:5px;"><i class="${likeIcon} fa-thumbs-up"></i> <span class="r-like-count">${reply.reply_like_count || 0}</span></button>
+                        // 递归渲染
+                        const renderReplies = (replies) => {
+                            let html = '';
+                            replies.forEach(reply => {
+                                const replierName = reply.customer ? reply.customer.full_name : 'User';
+                                const repDate = reply.created_at ? new Date(reply.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                                const isLiked = reply.reply_liked_by_me;
+                                const likeColor = isLiked ? 'style="color:#5A361A;"' : '';
+                                const likeIcon = isLiked ? 'fa-solid' : 'fa-regular';
+                                const repAvatar = reply.customer?.profile_photo ?
+                                    `<img src="${reply.customer.profile_photo}" style="width:100%; height:100%; object-fit:cover;">` :
+                                    replierName.substring(0, 2).toUpperCase();
+
+                                // 判断是否为子回复，如果是子回复，添加特殊样式和缩进
+                                const isChild = reply.parent_id ? true : false;
+                                const replyStyle = isChild 
+                                    ? `margin-left: 30px; background: #FFFFFF; border: 1px dashed #E8DCC8;` 
+                                    : `background: #FAF7F2; border: 1px solid #EFECE6;`;
+
+                                html += `
+                                    <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; ${replyStyle} border-radius: 8px; padding: 10px;">
+                                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #FDF3E7; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #5A361A;">
+                                            ${repAvatar}
+                                        </div>
+                                        <div style="font-size: 13px; display: flex; flex-direction: column; flex: 1;">
+                                            <span style="font-weight: 600; color: #5A361A;">${replierName}</span>
+                                            <span style="color: #444; margin-top: 2px;">${reply.reply_text}</span>
+                                            <div style="font-size: 11px; color: #B0A090; margin-top: 4px;">
+                                                ${repDate} 
+                                                <button class="reply-reply-btn" data-review-id="${review.review_id}" data-reply-id="${reply.reply_id}" style="border:none; background:none; color:#5A361A; cursor:pointer; margin-left:5px;"><i class="fa-regular fa-comment"></i> Reply</button>
+                                                <button class="reply-like-btn" ${likeColor} data-reply-id="${reply.reply_id}" style="border:none; background:none; cursor:pointer; margin-left:5px;"><i class="${likeIcon} fa-thumbs-up"></i> <span class="r-like-count">${reply.reply_like_count || 0}</span></button>
+                                                <!-- 这里在 admin_reviews.html 中额外添加删除按钮 -->
+                                                ${replyDeleteButton}
+                                            </div>
                                         </div>
                                     </div>
-                                </div>`;
-                        });
-                        repliesHtml += '</div>';
+                                `;
+                                
+                                // 递归渲染子回复
+                                if (reply.children && reply.children.length > 0) {
+                                    html += renderReplies(reply.children);
+                                }
+                            });
+                            return html;
+                        };
+
+                        repliesHtml = `<div style="margin-top: 12px; padding-left: 16px; border-left: 2px solid #E8DCC8; margin-bottom: 5px;">${renderReplies(roots)}</div>`;
                     }
 
                     html += `
@@ -1293,6 +1327,27 @@ function confirmLogout() {
                 if (target.classList.contains('delete-btn-admin')) {
                     const reviewId = target.dataset.reviewId;
                     showDeleteConfirm(reviewId);
+                }
+
+                // 🆕 处理删除回复按钮
+                if (target.classList.contains('reply-delete-btn')) {
+                    const replyId = target.dataset.replyId;
+                    if(confirm('Are you sure you want to delete this reply?')) {
+                        const token = localStorage.getItem('token');
+                        fetch(`/api/replies/${replyId}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                        })
+                        .then(res => res.json())
+                        .then(res => {
+                            if(res.success) {
+                                loadReviews();
+                            } else {
+                                alert(res.message || 'Failed to delete reply.');
+                            }
+                        })
+                        .catch(() => alert('Unable to connect to server.'));
+                    }
                 }
             });
 

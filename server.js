@@ -239,7 +239,7 @@ async function getUserInfo(req) {
 
   // 如果是管理员，校验 session_version 是否匹配
   if (decoded.role === 'admin') {
-    const { data: admin } = await supabaseAdmin.from('admin').select('session_version').eq('admin_id', decoded.customer_id).single();
+    const { data: admin } = await supabaseAdmin.from('admin').select('session_version').eq('admin_id', decoded.customer_id).maybeSingle();
     if (admin && admin.session_version !== decoded.session_version) {
       throw new Error('Session expired');
     }
@@ -261,12 +261,12 @@ async function isAdmin(req, res, next) {
         }
         
         // Verify session version
-        if (decoded.role === 'admin') {
+                if (decoded.role === 'admin') {
             const { data: admin } = await supabaseAdmin
                 .from('admin')
                 .select('session_version')
                 .eq('admin_id', decoded.customer_id)
-                .single();
+                .maybeSingle(); // <--- 改为 maybeSingle
             
             if (admin && admin.session_version !== decoded.session_version) {
                 return res.status(401).json({ success: false, message: 'Session expired' });
@@ -425,7 +425,7 @@ app.post('/api/login', async (req, res) => {
     // 获取当前的 session_version
     let sessionVersion = 1;
     if (role === 'admin') {
-        const { data: adminData } = await supabaseAdmin.from('admin').select('session_version').eq('admin_id', userId).single();
+        const { data: adminData } = await supabaseAdmin.from('admin').select('session_version').eq('admin_id', userId).maybeSingle(); // <--- 改为 maybeSingle
         sessionVersion = adminData?.session_version || 1;
     }
 
@@ -1941,13 +1941,20 @@ app.post('/api/replies/:reply_id/like', async (req, res) => {
 
     let action = 'liked';
     if (existing) {
-      await supabaseAdmin.from('review_reply_likes').delete().eq('reply_id', reply_id).eq('customer_id', customer_id);
+      // 已点赞 → 取消点赞
+      const { error: deleteError } = await supabaseAdmin.from('review_reply_likes').delete().eq('reply_id', reply_id).eq('customer_id', customer_id);
+      if (deleteError) throw deleteError;
       action = 'unliked';
     } else {
-      await supabaseAdmin.from('review_reply_likes').insert([{ reply_id, customer_id }]);
+      // 未点赞 → 添加点赞
+      const { error: insertError } = await supabaseAdmin.from('review_reply_likes').insert([{ reply_id, customer_id }]);
+      if (insertError) throw insertError;
     }
 
-    const { count } = await supabaseAdmin.from('review_reply_likes').select('id', { count: 'exact', head: true }).eq('reply_id', reply_id);
+    // 获取最新点赞数
+    const { count, error: countError } = await supabaseAdmin.from('review_reply_likes').select('id', { count: 'exact', head: true }).eq('reply_id', reply_id);
+    if (countError) throw countError;
+
     res.json({ success: true, action, like_count: count || 0 });
   } catch (err) {
     console.error(err);
@@ -1967,7 +1974,7 @@ app.post('/api/replies/:reply_id/reply', async (req, res) => {
     if (!reply_text || reply_text.trim() === '') return res.status(400).json({ success: false, message: 'Reply text is required.' });
 
     // 找到这条子回复属于哪条主评论
-    const { data: targetReply } = await supabaseAdmin.from('review_replies').select('review_id').eq('reply_id', reply_id).single();
+    const { data: targetReply } = await supabaseAdmin.from('review_replies').select('review_id').eq('reply_id', reply_id).maybeSingle();
     if (!targetReply) return res.status(404).json({ success: false, message: 'Reply not found.' });
 
     let insertData = { review_id: targetReply.review_id, reply_text: reply_text.trim(), parent_id: reply_id };
@@ -2021,6 +2028,50 @@ app.delete('/api/reviews/:review_id', async (req, res) => {
   }
 });
 
+// ========== 新增: 删除回复 (仅Admin或本人) ==========
+app.delete('/api/replies/:reply_id', async (req, res) => {
+  try {
+    const userInfo = await getUserInfo(req);
+    const userId = userInfo.customer_id;
+    const role = userInfo.role || 'customer';
+    const { reply_id } = req.params;
+
+    // 获取该回复信息
+    const { data: reply, error: fetchError } = await supabaseAdmin
+      .from('review_replies')
+      .select('*')
+      .eq('reply_id', reply_id)
+      .maybeSingle();
+    if (fetchError || !reply) return res.status(404).json({ success: false, message: 'Reply not found.' });
+
+    // 权限：只有 Admin 或者该回复的作者才能删除
+    if (role !== 'admin' && reply.customer_id !== userId && reply.admin_id !== userId) {
+      return res.status(403).json({ success: false, message: 'You do not have permission to delete this reply.' });
+    }
+
+    // 删除其所有子回复（级联删除）
+    const recursiveDelete = async (parentId) => {
+      const { data: children } = await supabaseAdmin.from('review_replies').select('reply_id').eq('parent_id', parentId);
+      if (children && children.length > 0) {
+        for (let child of children) {
+          await recursiveDelete(child.reply_id);
+        }
+      }
+      await supabaseAdmin.from('review_replies').delete().eq('reply_id', parentId);
+    };
+
+    await recursiveDelete(reply_id);
+
+    // 同时删除该回复的所有点赞
+    await supabaseAdmin.from('review_reply_likes').delete().eq('reply_id', reply_id);
+
+    res.json({ success: true, message: 'Reply deleted successfully.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
+  }
+});
+
 // ========== 新增: Admin Session 管理 ==========
 app.get('/api/admin/sessions', async (req, res) => {
   try {
@@ -2041,7 +2092,7 @@ app.post('/api/admin/logout-all', async (req, res) => {
     if (userInfo.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only.' });
 
     // 增加版本号，使所有旧 Token 失效
-    const { data: admin } = await supabaseAdmin.from('admin').select('session_version').eq('admin_id', userInfo.customer_id).single();
+    const { data: admin } = await supabaseAdmin.from('admin').select('session_version').eq('admin_id', userInfo.customer_id).maybeSingle(); // <--- 改为 maybeSingle
     await supabaseAdmin.from('admin').update({ session_version: (admin.session_version || 1) + 1 }).eq('admin_id', userInfo.customer_id);
 
     res.json({ success: true, message: 'All sessions logged out.' });
