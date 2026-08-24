@@ -3352,19 +3352,6 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
 });
 
 // ========== 启动服务器 ==========
-
-// 托管静态文件（确保 dist 文件夹存在）
-app.use(express.static(path.join(__dirname, 'dist')));
-
-// 兜底路由：如果请求不是 /api 开头的，就返回前端的 index.html
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api')) {
-    return next(); // 如果是API请求，继续往下走（通常这里不会有，因为上面的API已经拦截了）
-  }
-  // 尝试发送前端的页面
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
-
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
