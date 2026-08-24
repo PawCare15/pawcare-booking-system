@@ -991,9 +991,10 @@ function confirmLogout() {
                                 <div class="review-actions-admin">
                                     <button class="reply-btn-admin" data-review-id="${review.review_id}"><i class="fa-regular fa-comment"></i> Reply</button>
                                     <button class="delete-btn-admin" data-review-id="${review.review_id}"><i class="fa-regular fa-trash-can"></i> Delete</button>
-                                    <span style="color:#7A7A7A; font-size:13px; display:flex; align-items:center; gap:4px;">
+                                    <!-- 修改这一行：加上按钮类名，并绑定事件 -->
+                                    <button class="review-like-btn" data-review-id="${review.review_id}" style="background:none; border:none; color:#7A7A7A; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; font-family:'Poppins',sans-serif;">
                                         <i class="fa-regular fa-thumbs-up"></i> <span class="like-count">${review.like_count || 0}</span>
-                                    </span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1354,6 +1355,36 @@ function confirmLogout() {
                             await loadReviews(); // 重新加载整个列表以显示最新回复
                         }
                     });
+                }
+
+                // Review 点赞按钮
+                if (target.classList.contains('review-like-btn')) {
+                    const reviewId = target.dataset.reviewId;
+                    const icon = target.querySelector('i');
+                    const countSpan = target.querySelector('.like-count');
+
+                    try {
+                        const token = localStorage.getItem('token');
+                        const res = await fetch(`/api/reviews/${reviewId}/like`, {
+                            method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            countSpan.textContent = data.like_count;
+                            if (data.action === 'liked') {
+                                target.style.color = '#5A361A';
+                                icon.className = 'fa-solid fa-thumbs-up';
+                            } else if (data.action === 'unliked') {
+                                target.style.color = '#7A7A7A';
+                                icon.className = 'fa-regular fa-thumbs-up';
+                            }
+                        } else {
+                            showError('Unable to update like: ' + (data.message || 'Invalid ID type.'));
+                        }
+                    } catch (err) { 
+                        console.error('Review like error:', err); 
+                        showError('Unable to connect to server.'); 
+                    }
                 }
 
                 // 删除按钮

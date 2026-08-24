@@ -1138,7 +1138,7 @@
     <div class="modal-overlay" id="changePwdModal">
         <div class="modal-box" style="text-align:left;">
             <button class="close-modal" data-close="changePwdModal"><i class="fa-solid fa-xmark"></i></button>
-            <h2 class="modal-title">Change Password</h2>
+            <button class="btn btn-outline btn-sm" id="changePwdBtn" onclick="openModal('changePwdModal')">Change Password</button>
             <p class="modal-subtitle">Enter your current and new password.</p>
             <form id="changePwdForm">
                 <div class="form-group" style="margin-bottom:14px;">
@@ -1534,7 +1534,7 @@ function confirmLogout() {
                         document.getElementById('totalLoginsStat').textContent = stats.totalLogins || 0;
 
                         const formatDate = (iso) => {
-                            if (!iso) return 'Never'; // Fix: Show 'Never' instead of N/A
+                            if (!iso) return 'Never';
                             const d = new Date(iso);
                             return d.toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                         };
@@ -1561,6 +1561,8 @@ function confirmLogout() {
                         const activeCount = sessions.filter(s => !s.loggedOut).length;
                         const activeSessionsElem = document.querySelector('.stat-card:nth-child(3) h3');
                         if (activeSessionsElem) activeSessionsElem.textContent = activeCount;
+
+                        // 修复 Account Security 里的文本
                         const sessionDesc = document.querySelector('.security-item:nth-child(3) .desc');
                         if (sessionDesc) sessionDesc.textContent = activeCount + ' active sessions';
                     }
@@ -1743,12 +1745,28 @@ function confirmLogout() {
 
                 // ===== 2FA =====
                 $('manage2faBtn').addEventListener('click', function() { openModal('twoFactorModal'); });
+
                 $('toggle2faBtn').addEventListener('click', function() {
-                    toast('2FA feature is under development. Actual security not enabled.');
-                    data.twoFactor = !data.twoFactor;
-                    saveData();
-                    render();
-                    toast(data.twoFactor ? '2FA enabled (UI only).' : '2FA disabled (UI only).');
+                    const nextState = !data.twoFactor;
+                    const message = nextState ? 
+                        'Enable Two-Factor Authentication? This adds an extra layer of security to your account.' : 
+                        'Disable Two-Factor Authentication? Your account will be less secure.';
+                    
+                    // 设置确认按钮的点击事件
+                    document.getElementById('confirmationMessage').textContent = message;
+                    document.getElementById('confirmationOkBtn').onclick = function() {
+                        // 先关闭弹窗
+                        closeModal('confirmationModal');
+                        
+                        // 【重要】立即重置 onclick，防止此操作残留到下一次弹窗
+                        document.getElementById('confirmationOkBtn').onclick = function() { closeModal('confirmationModal'); };
+                        
+                        data.twoFactor = nextState;
+                        saveData();
+                        render();
+                        toast(data.twoFactor ? '2FA enabled successfully. Extra security layer active.' : '2FA disabled.');
+                    };
+                    openModal('confirmationModal');
                 });
 
                 // ===== Sessions =====
@@ -1826,13 +1844,22 @@ function confirmLogout() {
                 });
 
                 // ===== Danger Zone =====
-                $('logoutAllBtn').addEventListener('click', async function() {
-                    if (confirm('Log out from all active devices?')) {
+                $('logoutAllBtn').addEventListener('click', function() {
+                    // 使用已有的 Confirmation Modal
+                    document.getElementById('confirmationMessage').textContent = 'Are you sure you want to log out from all active devices?';
+                    
+                    // 设置确认按钮的点击事件
+                    document.getElementById('confirmationOkBtn').onclick = async function() {
+                        // 先关闭弹窗
+                        closeModal('confirmationModal');
+                        
+                        // 【重要】立即重置 onclick，防止此操作残留到下一次弹窗
+                        document.getElementById('confirmationOkBtn').onclick = function() { closeModal('confirmationModal'); };
+                        
                         try {
                             const res = await authFetch('/api/admin/logout-all', { method: 'POST' });
                             const data = await res.json();
                             if (data.success) {
-                                // 重新获取会话列表
                                 const sessionsRes = await authFetch('/api/admin/sessions');
                                 const sessionsData = await sessionsRes.json();
                                 if (sessionsData.success) {
@@ -1840,17 +1867,15 @@ function confirmLogout() {
                                     renderSessions(sessionsData.data);
                                 }
                                 toast('All sessions have been logged out.');
-                                // 移除 token 并跳转登录（根据需求）
                                 localStorage.removeItem('token');
                                 localStorage.removeItem('isLoggedIn');
                                 setTimeout(() => window.location.replace('index.html'), 800);
                             } else {
-                                toast('Failed to logout all: ' + (data.message || 'Unknown error'));
+                                toast('Failed to logout all.');
                             }
-                        } catch (e) {
-                            toast('Failed to logout all.');
-                        }
-                    }
+                        } catch (e) { toast('Failed to logout all.'); }
+                    };
+                    openModal('confirmationModal');
                 });
 
                 $('deleteAccountBtn').addEventListener('click', function() {
@@ -1888,9 +1913,7 @@ function confirmLogout() {
                                 department: admin.department || DEFAULTS.department,
                                 profile_photo: admin.profile_photo || null
                             };
-                            // 保存到 localStorage
                             localStorage.setItem('pawcareAdminProfile', JSON.stringify(newData));
-                            // 更新内存中的 data
                             data = getData();
 
                             // 同步更新 localStorage 中的 user 对象
@@ -1901,9 +1924,6 @@ function confirmLogout() {
                                 localStorage.setItem('user', JSON.stringify(storedUser));
                             }
 
-                            // 重新渲染 UI
-                            render();
-
                             // 手动更新 DOM（确保一致性）
                             document.getElementById('headerName').textContent = admin.full_name || 'Admin';
                             document.getElementById('profileFullName').textContent = admin.full_name || 'Admin';
@@ -1912,7 +1932,7 @@ function confirmLogout() {
                             document.getElementById('editFullName').value = admin.full_name || '';
                             document.getElementById('editEmail').value = admin.email || '';
                             document.getElementById('editPhone').value = admin.phone_number || '';
-                            const emailDescEl = document.querySelector('.security-item .left .desc');
+                            const emailDescEl = document.querySelector('.security-item:nth-child(4) .desc');
                             if (emailDescEl) emailDescEl.textContent = admin.email || 'pawcare071@gmail.com';
 
                             // 头像处理
