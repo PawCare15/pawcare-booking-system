@@ -185,6 +185,22 @@
         </div>
     </div>
 
+    <!-- 2FA 验证码输入弹窗 -->
+    <div class="otp-overlay" id="twoFactorOverlay" style="display:none; align-items:center; justify-content:center;">
+        <div class="otp-modal">
+            <div class="otp-modal-icon">🔐</div>
+            <h3 class="otp-modal-title">Two-Factor Authentication</h3>
+            <p class="otp-modal-desc">Please enter the 6-digit code sent to your registered email.</p>
+            <div class="otp-modal-email" style="margin-bottom:20px;">
+                <i class="ri-mail-line"></i>
+                <span id="twoFactorEmailDisplay">your@email.com</span>
+            </div>
+            <input type="text" id="twoFactorCodeInput" maxlength="6" placeholder="Enter Code" style="width:100%; padding:0.8rem; border:2px solid #ece6dc; border-radius:12px; font-size:1.2rem; text-align:center; letter-spacing:4px; margin-bottom:1.2rem; font-family:'Poppins',sans-serif;" />
+            <button class="otp-modal-btn" id="twoFactorVerifyBtn">Verify Code</button>
+            <p class="otp-modal-resend">Didn't receive it? <a href="#" id="twoFactorResendLink">Resend Code</a></p>
+        </div>
+    </div>
+
     <!-- BOOTSTRAP JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 

@@ -938,8 +938,8 @@ function confirmLogout() {
                                 // 判断是否为子回复，如果是子回复，添加特殊样式和缩进
                                 const isChild = reply.parent_id ? true : false;
                                 const replyStyle = isChild 
-                                    ? `margin-left: 30px; background: #FFFFFF; border: 1px dashed #E8DCC8;` 
-                                    : `background: #FAF7F2; border: 1px solid #EFECE6;`;
+                                    ? `margin-left: 30px;` 
+                                    : ``;
 
                                 html += `
                                     <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; ${replyStyle} border-radius: 8px; padding: 10px;">

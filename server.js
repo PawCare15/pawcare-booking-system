@@ -434,6 +434,69 @@ app.post('/api/login', async (req, res) => {
     // 统一字段名（customer 用 customer_id，admin 用 admin_id）
     const userId = user.customer_id || user.admin_id;
 
+    // ===== 新增：2FA 拦截逻辑（实际应用） =====
+    if (role === 'admin') {
+        const { data: adminSettings } = await supabaseAdmin
+            .from('admin')
+            .select('two_factor_enabled')
+            .eq('admin_id', userId)
+            .maybeSingle();
+
+        // 如果开启了 2FA，且请求中没有提交正确的验证码
+        if (adminSettings && adminSettings.two_factor_enabled) {
+            const { two_factor_code } = req.body;
+
+            if (!two_factor_code) {
+                // 1. 生成 6 位随机验证码
+                const code = Math.floor(100000 + Math.random() * 900000).toString();
+                const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString(); // 5分钟过期
+
+                // 2. 存入数据库
+                await supabaseAdmin.from('admin_2fa_codes').insert({ email: user.email, code, expires_at: expiresAt });
+
+                // 3. 使用 EmailJS 发送验证码邮件
+                emailjs.init({
+                    publicKey: process.env.EMAILJS_PUBLIC_KEY,
+                    privateKey: process.env.EMAILJS_PRIVATE_KEY,
+                });
+                
+                try {
+                    await emailjs.send(
+                        process.env.EMAILJS_SERVICE_ID,
+                        process.env.EMAILJS_TEMPLATE_ID,
+                        { otp_code: code, email: user.email }
+                    );
+                } catch (emailError) {
+                    console.error('Failed to send 2FA email:', emailError);
+                }
+
+                return res.status(403).json({ 
+                    success: false, 
+                    message: '2FA code sent to your email', 
+                    two_factor_required: true 
+                });
+            } else {
+                // 4. 验证码比对
+                const { data: savedCode } = await supabaseAdmin
+                    .from('admin_2fa_codes')
+                    .select('code, expires_at')
+                    .eq('email', user.email)
+                    .eq('code', two_factor_code)
+                    .order('id', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+
+                if (!savedCode || new Date(savedCode.expires_at) < new Date()) {
+                    return res.status(403).json({ success: false, message: 'Invalid or expired 2FA code' });
+                }
+
+                // 5. 删除已使用的验证码
+                await supabaseAdmin.from('admin_2fa_codes').delete().eq('id', savedCode.id);
+            }
+        }
+    }
+    // ===== 2FA 拦截逻辑结束 =====
+
     // 获取当前的 session_version
     let sessionVersion = 1;
     if (role === 'admin') {

@@ -1060,13 +1060,17 @@
                                     <div class="left"><i class="fa-solid fa-shield-halved"></i><div><div class="title">Two-Factor Authentication</div><div class="desc" id="twoFactorDesc">Extra layer of security</div></div></div>
                                     <div class="right"><span class="badge" id="twoFactorBadge">Enabled</span><button class="btn btn-outline btn-sm" id="manage2faBtn">Manage 2FA</button></div>
                                 </div>
+                                <!-- Login Sessions -->
                                 <div class="security-item">
-                                    <div class="left"><i class="fa-solid fa-desktop"></i><div><div class="title">Login Sessions</div><div class="desc">3 active sessions</div></div></div>
+                                    <div class="left"><i class="fa-solid fa-desktop"></i><div><div class="title">Login Sessions</div><div class="desc" id="loginSessionsDesc">3 active sessions</div></div></div>
                                     <div class="right"><button class="btn btn-outline btn-sm" id="viewSessionsBtn">View Sessions</button></div>
                                 </div>
+
+                                <!-- Email Verification -->
                                 <div class="security-item">
-                                    <div class="left"><i class="fa-regular fa-envelope"></i><div><div class="title">Email Verification</div><div class="desc">admin@pawcare.com</div></div></div>
+                                    <div class="left"><i class="fa-regular fa-envelope"></i><div><div class="title">Email Verification</div><div class="desc" id="emailVerificationDesc">admin@pawcare.com</div></div></div>
                                     <div class="right"><span class="badge"><i class="fa-solid fa-check"></i> Verified</span></div>
+                                </div>
                                 </div>
                             </div>
                         </div>
@@ -1529,19 +1533,25 @@ function confirmLogout() {
                     const result = await res.json();
                     if (result.success) {
                         const stats = result.data;
-                        data.totalLogins = stats.totalLogins || 0; // Sync to local data to prevent 128 issue
+                        data.totalLogins = stats.totalLogins || 0;
                         document.getElementById('totalLogins').textContent = stats.totalLogins || 0;
                         document.getElementById('totalLoginsStat').textContent = stats.totalLogins || 0;
 
+                        // Fix: Do not show "Never", retain last default date from data instead
                         const formatDate = (iso) => {
-                            if (!iso) return 'Never';
+                            if (!iso) return null;
                             const d = new Date(iso);
                             return d.toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                         };
-                        document.getElementById('lastLoginStat').textContent = formatDate(stats.lastLogin);
-                        document.getElementById('profileLastLogin').textContent = formatDate(stats.lastLogin);
-                        document.getElementById('pwdChanged').textContent = formatDate(stats.passwordUpdatedAt);
-                        document.getElementById('profileUpdated').textContent = formatDate(stats.profileUpdatedAt);
+
+                        const lastLogin = formatDate(stats.lastLogin);
+                        const pwdChanged = formatDate(stats.passwordUpdatedAt);
+                        const profileUpdated = formatDate(stats.profileUpdatedAt);
+
+                        document.getElementById('lastLoginStat').textContent = lastLogin || data.lastLogin;
+                        document.getElementById('profileLastLogin').textContent = lastLogin || data.lastLogin;
+                        document.getElementById('pwdChanged').textContent = pwdChanged || data.pwdChanged;
+                        document.getElementById('profileUpdated').textContent = profileUpdated || data.profileUpdated;
 
                         const daysActiveElem = document.querySelector('.stat-card:nth-child(4) h3');
                         if (daysActiveElem) daysActiveElem.textContent = stats.daysActive || 0;
@@ -1563,7 +1573,8 @@ function confirmLogout() {
                         if (activeSessionsElem) activeSessionsElem.textContent = activeCount;
 
                         // 修复 Account Security 里的文本
-                        const sessionDesc = document.querySelector('.security-item:nth-child(3) .desc');
+                        // Fix: Correctly show active session count and fix the "3 active sessions" text
+                        const sessionDesc = document.getElementById('loginSessionsDesc'); // 使用 ID 精确找到 Login Sessions
                         if (sessionDesc) sessionDesc.textContent = activeCount + ' active sessions';
                     }
                 } catch (e) { console.error('Failed to update active sessions count:', e); }
@@ -1669,6 +1680,7 @@ function confirmLogout() {
                             msg.className = 'message success';
                             msg.textContent = '✓ Profile updated successfully!';
                             toast('Profile changes saved.');
+                            loadActivityStats();
                         } else {
                             msg.className = 'message error';
                             msg.textContent = data.message || 'Update failed.';
@@ -1683,8 +1695,8 @@ function confirmLogout() {
 
                 // Fix: Reset Button
                 $('resetProfileBtn').addEventListener('click', function() {
-                    $('editFullName').value = data.name;
-                    $('editPhone').value = data.phone;
+                    $('editFullName').value = DEFAULTS.name;
+                    $('editPhone').value = DEFAULTS.phone;
                     $('profileUpdateMessage').className = 'message';
                     $('profileUpdateMessage').textContent = '';
                     toast('Profile form has been reset.');
@@ -1727,6 +1739,7 @@ function confirmLogout() {
                             $('pwdChangeMessage').textContent = 'Password updated successfully!';
                             $('pwdChangeMessage').style.color = 'green';
                             $('currentPwd').value = ''; $('newPwd').value = ''; $('confirmPwd').value = '';
+                            loadActivityStats(); 
                         } else {
                             $('pwdChangeMessage').textContent = result.message || 'Update failed';
                             $('pwdChangeMessage').style.color = 'red';
@@ -1752,19 +1765,32 @@ function confirmLogout() {
                         'Enable Two-Factor Authentication? This adds an extra layer of security to your account.' : 
                         'Disable Two-Factor Authentication? Your account will be less secure.';
                     
-                    // 设置确认按钮的点击事件
                     document.getElementById('confirmationMessage').textContent = message;
-                    document.getElementById('confirmationOkBtn').onclick = function() {
-                        // 先关闭弹窗
+                    document.getElementById('confirmationOkBtn').onclick = async function() {
                         closeModal('confirmationModal');
-                        
-                        // 【重要】立即重置 onclick，防止此操作残留到下一次弹窗
                         document.getElementById('confirmationOkBtn').onclick = function() { closeModal('confirmationModal'); };
                         
-                        data.twoFactor = nextState;
-                        saveData();
-                        render();
-                        toast(data.twoFactor ? '2FA enabled successfully. Extra security layer active.' : '2FA disabled.');
+                        // 尝试更新到数据库
+                        try {
+                            const token = localStorage.getItem('token');
+                            const res = await fetch('/api/profile/2fa', {
+                                method: 'PUT',
+                                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ two_factor_enabled: nextState })
+                            });
+                            const result = await res.json();
+                            
+                            if (result.success) {
+                                data.twoFactor = nextState;
+                                saveData();
+                                render();
+                                toast(data.twoFactor ? '2FA enabled successfully. Extra security layer active.' : '2FA disabled.');
+                            } else {
+                                toast('Failed to update 2FA: ' + (result.message || 'Unknown error'));
+                            }
+                        } catch (err) {
+                            toast('Network error.');
+                        }
                     };
                     openModal('confirmationModal');
                 });
@@ -1828,6 +1854,7 @@ function confirmLogout() {
                                 if (sessionsData.success) {
                                     localStorage.setItem('pawcareSessions', JSON.stringify(sessionsData.data));
                                     renderSessions(sessionsData.data);
+                                    updateActiveSessionsCount(); 
                                 }
                                 toast('Session logged out.');
                             } else {
@@ -1865,6 +1892,7 @@ function confirmLogout() {
                                 if (sessionsData.success) {
                                     localStorage.setItem('pawcareSessions', JSON.stringify(sessionsData.data));
                                     renderSessions(sessionsData.data);
+                                    updateActiveSessionsCount();
                                 }
                                 toast('All sessions have been logged out.');
                                 localStorage.removeItem('token');
@@ -1932,7 +1960,8 @@ function confirmLogout() {
                             document.getElementById('editFullName').value = admin.full_name || '';
                             document.getElementById('editEmail').value = admin.email || '';
                             document.getElementById('editPhone').value = admin.phone_number || '';
-                            const emailDescEl = document.querySelector('.security-item:nth-child(4) .desc');
+                            // Fix: 确保 Email Verification 下方显示的永远是 admin.email
+                            const emailDescEl = document.getElementById('emailVerificationDesc'); // 使用 ID 精确找到 Email Verification
                             if (emailDescEl) emailDescEl.textContent = admin.email || 'pawcare071@gmail.com';
 
                             // 头像处理
