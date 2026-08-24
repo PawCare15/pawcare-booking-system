@@ -2051,12 +2051,16 @@ body {
 /* Calendar Grid */
 .calendar-grid-dashboard {
     display: grid;
-    grid-template-columns: repeat(7, 1fr);
+    grid-template-columns: repeat(7, minmax(0, 1fr));
     gap: 2px;
     background: #FAF8F5;
     border-radius: 10px;
     border: 1px solid #EFECE6;
     overflow: hidden;
+}
+
+.calendar-card {
+    overflow-x: auto;
 }
 
 .calendar-grid-dashboard .day-header {
@@ -2072,6 +2076,7 @@ body {
 
 .calendar-grid-dashboard .day-cell {
     background: #FFFFFF;
+    min-width: 0;
     min-height: 80px;
     padding: 4px 6px;
     cursor: pointer;
@@ -2114,6 +2119,8 @@ body {
 }
 
 .calendar-grid-dashboard .day-cell .day-events .event-mini {
+    min-width: 0;
+    max-width: 100%;
     font-size: 8px;
     padding: 1px 6px;
     border-radius: 4px;
@@ -3036,8 +3043,13 @@ body {
     }
     
     .calendar-grid-dashboard .day-cell {
-        min-height: 55px;
-        padding: 2px 3px;
+        min-height: 72px;
+        padding: 4px;
+    }
+
+    .calendar-grid-dashboard {
+        width: 100%;
+        min-width: 0;
     }
     
     .calendar-grid-dashboard .day-cell .day-number {
@@ -3045,13 +3057,13 @@ body {
     }
     
     .calendar-grid-dashboard .day-cell .day-events .event-mini {
-        font-size: 6px;
-        padding: 0 3px;
-        line-height: 1.4;
+        font-size: 8px;
+        padding: 1px 4px;
+        line-height: 1.5;
     }
     
     .calendar-grid-dashboard .day-cell .day-events {
-        max-height: 36px;
+        max-height: 50px;
     }
     
     .calendar-legend-dashboard {
@@ -3070,22 +3082,30 @@ body {
 
 @media (max-width: 480px) {
     .calendar-grid-dashboard {
-        gap: 1px;
+        width: 100%;
+        min-width: 0;
+        gap: 2px;
     }
     
     .calendar-grid-dashboard .day-cell {
-        min-height: 45px;
-        padding: 2px;
+        min-height: 72px;
+        padding: 4px;
     }
     
     .calendar-grid-dashboard .day-cell .day-number {
-        font-size: 9px;
+        font-size: 11px;
     }
     
     .calendar-grid-dashboard .day-cell .day-events .event-mini {
-        font-size: 5px;
-        padding: 0 2px;
+        font-size: 0;
+        height: 7px;
+        padding: 0;
         border-left-width: 2px;
+    }
+
+    .calendar-grid-dashboard .day-cell .day-events {
+        gap: 3px;
+        max-height: 44px;
     }
     
     .calendar-grid-dashboard .day-cell .day-events {

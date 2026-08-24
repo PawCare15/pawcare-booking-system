@@ -149,6 +149,12 @@ function confirmLogout() {
     closeLogoutModal();
     window.location.replace('index.html');
 }
+function closeDeleteModal() {
+    const modal = document.getElementById('deleteConfirmModal');
+    if (modal) modal.classList.remove('active');
+    unlockBodyScroll();
+    currentPetId = null;
+}
 
 // ================================================================
 // PET DATA - LOAD FROM SUPABASE
@@ -165,19 +171,14 @@ let tempImageData = null;
 async function loadAdminProfile() {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/admin?select=admin_id,full_name,email,phone_number,profile_photo`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY
-            }
-        });
+        const response = await authFetch('/api/profile');
 
         if (!response.ok) {
             throw new Error(`Failed to fetch admin profile: ${response.status}`);
         }
 
-        const admins = await response.json();
+        const profileResult = await response.json();
+        const admins = profileResult.data ? [profileResult.data] : [];
         
         if (admins && admins.length > 0) {
             const adminData = admins[0];
@@ -704,7 +705,11 @@ async function loadPetsFromSupabase() {
             throw new Error(result.message || 'Failed to load pets');
         }
 
-        const pets = result.data || [];
+        const pets = (result.data || []).sort((firstPet, secondPet) => {
+            const firstNumber = Number(String(firstPet.pet_id || '').match(/\d+/)?.[0] || 0);
+            const secondNumber = Number(String(secondPet.pet_id || '').match(/\d+/)?.[0] || 0);
+            return firstNumber - secondNumber;
+        });
         console.log('✅ Pets loaded successfully:', pets.length);
         
         petsData = pets.map(pet => {
@@ -736,6 +741,7 @@ async function loadPetsFromSupabase() {
                 owner: customer.full_name || 'Unknown',
                 species: pet.species || 'Dog',
                 breed: pet.breed || '',
+                date_of_birth: pet.date_of_birth || '',
                 age: ageDisplay,
                 weight: pet.weight ? `${pet.weight} kg` : 'N/A',
                 status: pet.status || 'Active',
@@ -1165,7 +1171,7 @@ function openAddPetModal() {
                     </div>
                     <div class="field">
                         <label>Date of Birth</label>
-                        <input type="date" id="petDob">
+                        <input type="date" id="petDob" required>
                     </div>
                     <div class="field">
                         <label>Weight (kg) <span class="required">*</span></label>
@@ -1321,7 +1327,7 @@ function openEditPetModal(id) {
                     </div>
                     <div class="field">
                         <label>Date of Birth</label>
-                        <input type="date" id="petDob">
+                        <input type="date" id="petDob" value="${pet.date_of_birth || ''}" required>
                     </div>
                     <div class="field">
                         <label>Weight (kg) <span class="required">*</span></label>

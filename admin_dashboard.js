@@ -263,58 +263,46 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // LOAD ADMIN PROFILE (mock)
-    function loadAdminProfile() {
-        document.getElementById('headerName').textContent = 'Admin';
-        document.getElementById('headerAvatarImg').style.display = 'none';
-        document.getElementById('headerAvatarPlaceholder').style.display = 'flex';
+    // LOAD ADMIN PROFILE
+    async function loadAdminProfile() {
+        try {
+            const response = await authFetch('/api/profile');
+            if (!response || !response.ok) return;
+            const result = await response.json();
+            const profile = result.data || {};
+            document.getElementById('headerName').textContent = profile.full_name || 'Admin';
+            const avatar = document.getElementById('headerAvatarImg');
+            const placeholder = document.getElementById('headerAvatarPlaceholder');
+            if (profile.profile_photo) {
+                avatar.src = profile.profile_photo;
+                avatar.style.display = 'block';
+                placeholder.style.display = 'none';
+            }
+        } catch (err) {
+            console.error('Error loading admin profile:', err);
+        }
     }
 
-    // LOAD STATS - FROM SUPABASE
+    // LOAD STATS - FROM BACKEND
     async function loadStats() {
         try {
-            // GET BOOKINGS STATS
-            const bookingsStats = await supabaseQuery('get_booking_stats');
-            
-            // GET CUSTOMERS COUNT
-            const customersCount = await supabaseQuery('get_customers_count');
-            
-            // GET PETS COUNT
-            const petsCount = await supabaseQuery('get_pets_count');
+            const [summaryResponse, bookingResponse] = await Promise.all([
+                authFetch('/api/admin/stats'),
+                authFetch('/api/admin/bookings/stats')
+            ]);
+            if (!summaryResponse?.ok || !bookingResponse?.ok) throw new Error('Failed to load dashboard stats');
+            const summaryResult = await summaryResponse.json();
+            const bookingResult = await bookingResponse.json();
+            const summary = summaryResult.data || {};
+            const bookingStats = bookingResult.data || {};
 
-            if (bookingsStats) {
-                document.getElementById('totalBookings').textContent = bookingsStats.total || 0;
-                document.getElementById('pendingBookings').textContent = bookingsStats.pending || 0;
-                document.getElementById('confirmedBookings').textContent = bookingsStats.confirmed || 0;
-                document.getElementById('completedBookings').textContent = bookingsStats.completed || 0;
-                document.getElementById('cancelledBookings').textContent = bookingsStats.cancelled || 0;
-                
-                // CALCULATE PERCENTAGE CHANGES (FROM PREVIOUS MONTH)
-                const prevMonthStats = await supabaseQuery('get_booking_stats_previous_month');
-                if (prevMonthStats) {
-                    document.getElementById('totalChange').textContent = calculateChange(prevMonthStats.total, bookingsStats.total);
-                    document.getElementById('pendingChange').textContent = calculateChange(prevMonthStats.pending, bookingsStats.pending);
-                    document.getElementById('confirmedChange').textContent = calculateChange(prevMonthStats.confirmed, bookingsStats.confirmed);
-                    document.getElementById('completedChange').textContent = calculateChange(prevMonthStats.completed, bookingsStats.completed);
-                    document.getElementById('cancelledChange').textContent = calculateChange(prevMonthStats.cancelled, bookingsStats.cancelled);
-                }
-            }
-
-            if (customersCount) {
-                document.getElementById('totalCustomers').textContent = customersCount.total || 0;
-                const prevCustomers = await supabaseQuery('get_customers_count_previous_month');
-                if (prevCustomers) {
-                    document.getElementById('customerChange').textContent = calculateChange(prevCustomers.total, customersCount.total);
-                }
-            }
-
-            if (petsCount) {
-                document.getElementById('totalPets').textContent = petsCount.total || 0;
-                const prevPets = await supabaseQuery('get_pets_count_previous_month');
-                if (prevPets) {
-                    document.getElementById('petChange').textContent = calculateChange(prevPets.total, petsCount.total);
-                }
-            }
+            document.getElementById('totalBookings').textContent = bookingStats.total || 0;
+            document.getElementById('pendingBookings').textContent = bookingStats.pending || 0;
+            document.getElementById('confirmedBookings').textContent = bookingStats.confirmed || 0;
+            document.getElementById('completedBookings').textContent = bookingStats.completed || 0;
+            document.getElementById('cancelledBookings').textContent = bookingStats.cancelled || 0;
+            document.getElementById('totalCustomers').textContent = summary.totalCustomers || 0;
+            document.getElementById('totalPets').textContent = summary.totalPets || 0;
 
         } catch (err) {
             console.error('Error loading stats:', err);
@@ -335,9 +323,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadStatusChart() {
         try {
-            const stats = await supabaseQuery('get_booking_stats');
-            
-            if (!stats) return;
+            const response = await authFetch('/api/admin/bookings/stats');
+            if (!response || !response.ok) return;
+            const result = await response.json();
+            const stats = result.data || {};
             
             const ctx = document.getElementById('statusChart').getContext('2d');
             
@@ -398,7 +387,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadTrendChart() {
         try {
-            const trendData = await supabaseQuery('get_booking_trends', [6]);
+            const response = await authFetch('/api/admin/bookings-trend');
+            if (!response || !response.ok) return;
+            const result = await response.json();
+            const trendData = result.data || [];
             
             const ctx = document.getElementById('trendChart').getContext('2d');
             
@@ -410,9 +402,9 @@ document.addEventListener('DOMContentLoaded', function() {
             let labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
             let values = [0, 0, 0, 0, 0, 0];
             
-            if (trendData && trendData.length > 0) {
-                labels = trendData.map(d => d.month);
-                values = trendData.map(d => d.total);
+            if (trendData.length > 0) {
+                labels = trendData.map(d => d.date);
+                values = trendData.map(d => d.count);
             }
             
             // GRADIENT FILL
@@ -474,7 +466,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // LOAD RECENT BOOKINGS - FROM SUPABASE
     async function loadRecentBookings() {
         try {
-            const bookings = await supabaseQuery('get_recent_bookings', [5]);
+            const response = await authFetch('/api/admin/bookings');
+            if (!response || !response.ok) throw new Error('Failed to load recent bookings');
+            const result = await response.json();
+            const bookings = (result.data || []).slice(0, 5);
             const tbody = document.getElementById('recentBookingsBody');
             
             if (!bookings || bookings.length === 0) {
@@ -487,9 +482,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 const statusDisplay = booking.status || 'Pending';
                 return `<tr>
                     <td><strong>#${booking.booking_id || 'N/A'}</strong></td>
-                    <td>${booking.customer_name || 'Unknown'}</td>
-                    <td>${booking.pet_name || 'N/A'}</td>
-                    <td>${booking.service_name || 'N/A'}</td>
+                    <td>${booking.customer?.full_name || 'Unknown'}</td>
+                    <td>${booking.pet?.name || 'N/A'}</td>
+                    <td>${booking.services?.[0]?.service_name || 'N/A'}</td>
                     <td>${booking.booking_date || ''} ${booking.booking_time || ''}</td>
                     <td><span class="status-pill ${statusClass}">${statusDisplay}</span></td>
                 </tr>`;
@@ -505,7 +500,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // LOAD RECENT REVIEWS - FROM SUPABASE
     async function loadRecentReviews() {
         try {
-            const reviews = await supabaseQuery('get_recent_reviews', [4]);
+            const response = await authFetch('/api/reviews');
+            if (!response || !response.ok) throw new Error('Failed to load recent reviews');
+            const reviewResult = await response.json();
+            const reviews = (reviewResult.data || []).slice(0, 4);
             const container = document.getElementById('recentReviews');
             
             if (!reviews || reviews.length === 0) {
@@ -538,11 +536,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // UPDATE NOTIFICATION COUNT - FROM SUPABASE
     async function updateNotificationCount() {
         try {
-            const count = await supabaseQuery('get_unread_notification_count');
-            if (count !== null) {
-                document.getElementById('notifCount').textContent = count;
-                document.getElementById('notifCount').style.display = count > 0 ? 'flex' : 'none';
-            }
+            const response = await authFetch('/api/admin/notifications/unread-count');
+            if (!response || !response.ok) return;
+            const result = await response.json();
+            const count = result.count || 0;
+            document.getElementById('notifCount').textContent = count;
+            document.getElementById('notifCount').style.display = count > 0 ? 'flex' : 'none';
         } catch (err) {
             console.error('Error loading notifications:', err);
         }
@@ -553,8 +552,12 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Escape') {
             closeLogoutModal();
             closeCalendarEventModal();
+            closeDayEventsModal();
         }
     });
+
+    loadDashboardData();
+});
 
 // ============================================================ //
 // SERVICE CALENDAR - DASHBOARD                                 //
@@ -566,48 +569,18 @@ let calendarEvents = [];
 // GET ALL BOOKINGS FOR CALENDAR - FROM SUPABASE
 async function getCalendarBookings() {
     try {
-        // 查询 bookings 表并关联 customers 和 pets 表
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/booking?select=booking_id,pet_id,admin_id,status,booking_date,booking_time,check_in_datetime,check_out_datetime,customer_id,special_notes,reschedule_requested_date,reschedule_requested_time,reschedule_status,customer(name),pet(name,species,breed)`, {
-            method: 'GET',
-            headers: {
-                'apikey': SUPABASE_ANON_KEY,
-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
-                'Content-Type': 'application/json'
-            }
-        });
-        
-        if (!response.ok) {
-            throw new Error(`Supabase query failed: ${response.status}`);
-        }
-        
-        const bookings = await response.json();
+        const response = await authFetch('/api/admin/bookings');
+        if (!response || !response.ok) throw new Error(`Failed to load calendar bookings: ${response?.status || 'network error'}`);
+        const result = await response.json();
+        const bookings = result.data || [];
         
         if (bookings && bookings.length > 0) {
             return bookings.map(b => {
-                // 处理嵌套的 customers 和 pets 数据
-                let customerName = 'Unknown';
-                let petName = 'Unknown';
-                let serviceName = 'Service';
-                
-                // 从关联数据中提取名称
-                if (b.customer && b.customer.length > 0) {
-                    customerName = b.customer[0].name || 'Unknown';
-                }
-                
-                if (b.pet && b.pet.length > 0) {
-                    petName = b.pets[0].name || 'Unknown';
-                }
-                
-                // 根据服务类型设置服务名称 (从 pet 的 species 或默认)
-                if (b.pet && b.pet.length > 0 && b.pet[0].species) {
-                    serviceName = b.pets[0].species || 'Service';
-                }
-                
                 return {
                     id: b.booking_id,
-                    customer_name: customerName,
-                    pet_name: petName,
-                    service_name: serviceName,
+                    customer_name: b.customer?.full_name || 'Unknown',
+                    pet_name: b.pet?.name || 'Unknown',
+                    service_name: b.services?.[0]?.service_name || 'Service',
                     booking_date: b.booking_date,
                     booking_time: b.booking_time,
                     status: b.status || 'pending',
@@ -696,11 +669,10 @@ async function renderCalendar() {
     const grid = document.getElementById('calendarGrid');
     if (!grid) return;
     
-    // Show loading state
+    // Show a visual loading state without visible text.
     grid.innerHTML = `
         <div style="grid-column:1/-1; text-align:center; padding:40px; color:#7A7A7A;">
-            <i class="fa-solid fa-spinner fa-spin" style="font-size:24px;"></i>
-            <p style="margin-top:12px;">Loading calendar...</p>
+            <i class="fa-solid fa-spinner fa-spin" style="font-size:24px;" aria-label="Loading"></i>
         </div>
     `;
     
@@ -740,7 +712,7 @@ async function renderCalendar() {
         const isToday = dateStr === todayStr;
         const dayEvents = calendarEvents.filter(e => e.booking_date === dateStr);
         
-        html += `<div class="day-cell ${isToday ? 'today' : ''}" data-date="${dateStr}">`;
+        html += `<div class="day-cell ${isToday ? 'today' : ''}" data-date="${dateStr}" onclick="showDayEvents('${dateStr}')">`;
         html += `<div class="day-number">${day}</div>`;
         
         if (dayEvents.length > 0) {
@@ -890,9 +862,68 @@ function populateEventModal(event) {
 function showDayEvents(dateStr) {
     const events = calendarEvents.filter(e => e.booking_date === dateStr);
     if (events.length === 0) return;
-    
-    // Show first event as detail
-    showEventDetail(events[0].id);
+
+    if (events.length === 1) {
+        showEventDetail(events[0].id);
+        return;
+    }
+
+    const existingModal = document.getElementById('calendarDayEventsModal');
+    if (existingModal) existingModal.remove();
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay calendar-event-modal';
+    modal.id = 'calendarDayEventsModal';
+    modal.innerHTML = `
+        <div class="modal-box modal-detail modal-view" style="max-width:560px;">
+            <button class="modal-close" type="button" aria-label="Close">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div class="detail-modal-header">
+                <div class="detail-modal-avatar">📅</div>
+                <div>
+                    <div class="detail-modal-name">Bookings on ${dateStr}</div>
+                    <div class="detail-modal-id">${events.length} bookings</div>
+                </div>
+            </div>
+            <div class="detail-section">
+                <div class="detail-section-title">Select a booking to view details</div>
+                <div id="calendarDayEventsList"></div>
+            </div>
+            <div class="detail-actions">
+                <button class="btn btn-secondary" type="button" id="closeDayEventsBtn">Close</button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+    const list = modal.querySelector('#calendarDayEventsList');
+    events.forEach(event => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.style.cssText = 'display:flex; width:100%; justify-content:space-between; align-items:center; gap:12px; padding:12px 14px; margin:8px 0; border:1px solid #E8DED3; border-radius:8px; background:#FFF; color:#4A3327; text-align:left; cursor:pointer;';
+        button.innerHTML = `<span><strong>${event.booking_time ? formatTimeShort(event.booking_time) : 'Time not set'}</strong><br>${event.pet_name || 'Unknown pet'} - ${event.service_name || 'Service'}<br><small>${event.customer_name || 'Unknown customer'}</small></span><span>${event.status || 'pending'} <i class="fa-solid fa-chevron-right"></i></span>`;
+        button.addEventListener('click', () => {
+            closeDayEventsModal();
+            showEventDetail(event.id);
+        });
+        list.appendChild(button);
+    });
+
+    modal.querySelector('.modal-close').addEventListener('click', closeDayEventsModal);
+    modal.querySelector('#closeDayEventsBtn').addEventListener('click', closeDayEventsModal);
+    modal.addEventListener('click', event => {
+        if (event.target === modal) closeDayEventsModal();
+    });
+    lockBodyScroll();
+    modal.classList.add('active');
+}
+
+function closeDayEventsModal() {
+    const modal = document.getElementById('calendarDayEventsModal');
+    if (!modal) return;
+    modal.remove();
+    unlockBodyScroll();
 }
 
 // CREATE EVENT DETAIL MODAL
@@ -995,5 +1026,5 @@ window.refreshCalendarDashboard = refreshCalendarDashboard;
 window.showEventDetail = showEventDetail;
 window.showDayEvents = showDayEvents;
 window.closeCalendarEventModal = closeCalendarEventModal;
+window.closeDayEventsModal = closeDayEventsModal;
 window.viewCalendarBooking = viewCalendarBooking;
-}

@@ -16,7 +16,12 @@ const app = express();
 // ===== 配置 =====
 const isProduction = process.env.NODE_ENV === 'production';
 const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    if (!origin || origin === process.env.CLIENT_URL || /^https?:\/\/(localhost|127\.0\.0.1)(:\d+)?$/.test(origin)) {
+      return callback(null, true);
+    }
+    callback(new Error('Origin not allowed by CORS'));
+  },
   methods: ['GET','POST','PUT','DELETE'],
   allowedHeaders: ['Content-Type','Authorization']
 };
@@ -24,8 +29,8 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// 安全托管静态文件
-app.use(express.static(__dirname));
+// Serve the frontend files from the project root.
+app.use(express.static(path.join(__dirname, '..')));
 
 function parseUserAgent(userAgent) {
     const parser = new UAParser(userAgent);
@@ -543,15 +548,19 @@ app.get('/api/profile', async (req, res) => {
 
 // ========== 4. 更新个人资料 ==========
 app.put('/api/profile', async (req, res) => {
+  let userId;
+  let role;
+  let table;
+  let idField;
   try {
     console.log('Profile update request received:', req.body);
     const userInfo = await getUserInfo(req);
-    const userId = userInfo.customer_id;
-    const role = userInfo.role || 'customer';
+    userId = userInfo.customer_id;
+    role = userInfo.role || 'customer';
     const { phone_number, address, full_name } = req.body; // 增加 full_name
 
-    let table = 'customer';
-    let idField = 'customer_id';
+    table = 'customer';
+    idField = 'customer_id';
     let updateData = { phone_number, address };
     if (role === 'admin') {
       table = 'admin';
@@ -909,14 +918,190 @@ app.get('/api/services', async (req, res) => {
   }
 });
 
+// ========== Admin Service Management ==========
+app.get('/api/admin/categories', isAdmin, async (req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('categories')
+      .select('id, name, created_at')
+      .order('name', { ascending: true });
+    if (error) throw error;
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('Error fetching admin categories:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/admin/categories', isAdmin, async (req, res) => {
+  try {
+    const { name } = req.body;
+    if (!name || !name.trim()) return res.status(400).json({ success: false, message: 'Category name is required.' });
+    const { data, error } = await supabaseAdmin.from('categories').insert([{ name: name.trim() }]).select('*').single();
+    if (error) throw error;
+    res.status(201).json({ success: true, data });
+  } catch (err) {
+    console.error('Error creating category:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.put('/api/admin/categories/:id', isAdmin, async (req, res) => {
+  try {
+    const { name } = req.body;
+    const { data, error } = await supabaseAdmin.from('categories').update({ name: name?.trim() }).eq('id', req.params.id).select('*').maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(404).json({ success: false, message: 'Category not found.' });
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('Error updating category:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.delete('/api/admin/categories/:id', isAdmin, async (req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin.from('categories').delete().eq('id', req.params.id).select('id').maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(404).json({ success: false, message: 'Category not found.' });
+    res.json({ success: true, message: 'Category deleted.' });
+  } catch (err) {
+    console.error('Error deleting category:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/admin/services', isAdmin, async (req, res) => {
+  try {
+    const { data: services, error: serviceError } = await supabaseAdmin
+      .from('service')
+      .select('service_id, service_name, category, duration, description, pet_type, price, created_at')
+      .order('created_at', { ascending: false });
+    if (serviceError) throw serviceError;
+
+    const { data: prices, error: priceError } = await supabaseAdmin
+      .from('service_price')
+      .select('service_id, species, starting_price');
+    if (priceError) throw priceError;
+
+    const data = services.map(service => {
+      const servicePrices = prices.filter(price => price.service_id === service.service_id);
+      const dogPrice = servicePrices.find(price => price.species?.toLowerCase() === 'dog')?.starting_price;
+      const catPrice = servicePrices.find(price => price.species?.toLowerCase() === 'cat')?.starting_price;
+      return {
+        ...service,
+        price: service.price ?? dogPrice ?? catPrice ?? 0,
+        price_dog: dogPrice ?? null,
+        price_cat: catPrice ?? null
+      };
+    });
+
+    res.json({ success: true, data });
+  } catch (err) {
+    console.error('Error fetching admin services:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/admin/services', isAdmin, async (req, res) => {
+  try {
+    const { service_name, category, duration, description, pet_type, price } = req.body;
+    const numericPrice = Number(price);
+    if (!service_name || !category || !duration || !pet_type || !Number.isFinite(numericPrice) || numericPrice < 0) {
+      return res.status(400).json({ success: false, message: 'Required service fields are missing.' });
+    }
+
+    const { data: service, error: serviceError } = await supabaseAdmin
+      .from('service')
+      .insert([{ service_name, category, duration, description: description || null, pet_type, price: numericPrice }])
+      .select('*')
+      .single();
+    if (serviceError) throw serviceError;
+
+    const { error: priceError } = await supabaseAdmin
+      .from('service_price')
+      .insert([{ service_id: service.service_id, species: pet_type, starting_price: numericPrice }]);
+    if (priceError) {
+      await supabaseAdmin.from('service').delete().eq('service_id', service.service_id);
+      throw priceError;
+    }
+
+    res.status(201).json({ success: true, data: service });
+  } catch (err) {
+    console.error('Error creating admin service:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.put('/api/admin/services/:id', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { duration, price } = req.body;
+    const updateData = {};
+    if (duration !== undefined) updateData.duration = duration;
+    if (price !== undefined) updateData.price = Number(price);
+
+    const { data: service, error: serviceError } = await supabaseAdmin
+      .from('service')
+      .update(updateData)
+      .eq('service_id', id)
+      .select('*')
+      .maybeSingle();
+    if (serviceError) throw serviceError;
+    if (!service) return res.status(404).json({ success: false, message: 'Service not found.' });
+
+    if (price !== undefined) {
+      const { error: priceError } = await supabaseAdmin
+        .from('service_price')
+        .update({ starting_price: Number(price) })
+        .eq('service_id', id);
+      if (priceError) throw priceError;
+    }
+
+    res.json({ success: true, data: service });
+  } catch (err) {
+    console.error('Error updating admin service:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.delete('/api/admin/services/:id', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    await supabaseAdmin.from('booking_service').delete().eq('service_id', id);
+    const { error: priceError } = await supabaseAdmin.from('service_price').delete().eq('service_id', id);
+    if (priceError) throw priceError;
+    const { data, error } = await supabaseAdmin
+      .from('service')
+      .delete()
+      .eq('service_id', id)
+      .select('service_id')
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) return res.status(404).json({ success: false, message: 'Service not found.' });
+    res.json({ success: true, message: 'Service deleted.' });
+  } catch (err) {
+    console.error('Error deleting admin service:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ========== Admin Reports APIs ==========
 
 // 1. 总览统计
-app.get('/api/admin/stats', async (req, res) => {
+app.get('/api/admin/stats', isAdmin, async (req, res) => {
   try {
-    const { count: totalBookings } = await supabaseAdmin
+    const { data: bookings, error: bookingError } = await supabaseAdmin
       .from('booking')
-      .select('*', { count: 'exact', head: true });
+      .select('status');
+    if (bookingError) throw bookingError;
+
+    const totalBookings = bookings.length;
+    const bookingStatuses = bookings.map(booking => String(booking.status || '').trim().toLowerCase());
+    const pendingBookings = bookingStatuses.filter(status => status === 'pending').length;
+    const confirmedBookings = bookingStatuses.filter(status => status === 'confirmed').length;
+    const completedBookings = bookingStatuses.filter(status => status === 'completed').length;
+    const cancelledBookings = bookingStatuses.filter(status => status === 'cancelled').length;
 
     const { count: totalCustomers } = await supabaseAdmin
       .from('customer')
@@ -925,11 +1110,6 @@ app.get('/api/admin/stats', async (req, res) => {
     const { count: totalPets } = await supabaseAdmin
       .from('pet')
       .select('*', { count: 'exact', head: true });
-
-    const { count: completedBookings } = await supabaseAdmin
-      .from('booking')
-      .select('*', { count: 'exact', head: true })
-      .eq('status', 'completed');
 
     const { data: reviews } = await supabaseAdmin
       .from('review')
@@ -944,6 +1124,9 @@ app.get('/api/admin/stats', async (req, res) => {
       success: true,
       data: {
         totalBookings,
+        pendingBookings,
+        confirmedBookings,
+        cancelledBookings,
         totalCustomers,
         totalPets,
         completedBookings,
@@ -952,6 +1135,20 @@ app.get('/api/admin/stats', async (req, res) => {
     });
   } catch (err) {
     console.error(err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/admin/notifications/unread-count', isAdmin, async (req, res) => {
+  try {
+    const { count, error } = await supabaseAdmin
+      .from('customer_notifications')
+      .select('notification_id', { count: 'exact', head: true })
+      .eq('is_read', false);
+    if (error) throw error;
+    res.json({ success: true, count: count || 0 });
+  } catch (err) {
+    console.error('Error fetching unread notification count:', err);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -2255,7 +2452,7 @@ app.post('/api/customers/:customerId/delete-request', async (req, res) => {
 
         const { data: customer, error: customerError } = await supabaseAdmin
             .from('customer')
-            .select('customer_id, full_name, email, phone_number, status')
+          .select('customer_id, full_name, email, phone_number, delete_token, delete_token_expiry')
             .eq('customer_id', customerId)
             .single();
 
@@ -2264,7 +2461,7 @@ app.post('/api/customers/:customerId/delete-request', async (req, res) => {
         }
 
         // Check if customer already has pending deletion
-        if (customer.status === 'pending_deletion') {
+        if (customer.delete_token && customer.delete_token_expiry && new Date(customer.delete_token_expiry) > new Date()) {
             return res.status(400).json({ 
                 success: false, 
                 message: 'Customer already has a pending deletion request. They need to click the link in their email.' 
@@ -2280,7 +2477,6 @@ app.post('/api/customers/:customerId/delete-request', async (req, res) => {
         const { error: updateError } = await supabaseAdmin
             .from('customer')
             .update({
-                status: 'pending_deletion',
                 delete_token: deleteToken,
                 delete_token_expiry: tokenExpiry.toISOString()
             })
@@ -2302,7 +2498,6 @@ app.post('/api/customers/:customerId/delete-request', async (req, res) => {
             await supabaseAdmin
                 .from('customer')
                 .update({
-                    status: 'Active',
                     delete_token: null,
                     delete_token_expiry: null
                 })
@@ -2501,7 +2696,35 @@ app.get('/api/admin/customers', isAdmin, async (req, res) => {
             .order('created_at', { ascending: false });
 
         if (error) throw error;
-        res.json({ success: true, data });
+
+        const { data: bookings, error: bookingError } = await supabaseAdmin
+          .from('booking')
+          .select('customer_id, status');
+        if (bookingError) throw bookingError;
+
+        const bookingCounts = {};
+        (bookings || []).forEach(booking => {
+          const customerId = String(booking.customer_id || '').trim();
+          if (!customerId) return;
+          if (!bookingCounts[customerId]) {
+            bookingCounts[customerId] = { total: 0, completed: 0, cancelled: 0 };
+          }
+          bookingCounts[customerId].total += 1;
+          if (booking.status === 'completed') bookingCounts[customerId].completed += 1;
+          if (booking.status === 'cancelled') bookingCounts[customerId].cancelled += 1;
+        });
+
+        const customers = data.map(customer => {
+          const counts = bookingCounts[String(customer.customer_id).trim()] || { total: 0, completed: 0, cancelled: 0 };
+          return {
+            ...customer,
+            booking_count: counts.total,
+            completed_booking_count: counts.completed,
+            cancelled_booking_count: counts.cancelled
+          };
+        });
+
+        res.json({ success: true, data: customers });
     } catch (err) {
         console.error('Error fetching customers:', err);
         res.status(500).json({ success: false, message: err.message });
@@ -2525,16 +2748,49 @@ app.get('/api/admin/customers/:id', isAdmin, async (req, res) => {
     }
 });
 
+app.get('/api/admin/customers/stats', isAdmin, async (req, res) => {
+  try {
+    const { count: total, error: totalError } = await supabaseAdmin
+      .from('customer')
+      .select('*', { count: 'exact', head: true });
+    if (totalError) throw totalError;
+
+    const firstDayOfMonth = new Date();
+    firstDayOfMonth.setDate(1);
+    firstDayOfMonth.setHours(0, 0, 0, 0);
+
+    const { count: newThisMonth, error: monthError } = await supabaseAdmin
+      .from('customer')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', firstDayOfMonth.toISOString());
+    if (monthError) throw monthError;
+
+    res.json({
+      success: true,
+      data: {
+        total: total || 0,
+        active: total || 0,
+        inactive: 0,
+        newThisMonth: newThisMonth || 0
+      }
+    });
+  } catch (err) {
+    console.error('Error fetching customer stats:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 app.put('/api/admin/customers/:id', isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const { full_name, email, phone_number, address } = req.body;
+        const { full_name, email, phone_number, address, status } = req.body;
 
         const updateData = {
             full_name,
             email,
             phone_number,
-          address: address || null
+            address: address || null,
+            status: status || 'Active'
         };
         const { data, error } = await supabaseAdmin
             .from('customer')
@@ -2589,6 +2845,8 @@ app.get('/api/admin/customers/:id/bookings', isAdmin, async (req, res) => {
             .from('booking')
             .select(`
                 booking_id,
+                customer_id,
+                pet_id,
                 booking_date,
                 booking_time,
                 status,
@@ -2610,46 +2868,6 @@ app.get('/api/admin/customers/:id/bookings', isAdmin, async (req, res) => {
     }
 });
 
-app.get('/api/admin/customers/stats', isAdmin, async (req, res) => {
-    try {
-        const { count: total } = await supabaseAdmin
-            .from('customer')
-            .select('*', { count: 'exact', head: true });
-        
-        const { count: active } = await supabaseAdmin
-            .from('customer')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'Active');
-        
-        const { count: inactive } = await supabaseAdmin
-            .from('customer')
-            .select('*', { count: 'exact', head: true })
-            .eq('status', 'Inactive');
-        
-        const firstDayOfMonth = new Date();
-        firstDayOfMonth.setDate(1);
-        firstDayOfMonth.setHours(0, 0, 0, 0);
-        
-        const { count: newThisMonth } = await supabaseAdmin
-            .from('customer')
-            .select('*', { count: 'exact', head: true })
-            .gte('created_at', firstDayOfMonth.toISOString());
-
-        res.json({
-            success: true,
-            data: {
-                total: total || 0,
-                active: active || 0,
-                inactive: inactive || 0,
-                newThisMonth: newThisMonth || 0
-            }
-        });
-    } catch (err) {
-        console.error('Error fetching customer stats:', err);
-        res.status(500).json({ success: false, message: err.message });
-    }
-});
-
 // 🆕 TAMBAHAN: ========== ADMIN BOOKING MANAGEMENT ==========
 app.get('/api/admin/bookings', isAdmin, async (req, res) => {
     try {
@@ -2659,6 +2877,8 @@ app.get('/api/admin/bookings', isAdmin, async (req, res) => {
             .from('booking')
             .select(`
                 booking_id,
+              customer_id,
+              pet_id,
                 booking_date,
                 booking_time,
                 status,
@@ -2709,6 +2929,8 @@ app.get('/api/admin/bookings', isAdmin, async (req, res) => {
 
         const bookings = data.map(b => ({
             booking_id: b.booking_id,
+            customer_id: b.customer_id,
+            pet_id: b.pet_id,
             booking_date: b.booking_date,
             booking_time: b.booking_time,
             status: b.status,
@@ -2878,10 +3100,10 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
         
         let query = supabaseAdmin
           .from('pet')
-          .select('*');
+          .select('*')
+          .order('pet_id', { ascending: true });
 
         if (species && species !== 'all') query = query.eq('species', species);
-        if (status && status !== 'all') query = query.eq('status', status);
         if (search) query = query.or(`pet_name.ilike.%${search}%,breed.ilike.%${search}%`);
 
         const { data, error } = await query;
@@ -2912,8 +3134,6 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
             weight: pet.weight,
             special_notes: pet.special_notes,
             pet_photo: pet.pet_photo,
-            status: pet.status || 'Active',
-            created_at: pet.created_at || null,
             customer: customersById[pet.customer_id] ? {
               full_name: customersById[pet.customer_id].full_name,
               email: customersById[pet.customer_id].email,
@@ -2927,6 +3147,127 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
         res.status(500).json({ success: false, message: err.message });
     }
 });
+
+  app.post('/api/admin/pets', isAdmin, async (req, res) => {
+    try {
+      const {
+        name,
+        customer_id,
+        species,
+        breed,
+        dob,
+        gender,
+        weight,
+        notes,
+        photo_url
+      } = req.body;
+
+      if (!customer_id || !name || !species || !breed || !dob || !gender || weight === undefined || weight === null) {
+        return res.status(400).json({ success: false, message: 'Required pet fields are missing.' });
+      }
+
+      const { data: customer, error: customerError } = await supabaseAdmin
+        .from('customer')
+        .select('customer_id')
+        .eq('customer_id', customer_id)
+        .maybeSingle();
+      if (customerError) throw customerError;
+      if (!customer) return res.status(404).json({ success: false, message: 'Customer not found.' });
+
+      const { data, error } = await supabaseAdmin
+        .from('pet')
+        .insert([{
+          customer_id,
+          pet_name: name,
+          species: String(species).toLowerCase(),
+          breed,
+          date_of_birth: dob,
+          gender,
+          weight: Number(weight),
+          special_notes: notes || null,
+          pet_photo: photo_url || null
+        }])
+        .select('*')
+        .single();
+      if (error) throw error;
+
+      res.status(201).json({ success: true, data });
+    } catch (err) {
+      console.error('Error creating pet:', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+
+  app.put('/api/admin/pets/:id', isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, customer_id, species, breed, dob, gender, weight, notes, photo_url } = req.body;
+      const updateData = {
+        pet_name: name,
+        customer_id,
+        species: String(species).toLowerCase(),
+        breed,
+        date_of_birth: dob,
+        gender,
+        weight: Number(weight),
+        special_notes: notes || null,
+        pet_photo: photo_url || null
+      };
+
+      const { data, error } = await supabaseAdmin
+        .from('pet')
+        .update(updateData)
+        .eq('pet_id', id)
+        .select('*')
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return res.status(404).json({ success: false, message: 'Pet not found.' });
+
+      res.json({ success: true, data });
+    } catch (err) {
+      console.error('Error updating pet:', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
+
+  app.delete('/api/admin/pets/:id', isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { data: bookings, error: bookingError } = await supabaseAdmin
+        .from('booking')
+        .select('booking_id')
+        .eq('pet_id', id);
+      if (bookingError) throw bookingError;
+      const bookingIds = (bookings || []).map(booking => booking.booking_id);
+      if (bookingIds.length > 0) {
+        const { error: bookingServiceError } = await supabaseAdmin
+          .from('booking_service')
+          .delete()
+          .in('booking_id', bookingIds);
+        if (bookingServiceError) throw bookingServiceError;
+
+        const { error: deleteBookingsError } = await supabaseAdmin
+          .from('booking')
+          .delete()
+          .in('booking_id', bookingIds);
+        if (deleteBookingsError) throw deleteBookingsError;
+      }
+
+      const { data, error } = await supabaseAdmin
+        .from('pet')
+        .delete()
+        .eq('pet_id', id)
+        .select('pet_id')
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return res.status(404).json({ success: false, message: 'Pet not found.' });
+
+      res.json({ success: true, message: 'Pet deleted.' });
+    } catch (err) {
+      console.error('Error deleting pet:', err);
+      res.status(500).json({ success: false, message: err.message });
+    }
+  });
 
 app.get('/api/admin/pets/stats', isAdmin, async (req, res) => {
     try {
@@ -2978,7 +3319,7 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
         // 查询管理员信息（含密码修改时间、资料修改时间）
         const { data: admin, error: adminError } = await supabaseAdmin
             .from('admin')
-            .select('password_updated_at, profile_updated_at, created_at')
+          .select('password_updated_at, profile_updated_at, last_login')
             .eq('admin_id', adminId)
             .maybeSingle();
 
@@ -2987,7 +3328,7 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
         // 计算活跃天数（从首次登录到今天）
         let daysActive = 0;
         if (sessions.length > 0) {
-            const firstLogin = new Date(sessions[sessions.length - 1].created_at);
+          const firstLogin = new Date(sessions[sessions.length - 1].created_at);
             const now = new Date();
             const diffTime = Math.abs(now - firstLogin);
             daysActive = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -3001,7 +3342,7 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
             success: true,
             data: {
                 totalLogins,
-                lastLogin,
+                lastLogin: lastLogin || admin?.last_login || null,
                 passwordUpdatedAt: admin?.password_updated_at || null,
                 profileUpdatedAt: admin?.profile_updated_at || null,
                 daysActive,

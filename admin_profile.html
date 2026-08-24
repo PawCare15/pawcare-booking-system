@@ -1303,6 +1303,7 @@
 
 // SUPABASE CONFIGURATION
 const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
+const API_BASE_URL = ['2632', '5500'].includes(window.location.port) ? 'http://localhost:5000' : '';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
 
 // WRAPPER FOR API CALLS WITH TOKEN
@@ -1317,7 +1318,7 @@ async function authFetch(url, options = {}) {
         'Authorization': `Bearer ${token}`,
         ...options.headers
     };
-    const response = await fetch(url, { ...options, headers });
+    const response = await fetch(`${API_BASE_URL}${url}`, { ...options, headers });
     if (response.status === 401) {
         localStorage.clear();
         window.location.replace('login.html');

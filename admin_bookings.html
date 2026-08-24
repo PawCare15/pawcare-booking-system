@@ -1064,7 +1064,7 @@
                 <h1><i class="fa-regular fa-calendar-check"></i> Booking Management</h1>
                 <div class="header-date">
                     <i class="fa-regular fa-calendar"></i>
-                    <span id="headerCurrentDate">Loading...</span>
+                    <span id="headerCurrentDate"></span>
                 </div>
             </div>
 
@@ -1076,7 +1076,7 @@
                     </div>
                     <div class="stat-number" id="statTotal">0</div>
                     <div class="stat-label">Total Bookings</div>
-                    <span class="stat-sub">Loading...</span>
+                    <span class="stat-sub"></span>
                 </div>
                 <div class="stat-row-card">
                     <div class="stat-icon" style="background: #FEF7E0; color: #B06000;">
@@ -1084,7 +1084,7 @@
                     </div>
                     <div class="stat-number" id="statPending">0</div>
                     <div class="stat-label">Pending Bookings</div>
-                    <span class="stat-sub">Loading...</span>
+                    <span class="stat-sub"></span>
                 </div>
                 <div class="stat-row-card">
                     <div class="stat-icon" style="background: #E3F2FD; color: #0D47A1;">
@@ -1092,7 +1092,7 @@
                     </div>
                     <div class="stat-number" id="statConfirmed">0</div>
                     <div class="stat-label">Confirmed Bookings</div>
-                    <span class="stat-sub">Loading...</span>
+                    <span class="stat-sub"></span>
                 </div>
                 <div class="stat-row-card">
                     <div class="stat-icon" style="background: #E8F5E9; color: #2E7D32;">
@@ -1100,7 +1100,7 @@
                     </div>
                     <div class="stat-number" id="statCompleted">0</div>
                     <div class="stat-label">Completed Bookings</div>
-                    <span class="stat-sub">Loading...</span>
+                    <span class="stat-sub"></span>
                 </div>
                 <div class="stat-row-card">
                     <div class="stat-icon" style="background: #FBE9E7; color: #BF360C;">
@@ -1108,7 +1108,7 @@
                     </div>
                     <div class="stat-number" id="statCancelled">0</div>
                     <div class="stat-label">Cancelled Bookings</div>
-                    <span class="stat-sub">Loading...</span>
+                    <span class="stat-sub"></span>
                 </div>
                 <div class="stat-row-card" style="background: #F9F6F0; border-color: #E8E2D8;">
                     <div class="stat-icon" style="background: #EFECE6; color: #7A6B5A;">
@@ -1171,7 +1171,6 @@
                             <td colspan="8" style="text-align:center; padding:30px;">
                                 <div class="loading-spinner">
                                     <i class="fa-solid fa-spinner"></i>
-                                    Loading bookings...
                                 </div>
                             </td>
                         </tr>
@@ -1181,7 +1180,7 @@
 
             <!-- PAGINATION -->
             <div class="pagination-area">
-                <span id="entriesInfo">Loading...</span>
+                <span id="entriesInfo"></span>
                 <div class="pages" id="paginationControls">
                     <!-- Pagination will be rendered by JS -->
                 </div>
@@ -1402,6 +1401,28 @@
         }
 
         // ===== SUPABASE API CALLS =====
+        async function authFetch(url, options = {}) {
+            const token = getToken();
+            if (!token) {
+                window.location.replace('login.html');
+                return null;
+            }
+            const response = await fetch(url, {
+                ...options,
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                    ...options.headers
+                }
+            });
+            if (response.status === 401) {
+                localStorage.clear();
+                window.location.replace('login.html');
+                return null;
+            }
+            return response;
+        }
+
         async function fetchFromSupabase(endpoint, options = {}) {
             if (!isAuthenticated()) return null;
 
@@ -1445,14 +1466,7 @@
             try {
                 // Fetch bookings with customer and pet data using a custom query
                 // Using the Supabase REST API with select and expand
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/booking?select=*,customer:customer_id(*),pet:pet_id(*),admin:admin_id(*)`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                        'apikey': SUPABASE_ANON_KEY
-                    }
-                });
+                const response = await authFetch('/api/admin/bookings');
 
                 if (response.status === 401) {
                     localStorage.clear();
@@ -1464,17 +1478,18 @@
                     throw new Error(`Failed to fetch bookings: ${response.status}`);
                 }
 
-                const data = await response.json();
+                const result = await response.json();
+                const data = result.data || [];
 
                 // Transform the data for display
                 allBookings = data.map(b => ({
                     id: b.booking_id || 'N/A',
-                    customer: b.customer ? b.customer.name : 'Unknown',
-                    phone: b.customer ? b.customer.phone : 'N/A',
+                    customer: b.customer ? b.customer.full_name : 'Unknown',
+                    phone: b.customer ? b.customer.phone_number : 'N/A',
                     pet: b.pet ? b.pet.name : 'Unknown',
                     breed: b.pet ? b.pet.breed || 'N/A' : 'N/A',
                     petEmoji: getPetEmoji(b.pet ? b.pet.species : ''),
-                    service: b.service_type || 'N/A',
+                    service: b.services?.[0]?.service_name || 'N/A',
                     date: formatBookingDate(b.booking_date, b.booking_time),
                     status: b.status || 'pending',
                     payment: b.payment_status || 'unpaid',
@@ -1516,27 +1531,18 @@
 
         // ===== FETCH SERVICE TYPES =====
         async function fetchServiceTypes() {
-            const token = getToken();
-            if (!token) return;
-
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/service?select=service_id,name`, {
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                        'apikey': SUPABASE_ANON_KEY
-                    }
-                });
-
-                if (response.ok) {
-                    const services = await response.json();
+                const response = await authFetch('/api/admin/services');
+                if (response && response.ok) {
+                    const result = await response.json();
+                    const services = result.data || [];
                     const select = document.getElementById('serviceFilter');
                     // Keep the "All Services" option
                     select.innerHTML = '<option value="all">All Services</option>';
                     services.forEach(s => {
                         const option = document.createElement('option');
-                        option.value = s.name;
-                        option.textContent = s.name;
+                        option.value = s.service_name;
+                        option.textContent = s.service_name;
                         select.appendChild(option);
                     });
                 }
@@ -1867,14 +1873,8 @@
             if (!token) return;
 
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/booking?booking_id=eq.${currentEditId}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${token}`,
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Prefer': 'return=minimal'
-                    },
+                const response = await authFetch(`/api/admin/bookings/${encodeURIComponent(currentEditId)}`, {
+                    method: 'PUT',
                     body: JSON.stringify({
                         status: newStatus,
                         payment_status: newPayment
@@ -1943,13 +1943,8 @@
             if (!token) return;
 
             try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/booking?booking_id=eq.${bookingId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Prefer': 'return=minimal'
-                    }
+                const response = await authFetch(`/api/admin/bookings/${encodeURIComponent(bookingId)}`, {
+                    method: 'DELETE'
                 });
 
                 if (!response.ok) {

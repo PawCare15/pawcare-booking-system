@@ -165,19 +165,14 @@ let adminData = null;
 async function loadAdminProfile() {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/admin?select=admin_id,full_name,email,phone_number,profile_photo`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY
-            }
-        });
+        const response = await authFetch('/api/profile');
 
         if (!response.ok) {
             throw new Error(`Failed to fetch admin profile: ${response.status}`);
         }
 
-        const admins = await response.json();
+        const profileResult = await response.json();
+        const admins = profileResult.data ? [profileResult.data] : [];
         
         if (admins && admins.length > 0) {
             adminData = admins[0];
@@ -719,9 +714,9 @@ async function loadCustomersFromSupabase() {
             address: customer.address || '',
             profile_photo: customer.profile_photo || '',
             created_at: customer.created_at || new Date().toISOString(),
-            bookings: 0,
-            completed: 0,
-            cancelled: 0,
+            bookings: Number(customer.booking_count) || 0,
+            completed: Number(customer.completed_booking_count) || 0,
+            cancelled: Number(customer.cancelled_booking_count) || 0,
             recentBookings: [],
             status: customer.status || 'Active'
         }));
@@ -746,20 +741,10 @@ async function loadCustomersFromSupabase() {
 // ================================================================
 async function loadCustomerBookingStats() {
     try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/booking?select=booking_id,customer_id,status,created_at`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch bookings: ${response.status}`);
-        }
-
-        const bookings = await response.json();
+        const response = await authFetch('/api/admin/bookings');
+        if (!response || !response.ok) throw new Error(`Failed to fetch bookings: ${response?.status || 'network error'}`);
+        const result = await response.json();
+        const bookings = result.data || [];
 
         const bookingMap = {};
         bookings.forEach(booking => {
@@ -795,20 +780,10 @@ async function loadCustomerBookingStats() {
 // ================================================================
 async function loadRecentBookingsForCustomers() {
     try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/booking?select=booking_id,customer_id,booking_date,booking_time,status&order=booking_date.desc&limit=100`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch recent bookings: ${response.status}`);
-        }
-
-        const bookings = await response.json();
+        const response = await authFetch('/api/admin/bookings');
+        if (!response || !response.ok) throw new Error(`Failed to fetch recent bookings: ${response?.status || 'network error'}`);
+        const result = await response.json();
+        const bookings = result.data || [];
 
         const recentMap = {};
         bookings.forEach(booking => {
@@ -1249,7 +1224,8 @@ async function saveEditCustomer(event) {
                 full_name: name,
                 email: email,
                 phone_number: phone,
-                address: address || null
+                address: address || null,
+                status
             })
         });
 
@@ -1266,6 +1242,7 @@ async function saveEditCustomer(event) {
         customer.email = email;
         customer.phone = phone;
         customer.address = address || customer.address;
+        customer.status = status;
         
         closeEditModal();
         renderCustomerTable(customersData);

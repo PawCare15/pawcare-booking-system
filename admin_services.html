@@ -2301,10 +2301,11 @@
 
         async function loadCategories() {
             try {
-                const response = await authFetch(`${SUPABASE_URL}/rest/v1/categories?select=*&order=name.asc`);
+                const response = await authFetch('/api/admin/categories');
                 if (!response) return [];
-                const data = await response.json();
-                categories = data.map(c => c.name);
+                const result = await response.json();
+                if (!result.success) throw new Error(result.message || 'Failed to load categories');
+                categories = (result.data || []).map(c => c.name);
                 return categories;
             } catch (err) {
                 console.error('Error loading categories:', err);
@@ -2347,9 +2348,13 @@
         // ============================================================
         async function loadServices() {
             try {
-                const response = await authFetch(`${SUPABASE_URL}/rest/v1/service?select=*&order=created_at.desc`);
-                if (!response) return;
-                const data = await response.json();
+                const response = await authFetch('/api/admin/services');
+                if (!response || !response.ok) {
+                    throw new Error(`Failed to load services: ${response?.status || 'network error'}`);
+                }
+                const result = await response.json();
+                if (!result.success) throw new Error(result.message || 'Failed to load services');
+                const data = result.data || [];
                 allServices = data;
                 filteredServices = [...allServices];
                 renderServicesTable(filteredServices);
@@ -2581,12 +2586,7 @@
                 return;
             }
 
-            const timestamp = Date.now();
-            const random = Math.floor(Math.random() * 10000);
-            const serviceId = `svc_${timestamp}_${random}`;
-
             const serviceData = {
-                service_id: serviceId,
                 service_name: name,
                 description: desc || null,
                 category: category,
@@ -2596,7 +2596,7 @@
             };
 
             try {
-                const response = await authFetch(`${SUPABASE_URL}/rest/v1/service`, {
+                const response = await authFetch('/api/admin/services', {
                     method: 'POST',
                     body: JSON.stringify(serviceData)
                 });
@@ -2607,17 +2607,6 @@
                     const errorData = await response.json();
                     throw new Error(errorData.message || 'Failed to create service');
                 }
-
-                const priceId = `prc_${timestamp}_${random}`;
-                await authFetch(`${SUPABASE_URL}/rest/v1/service_price`, {
-                    method: 'POST',
-                    body: JSON.stringify({
-                        price_id: priceId,
-                        service_id: serviceId,
-                        species: pet,
-                        starting_price: parseFloat(price)
-                    })
-                });
 
                 await loadServices();
 
@@ -2689,7 +2678,7 @@
             }
 
             try {
-                const response = await authFetch(`${SUPABASE_URL}/rest/v1/categories`, {
+                const response = await authFetch('/api/admin/categories', {
                     method: 'POST',
                     body: JSON.stringify({ name: name })
                 });
@@ -2729,16 +2718,18 @@
             }
 
             try {
-                const findResponse = await authFetch(`${SUPABASE_URL}/rest/v1/categories?name=eq.${encodeURIComponent(oldName)}&select=id`);
+                const findResponse = await authFetch('/api/admin/categories');
                 if (!findResponse) return;
-                const findData = await findResponse.json();
+                const findResult = await findResponse.json();
+                const findData = findResult.data || [];
                 if (!findData || findData.length === 0) {
                     throw new Error('Category not found');
                 }
-                const id = findData[0].id;
+                const id = findData.find(category => category.name === oldName)?.id;
+                if (!id) throw new Error('Category not found');
 
-                const response = await authFetch(`${SUPABASE_URL}/rest/v1/categories?id=eq.${id}`, {
-                    method: 'PATCH',
+                const response = await authFetch(`/api/admin/categories/${id}`, {
+                    method: 'PUT',
                     body: JSON.stringify({ name: newName.trim() })
                 });
 
@@ -2769,15 +2760,17 @@
             if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
 
             try {
-                const findResponse = await authFetch(`${SUPABASE_URL}/rest/v1/categories?name=eq.${encodeURIComponent(name)}&select=id`);
+                const findResponse = await authFetch('/api/admin/categories');
                 if (!findResponse) return;
-                const findData = await findResponse.json();
+                const findResult = await findResponse.json();
+                const findData = findResult.data || [];
                 if (!findData || findData.length === 0) {
                     throw new Error('Category not found');
                 }
-                const id = findData[0].id;
+                const id = findData.find(category => category.name === name)?.id;
+                if (!id) throw new Error('Category not found');
 
-                const response = await authFetch(`${SUPABASE_URL}/rest/v1/categories?id=eq.${id}`, {
+                const response = await authFetch(`/api/admin/categories/${id}`, {
                     method: 'DELETE'
                 });
 
@@ -2873,8 +2866,8 @@
 
             try {
                 for (const update of updates) {
-                    const response = await authFetch(`${SUPABASE_URL}/rest/v1/service?service_id=eq.${update.id}`, {
-                        method: 'PATCH',
+                    const response = await authFetch(`/api/admin/services/${encodeURIComponent(update.id)}`, {
+                        method: 'PUT',
                         body: JSON.stringify({ price: update.price })
                     });
 
@@ -2883,11 +2876,6 @@
                     if (!response.ok) {
                         throw new Error(`Failed to update service ${update.id}`);
                     }
-
-                    await authFetch(`${SUPABASE_URL}/rest/v1/service_price?service_id=eq.${update.id}`, {
-                        method: 'PATCH',
-                        body: JSON.stringify({ starting_price: update.price })
-                    });
 
                     const row = document.querySelector(`#tableBody tr[data-service-id="${update.id}"]`);
                     if (row) {
@@ -2916,32 +2904,19 @@
         async function openBookingOverviewModal() {
             try {
                 const today = new Date().toISOString().split('T')[0];
-                const todayResponse = await authFetch(`${SUPABASE_URL}/rest/v1/booking?booking_date=eq.${today}&select=count`);
-                let todayCount = 0;
-                if (todayResponse && todayResponse.ok) {
-                    const data = await todayResponse.json();
-                    todayCount = data.length || 0;
-                }
-
                 const weekAgo = new Date();
                 weekAgo.setDate(weekAgo.getDate() - 7);
                 const weekAgoStr = weekAgo.toISOString().split('T')[0];
-                const weekResponse = await authFetch(`${SUPABASE_URL}/rest/v1/booking?booking_date=gte.${weekAgoStr}&select=count`);
-                let weekCount = 0;
-                if (weekResponse && weekResponse.ok) {
-                    const data = await weekResponse.json();
-                    weekCount = data.length || 0;
-                }
-
                 const monthAgo = new Date();
                 monthAgo.setDate(monthAgo.getDate() - 30);
                 const monthAgoStr = monthAgo.toISOString().split('T')[0];
-                const monthResponse = await authFetch(`${SUPABASE_URL}/rest/v1/booking?booking_date=gte.${monthAgoStr}&select=count`);
-                let monthCount = 0;
-                if (monthResponse && monthResponse.ok) {
-                    const data = await monthResponse.json();
-                    monthCount = data.length || 0;
-                }
+                const response = await authFetch('/api/admin/bookings');
+                if (!response || !response.ok) throw new Error('Failed to load booking overview');
+                const result = await response.json();
+                const bookings = result.data || [];
+                const todayCount = bookings.filter(booking => booking.booking_date === today).length;
+                const weekCount = bookings.filter(booking => booking.booking_date >= weekAgoStr).length;
+                const monthCount = bookings.filter(booking => booking.booking_date >= monthAgoStr).length;
 
                 document.getElementById('bookingToday').textContent = todayCount || 0;
                 document.getElementById('bookingWeek').textContent = weekCount || 0;
@@ -2949,17 +2924,13 @@
 
                 // Get today's bookings list
                 if (todayCount > 0) {
-                    const listResponse = await authFetch(`${SUPABASE_URL}/rest/v1/booking?booking_date=eq.${today}&select=*&limit=5`);
-                    if (listResponse && listResponse.ok) {
-                        const bookings = await listResponse.json();
-                        const container = document.getElementById('todayBookingsList');
-                        container.innerHTML = bookings.map(b => `
+                    const container = document.getElementById('todayBookingsList');
+                    container.innerHTML = bookings.filter(booking => booking.booking_date === today).slice(0, 5).map(b => `
                             <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px;">
                                 <span>${b.booking_id}</span>
                                 <span style="color:#2E7D32;font-weight:500;">${b.status || 'pending'}</span>
                             </div>
                         `).join('');
-                    }
                 } else {
                     document.getElementById('todayBookingsList').innerHTML =
                         '<div style="text-align:center;padding:8px 0;color:#B0A090;">No bookings today</div>';
@@ -3028,8 +2999,8 @@
             }
 
             try {
-                const response = await authFetch(`${SUPABASE_URL}/rest/v1/service?service_id=eq.${serviceId}`, {
-                    method: 'PATCH',
+                const response = await authFetch(`/api/admin/services/${encodeURIComponent(serviceId)}`, {
+                    method: 'PUT',
                     body: JSON.stringify({
                         price: parseFloat(newPrice),
                         duration: newDuration
@@ -3041,11 +3012,6 @@
                 if (!response.ok) {
                     throw new Error('Failed to update service');
                 }
-
-                await authFetch(`${SUPABASE_URL}/rest/v1/service_price?service_id=eq.${serviceId}`, {
-                    method: 'PATCH',
-                    body: JSON.stringify({ starting_price: parseFloat(newPrice) })
-                });
 
                 const priceCell = currentEditRow.querySelector('.price-cell .price-tag');
                 if (priceCell) priceCell.textContent = `RM ${parseFloat(newPrice).toFixed(2)}`;
@@ -3096,19 +3062,13 @@
             const serviceId = currentDeleteRow.dataset.serviceId;
 
             try {
-                const response = await authFetch(`${SUPABASE_URL}/rest/v1/service?service_id=eq.${serviceId}`, {
-                    method: 'DELETE'
-                });
+                const response = await authFetch(`/api/admin/services/${encodeURIComponent(serviceId)}`, { method: 'DELETE' });
 
                 if (!response) return;
 
                 if (!response.ok) {
                     throw new Error('Failed to delete service');
                 }
-
-                await authFetch(`${SUPABASE_URL}/rest/v1/service_price?service_id=eq.${serviceId}`, {
-                    method: 'DELETE'
-                });
 
                 currentDeleteRow.style.transition = 'all 0.35s ease';
                 currentDeleteRow.style.opacity = '0.3';
