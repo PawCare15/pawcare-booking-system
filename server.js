@@ -16,12 +16,7 @@ const app = express();
 // ===== 配置 =====
 const isProduction = process.env.NODE_ENV === 'production';
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || origin === process.env.CLIENT_URL || /^https?:\/\/(localhost|127\.0\.0.1)(:\d+)?$/.test(origin)) {
-      return callback(null, true);
-    }
-    callback(new Error('Origin not allowed by CORS'));
-  },
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
   methods: ['GET','POST','PUT','DELETE'],
   allowedHeaders: ['Content-Type','Authorization']
 };
@@ -29,7 +24,7 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Serve the frontend files from the project root.
+// 安全托管静态文件
 app.use(express.static(__dirname));
 
 function parseUserAgent(userAgent) {
@@ -40,17 +35,6 @@ function parseUserAgent(userAgent) {
         browser: ua.browser.name + ' ' + (ua.browser.version || '')
     };
 }
-
-const path = require('path');
-// ... 上面是你定义 API 的代码 ...
-
-// 托管静态文件（假设前端构建后的文件在 dist 文件夹）
-app.use(express.static(path.join(__dirname, 'dist')));
-
-// 兜底路由：解决 Cannot GET / 的问题，并且支持前端（如React）的路由跳转
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
-});
 
 // ========== Email Configuration (Nodemailer) ========== ✅ TAMBAH BARU
 const transporter = nodemailer.createTransport({
@@ -3368,6 +3352,15 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
 });
 
 // ========== 启动服务器 ==========
+
+// 托管静态文件（假设前端构建后的文件在 dist 文件夹）
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// 兜底路由：解决 Cannot GET / 的问题，并且支持前端（如React）的路由跳转
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
