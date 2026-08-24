@@ -30,7 +30,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve the frontend files from the project root.
-app.use(express.static(path.join(__dirname, '..')));
+app.use(express.static(__dirname));
 
 function parseUserAgent(userAgent) {
     const parser = new UAParser(userAgent);
