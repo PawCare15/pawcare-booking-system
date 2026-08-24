@@ -3353,11 +3353,15 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
 
 // ========== 启动服务器 ==========
 
-// 托管静态文件（假设前端构建后的文件在 dist 文件夹）
+// 托管静态文件（确保 dist 文件夹存在）
 app.use(express.static(path.join(__dirname, 'dist')));
 
-// 兜底路由：解决 Cannot GET / 的问题，并且支持前端（如React）的路由跳转
-app.get('*', (req, res) => {
+// 兜底路由：如果请求不是 /api 开头的，就返回前端的 index.html
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next(); // 如果是API请求，继续往下走（通常这里不会有，因为上面的API已经拦截了）
+  }
+  // 尝试发送前端的页面
   res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 
