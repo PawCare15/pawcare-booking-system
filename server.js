@@ -41,6 +41,17 @@ function parseUserAgent(userAgent) {
     };
 }
 
+const path = require('path');
+// ... 上面是你定义 API 的代码 ...
+
+// 托管静态文件（假设前端构建后的文件在 dist 文件夹）
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// 兜底路由：解决 Cannot GET / 的问题，并且支持前端（如React）的路由跳转
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'dist', 'index.html'));
+});
+
 // ========== Email Configuration (Nodemailer) ========== ✅ TAMBAH BARU
 const transporter = nodemailer.createTransport({
     service: 'gmail',
