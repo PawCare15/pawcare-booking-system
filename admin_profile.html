@@ -1521,6 +1521,66 @@ function confirmLogout() {
                 }
             }
 
+            // ===== 加载活动统计数据 =====
+            async function loadActivityStats() {
+                try {
+                    const res = await authFetch('/api/admin/profile/activity');
+                    const result = await res.json();
+                    if (result.success) {
+                        const stats = result.data;
+                        // 更新统计卡片
+                        document.getElementById('totalLogins').textContent = stats.totalLogins || 0;
+                        document.getElementById('totalLoginsStat').textContent = stats.totalLogins || 0;
+
+                        // 格式化时间
+                        const formatDate = (iso) => {
+                            if (!iso) return 'N/A';
+                            const d = new Date(iso);
+                            return d.toLocaleString('en-US', { 
+                                day: '2-digit', month: 'short', year: 'numeric', 
+                                hour: '2-digit', minute: '2-digit'
+                            });
+                        };
+                        document.getElementById('lastLoginStat').textContent = formatDate(stats.lastLogin);
+                        document.getElementById('profileLastLogin').textContent = formatDate(stats.lastLogin);
+
+                        document.getElementById('pwdChanged').textContent = formatDate(stats.passwordUpdatedAt);
+                        document.getElementById('profileUpdated').textContent = formatDate(stats.profileUpdatedAt);
+
+                        // 更新“Days Active”统计卡片（第4个卡片）
+                        const daysActiveElem = document.querySelector('.stat-card:nth-child(4) h3');
+                        if (daysActiveElem) daysActiveElem.textContent = stats.daysActive || 0;
+
+                        // 安全分数（第2个卡片）
+                        const securityScoreElem = document.querySelector('.stat-card:nth-child(2) h3');
+                        if (securityScoreElem && stats.securityScore !== undefined) {
+                            securityScoreElem.textContent = stats.securityScore + '%';
+                        }
+
+                        // 保存到 localStorage
+                        localStorage.setItem('pawcareActivityStats', JSON.stringify(stats));
+                    }
+                } catch (err) {
+                    console.error('Failed to load activity stats:', err);
+                }
+            }
+
+            // ===== 更新活跃会话数量 =====
+            async function updateActiveSessionsCount() {
+                try {
+                    const res = await authFetch('/api/admin/sessions');
+                    const result = await res.json();
+                    if (result.success) {
+                        const sessions = result.data;
+                        const activeCount = sessions.filter(s => !s.loggedOut).length;
+                        const activeSessionsElem = document.querySelector('.stat-card:nth-child(3) h3');
+                        if (activeSessionsElem) activeSessionsElem.textContent = activeCount;
+                    }
+                } catch (e) {
+                    console.error('Failed to update active sessions count:', e);
+                }
+            }
+
             function showInfoModal(title, message) {
                 document.getElementById('infoModalTitle').textContent = title || 'Notification';
                 document.getElementById('infoModalMessage').textContent = message || 'No new notifications.';
@@ -1616,8 +1676,8 @@ function confirmLogout() {
                                 user.name = name;
                                 localStorage.setItem('user', JSON.stringify(user));
                             }
-                            // 重新加载资料
-                            await loadAdminProfile();
+                            // 重新加载资料（静默，不显示错误）
+                            await loadAdminProfile(true);
                             msg.className = 'message success';
                             msg.textContent = '✓ Profile updated successfully!';
                             toast('Profile changes saved.');
@@ -1647,6 +1707,13 @@ function confirmLogout() {
                 function renderSessions(sessions) {
                     const list = document.querySelector('.session-list');
                     if (!list) return;
+
+                    // ===== 新增：空状态判断 =====
+                    if (!sessions || sessions.length === 0) {
+                        list.innerHTML = '<div style="text-align:center; padding:10px; color:#7A7A7A;">No active sessions</div>';
+                        return;
+                    }
+
                     let html = '';
                     sessions.forEach(s => {
                         const isLoggedOut = s.loggedOut || false;
@@ -1682,16 +1749,31 @@ function confirmLogout() {
                     if (e.target.classList.contains('sessionLogout')) {
                         const btn = e.target;
                         const deviceId = btn.dataset.id;
-                        
-                        btn.textContent = 'Logged Out';
+                        btn.textContent = 'Logging out...';
                         btn.disabled = true;
-                        
-                        // 更新本地缓存中的状态
-                        let sessions = JSON.parse(localStorage.getItem('pawcareSessions') || '[]');
-                        sessions = sessions.map(s => s.id == deviceId ? { ...s, loggedOut: true } : s);
-                        localStorage.setItem('pawcareSessions', JSON.stringify(sessions));
 
-                        toast('Session logged out.');
+                        try {
+                            const res = await authFetch(`/api/admin/sessions/${deviceId}/logout`, { method: 'POST' });
+                            const data = await res.json();
+                            if (data.success) {
+                                // 重新获取会话列表
+                                const sessionsRes = await authFetch('/api/admin/sessions');
+                                const sessionsData = await sessionsRes.json();
+                                if (sessionsData.success) {
+                                    localStorage.setItem('pawcareSessions', JSON.stringify(sessionsData.data));
+                                    renderSessions(sessionsData.data);
+                                }
+                                toast('Session logged out.');
+                            } else {
+                                toast('Failed to logout session: ' + data.message);
+                                btn.textContent = 'Log Out';
+                                btn.disabled = false;
+                            }
+                        } catch (err) {
+                            toast('Error logging out session.');
+                            btn.textContent = 'Log Out';
+                            btn.disabled = false;
+                        }
                     }
                 });
 
@@ -1702,14 +1784,15 @@ function confirmLogout() {
                             const res = await authFetch('/api/admin/logout-all', { method: 'POST' });
                             const data = await res.json();
                             if (data.success) {
-                                // 更新本地 sessions 全部标记为 loggedOut
-                                let sessions = JSON.parse(localStorage.getItem('pawcareSessions') || '[]');
-                                sessions = sessions.map(s => ({ ...s, loggedOut: true }));
-                                localStorage.setItem('pawcareSessions', JSON.stringify(sessions));
-                                // 重新渲染列表（如果模态框打开）
-                                renderSessions(sessions);
+                                // 重新获取会话列表
+                                const sessionsRes = await authFetch('/api/admin/sessions');
+                                const sessionsData = await sessionsRes.json();
+                                if (sessionsData.success) {
+                                    localStorage.setItem('pawcareSessions', JSON.stringify(sessionsData.data));
+                                    renderSessions(sessionsData.data);
+                                }
                                 toast('All sessions have been logged out.');
-                                // 移除 token 并跳转登录
+                                // 移除 token 并跳转登录（根据需求）
                                 localStorage.removeItem('token');
                                 localStorage.removeItem('isLoggedIn');
                                 setTimeout(() => window.location.replace('index.html'), 800);
@@ -1741,7 +1824,7 @@ function confirmLogout() {
                 loadAvatar();
                 render();
                 // 加载管理员个人资料（真实数据）
-                async function loadAdminProfile() {
+                async function loadAdminProfile(silent = false) {
                     try {
                         const res = await authFetch('/api/profile');
                         const result = await res.json();
@@ -1809,19 +1892,22 @@ function confirmLogout() {
                                 msg.textContent = '';
                             }
 
-                            toast('Profile loaded successfully.');
+                            if (!silent) toast('Profile loaded successfully.');
                         } else {
                             console.error('Failed to load profile:', result.message);
-                            toast('Failed to load profile: ' + (result.message || 'Unknown error'));
+                            if (!silent) toast('Failed to load profile: ' + (result.message || 'Unknown error'));
                         }
                     } catch (err) {
                         console.error('Error loading admin profile:', err);
-                        toast('Unable to connect to server. Please refresh and try again.');
+                        console.error('Error stack:', err.stack);
+                        if (!silent) toast('Unable to connect to server. Please refresh and try again.');
                     }
                 }
 
                 // 在 DOMContentLoaded 内部调用
                 loadAdminProfile();
+                loadActivityStats();        // 新增
+                updateActiveSessionsCount(); // 新增
                 console.log('PawCare Admin Profile loaded.');
             });
 

@@ -9,6 +9,7 @@ const emailjs = require('@emailjs/nodejs');
 const multer = require('multer');
 const path = require('path');
 const nodemailer = require('nodemailer'); // ✅ TAMBAH BARU
+const UAParser = require('ua-parser-js');
 
 const app = express();
 
@@ -25,6 +26,15 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // 安全托管静态文件
 app.use(express.static(__dirname));
+
+function parseUserAgent(userAgent) {
+    const parser = new UAParser(userAgent);
+    const ua = parser.getResult();
+    return {
+        device: ua.device.model || ua.device.type || 'Unknown Device',
+        browser: ua.browser.name + ' ' + (ua.browser.version || '')
+    };
+}
 
 // ========== Email Configuration (Nodemailer) ========== ✅ TAMBAH BARU
 const transporter = nodemailer.createTransport({
@@ -442,6 +452,37 @@ app.post('/api/login', async (req, res) => {
       { expiresIn: '7d' }
     );
 
+    // 在生成 token 之后，返回之前添加：
+    const userAgent = req.headers['user-agent'] || '';
+    const ip = req.ip || req.connection.remoteAddress || '';
+    const { device, browser } = parseUserAgent(userAgent);
+
+    // 插入会话记录
+    const { error: sessionError } = await supabaseAdmin
+      .from('admin_sessions')
+      .insert({
+        admin_id: userId,
+        token: token,
+        device: device,
+        browser: browser,
+        ip: ip,
+        is_active: true
+      });
+
+    if (sessionError) {
+      console.error('Failed to record session:', sessionError);
+      // 不影响登录，仅记录错误
+    }
+
+    // 登录成功后更新 admin 表的 last_login
+    if (role === 'admin') {
+        const now = new Date().toISOString();
+        await supabaseAdmin
+            .from('admin')
+            .update({ last_login: now })
+            .eq('admin_id', userId);
+    }
+
     // 返回用户信息（包含 role）
     res.json({
       success: true,
@@ -530,6 +571,13 @@ app.put('/api/profile', async (req, res) => {
     // ==== 修改点：认证错误返回 401 ====
     if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    // 更新资料修改时间
+    if (role === 'admin') {
+        await supabaseAdmin
+            .from('admin')
+            .update({ profile_updated_at: new Date().toISOString() })
+            .eq(idField, userId);
     }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
@@ -632,6 +680,13 @@ app.put('/api/profile/password', async (req, res) => {
       .eq(idField, userId);
 
     if (updateError) throw updateError;
+    // 更新密码修改时间
+    if (role === 'admin') {
+        await supabaseAdmin
+            .from('admin')
+            .update({ password_updated_at: new Date().toISOString() })
+            .eq(idField, userId);
+    }
     res.json({ success: true, message: 'Password updated successfully.' });
   } catch (err) {
     console.error('Password update exception:', err);
@@ -1932,6 +1987,7 @@ app.post('/api/reviews/:review_id/reply', async (req, res) => {
 // ========== 新增: 回复点赞 ==========
 app.post('/api/replies/:reply_id/like', async (req, res) => {
   try {
+    console.log('Reply like request for reply_id:', req.params.reply_id);
     const customer_id = getCustomerId(req);
     const { reply_id } = req.params;
 
@@ -1960,8 +2016,8 @@ app.post('/api/replies/:reply_id/like', async (req, res) => {
 
     res.json({ success: true, action, like_count: count || 0 });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
+    console.error('Reply like error:', err);
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
@@ -2078,14 +2134,81 @@ app.delete('/api/replies/:reply_id', async (req, res) => {
 // ========== 新增: Admin Session 管理 ==========
 app.get('/api/admin/sessions', async (req, res) => {
   try {
-    await getUserInfo(req); // 权限验证
-    res.json({ success: true, data: [
-      { id: 1, device: 'This device', browser: 'Windows · Chrome', current: true },
-      { id: 2, device: 'Office PC', browser: 'Windows · Edge', current: false },
-      { id: 3, device: 'Mobile', browser: 'Android · Chrome', current: false }
-    ]});
+    const userInfo = await getUserInfo(req);
+    const adminId = userInfo.customer_id;
+
+    // 查询该管理员所有活跃会话
+    const { data: sessions, error } = await supabaseAdmin
+      .from('admin_sessions')
+      .select('id, device, browser, created_at, is_active')
+      .eq('admin_id', adminId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    // 判断当前会话：通过 token 中的 iat 与 created_at 匹配（粗略），或直接标记最新的为当前
+    // 这里简单标记最新的一条为 current
+    const currentToken = req.headers.authorization.split(' ')[1];
+    sessions.forEach(s => {
+        s.current = (s.token === currentToken);
+    });
+    let currentSessionId = null;
+    // 可以在插入时存储 token，但这里简单处理：通过 created_at 最新
+    if (sessions.length > 0) {
+      // 标记最新创建的为当前会话
+      sessions[0].current = true;
+      // 其他设为 false（默认）
+      sessions.forEach((s, idx) => { if (idx !== 0) s.current = false; });
+    }
+
+    // 映射前端所需字段
+    const mapped = sessions.map(s => ({
+      id: s.id,
+      device: s.device || 'Unknown Device',
+      browser: s.browser || 'Unknown Browser',
+      current: s.current || false,
+      loggedOut: !s.is_active // 如果 is_active 为 false，表示已登出
+    }));
+
+    res.json({ success: true, data: mapped });
   } catch (err) {
-    res.status(401).json({ success: false, message: 'Unauthorized' });
+    console.error('Error fetching sessions:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/admin/sessions/:id/logout', async (req, res) => {
+  try {
+    const userInfo = await getUserInfo(req);
+    if (userInfo.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only.' });
+    const { id } = req.params;
+
+    // 验证该会话属于当前管理员
+    const { data: session, error: fetchError } = await supabaseAdmin
+      .from('admin_sessions')
+      .select('admin_id')
+      .eq('id', id)
+      .maybeSingle();
+
+    if (fetchError || !session) {
+      return res.status(404).json({ success: false, message: 'Session not found.' });
+    }
+    if (session.admin_id !== userInfo.customer_id) {
+      return res.status(403).json({ success: false, message: 'Unauthorized.' });
+    }
+
+    // 将 is_active 设为 false
+    const { error: updateError } = await supabaseAdmin
+      .from('admin_sessions')
+      .update({ is_active: false })
+      .eq('id', id);
+
+    if (updateError) throw updateError;
+
+    res.json({ success: true, message: 'Session logged out.' });
+  } catch (err) {
+    console.error('Error logging out session:', err);
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
@@ -2094,9 +2217,15 @@ app.post('/api/admin/logout-all', async (req, res) => {
     const userInfo = await getUserInfo(req);
     if (userInfo.role !== 'admin') return res.status(403).json({ success: false, message: 'Admin only.' });
 
-    // 增加版本号，使所有旧 Token 失效
-    const { data: admin } = await supabaseAdmin.from('admin').select('session_version').eq('admin_id', userInfo.customer_id).maybeSingle(); // <--- 改为 maybeSingle
+    // 增加版本号
+    const { data: admin } = await supabaseAdmin.from('admin').select('session_version').eq('admin_id', userInfo.customer_id).maybeSingle();
     await supabaseAdmin.from('admin').update({ session_version: (admin.session_version || 1) + 1 }).eq('admin_id', userInfo.customer_id);
+
+    // 标记所有该管理员的会话为 inactive
+    await supabaseAdmin
+      .from('admin_sessions')
+      .update({ is_active: false })
+      .eq('admin_id', userInfo.customer_id);
 
     res.json({ success: true, message: 'All sessions logged out.' });
   } catch (err) {
@@ -2399,17 +2528,14 @@ app.get('/api/admin/customers/:id', isAdmin, async (req, res) => {
 app.put('/api/admin/customers/:id', isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
-        const { full_name, email, phone_number, address, status } = req.body;
+        const { full_name, email, phone_number, address } = req.body;
 
         const updateData = {
             full_name,
             email,
             phone_number,
-            address: address || null,
-            updated_at: new Date().toISOString()
+          address: address || null
         };
-        if (status) updateData.status = status;
-
         const { data, error } = await supabaseAdmin
             .from('customer')
             .update(updateData)
@@ -2421,7 +2547,7 @@ app.put('/api/admin/customers/:id', isAdmin, async (req, res) => {
         res.json({ success: true, data });
     } catch (err) {
         console.error('Error updating customer:', err);
-        res.status(500).json({ success: false, message: err.message });
+      res.status(500).json({ success: false, message: err.message });
     }
 });
 
@@ -2751,12 +2877,8 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
         const { species, status, search } = req.query;
         
         let query = supabaseAdmin
-            .from('pet')
-            .select(`
-                *,
-                customer:customer_id(full_name, email, phone_number)
-            `)
-            .order('created_at', { ascending: false });
+          .from('pet')
+          .select('*');
 
         if (species && species !== 'all') query = query.eq('species', species);
         if (status && status !== 'all') query = query.eq('status', status);
@@ -2765,9 +2887,24 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
         const { data, error } = await query;
         if (error) throw error;
 
+        const customerIds = [...new Set(data.map(pet => pet.customer_id).filter(Boolean))];
+        let customersById = {};
+        if (customerIds.length > 0) {
+          const { data: customers, error: customerError } = await supabaseAdmin
+            .from('customer')
+            .select('customer_id, full_name, email, phone_number')
+            .in('customer_id', customerIds);
+
+          if (customerError) throw customerError;
+          customersById = Object.fromEntries(
+            customers.map(customer => [customer.customer_id, customer])
+          );
+        }
+
         const pets = data.map(pet => ({
             pet_id: pet.pet_id,
             pet_name: pet.pet_name,
+          customer_id: pet.customer_id,
             species: pet.species,
             breed: pet.breed,
             date_of_birth: pet.date_of_birth,
@@ -2776,11 +2913,11 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
             special_notes: pet.special_notes,
             pet_photo: pet.pet_photo,
             status: pet.status || 'Active',
-            created_at: pet.created_at,
-            customer: pet.customer ? {
-                full_name: pet.customer.full_name,
-                email: pet.customer.email,
-                phone_number: pet.customer.phone_number
+            created_at: pet.created_at || null,
+            customer: customersById[pet.customer_id] ? {
+              full_name: customersById[pet.customer_id].full_name,
+              email: customersById[pet.customer_id].email,
+              phone_number: customersById[pet.customer_id].phone_number
             } : null
         }));
 
@@ -2817,6 +2954,63 @@ app.get('/api/admin/pets/stats', isAdmin, async (req, res) => {
         });
     } catch (err) {
         console.error('Error fetching pet stats:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// ========== Admin Profile Activity Stats ==========
+app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
+    try {
+        const adminId = req.user.customer_id; // 来自 isAdmin 中间件设置的 req.user
+
+        // 查询会话总数（登录次数）和最后登录时间
+        const { data: sessions, error: sessionError } = await supabaseAdmin
+            .from('admin_sessions')
+            .select('created_at')
+            .eq('admin_id', adminId)
+            .order('created_at', { ascending: false });
+
+        if (sessionError) throw sessionError;
+
+        const totalLogins = sessions.length;
+        const lastLogin = sessions.length > 0 ? sessions[0].created_at : null;
+
+        // 查询管理员信息（含密码修改时间、资料修改时间）
+        const { data: admin, error: adminError } = await supabaseAdmin
+            .from('admin')
+            .select('password_updated_at, profile_updated_at, created_at')
+            .eq('admin_id', adminId)
+            .maybeSingle();
+
+        if (adminError) throw adminError;
+
+        // 计算活跃天数（从首次登录到今天）
+        let daysActive = 0;
+        if (sessions.length > 0) {
+            const firstLogin = new Date(sessions[sessions.length - 1].created_at);
+            const now = new Date();
+            const diffTime = Math.abs(now - firstLogin);
+            daysActive = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        // 安全分数（模拟，可改为实际规则）
+        const securityScore = 98;
+
+        // 返回数据
+        res.json({
+            success: true,
+            data: {
+                totalLogins,
+                lastLogin,
+                passwordUpdatedAt: admin?.password_updated_at || null,
+                profileUpdatedAt: admin?.profile_updated_at || null,
+                daysActive,
+                securityScore,
+                // 也可返回 firstLogin 用于其他用途
+            }
+        });
+    } catch (err) {
+        console.error('Error fetching admin activity:', err);
         res.status(500).json({ success: false, message: err.message });
     }
 });

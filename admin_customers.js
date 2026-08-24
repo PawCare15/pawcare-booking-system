@@ -679,34 +679,17 @@ async function showNotificationDetails() {
 // ================================================================
 async function loadCustomersFromSupabase() {
     try {
-        const token = localStorage.getItem('token');
-        
         // 🆕 TAMBAHAN: Debug logging
         console.log('🔍 Loading customers...');
-        console.log('🔍 Token exists:', !!token);
-        
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/customer?select=*&order=created_at.desc`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY
-            }
-        });
+        console.log('🔍 Token exists:', !!localStorage.getItem('token'));
+
+        const response = await authFetch('/api/admin/customers');
 
         // 🆕 TAMBAHAN: Log response status
         console.log('📡 Response status:', response.status);
 
-        // 🆕 TAMBAHAN: Handle specific error codes
-        if (response.status === 401) {
-            console.error('❌ Unauthorized - token expired or invalid');
-            showValidationModal('Your session has expired. Please login again.');
-            localStorage.clear();
-            window.location.replace('index.html');
-            return [];
-        }
-
         if (response.status === 403) {
-            console.error('❌ Forbidden - RLS policy blocking access');
+            console.error('❌ Forbidden - admin access required');
             showValidationModal('Permission denied. Please contact admin.');
             return [];
         }
@@ -723,7 +706,8 @@ async function loadCustomersFromSupabase() {
             throw new Error(`Failed to fetch customers: ${response.status} - ${errorText}`);
         }
 
-        const customers = await response.json();
+        const result = await response.json();
+        const customers = result.data || [];
         console.log('✅ Customers loaded successfully:', customers.length);
         
         customersData = customers.map(customer => ({
@@ -1256,14 +1240,10 @@ async function saveEditCustomer(event) {
     }
     
     try {
-        const token = localStorage.getItem('token');
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/customer?customer_id=eq.${id}`, {
-            method: 'PATCH',
+        const response = await authFetch(`/api/admin/customers/${encodeURIComponent(id)}`, {
+            method: 'PUT',
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY,
-                'Content-Type': 'application/json',
-                'Prefer': 'return=minimal'
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 full_name: name,
@@ -1274,14 +1254,18 @@ async function saveEditCustomer(event) {
         });
 
         if (!response.ok) {
-            throw new Error(`Failed to update customer: ${response.status}`);
+            let errorMessage = `Failed to update customer: ${response.status}`;
+            try {
+                const errorResult = await response.json();
+                errorMessage = errorResult.message || errorMessage;
+            } catch (parseError) {}
+            throw new Error(errorMessage);
         }
 
         customer.name = name;
         customer.email = email;
         customer.phone = phone;
         customer.address = address || customer.address;
-        customer.status = status;
         
         closeEditModal();
         renderCustomerTable(customersData);
@@ -1290,7 +1274,7 @@ async function saveEditCustomer(event) {
         
     } catch (err) {
         console.error('Error updating customer:', err);
-        showValidationModal('Failed to update customer in database. Please try again.');
+        showValidationModal(`Failed to update customer: ${err.message}`);
     }
 }
 

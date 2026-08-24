@@ -243,9 +243,6 @@ body {
     flex-shrink: 0;
 }
 
-/* ============================================================ */
-/* NOTIFICATION BADGE - CUSTOMER PAGE */
-/* ============================================================ */
 .notification-badge {
     position: relative;
     font-size: 18px;
@@ -259,7 +256,6 @@ body {
 }
 
 .notification-badge .count {
-    display: none;  /* Hidden by default */
     position: absolute;
     top: -6px;
     right: -8px;
@@ -270,23 +266,9 @@ body {
     width: 18px;
     height: 18px;
     border-radius: 50%;
+    display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.3s ease;
-}
-
-/* Show only when there are notifications */
-.notification-badge .count.show {
-    display: flex;
-}
-
-/* Force hide when empty or display none */
-.notification-badge .count:empty {
-    display: none !important;
-}
-
-.notification-badge .count[style*="display: none"] {
-    display: none !important;
 }
 
 .user-profile {
@@ -2010,6 +1992,219 @@ body {
 }
 
 /* ============================================================ */
+/* SERVICE CALENDAR - DASHBOARD                                 */
+/* ============================================================ */
+.service-calendar-section {
+    margin-top: 24px;
+}
+
+.calendar-card .card-header {
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.btn-calendar-nav {
+    background: #FAF8F5;
+    border: 1px solid #EFECE6;
+    border-radius: 8px;
+    padding: 4px 10px;
+    cursor: pointer;
+    color: #4A3327;
+    transition: all 0.2s ease;
+    font-size: 13px;
+}
+
+.btn-calendar-nav:hover {
+    background: #F5EDD6;
+    border-color: #D3C4B8;
+}
+
+.btn-calendar-nav:active {
+    transform: scale(0.95);
+}
+
+.calendar-legend-dashboard {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    padding: 10px 0 14px 0;
+    border-bottom: 1px solid #EFECE6;
+    margin-bottom: 14px;
+}
+
+.calendar-legend-dashboard .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    color: #4A3327;
+    font-weight: 500;
+}
+
+.calendar-legend-dashboard .legend-item .color-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 4px;
+    flex-shrink: 0;
+}
+
+/* Calendar Grid */
+.calendar-grid-dashboard {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+    background: #FAF8F5;
+    border-radius: 10px;
+    border: 1px solid #EFECE6;
+    overflow: hidden;
+}
+
+.calendar-grid-dashboard .day-header {
+    background: #F5EDD6;
+    padding: 8px 4px;
+    text-align: center;
+    font-size: 10px;
+    font-weight: 600;
+    color: #7A6B5A;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.calendar-grid-dashboard .day-cell {
+    background: #FFFFFF;
+    min-height: 80px;
+    padding: 4px 6px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    position: relative;
+    border: 1px solid #F5F0EA;
+}
+
+.calendar-grid-dashboard .day-cell:hover {
+    background: #FAF8F5;
+    z-index: 1;
+}
+
+.calendar-grid-dashboard .day-cell .day-number {
+    font-size: 12px;
+    font-weight: 500;
+    color: #4A3327;
+    margin-bottom: 2px;
+}
+
+.calendar-grid-dashboard .day-cell.today {
+    background: #FFF8E1;
+}
+
+.calendar-grid-dashboard .day-cell.today .day-number {
+    color: #D97706;
+    font-weight: 700;
+}
+
+.calendar-grid-dashboard .day-cell.other-month .day-number {
+    color: #C0B8AC;
+}
+
+.calendar-grid-dashboard .day-cell .day-events {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    max-height: 52px;
+    overflow: hidden;
+}
+
+.calendar-grid-dashboard .day-cell .day-events .event-mini {
+    font-size: 8px;
+    padding: 1px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    border-left: 3px solid transparent;
+    line-height: 1.6;
+}
+
+.calendar-grid-dashboard .day-cell .day-events .event-mini:hover {
+    transform: scale(1.02);
+}
+
+.calendar-grid-dashboard .day-cell .day-events .event-mini.pending {
+    background: #FEF7E0;
+    color: #B06000;
+    border-left-color: #F59E0B;
+}
+
+.calendar-grid-dashboard .day-cell .day-events .event-mini.confirmed {
+    background: #E3F2FD;
+    color: #0D47A1;
+    border-left-color: #3B82F6;
+}
+
+.calendar-grid-dashboard .day-cell .day-events .event-mini.completed {
+    background: #E8F5E9;
+    color: #2E7D32;
+    border-left-color: #22C55E;
+}
+
+.calendar-grid-dashboard .day-cell .day-events .event-mini.cancelled {
+    background: #FCE8E6;
+    color: #C5221F;
+    border-left-color: #EF4444;
+}
+
+.calendar-grid-dashboard .day-cell .more-events {
+    font-size: 8px;
+    color: #7A7A7A;
+    padding: 1px 6px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.calendar-grid-dashboard .day-cell .more-events:hover {
+    color: #D97706;
+}
+
+/* Event Detail Modal - Compact for Dashboard */
+.calendar-event-modal .modal-box {
+    max-width: 480px;
+}
+
+.calendar-event-modal .event-mini-detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 20px;
+    margin-top: 8px;
+}
+
+.calendar-event-modal .event-mini-detail .detail-item {
+    display: flex;
+    flex-direction: column;
+    padding: 4px 0;
+}
+
+.calendar-event-modal .event-mini-detail .detail-item .label {
+    font-size: 9px;
+    font-weight: 700;
+    color: #A09080;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.calendar-event-modal .event-mini-detail .detail-item .value {
+    font-size: 13px;
+    font-weight: 500;
+    color: #333;
+    margin-top: 1px;
+}
+
+.calendar-event-modal .event-mini-detail .detail-item.full-width {
+    grid-column: 1 / -1;
+}
+
+/* ============================================================ */
 /* RESPONSIVE                                                    */
 /* ============================================================ */
 @media (max-width: 1200px) {
@@ -2790,7 +2985,7 @@ body {
 /* QUICK ACTIONS */
 .quick-actions-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 10px;
 }
 
@@ -2809,4 +3004,99 @@ body {
     min-height: 80px;
     height: 100%;
     width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .calendar-grid-dashboard .day-cell {
+        min-height: 65px;
+        padding: 3px 4px;
+    }
+    
+    .calendar-grid-dashboard .day-cell .day-number {
+        font-size: 11px;
+    }
+    
+    .calendar-grid-dashboard .day-cell .day-events .event-mini {
+        font-size: 7px;
+        padding: 1px 4px;
+    }
+}
+
+@media (max-width: 768px) {
+    .calendar-card .card-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .calendar-card .card-header > div:last-child {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .calendar-grid-dashboard .day-cell {
+        min-height: 55px;
+        padding: 2px 3px;
+    }
+    
+    .calendar-grid-dashboard .day-cell .day-number {
+        font-size: 10px;
+    }
+    
+    .calendar-grid-dashboard .day-cell .day-events .event-mini {
+        font-size: 6px;
+        padding: 0 3px;
+        line-height: 1.4;
+    }
+    
+    .calendar-grid-dashboard .day-cell .day-events {
+        max-height: 36px;
+    }
+    
+    .calendar-legend-dashboard {
+        gap: 10px;
+    }
+    
+    .calendar-legend-dashboard .legend-item {
+        font-size: 10px;
+    }
+    
+    .calendar-legend-dashboard .legend-item .color-dot {
+        width: 10px;
+        height: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .calendar-grid-dashboard {
+        gap: 1px;
+    }
+    
+    .calendar-grid-dashboard .day-cell {
+        min-height: 45px;
+        padding: 2px;
+    }
+    
+    .calendar-grid-dashboard .day-cell .day-number {
+        font-size: 9px;
+    }
+    
+    .calendar-grid-dashboard .day-cell .day-events .event-mini {
+        font-size: 5px;
+        padding: 0 2px;
+        border-left-width: 2px;
+    }
+    
+    .calendar-grid-dashboard .day-cell .day-events {
+        max-height: 28px;
+    }
+    
+    .calendar-legend-dashboard .legend-item {
+        font-size: 9px;
+    }
+    
+    .calendar-event-modal .event-mini-detail {
+        grid-template-columns: 1fr;
+    }
 }
