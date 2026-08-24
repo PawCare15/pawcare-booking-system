@@ -2555,6 +2555,7 @@ async function loadServiceStats() {
             }
 
             // ===== 新增: 回复的点赞和回复子回复 =====
+            // Fix: Reply Like - Use custom popup instead of alert
             const likeReplyBtn = target.closest('.reply-like-btn');
             if (likeReplyBtn) {
                 const replyId = likeReplyBtn.dataset.replyId;
@@ -2577,9 +2578,12 @@ async function loadServiceStats() {
                         }
                     } else {
                         console.error('Reply like server error:', data.message);
-                        showValidationModal('Unable to update like: ' + (data.message || 'Please check server.'));
+                        showValidationModal('Unable to update like: ' + (data.message || 'Invalid ID type.'));
                     }
-                } catch (err) { console.error('Reply like error:', err); }
+                } catch (err) { 
+                    console.error('Reply like error:', err); 
+                    showValidationModal('Unable to connect to server.'); 
+                }
             }
 
             const replyReplyBtn = target.closest('.reply-reply-btn');

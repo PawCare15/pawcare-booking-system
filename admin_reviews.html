@@ -1144,11 +1144,27 @@ function confirmLogout() {
                 modal.classList.remove('active');
                 unlockBodyScroll();
                 pendingDeleteReviewId = null;
+                window.pendingDeleteReplyId = null; // 新增这一行
             }
 
             // 绑定删除确认按钮事件
             document.getElementById('deleteCancelBtn').addEventListener('click', hideDeleteConfirm);
             document.getElementById('deleteConfirmBtn').addEventListener('click', async function() {
+                // Check if we are deleting a reply
+                if (window.pendingDeleteReplyId) {
+                    const replyId = window.pendingDeleteReplyId;
+                    window.pendingDeleteReplyId = null;
+                    hideDeleteConfirm();
+                    try {
+                        const res = await authFetch(`/api/replies/${replyId}`, { method: 'DELETE' });
+                        const data = await res.json();
+                        if (data.success) { showConfirmation('Reply deleted successfully.'); loadReviews(); }
+                        else { showError(data.message || 'Failed to delete reply.'); }
+                    } catch (err) { showError('Unable to connect to server.'); }
+                    return; // Stop executing review deletion logic
+                }
+
+                // Default Review Deletion Logic (unchanged)
                 if (!pendingDeleteReviewId) return;
                 const reviewId = pendingDeleteReviewId;
                 hideDeleteConfirm();
@@ -1268,6 +1284,7 @@ function confirmLogout() {
                 }
 
                 // ===== 新增: 回复的点赞和回复子回复 =====
+                // Fix: Reply Like - Use custom popup instead of alert
                 const likeReplyBtn = target.closest('.reply-like-btn');
                 if (likeReplyBtn) {
                     const replyId = likeReplyBtn.dataset.replyId;
@@ -1290,9 +1307,12 @@ function confirmLogout() {
                             }
                         } else {
                             console.error('Reply like server error:', data.message);
-                            showError('Unable to update like: ' + (data.message || 'Please check server.'));
+                            showError('Unable to update like: ' + (data.message || 'Invalid ID type.'));
                         }
-                    } catch (err) { console.error('Reply like error:', err); }
+                    } catch (err) { 
+                        console.error('Reply like error:', err); 
+                        showError('Unable to connect to server.'); 
+                    }
                 }
 
                 const replyReplyBtn = target.closest('.reply-reply-btn');
@@ -1345,21 +1365,9 @@ function confirmLogout() {
                 // 🆕 处理删除回复按钮 (使用项目内的弹窗代替原生 confirm/alert)
                 if (target.classList.contains('reply-delete-btn')) {
                     const replyId = target.dataset.replyId;
-                    const token = localStorage.getItem('token');
-                    fetch(`/api/replies/${replyId}`, {
-                        method: 'DELETE',
-                        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-                    })
-                    .then(res => res.json())
-                    .then(res => {
-                        if(res.success) {
-                            showConfirmation('Reply deleted successfully.'); // 使用成功弹窗
-                            loadReviews();
-                        } else {
-                            showError(res.message || 'Failed to delete reply.'); // 使用错误弹窗
-                        }
-                    })
-                    .catch(() => showError('Unable to connect to server.'));
+                    // Use the existing modal to confirm
+                    window.pendingDeleteReplyId = replyId; 
+                    showDeleteConfirm(null); 
                 }
             });
 

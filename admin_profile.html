@@ -1411,12 +1411,12 @@ function confirmLogout() {
             // ===== DEFAULTS =====
             const DEFAULTS = {
                 name: 'Admin',
-                email: 'admin@pawcare.com',
+                email: 'pawcare071@gmail.com',
                 phone: '+60 12-345 6789',
                 department: 'Management',
                 joined: '01 January 2024',
                 lastLogin: '15 May 2026, 09:30 AM',
-                totalLogins: 128,
+                totalLogins: 0,
                 pwdChanged: '12 Apr 2026, 11:20 AM',
                 profileUpdated: '01 May 2026, 02:15 PM',
                 twoFactor: true,
@@ -1522,51 +1522,36 @@ function confirmLogout() {
                 }
             }
 
-            // ===== 加载活动统计数据 =====
+            // Fix: Load Activity Stats (Use real data, avoid N/A, fix Total Logins and 2FA error)
             async function loadActivityStats() {
                 try {
                     const res = await authFetch('/api/admin/profile/activity');
                     const result = await res.json();
                     if (result.success) {
                         const stats = result.data;
-                        // 更新统计卡片
+                        data.totalLogins = stats.totalLogins || 0; // Sync to local data to prevent 128 issue
                         document.getElementById('totalLogins').textContent = stats.totalLogins || 0;
                         document.getElementById('totalLoginsStat').textContent = stats.totalLogins || 0;
 
-                        // 格式化时间
                         const formatDate = (iso) => {
-                            if (!iso) return 'N/A';
+                            if (!iso) return 'Never'; // Fix: Show 'Never' instead of N/A
                             const d = new Date(iso);
-                            return d.toLocaleString('en-US', { 
-                                day: '2-digit', month: 'short', year: 'numeric', 
-                                hour: '2-digit', minute: '2-digit'
-                            });
+                            return d.toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
                         };
                         document.getElementById('lastLoginStat').textContent = formatDate(stats.lastLogin);
                         document.getElementById('profileLastLogin').textContent = formatDate(stats.lastLogin);
-
                         document.getElementById('pwdChanged').textContent = formatDate(stats.passwordUpdatedAt);
                         document.getElementById('profileUpdated').textContent = formatDate(stats.profileUpdatedAt);
 
-                        // 更新“Days Active”统计卡片（第4个卡片）
                         const daysActiveElem = document.querySelector('.stat-card:nth-child(4) h3');
                         if (daysActiveElem) daysActiveElem.textContent = stats.daysActive || 0;
-
-                        // 安全分数（第2个卡片）
                         const securityScoreElem = document.querySelector('.stat-card:nth-child(2) h3');
-                        if (securityScoreElem && stats.securityScore !== undefined) {
-                            securityScoreElem.textContent = stats.securityScore + '%';
-                        }
-
-                        // 保存到 localStorage
-                        localStorage.setItem('pawcareActivityStats', JSON.stringify(stats));
+                        if (securityScoreElem && stats.securityScore !== undefined) securityScoreElem.textContent = stats.securityScore + '%';
                     }
-                } catch (err) {
-                    console.error('Failed to load activity stats:', err);
-                }
+                } catch (err) { console.error('Failed to load activity stats:', err); }
             }
 
-            // ===== 更新活跃会话数量 =====
+            // Fix: Correctly show active session count and fix the "3 active sessions" text
             async function updateActiveSessionsCount() {
                 try {
                     const res = await authFetch('/api/admin/sessions');
@@ -1576,10 +1561,10 @@ function confirmLogout() {
                         const activeCount = sessions.filter(s => !s.loggedOut).length;
                         const activeSessionsElem = document.querySelector('.stat-card:nth-child(3) h3');
                         if (activeSessionsElem) activeSessionsElem.textContent = activeCount;
+                        const sessionDesc = document.querySelector('.security-item:nth-child(3) .desc');
+                        if (sessionDesc) sessionDesc.textContent = activeCount + ' active sessions';
                     }
-                } catch (e) {
-                    console.error('Failed to update active sessions count:', e);
-                }
+                } catch (e) { console.error('Failed to update active sessions count:', e); }
             }
 
             function showInfoModal(title, message) {
@@ -1692,6 +1677,68 @@ function confirmLogout() {
                         msg.textContent = 'Unable to connect to server. Please check your network.';
                         toast('Update failed: ' + err.message);
                     }
+                });
+
+                // Fix: Reset Button
+                $('resetProfileBtn').addEventListener('click', function() {
+                    $('editFullName').value = data.name;
+                    $('editPhone').value = data.phone;
+                    $('profileUpdateMessage').className = 'message';
+                    $('profileUpdateMessage').textContent = '';
+                    toast('Profile form has been reset.');
+                });
+
+                // Fix: Change Photo
+                $('avatarUploadInput').addEventListener('change', async function(e) {
+                    const file = e.target.files[0];
+                    if (!file) return;
+                    if (file.size > 2 * 1024 * 1024) { toast('Image too large, max 2MB.'); return; }
+                    const formData = new FormData();
+                    formData.append('avatar', file);
+                    try {
+                        const token = localStorage.getItem('token');
+                        const res = await fetch('/api/profile/avatar', {
+                            method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData
+                        });
+                        const result = await res.json();
+                        if (result.success) { setAvatar(result.avatar_url); toast('Avatar updated successfully!'); }
+                        else { toast('Failed to upload avatar: ' + result.message); }
+                    } catch (err) { toast('Network error, upload failed.'); }
+                });
+
+                // Fix: Change Password
+                $('changePwdForm').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const current = $('currentPwd').value;
+                    const newPwd = $('newPwd').value;
+                    const confirm = $('confirmPwd').value;
+                    if (newPwd !== confirm) {
+                        $('pwdChangeMessage').textContent = 'Passwords do not match.';
+                        $('pwdChangeMessage').style.color = 'red'; return;
+                    }
+                    try {
+                        const res = await authFetch('/api/profile/password', {
+                            method: 'PUT', body: JSON.stringify({ currentPassword: current, newPassword: newPwd })
+                        });
+                        const result = await res.json();
+                        if (result.success) {
+                            $('pwdChangeMessage').textContent = 'Password updated successfully!';
+                            $('pwdChangeMessage').style.color = 'green';
+                            $('currentPwd').value = ''; $('newPwd').value = ''; $('confirmPwd').value = '';
+                        } else {
+                            $('pwdChangeMessage').textContent = result.message || 'Update failed';
+                            $('pwdChangeMessage').style.color = 'red';
+                        }
+                    } catch (err) { $('pwdChangeMessage').textContent = 'Unable to connect to server.'; $('pwdChangeMessage').style.color = 'red'; }
+                });
+
+                // Fix: Theme Switching (Dark Mode)
+                document.querySelectorAll('.theme-option').forEach(option => {
+                    option.addEventListener('click', function() {
+                        data.theme = this.dataset.theme;
+                        saveData(); render();
+                        toast('Theme switched to ' + (data.theme === 'dark' ? 'Dark' : 'Light'));
+                    });
                 });
 
                 // ===== 2FA =====
@@ -1860,12 +1907,13 @@ function confirmLogout() {
                             // 手动更新 DOM（确保一致性）
                             document.getElementById('headerName').textContent = admin.full_name || 'Admin';
                             document.getElementById('profileFullName').textContent = admin.full_name || 'Admin';
-                            document.getElementById('profileEmail').textContent = admin.email || 'admin@pawcare.com';
+                            document.getElementById('profileEmail').textContent = admin.email || 'pawcare071@gmail.com';
                             document.getElementById('profilePhone').textContent = admin.phone_number || '';
                             document.getElementById('editFullName').value = admin.full_name || '';
                             document.getElementById('editEmail').value = admin.email || '';
                             document.getElementById('editPhone').value = admin.phone_number || '';
-                            document.getElementById('emailVerificationDesc').textContent = admin.email || 'admin@pawcare.com';
+                            const emailDescEl = document.querySelector('.security-item .left .desc');
+                            if (emailDescEl) emailDescEl.textContent = admin.email || 'pawcare071@gmail.com';
 
                             // 头像处理
                             if (admin.profile_photo) {
