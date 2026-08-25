@@ -266,8 +266,11 @@ document.addEventListener('DOMContentLoaded', function() {
                 const data = await response.json();
 
                 if (data.two_factor_required) {
-                    // 开启 2FA 需要二次验证
+                    // 开启 2FA 需要二次验证 → 显示弹窗
                     showTwoFactorModal(email, password);
+                    // 恢复登录按钮状态
+                    loginBtn.disabled = false;
+                    loginBtn.innerHTML = '<i class="ri-login-circle-line"></i> Sign In';
                     return;
                 }
 
@@ -465,14 +468,128 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // ==========================================
-// 2FA 验证 —— 跳转到独立页面
+// 2FA 验证码弹窗逻辑（弹窗方式）
 // ==========================================
+const twoFactorOverlay = document.getElementById('twoFactorOverlay');
+const twoFactorCodeInput = document.getElementById('twoFactorCodeInput');
+const twoFactorVerifyBtn = document.getElementById('twoFactorVerifyBtn');
+const twoFactorEmailDisplay = document.getElementById('twoFactorEmailDisplay');
+const twoFactorResendLink = document.getElementById('twoFactorResendLink');
+
+let pendingEmail = '';
+let pendingPassword = '';
 
 function showTwoFactorModal(email, password) {
-    // 保存邮箱和密码到 localStorage，供 2FA 页面使用
-    localStorage.setItem('2faEmail', email);
-    localStorage.setItem('2faPassword', password);
-    
-    // 跳转到 2FA 验证页面
-    window.location.href = 'verify-2fa.html?email=' + encodeURIComponent(email);
+    pendingEmail = email;
+    pendingPassword = password;
+    twoFactorEmailDisplay.textContent = email;
+    twoFactorCodeInput.value = '';
+    twoFactorOverlay.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+    twoFactorCodeInput.focus();
 }
+
+function hideTwoFactorModal() {
+    twoFactorOverlay.style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+// 验证按钮点击
+twoFactorVerifyBtn.addEventListener('click', async function() {
+    const code = twoFactorCodeInput.value.trim();
+
+    if (!code) {
+        showPopup('⚠️', 'Missing Code', 'Please enter the 2FA code.');
+        return;
+    }
+
+    twoFactorVerifyBtn.disabled = true;
+    twoFactorVerifyBtn.innerHTML = '<i class="ri-loader-4-line ri-spin"></i> Verifying...';
+
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: pendingEmail,
+                password: pendingPassword,
+                two_factor_code: code
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // 登录成功
+            localStorage.setItem('token', data.token);
+            localStorage.setItem('user', JSON.stringify(data.customer));
+            localStorage.setItem('isLoggedIn', 'true');
+
+            // 处理记住我逻辑
+            const rememberCheckbox = document.querySelector('input[name="remember"]');
+            if (rememberCheckbox && rememberCheckbox.checked) {
+                localStorage.setItem('rememberedEmail', pendingEmail);
+                localStorage.setItem('rememberedPassword', pendingPassword);
+            } else {
+                localStorage.removeItem('rememberedEmail');
+                localStorage.removeItem('rememberedPassword');
+            }
+
+            hideTwoFactorModal();
+            showPopup('🎉', 'Welcome Back!', 'Login successful! Redirecting...');
+
+            const redirectUrl = data.customer.role === 'admin' ? 'admin_dashboard.html' : 'dashboard.html';
+            setTimeout(() => {
+                window.location.replace(redirectUrl);
+            }, 800);
+
+        } else {
+            // 验证失败
+            showPopup('❌', 'Verification Failed', data.message || 'Invalid code.');
+            twoFactorCodeInput.value = '';
+            twoFactorCodeInput.focus();
+        }
+
+    } catch (error) {
+        console.error('2FA login error:', error);
+        showPopup('❌', 'Network Error', 'Unable to connect to server.');
+    } finally {
+        twoFactorVerifyBtn.disabled = false;
+        twoFactorVerifyBtn.innerHTML = 'Verify Code';
+    }
+});
+
+// 点击外面关闭
+twoFactorOverlay.addEventListener('click', function(e) {
+    if (e.target === this) {
+        hideTwoFactorModal();
+    }
+});
+
+// 重新发送验证码
+twoFactorResendLink.addEventListener('click', function(e) {
+    e.preventDefault();
+
+    const link = this;
+    const originalText = link.textContent;
+    link.textContent = 'Sending...';
+    link.style.pointerEvents = 'none';
+
+    // 直接重新调用登录接口来触发再次发送邮件
+    fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: pendingEmail, password: pendingPassword })
+    })
+    .then(res => res.json())
+    .then(() => {
+        setTimeout(() => {
+            link.textContent = originalText;
+            link.style.pointerEvents = '';
+        }, 2000);
+    })
+    .catch(() => {
+        link.textContent = originalText;
+        link.style.pointerEvents = '';
+    });
+});
