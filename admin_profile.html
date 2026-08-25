@@ -87,6 +87,7 @@
             flex: 1;
             height: 100%;
         }
+
         .left-stack .edit-card {
             flex: 1;
             display: flex;
@@ -248,7 +249,189 @@
             padding: 20px 24px 24px;
         }
 
-        /* ===== Edit Profile - 每行一个长文本框 ===== */
+        /* Profile Overview */
+        .profile-overview .overview-inner {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 4px 0 8px;
+        }
+        .profile-top-row {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .profile-avatar-wrapper {
+            width: 88px;
+            height: 88px;
+            border-radius: 50%;
+            overflow: hidden;
+            background: #FDF3E7;
+            border: 3px solid #EFECE6;
+            display: grid;
+            place-items: center;
+            flex-shrink: 0;
+        }
+        .profile-avatar-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .profile-avatar-wrapper .avatar-placeholder {
+            font-size: 38px;
+        }
+        .profile-name-title {
+            flex: 1;
+        }
+        .profile-name-title .name {
+            font-size: 20px;
+            font-weight: 700;
+            color: #333;
+        }
+        .profile-name-title .role-badge-lg {
+            background: #F5EADC;
+            color: #79502E;
+            border-radius: 6px;
+            padding: 2px 14px;
+            font-size: 12px;
+            font-weight: 600;
+            display: inline-block;
+            margin-top: 2px;
+        }
+        .profile-name-title .sub-info {
+            font-size: 13px;
+            color: #7A7A7A;
+            margin-top: 2px;
+        }
+        .profile-name-title .sub-info i {
+            color: #D97706;
+            margin-right: 4px;
+        }
+        .change-photo-btn {
+            font-size: 12px;
+            padding: 4px 14px;
+            border-radius: 20px;
+            border: 1px solid #DFD0C2;
+            background: transparent;
+            color: #4A3327;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Poppins', sans-serif;
+        }
+        .change-photo-btn:hover {
+            background: #F7EFE7;
+        }
+        .change-photo-wrap {
+            position: relative;
+            display: inline-block;
+        }
+        .change-photo-wrap input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .photo-help-text {
+            font-size: 10px;
+            color: #B0A090;
+            margin-top: 2px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 6px 32px;
+            padding-top: 4px;
+        }
+        .info-item {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            padding: 4px 0;
+            border-bottom: 1px solid #F5F0EA;
+        }
+        .info-item .label {
+            font-size: 11px;
+            color: #7A7A7A;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            min-width: 80px;
+            flex-shrink: 0;
+        }
+        .info-item .value {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+            word-break: break-word;
+        }
+
+        /* Account Security */
+        .security-card .security-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #F5F0EA;
+            gap: 12px;
+        }
+        .security-card .security-item:last-child {
+            border-bottom: none;
+        }
+        .security-item .left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+        .security-item .left > i {
+            width: 18px;
+            color: #8B796A;
+            text-align: center;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+        .security-item .left .title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+        .security-item .left .desc {
+            font-size: 12px;
+            color: #7A7A7A;
+        }
+        .security-item .right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .security-item .right .badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 14px;
+            border-radius: 20px;
+            background: #E8F5E9;
+            color: #2E7D32;
+            white-space: nowrap;
+        }
+        .security-item .right .badge.inactive {
+            background: #FCE8E6;
+            color: #C5221F;
+        }
+        .security-item .right .btn-sm {
+            font-size: 11px;
+            padding: 4px 14px;
+            border-radius: 6px;
+        }
+
+        /* Edit Profile */
         .edit-card .form-grid {
             display: flex;
             flex-direction: column;
@@ -327,68 +510,7 @@
         .edit-card .message.success { display: block; color: #2E7D32; }
         .edit-card .message.error { display: block; color: #C5221F; }
 
-        /* ===== Security 卡片 (整合原 Account Security) ===== */
-        .security-card .security-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #F5F0EA;
-            gap: 12px;
-        }
-        .security-card .security-item:last-child {
-            border-bottom: none;
-        }
-        .security-item .left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 1;
-            min-width: 0;
-        }
-        .security-item .left > i {
-            width: 18px;
-            color: #8B796A;
-            text-align: center;
-            font-size: 15px;
-            flex-shrink: 0;
-        }
-        .security-item .left .title {
-            font-size: 14px;
-            font-weight: 500;
-            color: #333;
-        }
-        .security-item .left .desc {
-            font-size: 12px;
-            color: #7A7A7A;
-        }
-        .security-item .right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-        .security-item .right .badge {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 2px 14px;
-            border-radius: 20px;
-            background: #E8F5E9;
-            color: #2E7D32;
-            white-space: nowrap;
-        }
-        .security-item .right .badge.inactive {
-            background: #FCE8E6;
-            color: #C5221F;
-        }
-        .security-item .right .btn-sm {
-            font-size: 11px;
-            padding: 4px 14px;
-            border-radius: 6px;
-        }
-
+        /* Activity Summary */
         .activity-card .activity-row {
             display: flex;
             justify-content: space-between;
@@ -404,6 +526,7 @@
             color: #333;
         }
 
+        /* Danger Zone */
         .danger-card .danger-zone {
             border: 1px solid #F5D9D6;
             border-radius: 10px;
@@ -497,6 +620,7 @@
             background: #B71C1C;
         }
 
+        /* ===== MODALS ===== */
         .modal-overlay {
             position: fixed;
             inset: 0;
@@ -696,12 +820,14 @@
         }
         @media (max-width: 992px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .info-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
             .stat-card { padding: 16px 18px; }
             .stat-card i { width: 40px; height: 40px; font-size: 20px; }
             .stat-card h3 { font-size: 22px; }
+            .profile-top-row { flex-direction: column; align-items: center; text-align: center; }
             .info-grid { grid-template-columns: 1fr; }
             .security-item { flex-direction: column; align-items: flex-start; gap: 6px; }
             .security-item .right { align-self: flex-end; }
@@ -724,7 +850,12 @@
             .stat-card i { width: 36px; height: 36px; font-size: 18px; }
             .stat-card h3 { font-size: 20px; }
             .stat-card p { font-size: 12px; }
+            .profile-avatar-wrapper { width: 72px; height: 72px; }
+            .profile-avatar-wrapper .avatar-placeholder { font-size: 30px; }
+            .profile-name-title .name { font-size: 18px; }
             .page-heading h1 { font-size: 20px; }
+            .info-item .label { min-width: 60px; font-size: 10px; }
+            .info-item .value { font-size: 13px; }
         }
         .main-content .dashboard-container { padding-top: 0; }
 
@@ -837,11 +968,46 @@
                     </div>
                 </div>
 
-                <!-- ===== 主布局：左列 Edit Profile，右列 Security + Activity + Danger ===== -->
+                <!-- ===== 主布局 ===== -->
                 <div class="profile-grid">
-                    <!-- 左侧 -->
+                    <!-- 左侧：Profile Overview + Edit Profile -->
                     <div class="left-stack">
-                        <!-- Edit Profile（每行一个长文本框） -->
+
+                        <!-- Profile Overview -->
+                        <div class="card profile-overview">
+                            <div class="card-header"><i class="fa-regular fa-user"></i> Profile Overview</div>
+                            <div class="card-body">
+                                <div class="overview-inner">
+                                    <div class="profile-top-row">
+                                        <div class="profile-avatar-wrapper">
+                                            <img id="profileAvatarImg" alt="Profile avatar" style="display:none;">
+                                            <span id="profileAvatarPlaceholder" class="avatar-placeholder">👤</span>
+                                        </div>
+                                        <div class="profile-name-title">
+                                            <div class="name" id="profileFullName">Admin</div>
+                                            <div><span class="role-badge-lg">Super Admin</span></div>
+                                            <div class="sub-info"><i class="fa-regular fa-envelope"></i> <span id="profileEmail">admin@pawcare.com</span></div>
+                                            <div style="margin-top:4px;">
+                                                <span class="change-photo-wrap">
+                                                    <button class="change-photo-btn"><i class="fa-solid fa-camera"></i> Change Photo</button>
+                                                    <input type="file" id="avatarUploadInput" accept="image/png,image/jpeg,image/gif,image/webp">
+                                                </span>
+                                                <span class="photo-help-text">JPG, PNG or GIF. Max 2MB.</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="info-grid">
+                                        <div class="info-item"><span class="label">Phone</span><span class="value" id="profilePhone">+60 12-345 6789</span></div>
+                                        <div class="info-item"><span class="label">Department</span><span class="value" id="profileDepartment">Management</span></div>
+                                        <div class="info-item"><span class="label">Employee ID</span><span class="value">ADM-0001</span></div>
+                                        <div class="info-item"><span class="label">Joined Date</span><span class="value">01 January 2024</span></div>
+                                        <div class="info-item"><span class="label">Last Login</span><span class="value" id="profileLastLogin">Never</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Edit Profile -->
                         <div class="card edit-card">
                             <div class="card-header"><i class="fa-regular fa-pen-to-square"></i> Edit Profile</div>
                             <div class="card-body">
@@ -880,9 +1046,10 @@
                                 </form>
                             </div>
                         </div>
+
                     </div>
 
-                    <!-- 右侧 -->
+                    <!-- 右侧：Account Security + Activity Summary + Danger Zone -->
                     <div class="right-stack">
 
                         <!-- Account Security -->
@@ -1098,7 +1265,9 @@
     <!-- JAVASCRIPT -->
     <!-- ================================================================ -->
     <script>
-// 统一放在页面所有 <script> 的最顶部
+// ================================================================
+// AUTH CHECK
+// ================================================================
 (function checkAuth() {
     function doAuthCheck() {
         const token = localStorage.getItem('token');
@@ -1138,11 +1307,16 @@
     });
 })();
 
-// SUPABASE CONFIGURATION
+// ================================================================
+// SUPABASE CONFIG
+// ================================================================
 const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
 const API_BASE_URL = ['2632', '5500'].includes(window.location.port) ? 'http://localhost:5000' : '';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
 
+// ================================================================
+// AUTH FETCH
+// ================================================================
 async function authFetch(url, options = {}) {
     const token = localStorage.getItem('token');
     if (!token) { window.location.replace('login.html'); return; }
@@ -1160,7 +1334,11 @@ async function authFetch(url, options = {}) {
     return response;
 }
 
+// ================================================================
+// SCROLLBAR COMPENSATION
+// ================================================================
 let modalCount = 0;
+
 function lockBodyScroll() {
     if (modalCount === 0) {
         const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
@@ -1169,11 +1347,15 @@ function lockBodyScroll() {
     }
     modalCount++;
 }
+
 function unlockBodyScroll() {
     modalCount--;
     if (modalCount <= 0) { modalCount = 0; document.body.style.paddingRight = ''; document.body.style.overflow = ''; }
 }
 
+// ================================================================
+// LOGOUT
+// ================================================================
 function showLogoutModal() {
     const modal = document.getElementById('logoutModal');
     if (modal) { lockBodyScroll(); modal.classList.add('active'); }
@@ -1188,7 +1370,9 @@ function confirmLogout() {
     window.location.replace('index.html');
 }
 
-// 模态框工具
+// ================================================================
+// MODAL HELPERS
+// ================================================================
 function openModal(id) {
     const modal = document.getElementById(id);
     if (!modal) return;
@@ -1224,6 +1408,9 @@ document.querySelectorAll('[data-close]').forEach(btn => {
     });
 });
 
+// ================================================================
+// MAIN PROFILE LOGIC
+// ================================================================
 (function() {
     'use strict';
 
@@ -1257,16 +1444,16 @@ document.querySelectorAll('[data-close]').forEach(btn => {
         window.__toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
     }
 
-    // 头像
+    // ===== 头像 =====
     function setAvatar(url) {
         ['headerAvatarImg', 'profileAvatarImg'].forEach(id => {
             const img = $(id);
             if (img) { img.src = url; img.style.display = 'block'; }
         });
-        const placeholder1 = $('headerAvatarPlaceholder');
-        const placeholder2 = $('profileAvatarPlaceholder');
-        if (placeholder1) placeholder1.style.display = 'none';
-        if (placeholder2) placeholder2.style.display = 'none';
+        const p1 = $('headerAvatarPlaceholder');
+        const p2 = $('profileAvatarPlaceholder');
+        if (p1) p1.style.display = 'none';
+        if (p2) p2.style.display = 'none';
         localStorage.setItem('pawcareAvatar', url);
     }
 
@@ -1275,23 +1462,38 @@ document.querySelectorAll('[data-close]').forEach(btn => {
         if (url) setAvatar(url);
     }
 
-    // 渲染
+    // ===== 渲染 =====
     function render() {
-        $('headerName').textContent = data.name;
-        $('profileFullName') && ($('profileFullName').textContent = data.name);
-        $('profileEmail') && ($('profileEmail').textContent = data.email);
-        $('profilePhone') && ($('profilePhone').textContent = data.phone);
-        $('profileDepartment') && ($('profileDepartment').textContent = data.department);
-        $('profileLastLogin') && ($('profileLastLogin').textContent = data.lastLogin);
-        $('lastLoginStat') && ($('lastLoginStat').textContent = data.lastLogin);
-        $('totalLogins') && ($('totalLogins').textContent = data.totalLogins);
-        $('totalLoginsStat') && ($('totalLoginsStat').textContent = data.totalLogins);
-        $('pwdChanged') && ($('pwdChanged').textContent = data.pwdChanged);
-        $('profileUpdated') && ($('profileUpdated').textContent = data.profileUpdated);
-        $('editFullName') && ($('editFullName').value = data.name);
-        $('editEmail') && ($('editEmail').value = data.email);
-        $('editPhone') && ($('editPhone').value = data.phone);
-        $('editDepartment') && ($('editDepartment').value = data.department);
+        const nameEl = $('headerName');
+        if (nameEl) nameEl.textContent = data.name;
+        const fullNameEl = $('profileFullName');
+        if (fullNameEl) fullNameEl.textContent = data.name;
+        const emailEl = $('profileEmail');
+        if (emailEl) emailEl.textContent = data.email;
+        const phoneEl = $('profilePhone');
+        if (phoneEl) phoneEl.textContent = data.phone;
+        const deptEl = $('profileDepartment');
+        if (deptEl) deptEl.textContent = data.department;
+        const lastLoginEl = $('profileLastLogin');
+        if (lastLoginEl) lastLoginEl.textContent = data.lastLogin;
+        const lastLoginStatEl = $('lastLoginStat');
+        if (lastLoginStatEl) lastLoginStatEl.textContent = data.lastLogin;
+        const totalLoginsEl = $('totalLogins');
+        if (totalLoginsEl) totalLoginsEl.textContent = data.totalLogins;
+        const totalLoginsStatEl = $('totalLoginsStat');
+        if (totalLoginsStatEl) totalLoginsStatEl.textContent = data.totalLogins;
+        const pwdChangedEl = $('pwdChanged');
+        if (pwdChangedEl) pwdChangedEl.textContent = data.pwdChanged;
+        const profileUpdatedEl = $('profileUpdated');
+        if (profileUpdatedEl) profileUpdatedEl.textContent = data.profileUpdated;
+        const editFullNameEl = $('editFullName');
+        if (editFullNameEl) editFullNameEl.value = data.name;
+        const editEmailEl = $('editEmail');
+        if (editEmailEl) editEmailEl.value = data.email;
+        const editPhoneEl = $('editPhone');
+        if (editPhoneEl) editPhoneEl.value = data.phone;
+        const editDeptEl = $('editDepartment');
+        if (editDeptEl) editDeptEl.value = data.department;
 
         document.querySelectorAll('.theme-option').forEach(o => o.classList.toggle('active', o.dataset.theme === data.theme));
         document.body.classList.toggle('dark', data.theme === 'dark');
@@ -1314,7 +1516,7 @@ document.querySelectorAll('[data-close]').forEach(btn => {
         }
     }
 
-    // 加载活动统计
+    // ===== 加载活动统计 =====
     async function loadActivityStats() {
         try {
             const res = await authFetch('/api/admin/profile/activity');
@@ -1322,8 +1524,8 @@ document.querySelectorAll('[data-close]').forEach(btn => {
             if (result.success) {
                 const stats = result.data;
                 const totalLogins = stats.totalLogins || 0;
-                $('totalLogins').textContent = totalLogins;
-                $('totalLoginsStat').textContent = totalLogins;
+                if ($('totalLogins')) $('totalLogins').textContent = totalLogins;
+                if ($('totalLoginsStat')) $('totalLoginsStat').textContent = totalLogins;
                 if ($('securityScore')) $('securityScore').textContent = (stats.securityScore || 90) + '%';
                 if ($('daysActive')) $('daysActive').textContent = stats.daysActive || 0;
 
@@ -1341,7 +1543,6 @@ document.querySelectorAll('[data-close]').forEach(btn => {
                 if ($('pwdChanged')) $('pwdChanged').textContent = pwdChanged || data.pwdChanged;
                 if ($('profileUpdated')) $('profileUpdated').textContent = profileUpdated || data.profileUpdated;
 
-                // 更新 twoFactor 状态从数据库
                 if (stats.two_factor_enabled !== undefined) {
                     data.twoFactor = stats.two_factor_enabled;
                     saveData();
@@ -1351,7 +1552,7 @@ document.querySelectorAll('[data-close]').forEach(btn => {
         } catch (err) { console.error('Failed to load activity stats:', err); }
     }
 
-    // 更新活跃会话数
+    // ===== 更新活跃会话数 =====
     async function updateActiveSessionsCount() {
         try {
             const res = await authFetch('/api/admin/sessions');
@@ -1366,14 +1567,18 @@ document.querySelectorAll('[data-close]').forEach(btn => {
     }
 
     function showInfoModal(title, message) {
-        $('infoModalTitle').textContent = title || 'Notification';
-        $('infoModalMessage').textContent = message || 'No new notifications.';
+        const titleEl = $('infoModalTitle');
+        const msgEl = $('infoModalMessage');
+        if (titleEl) titleEl.textContent = title || 'Notification';
+        if (msgEl) msgEl.textContent = message || 'No new notifications.';
         openModal('infoModal');
     }
 
     function openUserMenu() { openModal('userMenuModal'); }
 
-    // ===== SIDEBAR =====
+    // ================================================================
+    // SIDEBAR
+    // ================================================================
     const menuToggle = $('menuToggle');
     const sidebar = $('sidebar');
     const sidebarClose = $('sidebarClose');
@@ -1399,153 +1604,197 @@ document.querySelectorAll('[data-close]').forEach(btn => {
         }
     });
 
-    // ===== DOMContentLoaded =====
+    // ================================================================
+    // DOMContentLoaded
+    // ================================================================
     document.addEventListener('DOMContentLoaded', function() {
 
-        // Notifications
-        $('notificationBtn').addEventListener('click', function(e) {
-            e.stopPropagation();
-            showInfoModal('Notifications', 'No new notifications.');
-            $('notifCount').textContent = '0';
-        });
-
-        // Profile button -> user menu
-        $('profileBtn').addEventListener('click', function(e) {
-            e.stopPropagation();
-            openUserMenu();
-        });
-
-        $('userViewProfileBtn').addEventListener('click', function() {
-            closeModal('userMenuModal');
-            document.querySelector('.edit-card').scrollIntoView({ behavior: 'smooth' });
-        });
-        $('userLogoutBtn').addEventListener('click', function() {
-            closeModal('userMenuModal');
-            showLogoutModal();
-        });
-
-        // ===== Profile Form =====
-        $('profileForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const name = $('editFullName').value.trim();
-            const phone = $('editPhone').value.trim();
-            const msg = $('profileUpdateMessage');
-            if (name.length < 2) { msg.className = 'message error'; msg.textContent = 'Please enter a valid full name.'; return; }
-            if (!phone) { msg.className = 'message error'; msg.textContent = 'Phone number is required.'; return; }
-            try {
-                const res = await authFetch('/api/profile', {
-                    method: 'PUT',
-                    body: JSON.stringify({ full_name: name, phone_number: phone })
-                });
-                if (!res.ok) {
-                    let errMsg = 'Server error';
-                    try { const errData = await res.json(); errMsg = errData.message || errMsg; } catch (_) {}
-                    throw new Error(errMsg);
-                }
-                const result = await res.json();
-                if (result.success) {
-                    const profile = JSON.parse(localStorage.getItem('pawcareAdminProfile') || '{}');
-                    profile.full_name = name;
-                    profile.phone_number = phone;
-                    localStorage.setItem('pawcareAdminProfile', JSON.stringify(profile));
-                    const user = JSON.parse(localStorage.getItem('user') || '{}');
-                    if (user && user.id) { user.name = name; localStorage.setItem('user', JSON.stringify(user)); }
-                    await loadAdminProfile(true);
-                    msg.className = 'message success';
-                    msg.textContent = '✓ Profile updated successfully!';
-                    toast('Profile changes saved.');
-                    loadActivityStats();
-                } else {
-                    msg.className = 'message error';
-                    msg.textContent = result.message || 'Update failed.';
-                }
-            } catch (err) {
-                console.error('Profile update error:', err);
-                msg.className = 'message error';
-                msg.textContent = 'Unable to connect to server. Please check your network.';
-                toast('Update failed: ' + err.message);
-            }
-        });
-
-        $('resetProfileBtn').addEventListener('click', function() {
-            $('editFullName').value = DEFAULTS.name;
-            $('editPhone').value = DEFAULTS.phone;
-            $('profileUpdateMessage').className = 'message';
-            $('profileUpdateMessage').textContent = '';
-            toast('Profile form has been reset.');
-        });
-
-        // ===== Change Photo =====
-        $('avatarUploadInput').addEventListener('change', async function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            if (file.size > 2 * 1024 * 1024) { toast('Image too large, max 2MB.'); return; }
-            const formData = new FormData();
-            formData.append('avatar', file);
-            try {
-                const token = localStorage.getItem('token');
-                const res = await fetch('/api/profile/avatar', {
-                    method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData
-                });
-                const result = await res.json();
-                if (result.success) { setAvatar(result.avatar_url); toast('Avatar updated successfully!'); }
-                else { toast('Failed to upload avatar: ' + result.message); }
-            } catch (err) { toast('Network error, upload failed.'); }
-        });
-
-        // ===== Change Password - 修复按钮点击 =====
-        // 使用独立 ID 避免冲突
-        const changePwdBtn = document.getElementById('changePwdBtn');
-        if (changePwdBtn) {
-            changePwdBtn.addEventListener('click', function(e) {
-                e.preventDefault();
-                openModal('changePwdModal');
-                // 清空表单
-                document.getElementById('currentPwd').value = '';
-                document.getElementById('newPwd').value = '';
-                document.getElementById('confirmPwd').value = '';
-                document.getElementById('pwdChangeMessage').textContent = '';
-                document.getElementById('pwdChangeMessage').className = 'message';
+        // ---- Notifications ----
+        const notifBtn = $('notificationBtn');
+        if (notifBtn) {
+            notifBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                showInfoModal('Notifications', 'No new notifications.');
+                const countEl = $('notifCount');
+                if (countEl) countEl.textContent = '0';
             });
         }
 
-        $('changePwdForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const current = $('currentPwd').value;
-            const newPwd = $('newPwd').value;
-            const confirm = $('confirmPwd').value;
-            const msg = $('pwdChangeMessage');
-            if (newPwd !== confirm) {
-                msg.textContent = 'Passwords do not match.';
-                msg.style.color = 'red';
-                msg.className = 'message error';
-                return;
-            }
-            try {
-                const res = await authFetch('/api/profile/password', {
-                    method: 'PUT', body: JSON.stringify({ currentPassword: current, newPassword: newPwd })
-                });
-                const result = await res.json();
-                if (result.success) {
-                    msg.textContent = 'Password updated successfully!';
-                    msg.style.color = 'green';
-                    msg.className = 'message success';
-                    $('currentPwd').value = ''; $('newPwd').value = ''; $('confirmPwd').value = '';
-                    loadActivityStats();
-                    toast('Password changed successfully!');
-                } else {
-                    msg.textContent = result.message || 'Update failed';
+        // ---- Profile button -> user menu ----
+        const profileBtn = $('profileBtn');
+        if (profileBtn) {
+            profileBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openUserMenu();
+            });
+        }
+
+        const viewProfileBtn = $('userViewProfileBtn');
+        if (viewProfileBtn) {
+            viewProfileBtn.addEventListener('click', function() {
+                closeModal('userMenuModal');
+                document.querySelector('.profile-overview').scrollIntoView({ behavior: 'smooth' });
+            });
+        }
+
+        const userLogoutBtn = $('userLogoutBtn');
+        if (userLogoutBtn) {
+            userLogoutBtn.addEventListener('click', function() {
+                closeModal('userMenuModal');
+                showLogoutModal();
+            });
+        }
+
+        // ---- Profile Form ----
+        const profileForm = $('profileForm');
+        if (profileForm) {
+            profileForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const name = $('editFullName').value.trim();
+                const phone = $('editPhone').value.trim();
+                const msg = $('profileUpdateMessage');
+                if (name.length < 2) { msg.className = 'message error'; msg.textContent = 'Please enter a valid full name.'; return; }
+                if (!phone) { msg.className = 'message error'; msg.textContent = 'Phone number is required.'; return; }
+                try {
+                    const res = await authFetch('/api/profile', {
+                        method: 'PUT',
+                        body: JSON.stringify({ full_name: name, phone_number: phone })
+                    });
+                    if (!res.ok) {
+                        let errMsg = 'Server error';
+                        try { const errData = await res.json(); errMsg = errData.message || errMsg; } catch (_) {}
+                        throw new Error(errMsg);
+                    }
+                    const result = await res.json();
+                    if (result.success) {
+                        const profile = JSON.parse(localStorage.getItem('pawcareAdminProfile') || '{}');
+                        profile.full_name = name;
+                        profile.phone_number = phone;
+                        localStorage.setItem('pawcareAdminProfile', JSON.stringify(profile));
+                        const user = JSON.parse(localStorage.getItem('user') || '{}');
+                        if (user && user.id) { user.name = name; localStorage.setItem('user', JSON.stringify(user)); }
+                        await loadAdminProfile(true);
+                        msg.className = 'message success';
+                        msg.textContent = '✓ Profile updated successfully!';
+                        toast('Profile changes saved.');
+                        loadActivityStats();
+                    } else {
+                        msg.className = 'message error';
+                        msg.textContent = result.message || 'Update failed.';
+                    }
+                } catch (err) {
+                    console.error('Profile update error:', err);
+                    msg.className = 'message error';
+                    msg.textContent = 'Unable to connect to server. Please check your network.';
+                    toast('Update failed: ' + err.message);
+                }
+            });
+        }
+
+        // ---- Reset Button ----
+        const resetBtn = $('resetProfileBtn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function() {
+                const editFullName = $('editFullName');
+                const editPhone = $('editPhone');
+                const msg = $('profileUpdateMessage');
+                if (editFullName) editFullName.value = DEFAULTS.name;
+                if (editPhone) editPhone.value = DEFAULTS.phone;
+                if (msg) { msg.className = 'message'; msg.textContent = ''; }
+                toast('Profile form has been reset.');
+            });
+        }
+
+        // ---- Change Photo ----
+        const avatarInput = $('avatarUploadInput');
+        if (avatarInput) {
+            avatarInput.addEventListener('change', async function(e) {
+                const file = e.target.files[0];
+                if (!file) return;
+                if (file.size > 2 * 1024 * 1024) { toast('Image too large, max 2MB.'); return; }
+                const formData = new FormData();
+                formData.append('avatar', file);
+                try {
+                    const token = localStorage.getItem('token');
+                    const res = await fetch('/api/profile/avatar', {
+                        method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData
+                    });
+                    const result = await res.json();
+                    if (result.success) { setAvatar(result.avatar_url); toast('Avatar updated successfully!'); }
+                    else { toast('Failed to upload avatar: ' + result.message); }
+                } catch (err) { toast('Network error, upload failed.'); }
+            });
+        }
+
+        // ================================================================
+        // CHANGE PASSWORD — 修复按钮点击
+        // ================================================================
+        const changePwdBtn = $('changePwdBtn');
+        if (changePwdBtn) {
+            changePwdBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                // 清空表单
+                const currentPwd = $('currentPwd');
+                const newPwd = $('newPwd');
+                const confirmPwd = $('confirmPwd');
+                const msg = $('pwdChangeMessage');
+                if (currentPwd) currentPwd.value = '';
+                if (newPwd) newPwd.value = '';
+                if (confirmPwd) confirmPwd.value = '';
+                if (msg) { msg.textContent = ''; msg.className = 'message'; }
+                openModal('changePwdModal');
+            });
+        }
+
+        // ---- Change Password Form Submit ----
+        const changePwdForm = $('changePwdForm');
+        if (changePwdForm) {
+            changePwdForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const current = $('currentPwd').value;
+                const newPwd = $('newPwd').value;
+                const confirm = $('confirmPwd').value;
+                const msg = $('pwdChangeMessage');
+                if (newPwd !== confirm) {
+                    msg.textContent = 'Passwords do not match.';
+                    msg.style.color = 'red';
+                    msg.className = 'message error';
+                    return;
+                }
+                try {
+                    const res = await authFetch('/api/profile/password', {
+                        method: 'PUT', body: JSON.stringify({ currentPassword: current, newPassword: newPwd })
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        msg.textContent = 'Password updated successfully!';
+                        msg.style.color = 'green';
+                        msg.className = 'message success';
+                        const currentPwd = $('currentPwd');
+                        const newPwdEl = $('newPwd');
+                        const confirmPwdEl = $('confirmPwd');
+                        if (currentPwd) currentPwd.value = '';
+                        if (newPwdEl) newPwdEl.value = '';
+                        if (confirmPwdEl) confirmPwdEl.value = '';
+                        loadActivityStats();
+                        toast('Password changed successfully!');
+                        setTimeout(() => closeModal('changePwdModal'), 1000);
+                    } else {
+                        msg.textContent = result.message || 'Update failed';
+                        msg.style.color = 'red';
+                        msg.className = 'message error';
+                    }
+                } catch (err) {
+                    msg.textContent = 'Unable to connect to server.';
                     msg.style.color = 'red';
                     msg.className = 'message error';
                 }
-            } catch (err) {
-                msg.textContent = 'Unable to connect to server.';
-                msg.style.color = 'red';
-                msg.className = 'message error';
-            }
-        });
+            });
+        }
 
-        // ===== Theme Switching =====
+        // ================================================================
+        // THEME SWITCHING
+        // ================================================================
         document.querySelectorAll('.theme-option').forEach(option => {
             option.addEventListener('click', function() {
                 data.theme = this.dataset.theme;
@@ -1555,13 +1804,17 @@ document.querySelectorAll('[data-close]').forEach(btn => {
             });
         });
 
-        // ===== 2FA =====
-        $('manage2faBtn').addEventListener('click', function() {
-            openModal('twoFactorModal');
-        });
+        // ================================================================
+        // 2FA — 修复按钮点击
+        // ================================================================
+        const manage2faBtn = $('manage2faBtn');
+        if (manage2faBtn) {
+            manage2faBtn.addEventListener('click', function() {
+                openModal('twoFactorModal');
+            });
+        }
 
-        // 修复 toggle2faBtn 点击
-        const toggle2faBtn = document.getElementById('toggle2faBtn');
+        const toggle2faBtn = $('toggle2faBtn');
         if (toggle2faBtn) {
             toggle2faBtn.addEventListener('click', function() {
                 const nextState = !data.twoFactor;
@@ -1569,14 +1822,18 @@ document.querySelectorAll('[data-close]').forEach(btn => {
                     'Enable Two-Factor Authentication? This adds an extra layer of security to your account.' :
                     'Disable Two-Factor Authentication? Your account will be less secure.';
 
-                // 使用通用确认模态框
-                document.getElementById('confirmationMessage').textContent = message;
-                document.getElementById('confirmationCancelBtn').style.display = 'inline-block';
-                document.getElementById('confirmationOkBtn').textContent = nextState ? 'Enable' : 'Disable';
-                document.getElementById('confirmationOkBtn').className = nextState ? 'btn btn-primary' : 'btn btn-danger';
+                const confirmMsg = $('confirmationMessage');
+                const cancelBtn = $('confirmationCancelBtn');
+                const okBtn = $('confirmationOkBtn');
 
-                // 移除旧监听，添加新监听
-                const okBtn = document.getElementById('confirmationOkBtn');
+                if (confirmMsg) confirmMsg.textContent = message;
+                if (cancelBtn) cancelBtn.style.display = 'inline-block';
+                if (okBtn) {
+                    okBtn.textContent = nextState ? 'Enable' : 'Disable';
+                    okBtn.className = nextState ? 'btn btn-primary' : 'btn btn-danger';
+                }
+
+                // 移除旧的监听器，添加新的
                 const newOkBtn = okBtn.cloneNode(true);
                 okBtn.parentNode.replaceChild(newOkBtn, okBtn);
 
@@ -1605,17 +1862,24 @@ document.querySelectorAll('[data-close]').forEach(btn => {
                 });
 
                 // 取消按钮
-                document.getElementById('confirmationCancelBtn').addEventListener('click', function() {
-                    closeModal('confirmationModal');
-                });
+                const cancelBtnRef = $('confirmationCancelBtn');
+                if (cancelBtnRef) {
+                    const newCancelBtn = cancelBtnRef.cloneNode(true);
+                    cancelBtnRef.parentNode.replaceChild(newCancelBtn, cancelBtnRef);
+                    newCancelBtn.addEventListener('click', function() {
+                        closeModal('confirmationModal');
+                    });
+                }
 
                 openModal('confirmationModal');
             });
         }
 
-        // ===== Sessions =====
+        // ================================================================
+        // SESSIONS
+        // ================================================================
         function renderSessions(sessions) {
-            const list = document.getElementById('sessionList');
+            const list = $('sessionList');
             if (!list) return;
             if (!sessions || sessions.length === 0) {
                 list.innerHTML = '<div style="text-align:center; padding:10px; color:#7A7A7A;">No active sessions</div>';
@@ -1634,66 +1898,78 @@ document.querySelectorAll('[data-close]').forEach(btn => {
             list.innerHTML = html;
         }
 
-        $('viewSessionsBtn').addEventListener('click', async function() {
-            openModal('sessionsModal');
-            let sessions = JSON.parse(localStorage.getItem('pawcareSessions') || 'null');
-            if (!sessions) {
-                try {
-                    const res = await authFetch('/api/admin/sessions');
-                    const data = await res.json();
-                    if (data.success) {
-                        sessions = data.data;
-                        localStorage.setItem('pawcareSessions', JSON.stringify(sessions));
-                    }
-                } catch (e) { /* fallback */ }
-            }
-            if (!sessions) sessions = [];
-            renderSessions(sessions);
-        });
+        const viewSessionsBtn = $('viewSessionsBtn');
+        if (viewSessionsBtn) {
+            viewSessionsBtn.addEventListener('click', async function() {
+                openModal('sessionsModal');
+                let sessions = JSON.parse(localStorage.getItem('pawcareSessions') || 'null');
+                if (!sessions) {
+                    try {
+                        const res = await authFetch('/api/admin/sessions');
+                        const data = await res.json();
+                        if (data.success) {
+                            sessions = data.data;
+                            localStorage.setItem('pawcareSessions', JSON.stringify(sessions));
+                        }
+                    } catch (e) { /* fallback */ }
+                }
+                if (!sessions) sessions = [];
+                renderSessions(sessions);
+            });
+        }
 
         // 单个 Session 登出
-        document.getElementById('sessionsModal').addEventListener('click', async function(e) {
-            if (e.target.classList.contains('sessionLogout')) {
-                const btn = e.target;
-                const deviceId = btn.dataset.id;
-                btn.textContent = 'Logging out...';
-                btn.disabled = true;
-                try {
-                    const res = await authFetch(`/api/admin/sessions/${deviceId}/logout`, { method: 'POST' });
-                    const data = await res.json();
-                    if (data.success) {
-                        const sessionsRes = await authFetch('/api/admin/sessions');
-                        const sessionsData = await sessionsRes.json();
-                        if (sessionsData.success) {
-                            localStorage.setItem('pawcareSessions', JSON.stringify(sessionsData.data));
-                            renderSessions(sessionsData.data);
-                            updateActiveSessionsCount();
+        const sessionsModal = $('sessionsModal');
+        if (sessionsModal) {
+            sessionsModal.addEventListener('click', async function(e) {
+                if (e.target.classList.contains('sessionLogout')) {
+                    const btn = e.target;
+                    const deviceId = btn.dataset.id;
+                    btn.textContent = 'Logging out...';
+                    btn.disabled = true;
+                    try {
+                        const res = await authFetch(`/api/admin/sessions/${deviceId}/logout`, { method: 'POST' });
+                        const data = await res.json();
+                        if (data.success) {
+                            const sessionsRes = await authFetch('/api/admin/sessions');
+                            const sessionsData = await sessionsRes.json();
+                            if (sessionsData.success) {
+                                localStorage.setItem('pawcareSessions', JSON.stringify(sessionsData.data));
+                                renderSessions(sessionsData.data);
+                                updateActiveSessionsCount();
+                            }
+                            toast('Session logged out.');
+                        } else {
+                            toast('Failed to logout session: ' + data.message);
+                            btn.textContent = 'Log Out';
+                            btn.disabled = false;
                         }
-                        toast('Session logged out.');
-                    } else {
-                        toast('Failed to logout session: ' + data.message);
+                    } catch (err) {
+                        toast('Error logging out session.');
                         btn.textContent = 'Log Out';
                         btn.disabled = false;
                     }
-                } catch (err) {
-                    toast('Error logging out session.');
-                    btn.textContent = 'Log Out';
-                    btn.disabled = false;
                 }
-            }
-        });
+            });
+        }
 
-        // ===== Danger Zone =====
-        // 修复 logoutAllBtn
-        const logoutAllBtn = document.getElementById('logoutAllBtn');
+        // ================================================================
+        // DANGER ZONE — Logout All (修复)
+        // ================================================================
+        const logoutAllBtn = $('logoutAllBtn');
         if (logoutAllBtn) {
             logoutAllBtn.addEventListener('click', function() {
-                document.getElementById('confirmationMessage').textContent = 'Are you sure you want to log out from all active devices?';
-                document.getElementById('confirmationCancelBtn').style.display = 'inline-block';
-                document.getElementById('confirmationOkBtn').textContent = 'Log Out All';
-                document.getElementById('confirmationOkBtn').className = 'btn btn-danger';
+                const confirmMsg = $('confirmationMessage');
+                const cancelBtn = $('confirmationCancelBtn');
+                const okBtn = $('confirmationOkBtn');
 
-                const okBtn = document.getElementById('confirmationOkBtn');
+                if (confirmMsg) confirmMsg.textContent = 'Are you sure you want to log out from all active devices?';
+                if (cancelBtn) cancelBtn.style.display = 'inline-block';
+                if (okBtn) {
+                    okBtn.textContent = 'Log Out All';
+                    okBtn.className = 'btn btn-danger';
+                }
+
                 const newOkBtn = okBtn.cloneNode(true);
                 okBtn.parentNode.replaceChild(newOkBtn, okBtn);
 
@@ -1720,29 +1996,47 @@ document.querySelectorAll('[data-close]').forEach(btn => {
                     } catch (e) { toast('Failed to logout all.'); }
                 });
 
-                document.getElementById('confirmationCancelBtn').addEventListener('click', function() {
-                    closeModal('confirmationModal');
-                });
+                const cancelBtnRef = $('confirmationCancelBtn');
+                if (cancelBtnRef) {
+                    const newCancelBtn = cancelBtnRef.cloneNode(true);
+                    cancelBtnRef.parentNode.replaceChild(newCancelBtn, cancelBtnRef);
+                    newCancelBtn.addEventListener('click', function() {
+                        closeModal('confirmationModal');
+                    });
+                }
 
                 openModal('confirmationModal');
             });
         }
 
-        // Delete Account
-        $('deleteAccountBtn').addEventListener('click', function() {
-            $('deleteConfirmInput').value = '';
-            openModal('deleteModal');
-        });
+        // ---- Delete Account ----
+        const deleteAccountBtn = $('deleteAccountBtn');
+        if (deleteAccountBtn) {
+            deleteAccountBtn.addEventListener('click', function() {
+                const input = $('deleteConfirmInput');
+                if (input) input.value = '';
+                openModal('deleteModal');
+            });
+        }
 
-        $('confirmDeleteBtn').addEventListener('click', function() {
-            if ($('deleteConfirmInput').value.trim() !== 'DELETE') { toast('Please type DELETE to confirm.'); return; }
-            ['pawcareAdminProfile', 'pawcareAvatar', 'token', 'user', 'isLoggedIn', 'customer', 'customerId'].forEach(k => localStorage.removeItem(k));
-            closeModal('deleteModal');
-            toast('Admin account deleted.');
-            setTimeout(() => window.location.replace('index.html'), 800);
-        });
+        const confirmDeleteBtn = $('confirmDeleteBtn');
+        if (confirmDeleteBtn) {
+            confirmDeleteBtn.addEventListener('click', function() {
+                const input = $('deleteConfirmInput');
+                if (!input || input.value.trim() !== 'DELETE') {
+                    toast('Please type DELETE to confirm.');
+                    return;
+                }
+                ['pawcareAdminProfile', 'pawcareAvatar', 'token', 'user', 'isLoggedIn', 'customer', 'customerId'].forEach(k => localStorage.removeItem(k));
+                closeModal('deleteModal');
+                toast('Admin account deleted.');
+                setTimeout(() => window.location.replace('index.html'), 800);
+            });
+        }
 
-        // ===== 加载管理员个人资料 =====
+        // ================================================================
+        // LOAD ADMIN PROFILE
+        // ================================================================
         async function loadAdminProfile(silent = false) {
             try {
                 const res = await authFetch('/api/profile');
@@ -1767,14 +2061,22 @@ document.querySelectorAll('[data-close]').forEach(btn => {
                         localStorage.setItem('user', JSON.stringify(storedUser));
                     }
 
-                    $('headerName').textContent = admin.full_name || 'Admin';
-                    $('profileFullName') && ($('profileFullName').textContent = admin.full_name || 'Admin');
-                    $('profileEmail') && ($('profileEmail').textContent = admin.email || 'pawcare071@gmail.com');
-                    $('profilePhone') && ($('profilePhone').textContent = admin.phone_number || '');
-                    $('editFullName').value = admin.full_name || '';
-                    $('editEmail').value = admin.email || '';
-                    $('editPhone').value = admin.phone_number || '';
-                    if ($('emailVerificationDesc')) $('emailVerificationDesc').textContent = admin.email || 'pawcare071@gmail.com';
+                    const headerName = $('headerName');
+                    if (headerName) headerName.textContent = admin.full_name || 'Admin';
+                    const fullNameEl = $('profileFullName');
+                    if (fullNameEl) fullNameEl.textContent = admin.full_name || 'Admin';
+                    const emailEl = $('profileEmail');
+                    if (emailEl) emailEl.textContent = admin.email || 'pawcare071@gmail.com';
+                    const phoneEl = $('profilePhone');
+                    if (phoneEl) phoneEl.textContent = admin.phone_number || '';
+                    const editFullName = $('editFullName');
+                    if (editFullName) editFullName.value = admin.full_name || '';
+                    const editEmail = $('editEmail');
+                    if (editEmail) editEmail.value = admin.email || '';
+                    const editPhone = $('editPhone');
+                    if (editPhone) editPhone.value = admin.phone_number || '';
+                    const emailDesc = $('emailVerificationDesc');
+                    if (emailDesc) emailDesc.textContent = admin.email || 'pawcare071@gmail.com';
 
                     if (admin.profile_photo) {
                         ['headerAvatarImg', 'profileAvatarImg'].forEach(id => {
@@ -1786,9 +2088,18 @@ document.querySelectorAll('[data-close]').forEach(btn => {
                         if (p1) p1.style.display = 'none';
                         if (p2) p2.style.display = 'none';
                         localStorage.setItem('pawcareAvatar', admin.profile_photo);
+                    } else {
+                        ['headerAvatarImg', 'profileAvatarImg'].forEach(id => {
+                            const img = document.getElementById(id);
+                            if (img) img.style.display = 'none';
+                        });
+                        const p1 = document.getElementById('headerAvatarPlaceholder');
+                        const p2 = document.getElementById('profileAvatarPlaceholder');
+                        if (p1) p1.style.display = 'inline';
+                        if (p2) p2.style.display = 'inline';
                     }
 
-                    const msg = document.getElementById('profileUpdateMessage');
+                    const msg = $('profileUpdateMessage');
                     if (msg) { msg.className = 'message'; msg.textContent = ''; }
 
                     if (!silent) toast('Profile loaded successfully.');
@@ -1802,7 +2113,9 @@ document.querySelectorAll('[data-close]').forEach(btn => {
             }
         }
 
-        // 初始化
+        // ================================================================
+        // INIT
+        // ================================================================
         loadAvatar();
         render();
         loadAdminProfile();
