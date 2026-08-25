@@ -535,28 +535,38 @@ twoFactorVerifyBtn.addEventListener('click', async function() {
                 localStorage.removeItem('rememberedPassword');
             }
 
+            // 关闭 2FA 弹窗
             hideTwoFactorModal();
-            showPopup('🎉', 'Welcome Back!', 'Login successful! Redirecting...');
 
-            const redirectUrl = data.customer.role === 'admin' ? 'admin_dashboard.html' : 'dashboard.html';
+            // 确定跳转地址
+            const redirectUrl = (data.customer && data.customer.role === 'admin') 
+                ? 'admin_dashboard.html' 
+                : 'dashboard.html';
+
+            // 显示成功消息，然后跳转
+            showPopup('🎉', 'Welcome Back!', 'Login successful! Redirecting...');
+            // 使用较短的延迟，确保弹窗显示
             setTimeout(() => {
-                window.location.replace(redirectUrl);
-            }, 800);
+                window.location.href = redirectUrl;
+            }, 500);
 
         } else {
             // 验证失败
             showPopup('❌', 'Verification Failed', data.message || 'Invalid code.');
             twoFactorCodeInput.value = '';
             twoFactorCodeInput.focus();
+            // 恢复按钮（失败情况下）
+            twoFactorVerifyBtn.disabled = false;
+            twoFactorVerifyBtn.innerHTML = 'Verify Code';
         }
 
     } catch (error) {
         console.error('2FA login error:', error);
         showPopup('❌', 'Network Error', 'Unable to connect to server.');
-    } finally {
         twoFactorVerifyBtn.disabled = false;
         twoFactorVerifyBtn.innerHTML = 'Verify Code';
     }
+    // 注意：成功时不需要恢复按钮，因为页面会跳转
 });
 
 // 点击外面关闭
