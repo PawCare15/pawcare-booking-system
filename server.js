@@ -1107,8 +1107,15 @@ app.post('/api/admin/services', isAdmin, async (req, res) => {
   try {
     const { service_name, category, duration, description, pet_type, price } = req.body;
     const numericPrice = Number(price);
-    if (!service_name || !category || !duration || !pet_type || !Number.isFinite(numericPrice) || numericPrice < 0) {
-      return res.status(400).json({ success: false, message: 'Required service fields are missing.' });
+    const species = String(pet_type || '').toLowerCase() === 'cat' ? 'Cat' : 'Dog';
+    const missingFields = [];
+    if (!service_name?.trim()) missingFields.push('Service Name');
+    if (!category?.trim()) missingFields.push('Category');
+    if (!duration?.trim()) missingFields.push('Duration');
+    if (!pet_type) missingFields.push('Pet Type');
+    if (!Number.isFinite(numericPrice) || numericPrice < 0) missingFields.push('Price');
+    if (missingFields.length > 0) {
+      return res.status(400).json({ success: false, message: `Required fields are missing: ${missingFields.join(', ')}.` });
     }
 
     const { data: service, error: serviceError } = await supabaseAdmin
@@ -1120,7 +1127,7 @@ app.post('/api/admin/services', isAdmin, async (req, res) => {
 
     const { error: priceError } = await supabaseAdmin
       .from('service_price')
-      .insert([{ service_id: service.service_id, species: pet_type, starting_price: numericPrice }]);
+      .insert([{ service_id: service.service_id, species, starting_price: numericPrice }]);
     if (priceError) {
       await supabaseAdmin.from('service').delete().eq('service_id', service.service_id);
       throw priceError;
@@ -1133,10 +1140,10 @@ app.post('/api/admin/services', isAdmin, async (req, res) => {
   }
 });
 
-app.put('/api/admin/services/:id', isAdmin, async (req, res) => {
+app.all('/api/admin/services/:id', isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { duration, price } = req.body;
+    const { duration, price, species } = req.body;
     const updateData = {};
     if (duration !== undefined) updateData.duration = duration;
     if (price !== undefined) updateData.price = Number(price);
@@ -1151,10 +1158,12 @@ app.put('/api/admin/services/:id', isAdmin, async (req, res) => {
     if (!service) return res.status(404).json({ success: false, message: 'Service not found.' });
 
     if (price !== undefined) {
-      const { error: priceError } = await supabaseAdmin
+      let priceQuery = supabaseAdmin
         .from('service_price')
         .update({ starting_price: Number(price) })
         .eq('service_id', id);
+      if (species) priceQuery = priceQuery.ilike('species', String(species));
+      const { error: priceError } = await priceQuery;
       if (priceError) throw priceError;
     }
 
@@ -2568,15 +2577,7 @@ app.post('/api/customers/:customerId/delete-request', async (req, res) => {
             return res.status(404).json({ success: false, message: 'Customer not found' });
         }
 
-        // Check if customer already has pending deletion
-        if (customer.delete_token && customer.delete_token_expiry && new Date(customer.delete_token_expiry) > new Date()) {
-            return res.status(400).json({ 
-                success: false, 
-                message: 'Customer already has a pending deletion request. They need to click the link in their email.' 
-            });
-        }
-
-        // Generate unique delete token
+        // Generate a new token so a resend invalidates any older email link.
         const deleteToken = crypto.randomBytes(32).toString('hex');
         const tokenExpiry = new Date();
         tokenExpiry.setDate(tokenExpiry.getDate() + 7);
