@@ -768,6 +768,36 @@ app.put('/api/profile/password', async (req, res) => {
   }
 });
 
+// ========== 更新 Admin 2FA 状态 ==========
+app.put('/api/profile/2fa', async (req, res) => {
+  try {
+    const userInfo = await getUserInfo(req);
+    if (userInfo.role !== 'admin') {
+      return res.status(403).json({ success: false, message: 'Admin only' });
+    }
+    const adminId = userInfo.customer_id;
+    const { two_factor_enabled } = req.body;
+    if (typeof two_factor_enabled !== 'boolean') {
+      return res.status(400).json({ success: false, message: 'Invalid value, must be boolean' });
+    }
+
+    const { error } = await supabaseAdmin
+      .from('admin')
+      .update({ two_factor_enabled })
+      .eq('admin_id', adminId);
+
+    if (error) throw error;
+
+    res.json({ success: true, message: '2FA status updated successfully' });
+  } catch (err) {
+    console.error('2FA update error:', err);
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ========== 7. 宠物 CRUD ==========
 app.get('/api/pets', async (req, res) => {
   try {

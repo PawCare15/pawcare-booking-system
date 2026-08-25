@@ -1840,10 +1840,8 @@ document.querySelectorAll('[data-close]').forEach(btn => {
                 newOkBtn.addEventListener('click', async function() {
                     closeModal('confirmationModal');
                     try {
-                        const token = localStorage.getItem('token');
-                        const res = await fetch('/api/profile/2fa', {
+                        const res = await authFetch('/api/profile/2fa', {
                             method: 'PUT',
-                            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
                             body: JSON.stringify({ two_factor_enabled: nextState })
                         });
                         const result = await res.json();
