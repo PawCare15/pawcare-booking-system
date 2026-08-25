@@ -220,6 +220,331 @@ document.addEventListener('DOMContentLoaded', function() {
         if (e.key === 'Escape') closeSidebar();
     });
 
+    // ================================================================
+    // 统一的 HEADER 功能 - 所有 Admin 页面共用
+    // ================================================================
+
+    // 1. 加载 Admin Profile 到 Header
+    async function loadAdminHeaderProfile() {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) return;
+
+            const response = await fetch('/api/profile', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.clear();
+                    window.location.replace('login.html');
+                    return;
+                }
+                throw new Error(`Failed to fetch profile: ${response.status}`);
+            }
+
+            const result = await response.json();
+            if (result.success) {
+                const profile = result.data;
+                const nameEl = document.getElementById('headerName');
+                const avatarImg = document.getElementById('headerAvatarImg');
+                const placeholder = document.getElementById('headerAvatarPlaceholder');
+
+                if (nameEl) nameEl.textContent = profile.full_name || 'Admin';
+
+                // 更新头像
+                if (profile.profile_photo) {
+                    avatarImg.src = profile.profile_photo;
+                    avatarImg.style.display = 'block';
+                    if (placeholder) placeholder.style.display = 'none';
+                    // 同时保存到 localStorage 供其他页面使用
+                    localStorage.setItem('pawcareAvatar', profile.profile_photo);
+                } else {
+                    // 检查 localStorage 是否有缓存的头像
+                    const cachedAvatar = localStorage.getItem('pawcareAvatar');
+                    if (cachedAvatar) {
+                        avatarImg.src = cachedAvatar;
+                        avatarImg.style.display = 'block';
+                        if (placeholder) placeholder.style.display = 'none';
+                    } else {
+                        avatarImg.style.display = 'none';
+                        if (placeholder) placeholder.style.display = 'inline';
+                    }
+                }
+
+                // 更新 user 对象中的 name
+                const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+                if (storedUser && storedUser.id) {
+                    storedUser.name = profile.full_name || storedUser.name;
+                    localStorage.setItem('user', JSON.stringify(storedUser));
+                }
+            }
+        } catch (err) {
+            console.error('Error loading admin header profile:', err);
+            // 如果 localStorage 有缓存，使用缓存
+            const cachedAvatar = localStorage.getItem('pawcareAvatar');
+            if (cachedAvatar) {
+                const avatarImg = document.getElementById('headerAvatarImg');
+                const placeholder = document.getElementById('headerAvatarPlaceholder');
+                if (avatarImg) {
+                    avatarImg.src = cachedAvatar;
+                    avatarImg.style.display = 'block';
+                    if (placeholder) placeholder.style.display = 'none';
+                }
+            }
+        }
+    }
+
+    // 2. 打开 User Menu Modal
+    function openUserMenuModal() {
+        const modal = document.getElementById('userMenuModal');
+        if (modal) {
+            modal.classList.add('active');
+            lockBodyScroll();
+        }
+    }
+
+    // 3. 关闭 User Menu Modal
+    function closeUserMenuModal() {
+        const modal = document.getElementById('userMenuModal');
+        if (modal) {
+            modal.classList.remove('active');
+            unlockBodyScroll();
+        }
+    }
+
+    // 4. 绑定 User Menu 事件
+    function bindUserMenuEvents() {
+        const profileBtn = document.getElementById('profileBtn');
+        if (profileBtn) {
+            profileBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                openUserMenuModal();
+            });
+        }
+
+        const viewProfileBtn = document.getElementById('userViewProfileBtn');
+        if (viewProfileBtn) {
+            viewProfileBtn.addEventListener('click', function() {
+                closeUserMenuModal();
+                window.location.href = 'admin_profile.html';
+            });
+        }
+
+        const logoutBtn = document.getElementById('userLogoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                closeUserMenuModal();
+                showLogoutModal();
+            });
+        }
+
+        // 点击 overlay 关闭
+        const modal = document.getElementById('userMenuModal');
+        if (modal) {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeUserMenuModal();
+                }
+            });
+        }
+
+        // 点击关闭按钮
+        const closeBtn = document.querySelector('[data-close="userMenuModal"]');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', function() {
+                closeUserMenuModal();
+            });
+        }
+
+        // ESC 键关闭
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.getElementById('userMenuModal');
+                if (modal && modal.classList.contains('active')) {
+                    closeUserMenuModal();
+                }
+            }
+        });
+    }
+
+    // 5. 监听头像更新事件（当 Profile 页面更新头像后，其他页面自动同步）
+    function listenForAvatarUpdates() {
+        // 监听 storage 变化（当其他标签页更新时）
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'pawcareAvatar' && e.newValue) {
+                const avatarImg = document.getElementById('headerAvatarImg');
+                const placeholder = document.getElementById('headerAvatarPlaceholder');
+                if (avatarImg) {
+                    avatarImg.src = e.newValue;
+                    avatarImg.style.display = 'block';
+                    if (placeholder) placeholder.style.display = 'none';
+                }
+            }
+            if (e.key === 'user' && e.newValue) {
+                try {
+                    const userData = JSON.parse(e.newValue);
+                    const nameEl = document.getElementById('headerName');
+                    if (nameEl && userData.name) {
+                        nameEl.textContent = userData.name;
+                    }
+                } catch (err) {}
+            }
+        });
+
+        // 页面可见时重新加载头像（从 Profile 页面返回时刷新）
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                loadAdminHeaderProfile();
+            }
+        });
+    }
+
+    // ================================================================
+    // 每个页面不同的 NOTIFICATIONS 逻辑
+    // ================================================================
+
+    async function loadNotificationCount() {
+        try {
+            // 获取各种通知数据
+            const [pendingRes, rescheduleRes, newCustomersRes, upcomingRes] = await Promise.all([
+                authFetch('/api/admin/bookings?status=pending'),
+                authFetch('/api/admin/bookings?reschedule_status=pending'),
+                authFetch('/api/admin/customers?new_today=true'),
+                authFetch('/api/admin/bookings?upcoming=true')
+            ]);
+
+            const pending = (await pendingRes?.json()?.data || []).length;
+            const reschedule = (await rescheduleRes?.json()?.data || []).length;
+            const newCustomers = (await newCustomersRes?.json()?.data || []).length;
+            const upcoming = (await upcomingRes?.json()?.data || []).length;
+
+            const total = pending + reschedule + newCustomers + upcoming;
+
+            const notifCount = document.getElementById('notifCount');
+            if (notifCount) {
+                if (total > 0) {
+                    notifCount.textContent = total;
+                    notifCount.style.display = 'flex';
+                } else {
+                    notifCount.style.display = 'none';
+                }
+            }
+
+            // 保存数据供 modal 使用
+            window.notificationData = { pending, reschedule, newCustomers, upcoming, total };
+            return total;
+        } catch (err) {
+            console.error('Error loading notifications:', err);
+            return 0;
+        }
+    }
+
+    async function showNotificationDetails() {
+        const modal = document.getElementById('notificationsModal');
+        const content = document.getElementById('notificationsModalContent');
+
+        // 加载数据
+        await loadNotificationCount();
+        const data = window.notificationData || { pending: 0, reschedule: 0, newCustomers: 0, upcoming: 0 };
+
+        let html = '';
+        let hasNotifications = false;
+
+        // Pending Bookings (High)
+        if (data.pending > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="background:#FEF7E0; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #D97706;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span><strong>📋 Pending Bookings</strong></span>
+                        <span style="background:#D97706; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.pending}</span>
+                    </div>
+                    <div style="font-size:12px; color:#7A7A7A;">${data.pending} booking(s) need approval</div>
+                    <a href="admin_bookings.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                </div>
+            `;
+        }
+
+        // Reschedule Requests (High)
+        if (data.reschedule > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="background:#FFF3E0; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #E65100;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span><strong>🔄 Reschedule Requests</strong></span>
+                        <span style="background:#E65100; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.reschedule}</span>
+                    </div>
+                    <div style="font-size:12px; color:#7A7A7A;">${data.reschedule} customer(s) requested reschedule</div>
+                    <a href="admin_bookings.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                </div>
+            `;
+        }
+
+        // New Customers Today (Medium)
+        if (data.newCustomers > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="background:#E8F5E9; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #2E7D32;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span><strong>👤 New Customers Today</strong></span>
+                        <span style="background:#2E7D32; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.newCustomers}</span>
+                    </div>
+                    <div style="font-size:12px; color:#7A7A7A;">${data.newCustomers} new customer(s) registered</div>
+                    <a href="admin_customers.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                </div>
+            `;
+        }
+
+        // Upcoming Appointments (Low)
+        if (data.upcoming > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="background:#E3F2FD; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #0D47A1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span><strong>📅 Upcoming Appointments</strong></span>
+                        <span style="background:#0D47A1; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.upcoming}</span>
+                    </div>
+                    <div style="font-size:12px; color:#7A7A7A;">${data.upcoming} booking(s) in next 3 days</div>
+                    <a href="admin_bookings.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                </div>
+            `;
+        }
+
+        if (!hasNotifications) {
+            html = `
+                <div style="text-align:center; padding:30px 20px; color:#7A7A7A;">
+                    <i class="fa-regular fa-bell" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i>
+                    <h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">All Clear!</h3>
+                    <p style="font-size:13px;">No notifications at the moment.</p>
+                </div>
+            `;
+        }
+
+        content.innerHTML = html;
+        modal.classList.add('active');
+        lockBodyScroll();
+    }
+
+    // 加载 header 头像
+    loadAdminHeaderProfile();
+    // 绑定 user menu 事件
+    bindUserMenuEvents();
+    // 监听头像更新
+    listenForAvatarUpdates();
+
+    // 设置当前日期（如果有这个元素）
+    const dateEl = document.getElementById('headerCurrentDate');
+    if (dateEl) {
+        const now = new Date();
+        dateEl.textContent = now.toLocaleDateString('en-US', {
+            weekday: 'long',
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric'
+        });
+    }
+
     // SET CURRENT DATE
     function setCurrentDate() {
         const now = new Date();
@@ -230,7 +555,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // NOTIFICATION BELL
     document.getElementById('notificationBtn').addEventListener('click', function() {
-        alert('No new notifications.');
+        showNotificationDetails();
+    });
+
+    document.getElementById('closeNotificationsModal').addEventListener('click', function() {
+    document.getElementById('notificationsModal').classList.remove('active');
+        unlockBodyScroll();
+    });
+    document.getElementById('notificationsModalOkBtn').addEventListener('click', function() {
+        document.getElementById('notificationsModal').classList.remove('active');
+        unlockBodyScroll();
+    });
+    document.getElementById('notificationsModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('active');
+            unlockBodyScroll();
+        }
     });
 
     // LOAD DASHBOARD DATA

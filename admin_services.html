@@ -273,6 +273,12 @@
             font-size: 18px;
             color: #B0A090;
         }
+        .user-profile .avatar-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
         .user-info {
             display: flex;
             flex-direction: column;
@@ -316,6 +322,31 @@
         }
         .page-header h1 i {
             color: #D97706;
+        }
+        .page-header-profile {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            border: 1px solid #EFECE6;
+            border-radius: 16px;
+            background: linear-gradient(135deg, #FDF5E6 0%, #F5E8D8 100%);
+            flex-wrap: wrap;
+        }
+        .page-header-profile-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .page-header-profile-icon { color: #5A361A; font-size: 34px; }
+        .page-header-profile-title { color: #4A3327; font-size: 25px; font-weight: 700; line-height: 1.2; }
+        .page-header-profile-subtitle { color: #7A6B5A; font-size: 14px; margin-top: 4px; }
+        @media (max-width: 480px) {
+            .page-header-profile { align-items: flex-start; padding: 18px 16px; }
+            .page-header-profile-title { font-size: 18px; }
+            .page-header-profile-subtitle { font-size: 12px; }
         }
         .header-actions {
             display: flex;
@@ -1060,6 +1091,9 @@
             padding: 14px 18px;
             margin: 8px 0 14px;
         }
+        .modal-box .success-details:empty {
+            display: none;
+        }
         .modal-box .success-details .detail-item {
             display: flex;
             flex-direction: column;
@@ -1152,6 +1186,18 @@
         }
         .modal-btn-group .btn-danger:hover {
             background: #B71C1C;
+        }
+
+        #logoutModal .modal-box { width: min(92vw, 420px) !important; max-width: 420px !important; padding: 30px 28px 28px !important; border-radius: 18px !important; text-align: center !important; }
+        #logoutModal .modal-icon-circle.warning { width: 72px !important; height: 72px !important; margin: 0 auto 16px !important; background: #FEF7E0 !important; border: 2px solid #FDE68A !important; border-radius: 50% !important; }
+        #logoutModal .modal-icon-circle.warning i { color: #D97706 !important; font-size: 30px !important; }
+        #logoutModal .modal-btn-group { display: flex !important; flex-wrap: wrap !important; gap: 12px !important; }
+        #logoutModal .modal-btn-group .btn { flex: 1 1 120px !important; min-width: 0 !important; min-height: 52px !important; }
+        @media (max-width: 480px) {
+            #logoutModal .modal-box { width: min(92vw, 360px) !important; padding: 24px 18px 20px !important; }
+            #logoutModal .modal-icon-circle.warning { width: 64px !important; height: 64px !important; }
+            #logoutModal .modal-icon-circle.warning i { font-size: 27px !important; }
+            #logoutModal .modal-btn-group .btn { min-height: 48px !important; padding: 10px 12px !important; font-size: 13px !important; }
         }
 
         /* ============================================================
@@ -1708,32 +1754,80 @@
                 <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
                 <a href="admin_dashboard.html" class="brand-header">
                     <i class="fa-solid fa-paw brand-icon"></i>
-                    <div class="brand-text"><h2>PawCare</h2><span>Booking System | Admin</span></div>
+                    <div class="brand-text">
+                        <h2>PawCare</h2>
+                        <span>Booking System | Admin</span>
+                    </div>
                 </a>
             </div>
             <div class="header-right">
                 <div class="notification-badge" id="notificationBtn">
                     <i class="fa-regular fa-bell"></i>
-                    <span class="count" id="notifCount">3</span>
+                    <span class="count" id="notifCount" style="display:none;"></span>
                 </div>
                 <div class="user-profile" id="profileBtn">
                     <div class="avatar-wrapper" id="headerAvatarWrapper">
+                        <img id="headerAvatarImg" src="" alt="Avatar" style="display:none;">
                         <span class="avatar-placeholder" id="headerAvatarPlaceholder">👤</span>
                     </div>
                     <div class="user-info">
                         <span class="name" id="headerName">Admin</span>
-                        <span class="role">Administrator</span>
+                        <span class="role">Super Admin</span>
                     </div>
                 </div>
             </div>
         </header>
 
+        <!-- ===== USER MENU MODAL (统一) ===== -->
+        <div class="modal-overlay" id="userMenuModal">
+            <div class="modal-box" style="max-width:340px; text-align:center; padding:32px 28px 28px;">
+                <button class="close-modal" data-close="userMenuModal" style="position:absolute; right:16px; top:12px; background:none; border:none; font-size:22px; color:#7A6B5A; cursor:pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="modal-icon-circle" style="width:72px; height:72px; border-radius:50%; background:#FDF3E7; color:#5A361A; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:32px;">
+                    <i class="fa-regular fa-user"></i>
+                </div>
+                <h2 class="modal-title" style="font-size:18px; font-weight:700; color:#333; margin-bottom:4px;">Account Menu</h2>
+                <p class="modal-subtitle" style="font-size:13px; color:#7A7A7A; margin-bottom:20px;">Manage your account settings</p>
+                <div style="display:flex; flex-direction:column; gap:10px; margin:6px 0 4px;">
+                    <button class="btn btn-primary" id="userViewProfileBtn" style="width:100%; justify-content:center; padding:12px; border-radius:10px; background:#5A361A; color:#fff; border:none; font-weight:600; font-size:14px; cursor:pointer; transition:background 0.2s; font-family:'Poppins',sans-serif;">
+                        <i class="fa-regular fa-id-card"></i> View Profile
+                    </button>
+                    <button class="btn btn-danger" id="userLogoutBtn" style="width:100%; justify-content:center; padding:12px; border-radius:10px; background:#DC2626; color:#fff; border:none; font-weight:600; font-size:14px; cursor:pointer; transition:background 0.2s; font-family:'Poppins',sans-serif;">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </div>
+                <p style="font-size:11px; color:#B0A090; margin-top:14px;">Click outside to close.</p>
+            </div>
+        </div>
+
+        <!-- ===== NOTIFICATIONS MODAL ===== -->
+        <div class="modal-overlay" id="notificationsModal">
+            <div class="modal-box" style="max-width: 480px; text-align: left; padding: 28px 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="font-size: 18px; font-weight: 600; color: #5A361A; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-regular fa-bell" style="color: #D97706;"></i> Notifications
+                    </h3>
+                    <button id="closeNotificationsModal" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #7A7A7A;">&times;</button>
+                </div>
+                <div id="notificationsModalContent" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Dynamic content -->
+                </div>
+                <div style="margin-top: 16px; text-align: center;">
+                    <button class="btn btn-primary" id="notificationsModalOkBtn" style="padding: 8px 24px; font-size: 13px;">OK</button>
+                </div>
+            </div>
+        </div>
+
         <!-- ===== DASHBOARD CONTAINER ===== -->
         <div class="dashboard-container">
 
             <!-- ===== PAGE HEADER ===== -->
-            <div class="page-header">
-                <h1><i class="fa-solid fa-scissors"></i> Service Management</h1>
+            <div class="page-header-profile">
+                <div class="page-header-profile-left">
+                    <i class="fa-solid fa-scissors page-header-profile-icon"></i>
+                    <div><h1 class="page-header-profile-title">Service Management</h1><p class="page-header-profile-subtitle">Manage services, categories, pricing, and availability.</p></div>
+                </div>
                 <div class="header-actions">
                     <div class="header-date">
                         <i class="fa-regular fa-calendar"></i>
@@ -1854,6 +1948,7 @@
                     <div class="form-group">
                         <label>Pet Type <span class="required">*</span></label>
                         <select id="newServicePet">
+                            <option value="" selected disabled>-- Select Pet Type --</option>
                             <option value="cat">🐱 Cat</option>
                             <option value="dog">🐶 Dog</option>
                         </select>
@@ -1867,10 +1962,7 @@
                     <div class="form-group">
                         <label>Category <span class="required">*</span></label>
                         <select id="newServiceCategory">
-                            <option value="Grooming">Grooming</option>
-                            <option value="Boarding">Boarding</option>
-                            <option value="Spa">Spa</option>
-                            <option value="Transport">Transport</option>
+                            <option value="" selected disabled>-- Select Category --</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -2249,6 +2341,245 @@
         closeBtn.addEventListener('click', closeSidebar);
         overlay.addEventListener('click', closeSidebar);
 
+        // ================================================================
+// 统一的 HEADER 功能 - 所有 Admin 页面共用
+// ================================================================
+
+// 1. 加载 Admin Profile 到 Header
+async function loadAdminHeaderProfile() {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const response = await fetch('/api/profile', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                localStorage.clear();
+                window.location.replace('login.html');
+                return;
+            }
+            throw new Error(`Failed to fetch profile: ${response.status}`);
+        }
+
+        const result = await response.json();
+        if (result.success) {
+            const profile = result.data;
+            const nameEl = document.getElementById('headerName');
+            const avatarImg = document.getElementById('headerAvatarImg');
+            const placeholder = document.getElementById('headerAvatarPlaceholder');
+
+            if (nameEl) nameEl.textContent = profile.full_name || 'Admin';
+
+            // 更新头像
+            if (profile.profile_photo) {
+                avatarImg.src = profile.profile_photo;
+                avatarImg.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+                // 同时保存到 localStorage 供其他页面使用
+                localStorage.setItem('pawcareAvatar', profile.profile_photo);
+            } else {
+                // 检查 localStorage 是否有缓存的头像
+                const cachedAvatar = localStorage.getItem('pawcareAvatar');
+                if (cachedAvatar) {
+                    avatarImg.src = cachedAvatar;
+                    avatarImg.style.display = 'block';
+                    if (placeholder) placeholder.style.display = 'none';
+                } else {
+                    avatarImg.style.display = 'none';
+                    if (placeholder) placeholder.style.display = 'inline';
+                }
+            }
+
+            // 更新 user 对象中的 name
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            if (storedUser && storedUser.id) {
+                storedUser.name = profile.full_name || storedUser.name;
+                localStorage.setItem('user', JSON.stringify(storedUser));
+            }
+        }
+    } catch (err) {
+        console.error('Error loading admin header profile:', err);
+        // 如果 localStorage 有缓存，使用缓存
+        const cachedAvatar = localStorage.getItem('pawcareAvatar');
+        if (cachedAvatar) {
+            const avatarImg = document.getElementById('headerAvatarImg');
+            const placeholder = document.getElementById('headerAvatarPlaceholder');
+            if (avatarImg) {
+                avatarImg.src = cachedAvatar;
+                avatarImg.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+            }
+        }
+    }
+}
+
+// 2. 打开 User Menu Modal
+function openUserMenuModal() {
+    const modal = document.getElementById('userMenuModal');
+    if (modal) {
+        modal.classList.add('active');
+        lockBodyScroll();
+    }
+}
+
+// 3. 关闭 User Menu Modal
+function closeUserMenuModal() {
+    const modal = document.getElementById('userMenuModal');
+    if (modal) {
+        modal.classList.remove('active');
+        unlockBodyScroll();
+    }
+}
+
+// 4. 绑定 User Menu 事件
+function bindUserMenuEvents() {
+    const profileBtn = document.getElementById('profileBtn');
+    if (profileBtn) {
+        profileBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openUserMenuModal();
+        });
+    }
+
+    const viewProfileBtn = document.getElementById('userViewProfileBtn');
+    if (viewProfileBtn) {
+        viewProfileBtn.addEventListener('click', function() {
+            closeUserMenuModal();
+            window.location.href = 'admin_profile.html';
+        });
+    }
+
+    const logoutBtn = document.getElementById('userLogoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            closeUserMenuModal();
+            showLogoutModal();
+        });
+    }
+
+    // 点击 overlay 关闭
+    const modal = document.getElementById('userMenuModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeUserMenuModal();
+            }
+        });
+    }
+
+    // 点击关闭按钮
+    const closeBtn = document.querySelector('[data-close="userMenuModal"]');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            closeUserMenuModal();
+        });
+    }
+
+    // ESC 键关闭
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('userMenuModal');
+            if (modal && modal.classList.contains('active')) {
+                closeUserMenuModal();
+            }
+        }
+    });
+}
+
+// 5. 监听头像更新事件（当 Profile 页面更新头像后，其他页面自动同步）
+function listenForAvatarUpdates() {
+    // 监听 storage 变化（当其他标签页更新时）
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'pawcareAvatar' && e.newValue) {
+            const avatarImg = document.getElementById('headerAvatarImg');
+            const placeholder = document.getElementById('headerAvatarPlaceholder');
+            if (avatarImg) {
+                avatarImg.src = e.newValue;
+                avatarImg.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+            }
+        }
+        if (e.key === 'user' && e.newValue) {
+            try {
+                const userData = JSON.parse(e.newValue);
+                const nameEl = document.getElementById('headerName');
+                if (nameEl && userData.name) {
+                    nameEl.textContent = userData.name;
+                }
+            } catch (err) {}
+        }
+    });
+
+    // 页面可见时重新加载头像（从 Profile 页面返回时刷新）
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            loadAdminHeaderProfile();
+        }
+    });
+}
+
+// ================================================================
+// 每个页面不同的 NOTIFICATIONS 逻辑
+// ================================================================
+
+async function loadNotificationCount() {
+    // Services 页面很少需要紧急通知，显示 0
+    const notifCount = document.getElementById('notifCount');
+    if (notifCount) {
+        notifCount.style.display = 'none';
+        notifCount.textContent = '0';
+    }
+    return 0;
+}
+
+async function showNotificationDetails() {
+    const html = `
+        <div style="text-align:center; padding:30px 20px; color:#7A7A7A;">
+            <i class="fa-solid fa-scissors" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i>
+            <h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">Service Management</h3>
+            <p style="font-size:13px;">Check popular services and pricing updates in the main panel.</p>
+            <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                <span style="background:#F5F0EB; padding:4px 12px; border-radius:20px; font-size:11px;">📊 Most Booked: Grooming</span>
+                <span style="background:#F5F0EB; padding:4px 12px; border-radius:20px; font-size:11px;">💰 8 services active</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('notificationsModalContent').innerHTML = html;
+    document.getElementById('notificationsModal').classList.add('active');
+    lockBodyScroll();
+}
+
+// ================================================================
+// 在 DOMContentLoaded 中初始化
+// ================================================================
+document.addEventListener('DOMContentLoaded', function() {
+    // 加载 header 头像
+    loadAdminHeaderProfile();
+    // 绑定 user menu 事件
+    bindUserMenuEvents();
+    // 监听头像更新
+    listenForAvatarUpdates();
+
+    // 设置当前日期（如果有这个元素）
+    const dateEl = document.getElementById('headerCurrentDate');
+    if (dateEl) {
+        const now = new Date();
+        dateEl.textContent = now.toLocaleDateString('en-US', {
+            weekday: 'long',
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric'
+        });
+    }
+
+    // 每个页面调用自己的 notification 加载函数
+    // 由各页面单独实现
+});
+
         // ============================================================
         // 8. SET CURRENT DATE
         // ============================================================
@@ -2294,6 +2625,7 @@
         // 10. CATEGORIES - FROM SUPABASE
         // ============================================================
         let categories = [];
+        let categoryRecords = [];
         let allServices = [];
         let filteredServices = [];
         let currentPage = 1;
@@ -2301,15 +2633,24 @@
 
         async function loadCategories() {
             try {
+                if (!getToken()) return [];
+
                 const response = await authFetch('/api/admin/categories');
-                if (!response) return [];
+
+                if (!response || !response.ok) {
+                    throw new Error('Failed to load categories');
+                }
+
                 const result = await response.json();
                 if (!result.success) throw new Error(result.message || 'Failed to load categories');
-                categories = (result.data || []).map(c => c.name);
+                categoryRecords = result.data || [];
+                categories = categoryRecords.map(category => category.name).filter(Boolean);
                 return categories;
             } catch (err) {
                 console.error('Error loading categories:', err);
-                return ['Grooming', 'Spa', 'Boarding', 'Transport'];
+                categoryRecords = [];
+                categories = [];
+                return categories;
             }
         }
 
@@ -2331,7 +2672,7 @@
         function updateAddServiceCategoryDropdown() {
             const select = document.getElementById('newServiceCategory');
             const currentValue = select.value;
-            select.innerHTML = '';
+            select.innerHTML = '<option value="" selected disabled>-- Select Category --</option>';
             categories.forEach(cat => {
                 const option = document.createElement('option');
                 option.value = cat;
@@ -2344,23 +2685,59 @@
         }
 
         // ============================================================
-        // 11. SERVICES - FROM SUPABASE
+        // 11. SERVICES - FROM API + SERVICE_PRICE
         // ============================================================
         async function loadServices() {
             try {
+                if (!getToken()) return;
+
+                // The backend reads service_price with the service role, so the browser
+                // does not send the application's JWT directly to Supabase.
                 const response = await authFetch('/api/admin/services');
                 if (!response || !response.ok) {
                     throw new Error(`Failed to load services: ${response?.status || 'network error'}`);
                 }
+
                 const result = await response.json();
                 if (!result.success) throw new Error(result.message || 'Failed to load services');
-                const data = result.data || [];
-                allServices = data;
+
+                const services = result.data || [];
+
+                // Expand every service into the Dog and Cat prices stored in Supabase.
+                const mergedServices = [];
+                services.forEach(service => {
+                    const priceBySpecies = new Map([
+                        ['dog', service.price_dog],
+                        ['cat', service.price_cat]
+                    ].filter(([, price]) => price !== null && price !== undefined));
+                    const serviceSpecies = String(service.pet_type || '').toLowerCase();
+                    const speciesToShow = priceBySpecies.size > 0
+                        ? ['dog', 'cat'].filter(species => priceBySpecies.has(species))
+                        : (serviceSpecies === 'dog' || serviceSpecies === 'cat' ? [serviceSpecies] : []);
+
+                    speciesToShow.forEach(species => {
+                        mergedServices.push({
+                            service_id: `${service.service_id}_${species}`,
+                            actual_service_id: service.service_id,
+                            service_name: service.service_name,
+                            description: service.description,
+                            category: service.category,
+                            duration: service.duration,
+                            pet_type: species,
+                            price: priceBySpecies.has(species) ? priceBySpecies.get(species) : service.price,
+                            created_at: service.created_at
+                        });
+                    });
+                });
+
+                console.log('Merged services:', mergedServices);
+
+                allServices = mergedServices;
                 filteredServices = [...allServices];
                 renderServicesTable(filteredServices);
                 updateTableCount(filteredServices.length);
                 updatePagination(filteredServices.length);
-                return data;
+                return mergedServices;
             } catch (err) {
                 console.error('Error loading services:', err);
                 const tbody = document.getElementById('tableBody');
@@ -2368,7 +2745,7 @@
                     <tr>
                         <td colspan="7" style="text-align:center;padding:40px 20px;color:#DC2626;">
                             <i class="fa-solid fa-circle-exclamation" style="font-size:24px;display:block;margin-bottom:10px;"></i>
-                            Failed to load services. Please refresh the page.
+                            Failed to load services from database. Please refresh the page.
                             <br><small style="color:#7A7A7A;">${escapeHtml(err.message)}</small>
                         </td>
                     </tr>
@@ -2399,6 +2776,7 @@
             pageData.forEach(service => {
                 const row = document.createElement('tr');
                 row.dataset.serviceId = service.service_id;
+                row.dataset.actualServiceId = service.actual_service_id;
                 row.dataset.category = service.category;
                 row.dataset.pet = service.pet_type || 'cat';
                 row.dataset.service = service.service_name;
@@ -2490,6 +2868,7 @@
         // ============================================================
         async function initPage() {
             if (!isAuthenticated()) return;
+            await loadAdminHeaderProfile();
             await loadCategories();
             updateCategoryFilter();
             updateAddServiceCategoryDropdown();
@@ -2501,6 +2880,10 @@
         // ============================================================
         // 13. FILTER FUNCTIONS
         // ============================================================
+        function normalizeCategory(value) {
+            return String(value || '').trim().toLowerCase().replace(/s$/, '');
+        }
+
         function applyFilters() {
             const search = document.getElementById('searchInput').value.toLowerCase().trim();
             const category = document.getElementById('categoryFilter').value.toLowerCase();
@@ -2514,7 +2897,7 @@
                     if (!nameMatch && !descMatch) match = false;
                 }
                 if (category !== 'all' && category !== 'all categories') {
-                    if ((service.category || '').toLowerCase() !== category) match = false;
+                    if (normalizeCategory(service.category) !== normalizeCategory(category)) match = false;
                 }
                 if (petType !== 'all' && petType !== 'all pet types') {
                     if ((service.pet_type || '').toLowerCase() !== petType) match = false;
@@ -2551,6 +2934,8 @@
             document.getElementById('newServiceDesc').value = '';
             document.getElementById('newServicePrice').value = '';
             document.getElementById('newServiceDuration').value = '';
+            document.getElementById('newServicePet').value = '';
+            document.getElementById('newServiceCategory').value = '';
             updateAddServiceCategoryDropdown();
             document.getElementById('addServiceModal').classList.add('active');
             lockBodyScroll();
@@ -2577,6 +2962,14 @@
                 showSuccessModal('Error', 'Please enter a service name.', [{ label: 'Issue', value: 'Name is required' }]);
                 return;
             }
+            if (!category) {
+                showSuccessModal('Error', 'Please select a category.', [{ label: 'Issue', value: 'Category is required' }]);
+                return;
+            }
+            if (!pet) {
+                showSuccessModal('Error', 'Please select a pet type.', [{ label: 'Issue', value: 'Pet type is required' }]);
+                return;
+            }
             if (!price || isNaN(price) || parseFloat(price) < 0) {
                 showSuccessModal('Error', 'Please enter a valid price.', [{ label: 'Issue', value: 'Invalid price' }]);
                 return;
@@ -2586,30 +2979,37 @@
                 return;
             }
 
-            const serviceData = {
-                service_name: name,
-                description: desc || null,
-                category: category,
-                pet_type: pet,
-                price: parseFloat(price),
-                duration: duration
-            };
+            // 生成 service_id (使用 SER 格式)
+            const timestamp = Date.now().toString().slice(-4);
+            const serviceId = 'SER' + timestamp.padStart(4, '0');
 
             try {
-                const response = await authFetch('/api/admin/services', {
+                const token = getToken();
+                if (!token) return;
+
+                // 1. 通过 API 插入 service 表
+                const serviceData = {
+                    service_id: serviceId,
+                    service_name: name,
+                    description: desc || null,
+                    category: category,
+                    duration: duration,
+                    pet_type: pet,
+                    price: parseFloat(price),
+                    created_at: new Date().toISOString()
+                };
+
+                const serviceResponse = await authFetch('/api/admin/services', {
                     method: 'POST',
                     body: JSON.stringify(serviceData)
                 });
 
-                if (!response) return;
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Failed to create service');
+                if (!serviceResponse || !serviceResponse.ok) {
+                    const errorResult = await serviceResponse.json().catch(() => ({}));
+                    throw new Error(errorResult.message || 'Failed to create service');
                 }
 
                 await loadServices();
-
                 closeAddServiceModal();
                 showSuccessModal('Service Created!', `"${name}" has been added successfully.`, [
                     { label: 'Category', value: category },
@@ -2678,16 +3078,16 @@
             }
 
             try {
+                const token = getToken();
+                if (!token) return;
+
                 const response = await authFetch('/api/admin/categories', {
                     method: 'POST',
                     body: JSON.stringify({ name: name })
                 });
 
-                if (!response) return;
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Failed to add category');
+                if (!response || !response.ok) {
+                    throw new Error('Failed to add category');
                 }
 
                 await loadCategories();
@@ -2697,7 +3097,7 @@
                 updateAddServiceCategoryDropdown();
 
                 showSuccessModal('Category Added', `"${name}" has been added to categories.`, [
-                    { label: 'Total Categories', value: categories.length }
+                    { label: 'Category', value: name }
                 ]);
             } catch (err) {
                 console.error('Error adding category:', err);
@@ -2707,36 +3107,75 @@
             }
         }
 
+        function showCategoryEditModal(name) {
+            return new Promise(resolve => {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay active';
+                modal.innerHTML = `
+                    <div class="modal-box" style="max-width:480px;">
+                        <button class="modal-close" type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+                        <div class="modal-icon-wrap">
+                            <div class="icon-circle edit-icon"><i class="fa-regular fa-pen-to-square"></i></div>
+                            <div class="header-text"><h2>Edit Category</h2><p>Update the category name</p></div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="form-group">
+                            <label for="editCategoryName">Category Name <span class="required">*</span></label>
+                            <input type="text" id="editCategoryName" value="${escapeHtml(name)}" maxlength="80">
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-secondary" type="button">Cancel</button>
+                            <button class="btn btn-success" type="button"><i class="fa-solid fa-check"></i> Save Changes</button>
+                        </div>
+                    </div>
+                `;
+
+                const finish = value => {
+                    modal.remove();
+                    unlockBodyScroll();
+                    resolve(value);
+                };
+                modal.querySelector('.modal-close').addEventListener('click', () => finish(null));
+                modal.querySelector('.btn-secondary').addEventListener('click', () => finish(null));
+                modal.querySelector('.btn-success').addEventListener('click', () => finish(modal.querySelector('#editCategoryName').value.trim()));
+                modal.addEventListener('click', event => {
+                    if (event.target === modal) finish(null);
+                });
+                document.body.appendChild(modal);
+                lockBodyScroll();
+                const input = modal.querySelector('#editCategoryName');
+                input.focus();
+                input.select();
+            });
+        }
+
         async function editCategory(index) {
             const oldName = categories[index];
-            const newName = prompt('Edit category name:', oldName);
-            if (!newName || !newName.trim()) return;
-            if (newName.trim() === oldName) return;
-            if (categories.includes(newName.trim())) {
+            const category = categoryRecords.find(record => record.name === oldName);
+            const newName = await showCategoryEditModal(oldName);
+            if (!newName) return;
+            if (newName === oldName) return;
+            if (categories.includes(newName)) {
                 showSuccessModal('Error', 'Category name already exists.', [{ label: 'Issue', value: 'Duplicate' }]);
                 return;
             }
 
             try {
-                const findResponse = await authFetch('/api/admin/categories');
-                if (!findResponse) return;
-                const findResult = await findResponse.json();
-                const findData = findResult.data || [];
-                if (!findData || findData.length === 0) {
+                const token = getToken();
+                if (!token) return;
+
+                if (!category?.id) {
                     throw new Error('Category not found');
                 }
-                const id = findData.find(category => category.name === oldName)?.id;
-                if (!id) throw new Error('Category not found');
 
-                const response = await authFetch(`/api/admin/categories/${id}`, {
+                const response = await authFetch(`/api/admin/categories/${category.id}`, {
                     method: 'PUT',
                     body: JSON.stringify({ name: newName.trim() })
                 });
 
-                if (!response) return;
-
-                if (!response.ok) {
-                    throw new Error('Failed to update category');
+                if (!response || !response.ok) {
+                    const errorResult = await response.json().catch(() => ({}));
+                    throw new Error(errorResult.message || 'Failed to update category');
                 }
 
                 await loadCategories();
@@ -2755,28 +3194,60 @@
             }
         }
 
+        function showCategoryDeleteConfirm(name) {
+            return new Promise(resolve => {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay active';
+                modal.innerHTML = `
+                    <div class="modal-box" style="max-width:420px;text-align:center;">
+                        <button class="modal-close" type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+                        <div class="modal-icon-circle" style="background:#FCE8E6;color:#DC2626;">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </div>
+                        <h2 class="modal-title">Delete Category</h2>
+                        <p class="modal-subtitle">Are you sure you want to delete <strong>${escapeHtml(name)}</strong>?</p>
+                        <div class="modal-btn-group">
+                            <button class="btn btn-secondary" type="button">Cancel</button>
+                            <button class="btn btn-danger" type="button">Delete Category</button>
+                        </div>
+                    </div>
+                `;
+
+                const finish = confirmed => {
+                    modal.remove();
+                    unlockBodyScroll();
+                    resolve(confirmed);
+                };
+
+                modal.querySelector('.modal-close').addEventListener('click', () => finish(false));
+                modal.querySelector('.btn-secondary').addEventListener('click', () => finish(false));
+                modal.querySelector('.btn-danger').addEventListener('click', () => finish(true));
+                modal.addEventListener('click', event => {
+                    if (event.target === modal) finish(false);
+                });
+                document.body.appendChild(modal);
+                lockBodyScroll();
+            });
+        }
+
         async function deleteCategory(index) {
             const name = categories[index];
-            if (!confirm(`Are you sure you want to delete "${name}"?`)) return;
+            const category = categoryRecords.find(record => record.name === name);
+            if (!await showCategoryDeleteConfirm(name)) return;
 
             try {
-                const findResponse = await authFetch('/api/admin/categories');
-                if (!findResponse) return;
-                const findResult = await findResponse.json();
-                const findData = findResult.data || [];
-                if (!findData || findData.length === 0) {
+                const token = getToken();
+                if (!token) return;
+
+                if (!category?.id) {
                     throw new Error('Category not found');
                 }
-                const id = findData.find(category => category.name === name)?.id;
-                if (!id) throw new Error('Category not found');
 
-                const response = await authFetch(`/api/admin/categories/${id}`, {
-                    method: 'DELETE'
+                const response = await authFetch(`/api/admin/categories/${category.id}`, {
+                    method: 'DELETE',
                 });
 
-                if (!response) return;
-
-                if (!response.ok) {
+                if (!response || !response.ok) {
                     throw new Error('Failed to delete category');
                 }
 
@@ -2786,7 +3257,7 @@
                 updateAddServiceCategoryDropdown();
 
                 showSuccessModal('Category Deleted', 'The category has been removed.', [
-                    { label: 'Remaining', value: categories.length }
+                    { label: 'Category', value: name }
                 ]);
             } catch (err) {
                 console.error('Error deleting category:', err);
@@ -2846,7 +3317,6 @@
         async function savePricingChanges() {
             const inputs = document.querySelectorAll('.pricing-input');
             const updates = [];
-            let updated = 0;
 
             inputs.forEach(input => {
                 const serviceId = input.dataset.serviceId;
@@ -2865,16 +3335,22 @@
             }
 
             try {
+                const token = getToken();
+                if (!token) return;
+
                 for (const update of updates) {
-                    const response = await authFetch(`/api/admin/services/${encodeURIComponent(update.id)}`, {
+                    // 获取实际的 service_id (去掉 _cat 或 _dog 后缀)
+                    const actualId = update.id.replace('_cat', '').replace('_dog', '');
+                    const species = update.id.includes('_cat') ? 'Cat' : 'Dog';
+
+                    const response = await authFetch(`/api/admin/services/${encodeURIComponent(actualId)}`, {
                         method: 'PUT',
-                        body: JSON.stringify({ price: update.price })
+                        body: JSON.stringify({ price: update.price, species })
                     });
 
-                    if (!response) return;
-
-                    if (!response.ok) {
-                        throw new Error(`Failed to update service ${update.id}`);
+                    if (!response || !response.ok) {
+                        const errorResult = await response.json().catch(() => ({}));
+                        throw new Error(errorResult.message || `Failed to update service ${update.id}`);
                     }
 
                     const row = document.querySelector(`#tableBody tr[data-service-id="${update.id}"]`);
@@ -2883,13 +3359,10 @@
                         const priceCell = row.querySelector('.price-cell .price-tag');
                         if (priceCell) priceCell.textContent = `RM ${update.price.toFixed(2)}`;
                     }
-                    updated++;
                 }
 
                 closeServicePricingModal();
-                showSuccessModal('Pricing Updated!', `${updated} service(s) pricing updated successfully.`, [
-                    { label: 'Services Updated', value: updated }
-                ]);
+                showSuccessModal('Pricing Updated!', 'Pricing updated successfully.', []);
             } catch (err) {
                 console.error('Error updating pricing:', err);
                 showSuccessModal('Error', 'Failed to update pricing. Please try again.', [
@@ -2910,10 +3383,14 @@
                 const monthAgo = new Date();
                 monthAgo.setDate(monthAgo.getDate() - 30);
                 const monthAgoStr = monthAgo.toISOString().split('T')[0];
+
                 const response = await authFetch('/api/admin/bookings');
+
                 if (!response || !response.ok) throw new Error('Failed to load booking overview');
                 const result = await response.json();
+                if (!result.success) throw new Error(result.message || 'Failed to load booking overview');
                 const bookings = result.data || [];
+
                 const todayCount = bookings.filter(booking => booking.booking_date === today).length;
                 const weekCount = bookings.filter(booking => booking.booking_date >= weekAgoStr).length;
                 const monthCount = bookings.filter(booking => booking.booking_date >= monthAgoStr).length;
@@ -2927,7 +3404,7 @@
                     const container = document.getElementById('todayBookingsList');
                     container.innerHTML = bookings.filter(booking => booking.booking_date === today).slice(0, 5).map(b => `
                             <div style="display:flex;justify-content:space-between;padding:3px 0;font-size:12px;">
-                                <span>${b.booking_id}</span>
+                                <span>${b.booking_id} - ${b.customer?.full_name || 'Unknown customer'}${b.pet?.name ? ` (${b.pet.name})` : ''}</span>
                                 <span style="color:#2E7D32;font-weight:500;">${b.status || 'pending'}</span>
                             </div>
                         `).join('');
@@ -2987,7 +3464,10 @@
             const newPrice = document.getElementById('editPrice').value.trim();
             const newDuration = document.getElementById('editDuration').value.trim();
             const serviceId = currentEditRow.dataset.serviceId;
+            const actualServiceId = currentEditRow.dataset.actualServiceId || serviceId.replace('_cat', '').replace('_dog', '');
             const serviceName = currentEditRow.dataset.service || 'Service';
+            const petType = currentEditRow.dataset.pet || 'cat';
+            const species = petType === 'cat' ? 'Cat' : 'Dog';
 
             if (!newPrice || isNaN(newPrice) || parseFloat(newPrice) < 0) {
                 showSuccessModal('Invalid Input', 'Please enter a valid price.', [{ label: 'Error', value: 'Invalid price' }]);
@@ -2999,20 +3479,19 @@
             }
 
             try {
-                const response = await authFetch(`/api/admin/services/${encodeURIComponent(serviceId)}`, {
+                const token = getToken();
+                if (!token) return;
+
+                const serviceUpdateResponse = await authFetch(`/api/admin/services/${encodeURIComponent(actualServiceId)}`, {
                     method: 'PUT',
-                    body: JSON.stringify({
-                        price: parseFloat(newPrice),
-                        duration: newDuration
-                    })
+                    body: JSON.stringify({ duration: newDuration, price: parseFloat(newPrice), species })
                 });
 
-                if (!response) return;
-
-                if (!response.ok) {
-                    throw new Error('Failed to update service');
+                if (!serviceUpdateResponse || !serviceUpdateResponse.ok) {
+                    throw new Error('Failed to update service price');
                 }
 
+                // 更新 UI
                 const priceCell = currentEditRow.querySelector('.price-cell .price-tag');
                 if (priceCell) priceCell.textContent = `RM ${parseFloat(newPrice).toFixed(2)}`;
                 const durationCell = currentEditRow.querySelector('.duration-cell');
@@ -3060,16 +3539,21 @@
             if (!currentDeleteRow) return;
             const serviceName = currentDeleteRow.dataset.service || 'Service';
             const serviceId = currentDeleteRow.dataset.serviceId;
+            const actualServiceId = currentDeleteRow.dataset.actualServiceId || serviceId.replace('_cat', '').replace('_dog', '');
 
             try {
-                const response = await authFetch(`/api/admin/services/${encodeURIComponent(serviceId)}`, { method: 'DELETE' });
+                const token = getToken();
+                if (!token) return;
 
-                if (!response) return;
+                const serviceDeleteResponse = await authFetch(`/api/admin/services/${encodeURIComponent(actualServiceId)}`, {
+                    method: 'DELETE'
+                });
 
-                if (!response.ok) {
+                if (!serviceDeleteResponse || !serviceDeleteResponse.ok) {
                     throw new Error('Failed to delete service');
                 }
 
+                // UI 删除动画
                 currentDeleteRow.style.transition = 'all 0.35s ease';
                 currentDeleteRow.style.opacity = '0.3';
                 currentDeleteRow.style.transform = 'scale(0.97)';

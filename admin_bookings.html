@@ -1026,7 +1026,7 @@
     <!-- ===== MAIN CONTENT ===== -->
     <main class="main-content">
 
-        <!-- TOP HEADER -->
+        <!-- ===== TOP HEADER ===== -->
         <header class="top-header">
             <div class="header-left">
                 <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
@@ -1041,31 +1041,72 @@
             <div class="header-right">
                 <div class="notification-badge" id="notificationBtn">
                     <i class="fa-regular fa-bell"></i>
-                    <span class="count" id="notifCount">3</span>
+                    <span class="count" id="notifCount" style="display:none;"></span>
                 </div>
                 <div class="user-profile" id="profileBtn">
                     <div class="avatar-wrapper" id="headerAvatarWrapper">
-                        <img id="headerAvatarImg" src="" alt="Avatar" style="display:none;" />
+                        <img id="headerAvatarImg" src="" alt="Avatar" style="display:none;">
                         <span class="avatar-placeholder" id="headerAvatarPlaceholder">👤</span>
                     </div>
                     <div class="user-info">
                         <span class="name" id="headerName">Admin</span>
-                        <span class="role">Administrator</span>
+                        <span class="role">Super Admin</span>
                     </div>
                 </div>
             </div>
         </header>
 
+        <!-- ===== USER MENU MODAL (统一) ===== -->
+        <div class="modal-overlay" id="userMenuModal">
+            <div class="modal-box" style="max-width:340px; text-align:center; padding:32px 28px 28px;">
+                <button class="close-modal" data-close="userMenuModal" style="position:absolute; right:16px; top:12px; background:none; border:none; font-size:22px; color:#7A6B5A; cursor:pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="modal-icon-circle" style="width:72px; height:72px; border-radius:50%; background:#FDF3E7; color:#5A361A; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:32px;">
+                    <i class="fa-regular fa-user"></i>
+                </div>
+                <h2 class="modal-title" style="font-size:18px; font-weight:700; color:#333; margin-bottom:4px;">Account Menu</h2>
+                <p class="modal-subtitle" style="font-size:13px; color:#7A7A7A; margin-bottom:20px;">Manage your account settings</p>
+                <div style="display:flex; flex-direction:column; gap:10px; margin:6px 0 4px;">
+                    <button class="btn btn-primary" id="userViewProfileBtn" style="width:100%; justify-content:center; padding:12px; border-radius:10px; background:#5A361A; color:#fff; border:none; font-weight:600; font-size:14px; cursor:pointer; transition:background 0.2s; font-family:'Poppins',sans-serif;">
+                        <i class="fa-regular fa-id-card"></i> View Profile
+                    </button>
+                    <button class="btn btn-danger" id="userLogoutBtn" style="width:100%; justify-content:center; padding:12px; border-radius:10px; background:#DC2626; color:#fff; border:none; font-weight:600; font-size:14px; cursor:pointer; transition:background 0.2s; font-family:'Poppins',sans-serif;">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </div>
+                <p style="font-size:11px; color:#B0A090; margin-top:14px;">Click outside to close.</p>
+            </div>
+        </div>
+
+        <!-- ===== NOTIFICATIONS MODAL ===== -->
+        <div class="modal-overlay" id="notificationsModal">
+            <div class="modal-box" style="max-width: 480px; text-align: left; padding: 28px 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="font-size: 18px; font-weight: 600; color: #5A361A; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-regular fa-bell" style="color: #D97706;"></i> Notifications
+                    </h3>
+                    <button id="closeNotificationsModal" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #7A7A7A;">&times;</button>
+                </div>
+                <div id="notificationsModalContent" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Dynamic content -->
+                </div>
+                <div style="margin-top: 16px; text-align: center;">
+                    <button class="btn btn-primary" id="notificationsModalOkBtn" style="padding: 8px 24px; font-size: 13px;">OK</button>
+                </div>
+            </div>
+        </div>
+
         <!-- ===== DASHBOARD CONTENT ===== -->
         <div class="dashboard-container">
 
             <!-- PAGE TITLE + DATE -->
-            <div class="page-header">
-                <h1><i class="fa-regular fa-calendar-check"></i> Booking Management</h1>
-                <div class="header-date">
-                    <i class="fa-regular fa-calendar"></i>
-                    <span id="headerCurrentDate"></span>
+            <div class="page-header-profile">
+                <div class="page-header-profile-left">
+                    <i class="fa-regular fa-calendar-check page-header-profile-icon"></i>
+                    <div><h1 class="page-header-profile-title">Booking Management</h1><p class="page-header-profile-subtitle">Manage and monitor all customer bookings.</p></div>
                 </div>
+                <div class="header-date"><i class="fa-regular fa-calendar"></i><span id="headerCurrentDate"></span></div>
             </div>
 
             <!-- STATS ROW -->
@@ -1190,15 +1231,15 @@
 
         <!-- LOGOUT MODAL -->
         <div class="modal-overlay" id="logoutModal">
-            <div class="modal-box">
-                <div class="modal-icon-circle warning">
+            <div class="modal-box" style="width:min(92vw,420px);text-align:center;padding:30px 28px 28px;border-radius:18px;">
+                <div class="modal-icon-circle warning" style="width:72px;height:72px;margin:0 auto 16px;background:#FEF7E0;border:2px solid #FDE68A;border-radius:50%;display:flex;align-items:center;justify-content:center;">
                     <i class="fa-solid fa-sign-out-alt"></i>
                 </div>
                 <h2 class="modal-title">Confirm Logout</h2>
                 <p class="modal-subtitle">Are you sure you want to logout?</p>
-                <div class="modal-btn-group">
-                    <button class="btn btn-secondary" onclick="closeLogoutModal()">Cancel</button>
-                    <button class="btn btn-danger" onclick="confirmLogout()">Logout</button>
+                <div class="modal-btn-group" style="display:flex;gap:12px;justify-content:center;">
+                    <button class="btn btn-secondary" onclick="closeLogoutModal()" style="flex:1;min-width:0;">Cancel</button>
+                    <button class="btn btn-danger" onclick="confirmLogout()" style="flex:1;min-width:0;">Logout</button>
                 </div>
             </div>
         </div>
@@ -1457,6 +1498,353 @@
             }
         }
 
+        // ================================================================
+        // 统一的 HEADER 功能 - 所有 Admin 页面共用
+        // ================================================================
+
+        // 1. 加载 Admin Profile 到 Header
+        async function loadAdminHeaderProfile() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+
+                const response = await fetch('/api/profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.clear();
+                        window.location.replace('login.html');
+                        return;
+                    }
+                    throw new Error(`Failed to fetch profile: ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    const profile = result.data;
+                    const nameEl = document.getElementById('headerName');
+                    const avatarImg = document.getElementById('headerAvatarImg');
+                    const placeholder = document.getElementById('headerAvatarPlaceholder');
+
+                    if (nameEl) nameEl.textContent = profile.full_name || 'Admin';
+
+                    // 更新头像
+                    if (profile.profile_photo) {
+                        avatarImg.src = profile.profile_photo;
+                        avatarImg.style.display = 'block';
+                        if (placeholder) placeholder.style.display = 'none';
+                        // 同时保存到 localStorage 供其他页面使用
+                        localStorage.setItem('pawcareAvatar', profile.profile_photo);
+                    } else {
+                        // 检查 localStorage 是否有缓存的头像
+                        const cachedAvatar = localStorage.getItem('pawcareAvatar');
+                        if (cachedAvatar) {
+                            avatarImg.src = cachedAvatar;
+                            avatarImg.style.display = 'block';
+                            if (placeholder) placeholder.style.display = 'none';
+                        } else {
+                            avatarImg.style.display = 'none';
+                            if (placeholder) placeholder.style.display = 'inline';
+                        }
+                    }
+
+                    // 更新 user 对象中的 name
+                    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+                    if (storedUser && storedUser.id) {
+                        storedUser.name = profile.full_name || storedUser.name;
+                        localStorage.setItem('user', JSON.stringify(storedUser));
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading admin header profile:', err);
+                // 如果 localStorage 有缓存，使用缓存
+                const cachedAvatar = localStorage.getItem('pawcareAvatar');
+                if (cachedAvatar) {
+                    const avatarImg = document.getElementById('headerAvatarImg');
+                    const placeholder = document.getElementById('headerAvatarPlaceholder');
+                    if (avatarImg) {
+                        avatarImg.src = cachedAvatar;
+                        avatarImg.style.display = 'block';
+                        if (placeholder) placeholder.style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        // 2. 打开 User Menu Modal
+        function openUserMenuModal() {
+            const modal = document.getElementById('userMenuModal');
+            if (modal) {
+                modal.classList.add('active');
+                lockBodyScroll();
+            }
+        }
+
+        // 3. 关闭 User Menu Modal
+        function closeUserMenuModal() {
+            const modal = document.getElementById('userMenuModal');
+            if (modal) {
+                modal.classList.remove('active');
+                unlockBodyScroll();
+            }
+        }
+
+        // 4. 绑定 User Menu 事件
+        function bindUserMenuEvents() {
+            const profileBtn = document.getElementById('profileBtn');
+            if (profileBtn) {
+                profileBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    openUserMenuModal();
+                });
+            }
+
+            const viewProfileBtn = document.getElementById('userViewProfileBtn');
+            if (viewProfileBtn) {
+                viewProfileBtn.addEventListener('click', function() {
+                    closeUserMenuModal();
+                    window.location.href = 'admin_profile.html';
+                });
+            }
+
+            const logoutBtn = document.getElementById('userLogoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    closeUserMenuModal();
+                    showLogoutModal();
+                });
+            }
+
+            // 点击 overlay 关闭
+            const modal = document.getElementById('userMenuModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeUserMenuModal();
+                    }
+                });
+            }
+
+            // 点击关闭按钮
+            const closeBtn = document.querySelector('[data-close="userMenuModal"]');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    closeUserMenuModal();
+                });
+            }
+
+            // ESC 键关闭
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('userMenuModal');
+                    if (modal && modal.classList.contains('active')) {
+                        closeUserMenuModal();
+                    }
+                }
+            });
+        }
+
+        // 5. 监听头像更新事件（当 Profile 页面更新头像后，其他页面自动同步）
+        function listenForAvatarUpdates() {
+            // 监听 storage 变化（当其他标签页更新时）
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'pawcareAvatar' && e.newValue) {
+                    const avatarImg = document.getElementById('headerAvatarImg');
+                    const placeholder = document.getElementById('headerAvatarPlaceholder');
+                    if (avatarImg) {
+                        avatarImg.src = e.newValue;
+                        avatarImg.style.display = 'block';
+                        if (placeholder) placeholder.style.display = 'none';
+                    }
+                }
+                if (e.key === 'user' && e.newValue) {
+                    try {
+                        const userData = JSON.parse(e.newValue);
+                        const nameEl = document.getElementById('headerName');
+                        if (nameEl && userData.name) {
+                            nameEl.textContent = userData.name;
+                        }
+                    } catch (err) {}
+                }
+            });
+
+            // 页面可见时重新加载头像（从 Profile 页面返回时刷新）
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    loadAdminHeaderProfile();
+                }
+            });
+        }
+
+        // ================================================================
+        // 每个页面不同的 NOTIFICATIONS 逻辑
+        // ================================================================
+
+        async function loadNotificationCount() {
+            try {
+                const [pendingRes, rescheduleRes, todayRes, tomorrowRes, cancelledRes] = await Promise.all([
+                    authFetch('/api/admin/bookings?status=pending'),
+                    authFetch('/api/admin/bookings?reschedule_status=pending'),
+                    authFetch('/api/admin/bookings?date=today'),
+                    authFetch('/api/admin/bookings?date=tomorrow'),
+                    authFetch('/api/admin/bookings?status=cancelled&date=today')
+                ]);
+
+                const pending = (await pendingRes?.json()?.data || []).length;
+                const reschedule = (await rescheduleRes?.json()?.data || []).length;
+
+                const total = pending + reschedule;
+
+                const notifCount = document.getElementById('notifCount');
+                if (notifCount) {
+                    if (total > 0) {
+                        notifCount.textContent = total;
+                        notifCount.style.display = 'flex';
+                    } else {
+                        notifCount.style.display = 'none';
+                    }
+                }
+
+                window.notificationData = {
+                    pending,
+                    reschedule,
+                    today: (await todayRes?.json()?.data || []).length,
+                    tomorrow: (await tomorrowRes?.json()?.data || []).length,
+                    cancelled: (await cancelledRes?.json()?.data || []).length,
+                    total
+                };
+                return total;
+            } catch (err) {
+                console.error('Error loading booking notifications:', err);
+                return 0;
+            }
+        }
+
+        async function showNotificationDetails() {
+            await loadNotificationCount();
+            const data = window.notificationData || { pending: 0, reschedule: 0, today: 0, tomorrow: 0, cancelled: 0 };
+
+            let html = '';
+            let hasNotifications = false;
+
+            // Pending Bookings (High)
+            if (data.pending > 0) {
+                hasNotifications = true;
+                html += `
+                    <div style="background:#FEF7E0; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #D97706;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span><strong>⏳ Pending Bookings</strong></span>
+                            <span style="background:#D97706; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.pending}</span>
+                        </div>
+                        <div style="font-size:12px; color:#7A7A7A;">${data.pending} booking(s) need approval</div>
+                        <a href="admin_bookings.html?filter=pending" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                    </div>
+                `;
+            }
+
+            // Reschedule Requests (High)
+            if (data.reschedule > 0) {
+                hasNotifications = true;
+                html += `
+                    <div style="background:#FFF3E0; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #E65100;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span><strong>🔄 Reschedule Requests</strong></span>
+                            <span style="background:#E65100; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.reschedule}</span>
+                        </div>
+                        <div style="font-size:12px; color:#7A7A7A;">${data.reschedule} request(s) pending</div>
+                        <a href="admin_bookings.html?filter=reschedule" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                    </div>
+                `;
+            }
+
+            // Today's Bookings (Medium)
+            if (data.today > 0) {
+                hasNotifications = true;
+                html += `
+                    <div style="background:#E3F2FD; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #0D47A1;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span><strong>📅 Today's Bookings</strong></span>
+                            <span style="background:#0D47A1; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.today}</span>
+                        </div>
+                        <div style="font-size:12px; color:#7A7A7A;">${data.today} booking(s) today</div>
+                        <a href="admin_bookings.html?date=today" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                    </div>
+                `;
+            }
+
+            // Tomorrow's Bookings (Low)
+            if (data.tomorrow > 0) {
+                hasNotifications = true;
+                html += `
+                    <div style="background:#F5F5F5; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #757575;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span><strong>📅 Tomorrow's Bookings</strong></span>
+                            <span style="background:#757575; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.tomorrow}</span>
+                        </div>
+                        <div style="font-size:12px; color:#7A7A7A;">${data.tomorrow} booking(s) tomorrow</div>
+                        <a href="admin_bookings.html?date=tomorrow" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                    </div>
+                `;
+            }
+
+            // Cancelled Today (Medium)
+            if (data.cancelled > 0) {
+                hasNotifications = true;
+                html += `
+                    <div style="background:#FCE8E6; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #DC2626;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span><strong>🚫 Cancelled Today</strong></span>
+                            <span style="background:#DC2626; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.cancelled}</span>
+                        </div>
+                        <div style="font-size:12px; color:#7A7A7A;">${data.cancelled} cancellation(s) today</div>
+                        <a href="admin_bookings.html?status=cancelled" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                    </div>
+                `;
+            }
+
+            if (!hasNotifications) {
+                html = `
+                    <div style="text-align:center; padding:30px 20px; color:#7A7A7A;">
+                        <i class="fa-regular fa-calendar-check" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i>
+                        <h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">No Booking Notifications</h3>
+                        <p style="font-size:13px;">All bookings are up to date.</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('notificationsModalContent').innerHTML = html;
+            document.getElementById('notificationsModal').classList.add('active');
+            lockBodyScroll();
+        }
+
+        // ================================================================
+        // 在 DOMContentLoaded 中初始化
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载 header 头像
+            loadAdminHeaderProfile();
+            // 绑定 user menu 事件
+            bindUserMenuEvents();
+            // 监听头像更新
+            listenForAvatarUpdates();
+
+            // 设置当前日期（如果有这个元素）
+            const dateEl = document.getElementById('headerCurrentDate');
+            if (dateEl) {
+                const now = new Date();
+                dateEl.textContent = now.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                });
+            }
+
+            // 每个页面调用自己的 notification 加载函数
+            // 由各页面单独实现
+        });
         // ===== FETCH BOOKINGS WITH JOINED DATA =====
         async function fetchBookings() {
             if (!isAuthenticated()) return;
@@ -1539,10 +1927,13 @@
                     const select = document.getElementById('serviceFilter');
                     // Keep the "All Services" option
                     select.innerHTML = '<option value="all">All Services</option>';
-                    services.forEach(s => {
+                    const serviceNames = [...new Set(
+                        services.map(service => service.service_name).filter(Boolean)
+                    )];
+                    serviceNames.forEach(serviceName => {
                         const option = document.createElement('option');
-                        option.value = s.service_name;
-                        option.textContent = s.service_name;
+                        option.value = serviceName;
+                        option.textContent = serviceName;
                         select.appendChild(option);
                     });
                 }
@@ -2057,7 +2448,7 @@
         });
 
         document.getElementById('notificationBtn')?.addEventListener('click', function() {
-            alert('No new notifications.');
+            showNotificationDetails();
         });
 
         // ===== SET DATE =====
@@ -2068,7 +2459,7 @@
             if (el) el.textContent = now.toLocaleDateString('en-US', options);
         }
         setCurrentDate();
-        document.getElementById('headerName').textContent = 'Admin';
+        loadAdminHeaderProfile();
 
         // ===== EVENT LISTENERS =====
         document.getElementById('applyFilterBtn').addEventListener('click', applyFilters);

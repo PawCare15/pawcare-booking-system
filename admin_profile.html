@@ -896,6 +896,7 @@
     <!-- ===== MAIN CONTENT ===== -->
     <main class="main-content">
 
+        <!-- ===== TOP HEADER ===== -->
         <header class="top-header">
             <div class="header-left">
                 <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
@@ -910,7 +911,7 @@
             <div class="header-right">
                 <div class="notification-badge" id="notificationBtn">
                     <i class="fa-regular fa-bell"></i>
-                    <span class="count" id="notifCount">0</span>
+                    <span class="count" id="notifCount" style="display:none;"></span>
                 </div>
                 <div class="user-profile" id="profileBtn">
                     <div class="avatar-wrapper" id="headerAvatarWrapper">
@@ -919,11 +920,52 @@
                     </div>
                     <div class="user-info">
                         <span class="name" id="headerName">Admin</span>
-                        <span class="role">Administrator</span>
+                        <span class="role">Super Admin</span>
                     </div>
                 </div>
             </div>
         </header>
+
+        <!-- ===== USER MENU MODAL (统一) ===== -->
+        <div class="modal-overlay" id="userMenuModal">
+            <div class="modal-box" style="max-width:340px; text-align:center; padding:32px 28px 28px;">
+                <button class="close-modal" data-close="userMenuModal" style="position:absolute; right:16px; top:12px; background:none; border:none; font-size:22px; color:#7A6B5A; cursor:pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="modal-icon-circle" style="width:72px; height:72px; border-radius:50%; background:#FDF3E7; color:#5A361A; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:32px;">
+                    <i class="fa-regular fa-user"></i>
+                </div>
+                <h2 class="modal-title" style="font-size:18px; font-weight:700; color:#333; margin-bottom:4px;">Account Menu</h2>
+                <p class="modal-subtitle" style="font-size:13px; color:#7A7A7A; margin-bottom:20px;">Manage your account settings</p>
+                <div style="display:flex; flex-direction:column; gap:10px; margin:6px 0 4px;">
+                    <button class="btn btn-primary" id="userViewProfileBtn" style="width:100%; justify-content:center; padding:12px; border-radius:10px; background:#5A361A; color:#fff; border:none; font-weight:600; font-size:14px; cursor:pointer; transition:background 0.2s; font-family:'Poppins',sans-serif;">
+                        <i class="fa-regular fa-id-card"></i> View Profile
+                    </button>
+                    <button class="btn btn-danger" id="userLogoutBtn" style="width:100%; justify-content:center; padding:12px; border-radius:10px; background:#DC2626; color:#fff; border:none; font-weight:600; font-size:14px; cursor:pointer; transition:background 0.2s; font-family:'Poppins',sans-serif;">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </div>
+                <p style="font-size:11px; color:#B0A090; margin-top:14px;">Click outside to close.</p>
+            </div>
+        </div>
+
+        <!-- ===== NOTIFICATIONS MODAL ===== -->
+        <div class="modal-overlay" id="notificationsModal">
+            <div class="modal-box" style="max-width: 480px; text-align: left; padding: 28px 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="font-size: 18px; font-weight: 600; color: #5A361A; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-regular fa-bell" style="color: #D97706;"></i> Notifications
+                    </h3>
+                    <button id="closeNotificationsModal" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #7A7A7A;">&times;</button>
+                </div>
+                <div id="notificationsModalContent" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Dynamic content -->
+                </div>
+                <div style="margin-top: 16px; text-align: center;">
+                    <button class="btn btn-primary" id="notificationsModalOkBtn" style="padding: 8px 24px; font-size: 13px;">OK</button>
+                </div>
+            </div>
+        </div>
 
         <div class="dashboard-container">
             <div class="profile-container">
@@ -1609,41 +1651,238 @@ document.querySelectorAll('[data-close]').forEach(btn => {
     // ================================================================
     document.addEventListener('DOMContentLoaded', function() {
 
-        // ---- Notifications ----
-        const notifBtn = $('notificationBtn');
-        if (notifBtn) {
-            notifBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                showInfoModal('Notifications', 'No new notifications.');
-                const countEl = $('notifCount');
-                if (countEl) countEl.textContent = '0';
+        // ================================================================
+        // 统一的 HEADER 功能 - 所有 Admin 页面共用
+        // ================================================================
+
+        // 1. 加载 Admin Profile 到 Header
+        async function loadAdminHeaderProfile() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+
+                const response = await fetch('/api/profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) {
+                    if (response.status === 401) {
+                        localStorage.clear();
+                        window.location.replace('login.html');
+                        return;
+                    }
+                    throw new Error(`Failed to fetch profile: ${response.status}`);
+                }
+
+                const result = await response.json();
+                if (result.success) {
+                    const profile = result.data;
+                    const nameEl = document.getElementById('headerName');
+                    const avatarImg = document.getElementById('headerAvatarImg');
+                    const placeholder = document.getElementById('headerAvatarPlaceholder');
+
+                    if (nameEl) nameEl.textContent = profile.full_name || 'Admin';
+
+                    // 更新头像
+                    if (profile.profile_photo) {
+                        avatarImg.src = profile.profile_photo;
+                        avatarImg.style.display = 'block';
+                        if (placeholder) placeholder.style.display = 'none';
+                        // 同时保存到 localStorage 供其他页面使用
+                        localStorage.setItem('pawcareAvatar', profile.profile_photo);
+                    } else {
+                        // 检查 localStorage 是否有缓存的头像
+                        const cachedAvatar = localStorage.getItem('pawcareAvatar');
+                        if (cachedAvatar) {
+                            avatarImg.src = cachedAvatar;
+                            avatarImg.style.display = 'block';
+                            if (placeholder) placeholder.style.display = 'none';
+                        } else {
+                            avatarImg.style.display = 'none';
+                            if (placeholder) placeholder.style.display = 'inline';
+                        }
+                    }
+
+                    // 更新 user 对象中的 name
+                    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+                    if (storedUser && storedUser.id) {
+                        storedUser.name = profile.full_name || storedUser.name;
+                        localStorage.setItem('user', JSON.stringify(storedUser));
+                    }
+                }
+            } catch (err) {
+                console.error('Error loading admin header profile:', err);
+                // 如果 localStorage 有缓存，使用缓存
+                const cachedAvatar = localStorage.getItem('pawcareAvatar');
+                if (cachedAvatar) {
+                    const avatarImg = document.getElementById('headerAvatarImg');
+                    const placeholder = document.getElementById('headerAvatarPlaceholder');
+                    if (avatarImg) {
+                        avatarImg.src = cachedAvatar;
+                        avatarImg.style.display = 'block';
+                        if (placeholder) placeholder.style.display = 'none';
+                    }
+                }
+            }
+        }
+
+        // 2. 打开 User Menu Modal
+        function openUserMenuModal() {
+            const modal = document.getElementById('userMenuModal');
+            if (modal) {
+                modal.classList.add('active');
+                lockBodyScroll();
+            }
+        }
+
+        // 3. 关闭 User Menu Modal
+        function closeUserMenuModal() {
+            const modal = document.getElementById('userMenuModal');
+            if (modal) {
+                modal.classList.remove('active');
+                unlockBodyScroll();
+            }
+        }
+
+        // 4. 绑定 User Menu 事件
+        function bindUserMenuEvents() {
+            const profileBtn = document.getElementById('profileBtn');
+            if (profileBtn) {
+                profileBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    openUserMenuModal();
+                });
+            }
+
+            const viewProfileBtn = document.getElementById('userViewProfileBtn');
+            if (viewProfileBtn) {
+                viewProfileBtn.addEventListener('click', function() {
+                    closeUserMenuModal();
+                    window.location.href = 'admin_profile.html';
+                });
+            }
+
+            const logoutBtn = document.getElementById('userLogoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', function() {
+                    closeUserMenuModal();
+                    showLogoutModal();
+                });
+            }
+
+            // 点击 overlay 关闭
+            const modal = document.getElementById('userMenuModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        closeUserMenuModal();
+                    }
+                });
+            }
+
+            // 点击关闭按钮
+            const closeBtn = document.querySelector('[data-close="userMenuModal"]');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', function() {
+                    closeUserMenuModal();
+                });
+            }
+
+            // ESC 键关闭
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    const modal = document.getElementById('userMenuModal');
+                    if (modal && modal.classList.contains('active')) {
+                        closeUserMenuModal();
+                    }
+                }
             });
         }
 
-        // ---- Profile button -> user menu ----
-        const profileBtn = $('profileBtn');
-        if (profileBtn) {
-            profileBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                openUserMenu();
+        // 5. 监听头像更新事件（当 Profile 页面更新头像后，其他页面自动同步）
+        function listenForAvatarUpdates() {
+            // 监听 storage 变化（当其他标签页更新时）
+            window.addEventListener('storage', function(e) {
+                if (e.key === 'pawcareAvatar' && e.newValue) {
+                    const avatarImg = document.getElementById('headerAvatarImg');
+                    const placeholder = document.getElementById('headerAvatarPlaceholder');
+                    if (avatarImg) {
+                        avatarImg.src = e.newValue;
+                        avatarImg.style.display = 'block';
+                        if (placeholder) placeholder.style.display = 'none';
+                    }
+                }
+                if (e.key === 'user' && e.newValue) {
+                    try {
+                        const userData = JSON.parse(e.newValue);
+                        const nameEl = document.getElementById('headerName');
+                        if (nameEl && userData.name) {
+                            nameEl.textContent = userData.name;
+                        }
+                    } catch (err) {}
+                }
+            });
+
+            // 页面可见时重新加载头像（从 Profile 页面返回时刷新）
+            document.addEventListener('visibilitychange', function() {
+                if (!document.hidden) {
+                    loadAdminHeaderProfile();
+                }
             });
         }
 
-        const viewProfileBtn = $('userViewProfileBtn');
-        if (viewProfileBtn) {
-            viewProfileBtn.addEventListener('click', function() {
-                closeModal('userMenuModal');
-                document.querySelector('.profile-overview').scrollIntoView({ behavior: 'smooth' });
+        // ================================================================
+        // 每个页面不同的 NOTIFICATIONS 逻辑
+        // ================================================================
+
+        async function loadNotificationCount() {
+            const notifCount = document.getElementById('notifCount');
+            if (notifCount) {
+                notifCount.style.display = 'none';
+                notifCount.textContent = '0';
+            }
+            return 0;
+        }
+
+        async function showNotificationDetails() {
+            const html = `
+                <div style="text-align:center; padding:30px 20px; color:#7A7A7A;">
+                    <i class="fa-regular fa-id-card" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i>
+                    <h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">Profile Management</h3>
+                    <p style="font-size:13px;">Manage your account settings and security.</p>
+                    <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                        <span style="background:#E8F5E9; padding:4px 12px; border-radius:20px; font-size:11px;">🔒 2FA Enabled</span>
+                        <span style="background:#F5F0EB; padding:4px 12px; border-radius:20px; font-size:11px;">✅ Profile Complete</span>
+                    </div>
+                </div>
+            `;
+
+            document.getElementById('notificationsModalContent').innerHTML = html;
+            document.getElementById('notificationsModal').classList.add('active');
+            lockBodyScroll();
+        }
+
+        // 加载 header 头像
+        loadAdminHeaderProfile();
+        // 绑定 user menu 事件
+        bindUserMenuEvents();
+        // 监听头像更新
+        listenForAvatarUpdates();
+
+        // 设置当前日期（如果有这个元素）
+        const dateEl = document.getElementById('headerCurrentDate');
+        if (dateEl) {
+            const now = new Date();
+            dateEl.textContent = now.toLocaleDateString('en-US', {
+                weekday: 'long',
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
             });
         }
 
-        const userLogoutBtn = $('userLogoutBtn');
-        if (userLogoutBtn) {
-            userLogoutBtn.addEventListener('click', function() {
-                closeModal('userMenuModal');
-                showLogoutModal();
-            });
-        }
+        // 每个页面调用自己的 notification 加载函数
+        // 由各页面单独实现
 
         // ---- Profile Form ----
         const profileForm = $('profileForm');

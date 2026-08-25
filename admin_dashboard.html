@@ -54,7 +54,7 @@
     <!-- MAIN CONTENT -->
     <main class="main-content">
         
-        <!-- TOP HEADER -->
+        <!-- ===== TOP HEADER ===== -->
         <header class="top-header">
             <div class="header-left">
                 <button class="menu-toggle" id="menuToggle"><i class="fa-solid fa-bars"></i></button>
@@ -69,7 +69,7 @@
             <div class="header-right">
                 <div class="notification-badge" id="notificationBtn">
                     <i class="fa-regular fa-bell"></i>
-                    <span class="count" id="notifCount">0</span>
+                    <span class="count" id="notifCount" style="display:none;"></span>
                 </div>
                 <div class="user-profile" id="profileBtn">
                     <div class="avatar-wrapper" id="headerAvatarWrapper">
@@ -78,11 +78,52 @@
                     </div>
                     <div class="user-info">
                         <span class="name" id="headerName">Admin</span>
-                        <span class="role">Administrator</span>
+                        <span class="role">Super Admin</span>
                     </div>
                 </div>
             </div>
         </header>
+
+        <!-- ===== USER MENU MODAL (统一) ===== -->
+        <div class="modal-overlay" id="userMenuModal">
+            <div class="modal-box" style="max-width:340px; text-align:center; padding:32px 28px 28px;">
+                <button class="close-modal" data-close="userMenuModal" style="position:absolute; right:16px; top:12px; background:none; border:none; font-size:22px; color:#7A6B5A; cursor:pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+                <div class="modal-icon-circle" style="width:72px; height:72px; border-radius:50%; background:#FDF3E7; color:#5A361A; display:flex; align-items:center; justify-content:center; margin:0 auto 14px; font-size:32px;">
+                    <i class="fa-regular fa-user"></i>
+                </div>
+                <h2 class="modal-title" style="font-size:18px; font-weight:700; color:#333; margin-bottom:4px;">Account Menu</h2>
+                <p class="modal-subtitle" style="font-size:13px; color:#7A7A7A; margin-bottom:20px;">Manage your account settings</p>
+                <div style="display:flex; flex-direction:column; gap:10px; margin:6px 0 4px;">
+                    <button class="btn btn-primary" id="userViewProfileBtn" style="width:100%; justify-content:center; padding:12px; border-radius:10px; background:#5A361A; color:#fff; border:none; font-weight:600; font-size:14px; cursor:pointer; transition:background 0.2s; font-family:'Poppins',sans-serif;">
+                        <i class="fa-regular fa-id-card"></i> View Profile
+                    </button>
+                    <button class="btn btn-danger" id="userLogoutBtn" style="width:100%; justify-content:center; padding:12px; border-radius:10px; background:#DC2626; color:#fff; border:none; font-weight:600; font-size:14px; cursor:pointer; transition:background 0.2s; font-family:'Poppins',sans-serif;">
+                        <i class="fa-solid fa-right-from-bracket"></i> Logout
+                    </button>
+                </div>
+                <p style="font-size:11px; color:#B0A090; margin-top:14px;">Click outside to close.</p>
+            </div>
+        </div>
+
+        <!-- ===== NOTIFICATIONS MODAL ===== -->
+        <div class="modal-overlay" id="notificationsModal">
+            <div class="modal-box" style="max-width: 480px; text-align: left; padding: 28px 30px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                    <h3 style="font-size: 18px; font-weight: 600; color: #5A361A; display: flex; align-items: center; gap: 10px;">
+                        <i class="fa-regular fa-bell" style="color: #D97706;"></i> Notifications
+                    </h3>
+                    <button id="closeNotificationsModal" style="background: none; border: none; font-size: 22px; cursor: pointer; color: #7A7A7A;">&times;</button>
+                </div>
+                <div id="notificationsModalContent" style="max-height: 400px; overflow-y: auto;">
+                    <!-- Dynamic content -->
+                </div>
+                <div style="margin-top: 16px; text-align: center;">
+                    <button class="btn btn-primary" id="notificationsModalOkBtn" style="padding: 8px 24px; font-size: 13px;">OK</button>
+                </div>
+            </div>
+        </div>
 
         <!-- DASHBOARD CONTENT -->
         <div class="dashboard-container">

@@ -204,6 +204,186 @@ async function loadAdminProfile() {
 }
 
 // ================================================================
+// 统一的 HEADER 功能 - 所有 Admin 页面共用
+// ================================================================
+
+// 1. 加载 Admin Profile 到 Header
+async function loadAdminHeaderProfile() {
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+
+        const response = await fetch('/api/profile', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (!response.ok) {
+            if (response.status === 401) {
+                localStorage.clear();
+                window.location.replace('login.html');
+                return;
+            }
+            throw new Error(`Failed to fetch profile: ${response.status}`);
+        }
+
+        const result = await response.json();
+        if (result.success) {
+            const profile = result.data;
+            const nameEl = document.getElementById('headerName');
+            const avatarImg = document.getElementById('headerAvatarImg');
+            const placeholder = document.getElementById('headerAvatarPlaceholder');
+
+            if (nameEl) nameEl.textContent = profile.full_name || 'Admin';
+
+            // 更新头像
+            if (profile.profile_photo) {
+                avatarImg.src = profile.profile_photo;
+                avatarImg.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+                // 同时保存到 localStorage 供其他页面使用
+                localStorage.setItem('pawcareAvatar', profile.profile_photo);
+            } else {
+                // 检查 localStorage 是否有缓存的头像
+                const cachedAvatar = localStorage.getItem('pawcareAvatar');
+                if (cachedAvatar) {
+                    avatarImg.src = cachedAvatar;
+                    avatarImg.style.display = 'block';
+                    if (placeholder) placeholder.style.display = 'none';
+                } else {
+                    avatarImg.style.display = 'none';
+                    if (placeholder) placeholder.style.display = 'inline';
+                }
+            }
+
+            // 更新 user 对象中的 name
+            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+            if (storedUser && storedUser.id) {
+                storedUser.name = profile.full_name || storedUser.name;
+                localStorage.setItem('user', JSON.stringify(storedUser));
+            }
+        }
+    } catch (err) {
+        console.error('Error loading admin header profile:', err);
+        // 如果 localStorage 有缓存，使用缓存
+        const cachedAvatar = localStorage.getItem('pawcareAvatar');
+        if (cachedAvatar) {
+            const avatarImg = document.getElementById('headerAvatarImg');
+            const placeholder = document.getElementById('headerAvatarPlaceholder');
+            if (avatarImg) {
+                avatarImg.src = cachedAvatar;
+                avatarImg.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+            }
+        }
+    }
+}
+
+// 2. 打开 User Menu Modal
+function openUserMenuModal() {
+    const modal = document.getElementById('userMenuModal');
+    if (modal) {
+        modal.classList.add('active');
+        lockBodyScroll();
+    }
+}
+
+// 3. 关闭 User Menu Modal
+function closeUserMenuModal() {
+    const modal = document.getElementById('userMenuModal');
+    if (modal) {
+        modal.classList.remove('active');
+        unlockBodyScroll();
+    }
+}
+
+// 4. 绑定 User Menu 事件
+function bindUserMenuEvents() {
+    const profileBtn = document.getElementById('profileBtn');
+    if (profileBtn) {
+        profileBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            openUserMenuModal();
+        });
+    }
+
+    const viewProfileBtn = document.getElementById('userViewProfileBtn');
+    if (viewProfileBtn) {
+        viewProfileBtn.addEventListener('click', function() {
+            closeUserMenuModal();
+            window.location.href = 'admin_profile.html';
+        });
+    }
+
+    const logoutBtn = document.getElementById('userLogoutBtn');
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', function() {
+            closeUserMenuModal();
+            showLogoutModal();
+        });
+    }
+
+    // 点击 overlay 关闭
+    const modal = document.getElementById('userMenuModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeUserMenuModal();
+            }
+        });
+    }
+
+    // 点击关闭按钮
+    const closeBtn = document.querySelector('[data-close="userMenuModal"]');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', function() {
+            closeUserMenuModal();
+        });
+    }
+
+    // ESC 键关闭
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('userMenuModal');
+            if (modal && modal.classList.contains('active')) {
+                closeUserMenuModal();
+            }
+        }
+    });
+}
+
+// 5. 监听头像更新事件（当 Profile 页面更新头像后，其他页面自动同步）
+function listenForAvatarUpdates() {
+    // 监听 storage 变化（当其他标签页更新时）
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'pawcareAvatar' && e.newValue) {
+            const avatarImg = document.getElementById('headerAvatarImg');
+            const placeholder = document.getElementById('headerAvatarPlaceholder');
+            if (avatarImg) {
+                avatarImg.src = e.newValue;
+                avatarImg.style.display = 'block';
+                if (placeholder) placeholder.style.display = 'none';
+            }
+        }
+        if (e.key === 'user' && e.newValue) {
+            try {
+                const userData = JSON.parse(e.newValue);
+                const nameEl = document.getElementById('headerName');
+                if (nameEl && userData.name) {
+                    nameEl.textContent = userData.name;
+                }
+            } catch (err) {}
+        }
+    });
+
+    // 页面可见时重新加载头像（从 Profile 页面返回时刷新）
+    document.addEventListener('visibilitychange', function() {
+        if (!document.hidden) {
+            loadAdminHeaderProfile();
+        }
+    });
+}
+
+// ================================================================
 // NOTIFICATION FUNCTIONS - CUSTOMER PAGE
 // ================================================================
 
@@ -1349,6 +1529,8 @@ async function confirmDeleteCustomerWithEmail() {
     const originalText = confirmBtn.textContent;
     confirmBtn.textContent = '⏳ Sending email...';
     confirmBtn.disabled = true;
+    const controller = new AbortController();
+    const requestTimeout = setTimeout(() => controller.abort(), 30000);
     
     try {
         const token = localStorage.getItem('token');
@@ -1357,7 +1539,8 @@ async function confirmDeleteCustomerWithEmail() {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            signal: controller.signal
         });
 
         const data = await response.json();
@@ -1387,8 +1570,12 @@ async function confirmDeleteCustomerWithEmail() {
         
     } catch (err) {
         console.error('Error deleting customer:', err);
-        showValidationModal('Unable to connect to server. Please try again.');
+        const message = err.name === 'AbortError'
+            ? 'The request took too long. Please check the server and try again.'
+            : 'Unable to connect to server. Please try again.';
+        showValidationModal(message);
     } finally {
+        clearTimeout(requestTimeout);
         confirmBtn.textContent = originalText;
         confirmBtn.disabled = false;
     }
