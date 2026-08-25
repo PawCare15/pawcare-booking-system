@@ -2576,6 +2576,31 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // ===== 修复通知弹窗关闭 =====
+const closeNotifBtn = document.getElementById('closeNotificationsModal');
+const okNotifBtn = document.getElementById('notificationsModalOkBtn');
+const notifModal = document.getElementById('notificationsModal');
+if (closeNotifBtn) {
+    closeNotifBtn.addEventListener('click', function() {
+        notifModal.classList.remove('active');
+        unlockBodyScroll();
+    });
+}
+if (okNotifBtn) {
+    okNotifBtn.addEventListener('click', function() {
+        notifModal.classList.remove('active');
+        unlockBodyScroll();
+    });
+}
+if (notifModal) {
+    notifModal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('active');
+            unlockBodyScroll();
+        }
+    });
+}
+
     // 每个页面调用自己的 notification 加载函数
     // 由各页面单独实现
 });

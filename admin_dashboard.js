@@ -623,6 +623,64 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // ===== 修复通知弹窗关闭（OK / X / 背景点击） =====
+const closeNotifBtn = document.getElementById('closeNotificationsModal');
+const okNotifBtn = document.getElementById('notificationsModalOkBtn');
+const notifModal = document.getElementById('notificationsModal');
+
+if (closeNotifBtn) {
+    closeNotifBtn.addEventListener('click', function() {
+        notifModal.classList.remove('active');
+        unlockBodyScroll();
+    });
+}
+if (okNotifBtn) {
+    okNotifBtn.addEventListener('click', function() {
+        notifModal.classList.remove('active');
+        unlockBodyScroll();
+    });
+}
+if (notifModal) {
+    notifModal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.classList.remove('active');
+            unlockBodyScroll();
+        }
+    });
+}
+
+// ===== 确保用户菜单（头像/用户名点击）能正常弹出 =====
+// 如果 bindUserMenuEvents 已经定义并调用，则无需重复；若未定义，则使用下面的后备。
+// 但大多数页面已有 bindUserMenuEvents，这里只做兜底检查
+if (typeof bindUserMenuEvents === 'function') {
+    // 已经绑定，忽略
+} else {
+    // 简单绑定（如果页面没有定义该函数）
+    const profileBtn = document.getElementById('profileBtn');
+    const userMenuModal = document.getElementById('userMenuModal');
+    if (profileBtn && userMenuModal) {
+        profileBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            userMenuModal.classList.add('active');
+            lockBodyScroll();
+        });
+        // 关闭按钮
+        const closeMenuBtn = userMenuModal.querySelector('[data-close="userMenuModal"]');
+        if (closeMenuBtn) {
+            closeMenuBtn.addEventListener('click', function() {
+                userMenuModal.classList.remove('active');
+                unlockBodyScroll();
+            });
+        }
+        userMenuModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+                unlockBodyScroll();
+            }
+        });
+    }
+}
+
     // LOAD STATS - FROM BACKEND
     async function loadStats() {
         try {
