@@ -1439,7 +1439,7 @@
     LOGOUT CONFIRM MODAL
     ================================================================ -->
     <div class="modal-overlay" id="logoutModal">
-        <div class="modal-box" style="max-width: 420px; text-align: center; padding: 36px 40px 32px;">
+        <div class="modal-box" style="width: min(92vw, 420px); max-width: 420px; text-align: center; padding: 30px 28px 28px; border-radius: 18px;">
             <div class="modal-icon-circle warning" style="margin: 0 auto 16px; background: #FEF7E0; border-color: #FDE68A; width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #FDE68A;">
                 <i class="fa-solid fa-sign-out-alt" style="color: #D97706; font-size: 30px;"></i>
             </div>
@@ -1447,9 +1447,9 @@
             <p class="modal-subtitle" style="margin-bottom: 24px;">
                 Are you sure you want to logout?
             </p>
-            <div class="modal-btn-group" style="display: flex; gap: 12px; justify-content: center;">
-                <button class="btn btn-secondary" onclick="closeLogoutModal()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px;">Cancel</button>
-                <button class="btn btn-danger" onclick="confirmLogout()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px;">Logout</button>
+            <div class="modal-btn-group" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
+                <button class="btn btn-secondary" onclick="closeLogoutModal()" style="flex:1 1 120px; padding: 12px 18px; font-size: 14px; border-radius: 10px;">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmLogout()" style="flex:1 1 120px; padding: 12px 18px; font-size: 14px; border-radius: 10px;">Logout</button>
             </div>
         </div>
     </div>
@@ -1458,7 +1458,7 @@
       LOGOUT CONFIRM MODAL
       ================================================================ -->
       <div class="modal-overlay" id="logoutModal">
-          <div class="modal-box" style="max-width: 420px; text-align: center; padding: 36px 40px 32px;">
+          <div class="modal-box" style="width: min(92vw, 420px); max-width: 420px; text-align: center; padding: 30px 28px 28px; border-radius: 18px;">
               <div class="modal-icon-circle warning" style="margin: 0 auto 16px; background: #FEF7E0; border-color: #FDE68A; width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #FDE68A;">
                   <i class="fa-solid fa-sign-out-alt" style="color: #D97706; font-size: 30px;"></i>
               </div>
@@ -1466,9 +1466,9 @@
               <p class="modal-subtitle" style="margin-bottom: 24px;">
                   Are you sure you want to logout?
               </p>
-              <div class="modal-btn-group" style="display: flex; gap: 12px; justify-content: center;">
-                  <button class="btn btn-secondary" onclick="closeLogoutModal()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px;">Cancel</button>
-                  <button class="btn btn-danger" onclick="confirmLogout()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px;">Logout</button>
+              <div class="modal-btn-group" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
+                  <button class="btn btn-secondary" onclick="closeLogoutModal()" style="flex:1 1 120px; padding: 12px 18px; font-size: 14px; border-radius: 10px;">Cancel</button>
+                  <button class="btn btn-danger" onclick="confirmLogout()" style="flex:1 1 120px; padding: 12px 18px; font-size: 14px; border-radius: 10px;">Logout</button>
               </div>
           </div>
       </div>

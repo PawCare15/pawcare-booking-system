@@ -1288,20 +1288,6 @@
         </div>
     </div>
 
-    <!-- USER MENU MODAL -->
-    <div class="modal-overlay" id="userMenuModal">
-        <div class="modal-box" style="max-width:340px; text-align:center;">
-            <button class="close-modal" data-close="userMenuModal"><i class="fa-solid fa-xmark"></i></button>
-            <div class="modal-icon-circle" style="background:#FDF3E7; color:#5A361A;"><i class="fa-regular fa-user"></i></div>
-            <h2 class="modal-title">Account Menu</h2>
-            <div style="display:flex; flex-direction:column; gap:12px; margin:18px 0 10px;">
-                <button class="btn btn-primary" id="userViewProfileBtn" style="width:100%; justify-content:center;"><i class="fa-regular fa-id-card"></i> View Profile</button>
-                <button class="btn btn-danger" id="userLogoutBtn" style="width:100%; justify-content:center;"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
-            </div>
-            <p class="modal-subtitle" style="margin-bottom:0; font-size:12px;">Click outside to close.</p>
-        </div>
-    </div>
-
     <div class="toast" id="toast"></div>
 
     <!-- ================================================================ -->
@@ -1867,6 +1853,13 @@ document.querySelectorAll('[data-close]').forEach(btn => {
         loadAdminHeaderProfile();
         // 绑定 user menu 事件
         bindUserMenuEvents();
+        const notificationBtn = document.getElementById('notificationBtn');
+        if (notificationBtn) {
+            notificationBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                showNotificationDetails();
+            });
+        }
         // 监听头像更新
         listenForAvatarUpdates();
 

@@ -1324,6 +1324,31 @@ async function showNotificationDetails() {
     loadAdminHeaderProfile();
     // 绑定 user menu 事件
     bindUserMenuEvents();
+    const notificationBtn = document.getElementById('notificationBtn');
+    if (notificationBtn) {
+        notificationBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            showNotificationDetails();
+        });
+    }
+
+    const closeNotifBtn = document.getElementById('closeNotificationsModal');
+    const okNotifBtn = document.getElementById('notificationsModalOkBtn');
+    const notifModal = document.getElementById('notificationsModal');
+    const closeNotifications = function() {
+        if (notifModal) {
+            notifModal.classList.remove('active');
+            unlockBodyScroll();
+        }
+    };
+
+    if (closeNotifBtn) closeNotifBtn.addEventListener('click', closeNotifications);
+    if (okNotifBtn) okNotifBtn.addEventListener('click', closeNotifications);
+    if (notifModal) {
+        notifModal.addEventListener('click', function(e) {
+            if (e.target === notifModal) closeNotifications();
+        });
+    }
     // 监听头像更新
     listenForAvatarUpdates();
 
