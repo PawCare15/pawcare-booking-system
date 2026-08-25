@@ -129,7 +129,7 @@
             font-size: 12px;
         }
 
-        /* 评论列表 */
+        /* 评论列表 - 与 review.html 统一 */
         .review-item-admin {
             padding: 18px 0;
             border-bottom: 1px solid #EFECE6;
@@ -203,6 +203,8 @@
             border-radius: 8px;
             border: 1px solid #EFECE6;
         }
+
+        /* 按钮区域 - 与 review.html 一致，放在评论内容下方，回复列表上方 */
         .review-actions-admin {
             display: flex;
             gap: 16px;
@@ -220,6 +222,7 @@
             gap: 6px;
             font-family: 'Poppins', sans-serif;
             transition: color 0.2s;
+            padding: 0;
         }
         .review-actions-admin button:hover {
             color: #5A361A;
@@ -233,6 +236,92 @@
         .review-actions-admin .like-count {
             color: #7A7A7A;
             font-size: 13px;
+        }
+
+        /* 回复区域 - 与 review.html 完全一致，无背景色，只有左边框和缩进 */
+        .replies-section {
+            margin-top: 12px;
+            padding-left: 16px;
+            border-left: 2px solid #E8DCC8;
+        }
+        .reply-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .reply-item .reply-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #FDF3E7;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: #5A361A;
+            overflow: hidden;
+        }
+        .reply-item .reply-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .reply-item .reply-content {
+            font-size: 13px;
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+        .reply-item .reply-content .reply-author {
+            font-weight: 600;
+            color: #5A361A;
+        }
+        .reply-item .reply-content .reply-text {
+            color: #444;
+            margin-top: 2px;
+        }
+        .reply-item .reply-content .reply-meta {
+            font-size: 11px;
+            color: #B0A090;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .reply-item .reply-content .reply-meta button {
+            background: none;
+            border: none;
+            color: #5A361A;
+            cursor: pointer;
+            font-size: 11px;
+            font-family: 'Poppins', sans-serif;
+            padding: 0;
+        }
+        .reply-item .reply-content .reply-meta button:hover {
+            text-decoration: underline;
+        }
+        .reply-item .reply-content .reply-meta .reply-like-btn {
+            color: #7A7A7A;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .reply-item .reply-content .reply-meta .reply-like-btn:hover {
+            color: #5A361A;
+        }
+        .reply-item .reply-content .reply-meta .reply-delete-btn {
+            color: #DC2626;
+        }
+        .reply-item .reply-content .reply-meta .reply-delete-btn:hover {
+            color: #B91C1C;
+        }
+
+        /* 子回复缩进 */
+        .reply-item.child-reply {
+            margin-left: 30px;
         }
 
         /* 回复框 */
@@ -256,51 +345,6 @@
             gap: 8px;
             margin-top: 8px;
             justify-content: flex-end;
-        }
-
-        .replies-section {
-            margin-top: 12px;
-            padding-left: 16px;
-            border-left: 2px solid #E8DCC8;
-        }
-        .reply-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
-        .reply-item .reply-avatar {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: #FDF3E7;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: 600;
-            color: #5A361A;
-            overflow: hidden;
-        }
-        .reply-item .reply-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .reply-item .reply-content {
-            font-size: 13px;
-        }
-        .reply-item .reply-content .reply-author {
-            font-weight: 600;
-            color: #5A361A;
-        }
-        .reply-item .reply-content .reply-text {
-            color: #444;
-        }
-        .reply-item .reply-content .reply-date {
-            font-size: 11px;
-            color: #B0A090;
         }
 
         .toolbar-admin {
@@ -612,14 +656,11 @@
     <script>
 // 统一放在页面所有 <script> 的最顶部
 (function checkAuth() {
-    // 定义检查函数
     function doAuthCheck() {
         const token = localStorage.getItem('token');
         const user = localStorage.getItem('user');
-
         let shouldRedirect = false;
         let redirectUrl = 'index.html';
-
         if (!token) {
             shouldRedirect = true;
             redirectUrl = 'index.html';
@@ -635,9 +676,7 @@
                 redirectUrl = 'dashboard.html';
             }
         }
-
         if (shouldRedirect) {
-            // 清空整个页面
             document.documentElement.innerHTML = `
                 <html>
                     <head><title>Redirecting...</title></head>
@@ -649,16 +688,9 @@
             window.location.replace(redirectUrl);
         }
     }
-
-    // 页面初次加载执行
     doAuthCheck();
-
-    // 监听 pageshow 事件，处理 bfcache 恢复
     window.addEventListener('pageshow', function(event) {
-        // 如果页面是从 bfcache 恢复，重新执行检查
-        if (event.persisted) {
-            doAuthCheck();
-        }
+        if (event.persisted) doAuthCheck();
     });
 })();
 
@@ -666,13 +698,9 @@
 const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
 
-// WRAPPER FOR API CALLS WITH TOKEN
 async function authFetch(url, options = {}) {
     const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.replace('login.html');
-        return;
-    }
+    if (!token) { window.location.replace('login.html'); return; }
     const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
@@ -687,732 +715,570 @@ async function authFetch(url, options = {}) {
     return response;
 }
 
-// SUPABASE DIRECT QUERY FUNCTIONS
-async function supabaseQuery(query, params = []) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.replace('login.html');
-        return null;
-    }
-
-    try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${query}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY
-            },
-            body: JSON.stringify({ params })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Supabase query failed: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (err) {
-        console.error('Supabase query error:', err);
-        return null;
-    }
-}
-
-// SCROLLBAR COMPENSATION FOR MODALS
 let modalCount = 0;
-
 function lockBodyScroll() {
     if (modalCount === 0) {
         const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-        if (scrollbarWidth > 0) {
-            document.body.style.paddingRight = scrollbarWidth + 'px';
-        }
+        if (scrollbarWidth > 0) document.body.style.paddingRight = scrollbarWidth + 'px';
         document.body.style.overflow = 'hidden';
     }
     modalCount++;
 }
-
 function unlockBodyScroll() {
     modalCount--;
-    if (modalCount <= 0) {
-        modalCount = 0;
-        document.body.style.paddingRight = '';
-        document.body.style.overflow = '';
-    }
+    if (modalCount <= 0) { modalCount = 0; document.body.style.paddingRight = ''; document.body.style.overflow = ''; }
 }
 
-// LOGOUT FUNCTIONS
 function showLogoutModal() {
     const modal = document.getElementById('logoutModal');
-    if (modal) {
-        lockBodyScroll();
-        modal.classList.add('active');
-    }
+    if (modal) { lockBodyScroll(); modal.classList.add('active'); }
 }
-
 function closeLogoutModal() {
     const modal = document.getElementById('logoutModal');
-    if (modal) {
-        modal.classList.remove('active');
-        unlockBodyScroll();
-    }
+    if (modal) { modal.classList.remove('active'); unlockBodyScroll(); }
 }
-
 function confirmLogout() {
     localStorage.clear();
     closeLogoutModal();
     window.location.replace('index.html');
 }
 
-        // ================================================================
-        // MODAL HELPERS
-        // ================================================================
-        function showConfirmation(message) {
-            document.getElementById('confirmationMessage').textContent = message;
-            const modal = document.getElementById('confirmationModal');
-            lockBodyScroll();
-            modal.classList.add('active');
-        }
-        function hideConfirmation() {
-            const modal = document.getElementById('confirmationModal');
-            modal.classList.remove('active');
-            unlockBodyScroll();
-        }
-        document.getElementById('confirmationOkBtn').addEventListener('click', hideConfirmation);
-        document.getElementById('confirmationModal').addEventListener('click', function(e) {
-            if (e.target === this) hideConfirmation();
-        });
+function showConfirmation(message) {
+    document.getElementById('confirmationMessage').textContent = message;
+    const modal = document.getElementById('confirmationModal');
+    lockBodyScroll();
+    modal.classList.add('active');
+}
+function hideConfirmation() {
+    const modal = document.getElementById('confirmationModal');
+    modal.classList.remove('active');
+    unlockBodyScroll();
+}
+document.getElementById('confirmationOkBtn').addEventListener('click', hideConfirmation);
+document.getElementById('confirmationModal').addEventListener('click', function(e) {
+    if (e.target === this) hideConfirmation();
+});
 
-        function showError(message) {
-            document.getElementById('errorMessage').textContent = message;
-            const modal = document.getElementById('errorModal');
-            lockBodyScroll();
-            modal.classList.add('active');
-        }
-        function hideError() {
-            const modal = document.getElementById('errorModal');
-            modal.classList.remove('active');
-            unlockBodyScroll();
-        }
-        document.getElementById('errorOkBtn').addEventListener('click', hideError);
-        document.getElementById('errorModal').addEventListener('click', function(e) {
-            if (e.target === this) hideError();
-        });
+function showError(message) {
+    document.getElementById('errorMessage').textContent = message;
+    const modal = document.getElementById('errorModal');
+    lockBodyScroll();
+    modal.classList.add('active');
+}
+function hideError() {
+    const modal = document.getElementById('errorModal');
+    modal.classList.remove('active');
+    unlockBodyScroll();
+}
+document.getElementById('errorOkBtn').addEventListener('click', hideError);
+document.getElementById('errorModal').addEventListener('click', function(e) {
+    if (e.target === this) hideError();
+});
 
-        // ================================================================
-        // SIDEBAR TOGGLE
-        // ================================================================
-        document.addEventListener('DOMContentLoaded', function() {
-            const menuToggle = document.getElementById('menuToggle');
-            const sidebar = document.getElementById('sidebar');
-            const sidebarClose = document.getElementById('sidebarClose');
-            const overlay = document.getElementById('sidebarOverlay');
+document.addEventListener('DOMContentLoaded', function() {
+    const menuToggle = document.getElementById('menuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarClose = document.getElementById('sidebarClose');
+    const overlay = document.getElementById('sidebarOverlay');
 
-            function openSidebar() {
-                sidebar.classList.add('active');
-                overlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
-            }
-            function closeSidebar() {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-                document.body.style.overflow = '';
-            }
-            if (menuToggle) menuToggle.addEventListener('click', openSidebar);
-            if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
-            if (overlay) overlay.addEventListener('click', closeSidebar);
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') closeSidebar();
-            });
+    function openSidebar() { sidebar.classList.add('active'); overlay.classList.add('active'); document.body.style.overflow = 'hidden'; }
+    function closeSidebar() { sidebar.classList.remove('active'); overlay.classList.remove('active'); document.body.style.overflow = ''; }
+    if (menuToggle) menuToggle.addEventListener('click', openSidebar);
+    if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', function(e) { if (e.key === 'Escape') closeSidebar(); });
 
-            // ================================================================
-            // LOAD ADMIN PROFILE (for header)
-            // ================================================================
-            async function loadAdminProfile() {
-                try {
-                    const res = await authFetch('/api/profile');
-                    const data = await res.json();
-                    if (data.success) {
-                        const admin = data.data;
-                        document.getElementById('headerName').textContent = admin.full_name || 'Admin';
-                        if (admin.profile_photo) {
-                            document.getElementById('headerAvatarImg').src = admin.profile_photo;
-                            document.getElementById('headerAvatarImg').style.display = 'block';
-                            document.getElementById('headerAvatarPlaceholder').style.display = 'none';
-                        }
-                    }
-                } catch (err) {
-                    console.error('Error loading admin profile:', err);
+    async function loadAdminProfile() {
+        try {
+            const res = await authFetch('/api/profile');
+            const data = await res.json();
+            if (data.success) {
+                const admin = data.data;
+                document.getElementById('headerName').textContent = admin.full_name || 'Admin';
+                if (admin.profile_photo) {
+                    document.getElementById('headerAvatarImg').src = admin.profile_photo;
+                    document.getElementById('headerAvatarImg').style.display = 'block';
+                    document.getElementById('headerAvatarPlaceholder').style.display = 'none';
                 }
             }
-            loadAdminProfile();
+        } catch (err) { console.error('Error loading admin profile:', err); }
+    }
+    loadAdminProfile();
 
-            // ================================================================
-            // LOAD REVIEWS (核心)
-            // ================================================================
-            let allReviews = [];
-            let serviceOptionsLoaded = false;
+    // ================================================================
+    // LOAD REVIEWS (核心)
+    // ================================================================
+    let allReviews = [];
+    let serviceOptionsLoaded = false;
 
-            async function loadReviews() {
-                try {
-                    const res = await authFetch('/api/reviews');
-                    const data = await res.json();
-                    if (data.success) {
-                        allReviews = data.data || [];
-                        renderReviews(allReviews);
-                        updateStats(allReviews);
-                        updateRatingOverview(allReviews);
-                        if (!serviceOptionsLoaded) {
-                            loadFilterServices(allReviews);
-                            serviceOptionsLoaded = true;
-                        }
+    async function loadReviews() {
+        try {
+            const res = await authFetch('/api/reviews');
+            const data = await res.json();
+            if (data.success) {
+                allReviews = data.data || [];
+                renderReviews(allReviews);
+                updateStats(allReviews);
+                updateRatingOverview(allReviews);
+                if (!serviceOptionsLoaded) {
+                    loadFilterServices(allReviews);
+                    serviceOptionsLoaded = true;
+                }
+            } else {
+                showError('Failed to load reviews.');
+            }
+        } catch (err) {
+            console.error(err);
+            showError('Unable to connect to server.');
+        }
+    }
+
+    function renderReviews(reviews) {
+        const container = document.getElementById('reviewListAdmin');
+        if (!reviews || reviews.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:30px; color:#7A7A7A;">
+                <i class="fa-regular fa-comment" style="font-size:32px; display:block; margin-bottom:10px;"></i>
+                No reviews yet.
+            </div>`;
+            return;
+        }
+
+        let html = '';
+        reviews.forEach(review => {
+            const customerName = review.customer ? review.customer.full_name : 'Anonymous';
+            const dateStr = review.created_at ? new Date(review.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+            const serviceName = review.service_name || 'General';
+            const photoHtml = review.review_photo ?
+                `<div style="margin-top:10px;"><img src="${review.review_photo}" alt="Review photo" style="max-width:100%; max-height:200px; border-radius:8px; border:1px solid #EFECE6;"></div>` :
+                '';
+            const starsHtml = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
+            const avatarContent = review.customer?.profile_photo ?
+                `<img src="${review.customer.profile_photo}" alt="Avatar">` :
+                customerName.substring(0, 2).toUpperCase();
+            
+            // ===== 构建回复树 (与 review.html 一致) =====
+            let repliesHtml = '';
+            if (review.replies && review.replies.length > 0) {
+                const replyMap = {};
+                review.replies.forEach(r => { r.children = []; replyMap[r.reply_id] = r; });
+                const roots = [];
+                review.replies.forEach(r => {
+                    if (r.parent_id && replyMap[r.parent_id]) {
+                        replyMap[r.parent_id].children.push(r);
                     } else {
-                        showError('Failed to load reviews.');
+                        roots.push(r);
                     }
-                } catch (err) {
-                    console.error(err);
-                    showError('Unable to connect to server.');
-                }
-            }
+                });
 
-            function renderReviews(reviews) {
-                const container = document.getElementById('reviewListAdmin');
-                if (!reviews || reviews.length === 0) {
-                    container.innerHTML = `<div style="text-align:center; padding:30px; color:#7A7A7A;">
-                        <i class="fa-regular fa-comment" style="font-size:32px; display:block; margin-bottom:10px;"></i>
-                        No reviews yet.
-                    </div>`;
-                    return;
-                }
+                const renderRepliesTree = (replies, isChild = false) => {
+                    let h = '';
+                    replies.forEach(reply => {
+                        const replierName = reply.customer ? reply.customer.full_name : 'User';
+                        const repDate = reply.created_at ? new Date(reply.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                        const isLiked = reply.reply_liked_by_me;
+                        const likeColor = isLiked ? 'style="color:#5A361A;"' : '';
+                        const likeIcon = isLiked ? 'fa-solid' : 'fa-regular';
+                        const repAvatar = reply.customer?.profile_photo ?
+                            `<img src="${reply.customer.profile_photo}" style="width:100%; height:100%; object-fit:cover;">` :
+                            replierName.substring(0, 2).toUpperCase();
 
-                let html = '';
-                reviews.forEach(review => {
-                    const customerName = review.customer ? review.customer.full_name : 'Anonymous';
-                    const dateStr = review.created_at ? new Date(review.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
-                    const serviceName = review.service_name || 'General';
-                    const photoHtml = review.review_photo ?
-                        `<div style="margin-top:10px;"><img src="${review.review_photo}" alt="Review photo" style="max-width:100%; max-height:200px; border-radius:8px; border:1px solid #EFECE6;"></div>` :
-                        '';
-
-                    const starsHtml = '★'.repeat(review.rating) + '☆'.repeat(5 - review.rating);
-                    const avatarContent = review.customer?.profile_photo ?
-                        `<img src="${review.customer.profile_photo}" alt="Avatar">` :
-                        customerName.substring(0, 2).toUpperCase();
-                    
-                    // 回复列表 (支持真嵌套)
-                    let repliesHtml = '';
-                    if (review.replies && review.replies.length > 0) {
-
-                        // 构建树结构
-                        const replyMap = {};
-                        review.replies.forEach(r => {
-                            r.children = [];
-                            replyMap[r.reply_id] = r;
-                        });
-
-                        const roots = [];
-                        review.replies.forEach(r => {
-                            if (r.parent_id && replyMap[r.parent_id]) {
-                                replyMap[r.parent_id].children.push(r);
-                            } else {
-                                roots.push(r);
-                            }
-                        });
-
-                        // 递归渲染
-                        const renderReplies = (replies) => {
-                            let html = '';
-                            replies.forEach(reply => {
-                                // 👇 将其移到循环里面
-                                const replyDeleteButton = `
-                                    <button class="reply-delete-btn" data-reply-id="${reply.reply_id}" style="border:none; background:none; color:#DC2626; cursor:pointer; margin-left:5px;"><i class="fa-regular fa-trash-can"></i> Delete</button>
-                                `;
-                                const replierName = reply.customer ? reply.customer.full_name : 'User';
-                                const repDate = reply.created_at ? new Date(reply.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
-                                const isLiked = reply.reply_liked_by_me;
-                                const likeColor = isLiked ? 'style="color:#5A361A;"' : '';
-                                const likeIcon = isLiked ? 'fa-solid' : 'fa-regular';
-                                const repAvatar = reply.customer?.profile_photo ?
-                                    `<img src="${reply.customer.profile_photo}" style="width:100%; height:100%; object-fit:cover;">` :
-                                    replierName.substring(0, 2).toUpperCase();
-
-                                // 判断是否为子回复，如果是子回复，添加特殊样式和缩进
-                                const isChild = reply.parent_id ? true : false;
-                                const replyStyle = isChild 
-                                    ? `margin-left: 30px;` 
-                                    : ``;
-
-                                html += `
-                                        <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; ${replyStyle}">
-                                        <div style="width: 28px; height: 28px; border-radius: 50%; background: #FDF3E7; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #5A361A;">
-                                            ${repAvatar}
-                                        </div>
-                                        <div style="font-size: 13px; display: flex; flex-direction: column; flex: 1;">
-                                            <span style="font-weight: 600; color: #5A361A;">${replierName}</span>
-                                            <span style="color: #444; margin-top: 2px;">${reply.reply_text}</span>
-                                            <div style="font-size: 11px; color: #B0A090; margin-top: 4px;">
-                                                ${repDate} 
-                                                <button class="reply-reply-btn" data-review-id="${review.review_id}" data-reply-id="${reply.reply_id}" style="border:none; background:none; color:#5A361A; cursor:pointer; margin-left:5px;"><i class="fa-regular fa-comment"></i> Reply</button>
-                                                <button class="reply-like-btn" ${likeColor} data-reply-id="${reply.reply_id}" style="border:none; background:none; cursor:pointer; margin-left:5px;"><i class="${likeIcon} fa-thumbs-up"></i> <span class="r-like-count">${reply.reply_like_count || 0}</span></button>
-                                                <!-- 这里在 admin_reviews.html 中额外添加删除按钮 -->
-                                                ${replyDeleteButton}
-                                            </div>
-                                        </div>
-                                    </div>
-                                `;
-                                
-                                // 递归渲染子回复
-                                if (reply.children && reply.children.length > 0) {
-                                    html += renderReplies(reply.children);
-                                }
-                            });
-                            return html;
-                        };
-
-                        repliesHtml = `<div style="margin-top: 12px; padding-left: 16px; border-left: 2px solid #E8DCC8; margin-bottom: 5px;">${renderReplies(roots)}</div>`;
-                    }
-
-                    html += `
-                        <div class="review-item-admin" data-review-id="${review.review_id}" data-service="${serviceName}" data-rating="${review.rating}" data-date="${review.created_at || ''}" data-likes="${review.like_count || 0}">
-                            <div class="review-header-admin">
-                                <div class="reviewer-admin">
-                                    <div class="avatar">${avatarContent}</div>
-                                    <div>
-                                        <div class="r-name">${customerName}</div>
-                                        <div class="r-date">${dateStr}</div>
+                        const childClass = isChild ? 'child-reply' : '';
+                        h += `
+                            <div class="reply-item ${childClass}">
+                                <div class="reply-avatar">${repAvatar}</div>
+                                <div class="reply-content">
+                                    <span class="reply-author">${replierName}</span>
+                                    <span class="reply-text">${reply.reply_text}</span>
+                                    <div class="reply-meta">
+                                        ${repDate}
+                                        <button class="reply-reply-btn" data-review-id="${review.review_id}" data-reply-id="${reply.reply_id}"><i class="fa-regular fa-comment"></i> Reply</button>
+                                        <button class="reply-like-btn" ${likeColor} data-reply-id="${reply.reply_id}"><i class="${likeIcon} fa-thumbs-up"></i> <span class="r-like-count">${reply.reply_like_count || 0}</span></button>
+                                        <button class="reply-delete-btn" data-reply-id="${reply.reply_id}"><i class="fa-regular fa-trash-can"></i> Delete</button>
                                     </div>
                                 </div>
-                                <div class="r-stars-admin">${starsHtml}</div>
                             </div>
-                            <div class="review-body-admin">
-                                <p class="r-text">${review.comment || 'No comment.'}</p>
-                                <div class="r-service"><i class="fa-solid fa-tag"></i> ${serviceName}</div>
-                                ${photoHtml}
-                                ${repliesHtml}
-                                <div class="review-actions-admin">
-                                    <button class="reply-btn-admin" data-review-id="${review.review_id}"><i class="fa-regular fa-comment"></i> Reply</button>
-                                    <button class="review-like-btn" data-review-id="${review.review_id}"><i class="fa-regular fa-thumbs-up"></i> <span class="like-count">${review.like_count || 0}</span></button>
-                                    <button class="delete-btn-admin" data-review-id="${review.review_id}"><i class="fa-regular fa-trash-can"></i> Delete</button>
-                                </div>
+                        `;
+                        if (reply.children && reply.children.length > 0) {
+                            h += renderRepliesTree(reply.children, true);
+                        }
+                    });
+                    return h;
+                };
+                repliesHtml = `<div class="replies-section">${renderRepliesTree(roots)}</div>`;
+            }
+
+            // ===== 评论主体 (按钮在回复列表上方) =====
+            html += `
+                <div class="review-item-admin" data-review-id="${review.review_id}" data-service="${serviceName}" data-rating="${review.rating}" data-date="${review.created_at || ''}" data-likes="${review.like_count || 0}">
+                    <div class="review-header-admin">
+                        <div class="reviewer-admin">
+                            <div class="avatar">${avatarContent}</div>
+                            <div>
+                                <div class="r-name">${customerName}</div>
+                                <div class="r-date">${dateStr}</div>
                             </div>
                         </div>
-                    `;
-                });
-                container.innerHTML = html;
-            }
-
-            // ================================================================
-            // 统计更新
-            // ================================================================
-            function updateStats(reviews) {
-                document.getElementById('totalReviews').textContent = reviews.length;
-                if (reviews.length === 0) {
-                    document.getElementById('avgRating').textContent = '0.0';
-                    document.getElementById('totalLikes').textContent = '0';
-                    document.getElementById('totalReplies').textContent = '0';
-                    return;
-                }
-                const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
-                const avg = (totalRating / reviews.length).toFixed(1);
-                document.getElementById('avgRating').textContent = avg;
-
-                let likes = 0, replies = 0;
-                reviews.forEach(r => {
-                    likes += r.like_count || 0;
-                    replies += (r.replies ? r.replies.length : 0);
-                });
-                document.getElementById('totalLikes').textContent = likes;
-                document.getElementById('totalReplies').textContent = replies;
-            }
-
-            function updateRatingOverview(reviews) {
-                const total = reviews.length;
-                const avg = total > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / total).toFixed(1) : '0.0';
-                document.getElementById('overallAvg').textContent = avg;
-                document.getElementById('overallCount').textContent = `Based on ${total} reviews`;
-                // stars
-                let starHtml = '';
-                const full = Math.floor(avg);
-                const half = avg % 1 >= 0.5;
-                for (let i = 0; i < full; i++) starHtml += '<i class="fa-solid fa-star"></i>';
-                if (half) starHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
-                while (starHtml.length / 3 < 5) starHtml += '<i class="fa-regular fa-star"></i>';
-                document.getElementById('overallStars').innerHTML = starHtml;
-
-                // distribution bars
-                const barsContainer = document.getElementById('ratingBars');
-                const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-                reviews.forEach(r => { if (dist[r.rating] !== undefined) dist[r.rating]++; });
-                let barsHtml = '';
-                for (let i = 5; i >= 1; i--) {
-                    const pct = total > 0 ? ((dist[i] / total) * 100).toFixed(0) : 0;
-                    barsHtml += `
-                        <div class="rating-bar-row">
-                            <span class="label">${i} ★</span>
-                            <div class="bar-track"><div class="fill" style="width:${pct}%;"></div></div>
-                            <span class="pct">${pct}%</span>
+                        <div class="r-stars-admin">${starsHtml}</div>
+                    </div>
+                    <div class="review-body-admin">
+                        <p class="r-text">${review.comment || 'No comment.'}</p>
+                        <div class="r-service"><i class="fa-solid fa-tag"></i> ${serviceName}</div>
+                        ${photoHtml}
+                        <!-- 按钮区域：Reply, Like, Delete 在回复列表上方 -->
+                        <div class="review-actions-admin">
+                            <button class="reply-btn-admin" data-review-id="${review.review_id}"><i class="fa-regular fa-comment"></i> Reply</button>
+                            <button class="review-like-btn" data-review-id="${review.review_id}"><i class="fa-regular fa-thumbs-up"></i> <span class="like-count">${review.like_count || 0}</span></button>
+                            <button class="delete-btn-admin" data-review-id="${review.review_id}"><i class="fa-regular fa-trash-can"></i> Delete</button>
                         </div>
-                    `;
-                }
-                barsContainer.innerHTML = barsHtml;
+                        <!-- 回复列表 -->
+                        ${repliesHtml}
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+
+    function updateStats(reviews) {
+        document.getElementById('totalReviews').textContent = reviews.length;
+        if (reviews.length === 0) {
+            document.getElementById('avgRating').textContent = '0.0';
+            document.getElementById('totalLikes').textContent = '0';
+            document.getElementById('totalReplies').textContent = '0';
+            return;
+        }
+        const totalRating = reviews.reduce((sum, r) => sum + r.rating, 0);
+        const avg = (totalRating / reviews.length).toFixed(1);
+        document.getElementById('avgRating').textContent = avg;
+        let likes = 0, replies = 0;
+        reviews.forEach(r => {
+            likes += r.like_count || 0;
+            replies += (r.replies ? r.replies.length : 0);
+        });
+        document.getElementById('totalLikes').textContent = likes;
+        document.getElementById('totalReplies').textContent = replies;
+    }
+
+    function updateRatingOverview(reviews) {
+        const total = reviews.length;
+        const avg = total > 0 ? (reviews.reduce((s, r) => s + r.rating, 0) / total).toFixed(1) : '0.0';
+        document.getElementById('overallAvg').textContent = avg;
+        document.getElementById('overallCount').textContent = `Based on ${total} reviews`;
+        let starHtml = '';
+        const full = Math.floor(avg);
+        const half = avg % 1 >= 0.5;
+        for (let i = 0; i < full; i++) starHtml += '<i class="fa-solid fa-star"></i>';
+        if (half) starHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
+        while (starHtml.length / 3 < 5) starHtml += '<i class="fa-regular fa-star"></i>';
+        document.getElementById('overallStars').innerHTML = starHtml;
+
+        const barsContainer = document.getElementById('ratingBars');
+        const dist = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+        reviews.forEach(r => { if (dist[r.rating] !== undefined) dist[r.rating]++; });
+        let barsHtml = '';
+        for (let i = 5; i >= 1; i--) {
+            const pct = total > 0 ? ((dist[i] / total) * 100).toFixed(0) : 0;
+            barsHtml += `
+                <div class="rating-bar-row">
+                    <span class="label">${i} ★</span>
+                    <div class="bar-track"><div class="fill" style="width:${pct}%;"></div></div>
+                    <span class="pct">${pct}%</span>
+                </div>
+            `;
+        }
+        barsContainer.innerHTML = barsHtml;
+    }
+
+    function loadFilterServices(reviews) {
+        const select = document.getElementById('filterServiceAdmin');
+        const services = new Set();
+        reviews.forEach(r => { if (r.service_name) services.add(r.service_name); });
+        select.innerHTML = '<option value="all">All Services</option>';
+        services.forEach(name => {
+            const opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            select.appendChild(opt);
+        });
+    }
+
+    function filterReviews() {
+        const search = document.getElementById('searchReview').value.toLowerCase().trim();
+        const serviceFilter = document.getElementById('filterServiceAdmin').value;
+        const ratingFilter = document.getElementById('filterRating').value;
+        const sort = document.getElementById('filterSortAdmin').value;
+
+        let filtered = allReviews.filter(r => {
+            const name = (r.customer?.full_name || '').toLowerCase();
+            const comment = (r.comment || '').toLowerCase();
+            const service = (r.service_name || '').toLowerCase();
+            const matchesSearch = name.includes(search) || comment.includes(search) || service.includes(search);
+            const matchesService = serviceFilter === 'all' || r.service_name === serviceFilter;
+            const matchesRating = ratingFilter === 'all' || r.rating === parseInt(ratingFilter);
+            return matchesSearch && matchesService && matchesRating;
+        });
+
+        filtered.sort((a, b) => {
+            if (sort === 'recent') {
+                const da = a.created_at ? new Date(a.created_at).getTime() : 0;
+                const db = b.created_at ? new Date(b.created_at).getTime() : 0;
+                return db - da;
+            } else if (sort === 'highest') {
+                return b.rating - a.rating;
+            } else if (sort === 'lowest') {
+                return a.rating - b.rating;
+            } else if (sort === 'most-liked') {
+                return (b.like_count || 0) - (a.like_count || 0);
             }
+            return 0;
+        });
+        renderReviews(filtered);
+    }
 
-            // ================================================================
-            // 加载服务筛选下拉
-            // ================================================================
-            function loadFilterServices(reviews) {
-                const select = document.getElementById('filterServiceAdmin');
-                const services = new Set();
-                reviews.forEach(r => { if (r.service_name) services.add(r.service_name); });
-                select.innerHTML = '<option value="all">All Services</option>';
-                services.forEach(name => {
-                    const opt = document.createElement('option');
-                    opt.value = name;
-                    opt.textContent = name;
-                    select.appendChild(opt);
-                });
+    document.getElementById('searchReview').addEventListener('input', filterReviews);
+    document.getElementById('filterServiceAdmin').addEventListener('change', filterReviews);
+    document.getElementById('filterRating').addEventListener('change', filterReviews);
+    document.getElementById('filterSortAdmin').addEventListener('change', filterReviews);
+
+    // ===== 删除确认 =====
+    let pendingDeleteReviewId = null;
+    let pendingDeleteReplyId = null;
+
+    function showDeleteConfirm(reviewId, replyId) {
+        if (replyId) {
+            pendingDeleteReplyId = replyId;
+            pendingDeleteReviewId = null;
+        } else {
+            pendingDeleteReviewId = reviewId;
+            pendingDeleteReplyId = null;
+        }
+        const modal = document.getElementById('deleteConfirmModal');
+        if (!modal) { if (confirm('Are you sure?')) document.getElementById('deleteConfirmBtn').click(); return; }
+        document.getElementById('deleteConfirmBtn').innerHTML = 'Delete';
+        document.getElementById('deleteConfirmBtn').disabled = false;
+        lockBodyScroll();
+        modal.classList.add('active');
+    }
+
+    function hideDeleteConfirm() {
+        const modal = document.getElementById('deleteConfirmModal');
+        modal.classList.remove('active');
+        unlockBodyScroll();
+        pendingDeleteReviewId = null;
+        pendingDeleteReplyId = null;
+    }
+
+    document.getElementById('deleteCancelBtn').addEventListener('click', hideDeleteConfirm);
+    document.getElementById('deleteConfirmBtn').addEventListener('click', async function() {
+        if (pendingDeleteReplyId) {
+            const replyId = pendingDeleteReplyId;
+            pendingDeleteReplyId = null;
+            hideDeleteConfirm();
+            try {
+                const res = await authFetch(`/api/replies/${replyId}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (data.success) { showConfirmation('Reply deleted successfully.'); loadReviews(); }
+                else { showError(data.message || 'Failed to delete reply.'); }
+            } catch (err) { showError('Unable to connect to server.'); }
+            return;
+        }
+        if (!pendingDeleteReviewId) return;
+        const reviewId = pendingDeleteReviewId;
+        hideDeleteConfirm();
+        try {
+            const res = await authFetch(`/api/reviews/${reviewId}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.success) {
+                showConfirmation('Review deleted successfully.');
+                allReviews = allReviews.filter(r => r.review_id !== reviewId);
+                filterReviews();
+                updateStats(allReviews);
+                updateRatingOverview(allReviews);
+                loadFilterServices(allReviews);
+            } else {
+                showError(data.message || 'Failed to delete review.');
             }
+        } catch (err) { showError('Unable to connect to server.'); }
+    });
 
-            // ================================================================
-            // 搜索 & 筛选
-            // ================================================================
-            function filterReviews() {
-                const search = document.getElementById('searchReview').value.toLowerCase().trim();
-                const serviceFilter = document.getElementById('filterServiceAdmin').value;
-                const ratingFilter = document.getElementById('filterRating').value;
-                const sort = document.getElementById('filterSortAdmin').value;
+    document.getElementById('deleteConfirmModal').addEventListener('click', function(e) {
+        if (e.target === this) hideDeleteConfirm();
+    });
 
-                let filtered = allReviews.filter(r => {
-                    const name = (r.customer?.full_name || '').toLowerCase();
-                    const comment = (r.comment || '').toLowerCase();
-                    const service = (r.service_name || '').toLowerCase();
-                    const matchesSearch = name.includes(search) || comment.includes(search) || service.includes(search);
-                    const matchesService = serviceFilter === 'all' || r.service_name === serviceFilter;
-                    const matchesRating = ratingFilter === 'all' || r.rating === parseInt(ratingFilter);
-                    return matchesSearch && matchesService && matchesRating;
-                });
+    // ================================================================
+    // 事件委托：Reply, Like, Delete, 回复点赞, 子回复
+    // ================================================================
+    document.getElementById('reviewListAdmin').addEventListener('click', async function(e) {
+        const target = e.target.closest('button');
+        if (!target) return;
 
-                // 排序
-                filtered.sort((a, b) => {
-                    if (sort === 'recent') {
-                        const da = a.created_at ? new Date(a.created_at).getTime() : 0;
-                        const db = b.created_at ? new Date(b.created_at).getTime() : 0;
-                        return db - da;
-                    } else if (sort === 'highest') {
-                        return b.rating - a.rating;
-                    } else if (sort === 'lowest') {
-                        return a.rating - b.rating;
-                    } else if (sort === 'most-liked') {
-                        return (b.like_count || 0) - (a.like_count || 0);
-                    }
-                    return 0;
-                });
+        // ---- 主回复按钮 ----
+        if (target.classList.contains('reply-btn-admin')) {
+            const reviewId = target.dataset.reviewId;
+            const parentItem = target.closest('.review-item-admin');
+            let existingBox = parentItem.querySelector('.reply-box-admin');
+            if (existingBox) { existingBox.remove(); return; }
+            const name = parentItem.querySelector('.r-name')?.textContent || 'Customer';
+            const box = document.createElement('div');
+            box.className = 'reply-box-admin';
+            box.innerHTML = `
+                <textarea placeholder="Reply to ${name}..." rows="2"></textarea>
+                <div class="reply-actions">
+                    <button class="btn btn-secondary btn-sm reply-cancel-admin">Cancel</button>
+                    <button class="btn btn-primary btn-sm reply-submit-admin" data-review-id="${reviewId}">Send</button>
+                </div>
+            `;
+            parentItem.querySelector('.review-body-admin').appendChild(box);
+            box.querySelector('textarea').focus();
 
-                renderReviews(filtered);
-            }
+            box.querySelector('.reply-cancel-admin').addEventListener('click', function() { box.remove(); });
 
-            document.getElementById('searchReview').addEventListener('input', filterReviews);
-            document.getElementById('filterServiceAdmin').addEventListener('change', filterReviews);
-            document.getElementById('filterRating').addEventListener('change', filterReviews);
-            document.getElementById('filterSortAdmin').addEventListener('change', filterReviews);
-
-            // ===== 删除确认相关 =====
-            let pendingDeleteReviewId = null;
-
-            function showDeleteConfirm(reviewId) {
-                console.log('showDeleteConfirm called with reviewId:', reviewId);
-                pendingDeleteReviewId = reviewId;
-                const modal = document.getElementById('deleteConfirmModal');
-                // 检查模态框是否存在
-                if (!modal) {
-                    alert('Modal not found, using fallback.');
-                    if (confirm('Are you sure you want to delete this review?')) {
-                        document.getElementById('deleteConfirmBtn').click();
-                    }
-                    return;
-                }
-                document.getElementById('deleteConfirmBtn').innerHTML = 'Delete';
-                document.getElementById('deleteConfirmBtn').disabled = false;
-                lockBodyScroll();
-                modal.classList.add('active');
-                console.log('Modal active class added:', modal.classList.contains('active'));
-            }
-
-            function hideDeleteConfirm() {
-                const modal = document.getElementById('deleteConfirmModal');
-                modal.classList.remove('active');
-                unlockBodyScroll();
-                pendingDeleteReviewId = null;
-                window.pendingDeleteReplyId = null; // 新增这一行
-            }
-
-            // 绑定删除确认按钮事件
-            document.getElementById('deleteCancelBtn').addEventListener('click', hideDeleteConfirm);
-            document.getElementById('deleteConfirmBtn').addEventListener('click', async function() {
-                // Check if we are deleting a reply
-                if (window.pendingDeleteReplyId) {
-                    const replyId = window.pendingDeleteReplyId;
-                    window.pendingDeleteReplyId = null;
-                    hideDeleteConfirm();
-                    try {
-                        const res = await authFetch(`/api/replies/${replyId}`, { method: 'DELETE' });
-                        const data = await res.json();
-                        if (data.success) { showConfirmation('Reply deleted successfully.'); loadReviews(); }
-                        else { showError(data.message || 'Failed to delete reply.'); }
-                    } catch (err) { showError('Unable to connect to server.'); }
-                    return; // Stop executing review deletion logic
-                }
-
-                // Default Review Deletion Logic (unchanged)
-                if (!pendingDeleteReviewId) return;
-                const reviewId = pendingDeleteReviewId;
-                hideDeleteConfirm();
-
+            box.querySelector('.reply-submit-admin').addEventListener('click', async function() {
+                const text = box.querySelector('textarea').value.trim();
+                if (!text) { showError('Please enter a reply.'); return; }
+                const btn = this;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
+                btn.disabled = true;
                 try {
-                    const res = await authFetch(`/api/reviews/${reviewId}`, { method: 'DELETE' });
+                    const token = localStorage.getItem('token');
+                    const res = await fetch(`/api/reviews/${reviewId}/reply`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ reply_text: text })
+                    });
                     const data = await res.json();
                     if (data.success) {
-                        showConfirmation('Review deleted successfully.');
-                        allReviews = allReviews.filter(r => r.review_id !== reviewId);
-                        filterReviews();
-                        updateStats(allReviews);
-                        updateRatingOverview(allReviews);
-                        loadFilterServices(allReviews);
-                    } else {
-                        showError(data.message || 'Failed to delete review.');
-                    }
-                } catch (err) {
-                    showError('Unable to connect to server.');
-                }
-            });
-
-            // 点击 overlay 关闭
-            document.getElementById('deleteConfirmModal').addEventListener('click', function(e) {
-                if (e.target === this) hideDeleteConfirm();
-            });
-
-            // ================================================================
-            // 回复按钮 & 删除按钮 (事件委托) - 修复：将 function(e) 改为 async function(e)
-            // ================================================================
-            document.getElementById('reviewListAdmin').addEventListener('click', async function(e) {
-                const target = e.target.closest('button');
-                if (!target) return;
-
-                // 回复按钮
-                if (target.classList.contains('reply-btn-admin')) {
-                    const reviewId = target.dataset.reviewId;
-                    const parentItem = target.closest('.review-item-admin');
-                    let existingBox = parentItem.querySelector('.reply-box-admin');
-                    if (existingBox) {
-                        existingBox.remove();
-                        return;
-                    }
-                    const name = parentItem.querySelector('.r-name')?.textContent || 'Customer';
-                    const box = document.createElement('div');
-                    box.className = 'reply-box-admin';
-                    box.innerHTML = `
-                        <textarea placeholder="Reply to ${name}..." rows="2"></textarea>
-                        <div class="reply-actions">
-                            <button class="btn btn-secondary btn-sm reply-cancel-admin">Cancel</button>
-                            <button class="btn btn-primary btn-sm reply-submit-admin" data-review-id="${reviewId}">Send</button>
-                        </div>
-                    `;
-                    parentItem.appendChild(box);
-                    box.querySelector('textarea').focus();
-
-                    box.querySelector('.reply-cancel-admin').addEventListener('click', function() {
                         box.remove();
-                    });
-
-                    box.querySelector('.reply-submit-admin').addEventListener('click', async function() {
-                        const text = box.querySelector('textarea').value.trim();
-                        if (!text) {
-                            showError('Please enter a reply.');
-                            return;
-                        }
-                        const btn = this;
-                        const originalHtml = btn.innerHTML;
-                        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending...';
-                        btn.disabled = true;
-
-                        try {
-                            const token = localStorage.getItem('token');
-                            const res = await fetch(`/api/reviews/${reviewId}/reply`, {
-                                method: 'POST',
-                                headers: {
-                                    'Authorization': `Bearer ${token}`,
-                                    'Content-Type': 'application/json'
-                                },
-                                body: JSON.stringify({ reply_text: text })
-                            });
-                            const data = await res.json();
-                            if (data.success) {
-                                box.remove();
-                                showConfirmation('Reply sent successfully!');
-                                // 直接在 DOM 中插入新回复
-                                const replierName = document.getElementById('headerName')?.textContent || 'Admin';
-                                const replyHtml = `
-                                    <div class="reply-item">
-                                        <div class="reply-avatar">${replierName.substring(0, 2).toUpperCase()}</div>
-                                        <div class="reply-content">
-                                            <span class="reply-author">${replierName}</span>
-                                            <span class="reply-text">${text}</span>
-                                            <div class="reply-date">Just now</div>
-                                        </div>
-                                    </div>
-                                `;
-                                const repliesSection = parentItem.querySelector('.replies-section') || document.createElement('div');
-                                if (!parentItem.querySelector('.replies-section')) {
-                                    repliesSection.className = 'replies-section';
-                                    parentItem.querySelector('.review-body-admin').appendChild(repliesSection);
-                                }
-                                repliesSection.insertAdjacentHTML('beforeend', replyHtml);
-                                // 更新统计（只增加回复数）
-                                const totalRepliesEl = document.getElementById('totalReplies');
-                                totalRepliesEl.textContent = parseInt(totalRepliesEl.textContent) + 1;
-                            } else {
-                                showError(data.message || 'Failed to send reply.');
-                            }
-                        } catch (err) {
-                            showError('Unable to connect to server.');
-                        } finally {
-                            btn.innerHTML = originalHtml;
-                            btn.disabled = false;
-                        }
-                    });
-                }
-
-                // ===== 新增: 回复的点赞和回复子回复 =====
-                // Fix: Reply Like - Use custom popup instead of alert
-                const likeReplyBtn = target.closest('.reply-like-btn');
-                if (likeReplyBtn) {
-                    const replyId = likeReplyBtn.dataset.replyId;
-                    const icon = likeReplyBtn.querySelector('i');
-                    const countSpan = likeReplyBtn.querySelector('.r-like-count');
-                    try {
-                        const token = localStorage.getItem('token');
-                        const res = await fetch(`/api/replies/${replyId}/like`, {
-                            method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                            countSpan.textContent = data.like_count;
-                            if (data.action === 'liked') {
-                                likeReplyBtn.style.color = '#5A361A';
-                                icon.className = 'fa-solid fa-thumbs-up';
-                            } else if (data.action === 'unliked') {
-                                likeReplyBtn.style.color = '';
-                                icon.className = 'fa-regular fa-thumbs-up';
-                            }
-                        } else {
-                            console.error('Reply like server error:', data.message);
-                            showError('Unable to update like: ' + (data.message || 'Invalid ID type.'));
-                        }
-                    } catch (err) { 
-                        console.error('Reply like error:', err); 
-                        showError('Unable to connect to server.'); 
+                        showConfirmation('Reply sent successfully!');
+                        await loadReviews();
+                    } else {
+                        showError(data.message || 'Failed to send reply.');
                     }
-                }
+                } catch (err) { showError('Unable to connect to server.'); }
+                finally { btn.innerHTML = originalHtml; btn.disabled = false; }
+            });
+        }
 
-                const replyReplyBtn = target.closest('.reply-reply-btn');
-                if (replyReplyBtn) {
-                    const replyId = replyReplyBtn.dataset.replyId;
-                    const parentItem = target.closest('.review-item-admin');
-                    let existingReply = parentItem.querySelector('.reply-to-reply-box');
-                    if (existingReply) { existingReply.remove(); return; }
-
-                    const box = document.createElement('div');
-                    box.className = 'reply-to-reply-box';
-                    box.style.marginTop = '8px';
-                    box.style.padding = '10px';
-                    box.style.background = '#FFF';
-                    box.style.borderRadius = '8px';
-                    box.style.border = '1px solid #E8DCC8';
-                    box.innerHTML = `
-                        <textarea placeholder="Reply to this comment..." rows="2" style="width:100%; padding:8px; border-radius:6px; border:1px solid #EFECE6; font-family:'Poppins',sans-serif; resize:vertical;"></textarea>
-                        <div style="display:flex; gap:8px; margin-top:8px; justify-content:flex-end;">
-                            <button class="reply-submit-child" style="background:#5A361A; color:#fff; border:none; padding:6px 16px; border-radius:6px; cursor:pointer;">Send</button>
-                            <button class="reply-cancel-child" style="background:#EFECE6; border:none; padding:6px 16px; border-radius:6px; cursor:pointer;">Cancel</button>
-                        </div>
-                    `;
-                    parentItem.querySelector('.review-body-admin').appendChild(box);
-                    box.querySelector('textarea').focus();
-
-                    box.querySelector('.reply-cancel-child').addEventListener('click', () => box.remove());
-                    box.querySelector('.reply-submit-child').addEventListener('click', async function() {
-                        const text = box.querySelector('textarea').value.trim();
-                        if (!text) return;
-                        const token = localStorage.getItem('token');
-                        const res = await fetch(`/api/replies/${replyId}/reply`, {
-                            method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ reply_text: text })
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                            box.remove();
-                            await loadReviews(); // 重新加载整个列表以显示最新回复
-                        }
-                    });
-                }
-
-                // Review 点赞按钮
-                if (target.classList.contains('review-like-btn')) {
-                    const reviewId = target.dataset.reviewId;
-                    const icon = target.querySelector('i');
-                    const countSpan = target.querySelector('.like-count');
-
-                    try {
-                        const token = localStorage.getItem('token');
-                        const res = await fetch(`/api/reviews/${reviewId}/like`, {
-                            method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
-                        });
-                        const data = await res.json();
-                        if (data.success) {
-                            countSpan.textContent = data.like_count;
-                            if (data.action === 'liked') {
-                                target.style.color = '#5A361A';
-                                icon.className = 'fa-solid fa-thumbs-up';
-                            } else if (data.action === 'unliked') {
-                                target.style.color = '#7A7A7A';
-                                icon.className = 'fa-regular fa-thumbs-up';
-                            }
-                        } else {
-                            showError('Unable to update like: ' + (data.message || 'Invalid ID type.'));
-                        }
-                    } catch (err) { 
-                        console.error('Review like error:', err); 
-                        showError('Unable to connect to server.'); 
+        // ---- 评论点赞 ----
+        if (target.classList.contains('review-like-btn')) {
+            const reviewId = target.dataset.reviewId;
+            const icon = target.querySelector('i');
+            const countSpan = target.querySelector('.like-count');
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`/api/reviews/${reviewId}/like`, {
+                    method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    countSpan.textContent = data.like_count;
+                    if (data.action === 'liked') {
+                        target.style.color = '#5A361A';
+                        icon.className = 'fa-solid fa-thumbs-up';
+                    } else {
+                        target.style.color = '';
+                        icon.className = 'fa-regular fa-thumbs-up';
                     }
+                } else {
+                    showError('Unable to update like: ' + (data.message || 'Invalid ID type.'));
                 }
+            } catch (err) { showError('Unable to connect to server.'); }
+        }
 
-                // 删除按钮
-                if (target.classList.contains('delete-btn-admin')) {
-                    const reviewId = target.dataset.reviewId;
-                    showDeleteConfirm(reviewId);
+        // ---- 删除评论 ----
+        if (target.classList.contains('delete-btn-admin')) {
+            const reviewId = target.dataset.reviewId;
+            showDeleteConfirm(reviewId, null);
+        }
+
+        // ---- 回复点赞 ----
+        if (target.classList.contains('reply-like-btn')) {
+            const replyId = target.dataset.replyId;
+            const icon = target.querySelector('i');
+            const countSpan = target.querySelector('.r-like-count');
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`/api/replies/${replyId}/like`, {
+                    method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    countSpan.textContent = data.like_count;
+                    if (data.action === 'liked') {
+                        target.style.color = '#5A361A';
+                        icon.className = 'fa-solid fa-thumbs-up';
+                    } else {
+                        target.style.color = '';
+                        icon.className = 'fa-regular fa-thumbs-up';
+                    }
+                } else {
+                    showError('Unable to update like: ' + (data.message || 'Invalid ID type.'));
                 }
+            } catch (err) { showError('Unable to connect to server.'); }
+        }
 
-                // 🆕 处理删除回复按钮 (使用项目内的弹窗代替原生 confirm/alert)
-                if (target.classList.contains('reply-delete-btn')) {
-                    const replyId = target.dataset.replyId;
-                    // Use the existing modal to confirm
-                    window.pendingDeleteReplyId = replyId; 
-                    showDeleteConfirm(null); 
+        // ---- 删除回复 ----
+        if (target.classList.contains('reply-delete-btn')) {
+            const replyId = target.dataset.replyId;
+            showDeleteConfirm(null, replyId);
+        }
+
+        // ---- 子回复按钮 ----
+        if (target.classList.contains('reply-reply-btn')) {
+            const replyId = target.dataset.replyId;
+            const parentItem = target.closest('.review-item-admin');
+            let existingReply = parentItem.querySelector('.reply-to-reply-box');
+            if (existingReply) { existingReply.remove(); return; }
+            const box = document.createElement('div');
+            box.className = 'reply-to-reply-box';
+            box.style.marginTop = '8px';
+            box.style.padding = '10px';
+            box.style.background = '#FFF';
+            box.style.borderRadius = '8px';
+            box.style.border = '1px solid #E8DCC8';
+            box.innerHTML = `
+                <textarea placeholder="Reply to this comment..." rows="2" style="width:100%; padding:8px; border-radius:6px; border:1px solid #EFECE6; font-family:'Poppins',sans-serif; resize:vertical;"></textarea>
+                <div style="display:flex; gap:8px; margin-top:8px; justify-content:flex-end;">
+                    <button class="reply-submit-child" style="background:#5A361A; color:#fff; border:none; padding:6px 16px; border-radius:6px; cursor:pointer;">Send</button>
+                    <button class="reply-cancel-child" style="background:#EFECE6; border:none; padding:6px 16px; border-radius:6px; cursor:pointer;">Cancel</button>
+                </div>
+            `;
+            parentItem.querySelector('.review-body-admin').appendChild(box);
+            box.querySelector('textarea').focus();
+
+            box.querySelector('.reply-cancel-child').addEventListener('click', () => box.remove());
+            box.querySelector('.reply-submit-child').addEventListener('click', async function() {
+                const text = box.querySelector('textarea').value.trim();
+                if (!text) return;
+                const token = localStorage.getItem('token');
+                const res = await fetch(`/api/replies/${replyId}/reply`, {
+                    method: 'POST', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ reply_text: text })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    box.remove();
+                    await loadReviews();
                 }
             });
+        }
+    });
 
-            // ================================================================
-            // NOTIFICATIONS (placeholder)
-            // ================================================================
-            document.getElementById('notificationBtn').addEventListener('click', function() {
-                showConfirmation('No new notifications.');
-            });
+    // ================================================================
+    // NOTIFICATIONS
+    // ================================================================
+    document.getElementById('notificationBtn').addEventListener('click', function() {
+        showConfirmation('No new notifications.');
+    });
 
-            // ================================================================
-            // INIT
-            // ================================================================
-            loadReviews();
-            console.log('Admin Reviews page loaded.');
-        });
-    </script>
+    // ================================================================
+    // INIT
+    // ================================================================
+    loadReviews();
+    console.log('Admin Reviews page loaded.');
+});
+</script>
 
 </body>
 </html>

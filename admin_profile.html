@@ -47,7 +47,6 @@
         button { cursor: pointer; }
         a { text-decoration: none; color: inherit; }
 
-        /* ===== 排版优化：左右完全对齐 ===== */
         .main-content {
             flex: 1;
             display: flex;
@@ -88,11 +87,6 @@
             flex: 1;
             height: 100%;
         }
-
-        /* 左列：Profile Overview 自然高度，Edit Profile 拉伸填满剩余空间 */
-        .left-stack .profile-overview {
-            flex: 0 1 auto;
-        }
         .left-stack .edit-card {
             flex: 1;
             display: flex;
@@ -114,9 +108,8 @@
             border-top: 1px solid #EFECE6;
         }
 
-        /* 右列：三个卡片均匀分布 */
         .right-stack {
-            justify-content: space-between;
+            justify-content: flex-start;
         }
 
         .footer {
@@ -255,186 +248,6 @@
             padding: 20px 24px 24px;
         }
 
-        .profile-overview .overview-inner {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            padding: 4px 0 8px;
-        }
-        .profile-top-row {
-            display: flex;
-            align-items: center;
-            gap: 24px;
-            flex-wrap: wrap;
-        }
-        .profile-avatar-wrapper {
-            width: 88px;
-            height: 88px;
-            border-radius: 50%;
-            overflow: hidden;
-            background: #FDF3E7;
-            border: 3px solid #EFECE6;
-            display: grid;
-            place-items: center;
-            flex-shrink: 0;
-        }
-        .profile-avatar-wrapper img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .profile-avatar-wrapper .avatar-placeholder {
-            font-size: 38px;
-        }
-        .profile-name-title {
-            flex: 1;
-        }
-        .profile-name-title .name {
-            font-size: 20px;
-            font-weight: 700;
-            color: #333;
-        }
-        .profile-name-title .role-badge-lg {
-            background: #F5EADC;
-            color: #79502E;
-            border-radius: 6px;
-            padding: 2px 14px;
-            font-size: 12px;
-            font-weight: 600;
-            display: inline-block;
-            margin-top: 2px;
-        }
-        .profile-name-title .sub-info {
-            font-size: 13px;
-            color: #7A7A7A;
-            margin-top: 2px;
-        }
-        .profile-name-title .sub-info i {
-            color: #D97706;
-            margin-right: 4px;
-        }
-        .change-photo-btn {
-            font-size: 12px;
-            padding: 4px 14px;
-            border-radius: 20px;
-            border: 1px solid #DFD0C2;
-            background: transparent;
-            color: #4A3327;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-family: 'Poppins', sans-serif;
-        }
-        .change-photo-btn:hover {
-            background: #F7EFE7;
-        }
-        .change-photo-wrap {
-            position: relative;
-            display: inline-block;
-        }
-        .change-photo-wrap input {
-            position: absolute;
-            inset: 0;
-            opacity: 0;
-            cursor: pointer;
-        }
-        .photo-help-text {
-            font-size: 10px;
-            color: #B0A090;
-            margin-top: 2px;
-        }
-
-        .info-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 6px 32px;
-            padding-top: 4px;
-        }
-        .info-item {
-            display: flex;
-            align-items: baseline;
-            gap: 8px;
-            padding: 4px 0;
-            border-bottom: 1px solid #F5F0EA;
-        }
-        .info-item .label {
-            font-size: 11px;
-            color: #7A7A7A;
-            text-transform: uppercase;
-            letter-spacing: 0.3px;
-            min-width: 80px;
-            flex-shrink: 0;
-        }
-        .info-item .value {
-            font-size: 14px;
-            font-weight: 500;
-            color: #333;
-            word-break: break-word;
-        }
-
-        .security-card .security-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0;
-            border-bottom: 1px solid #F5F0EA;
-            gap: 12px;
-        }
-        .security-card .security-item:last-child {
-            border-bottom: none;
-        }
-        .security-item .left {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex: 1;
-            min-width: 0;
-        }
-        .security-item .left > i {
-            width: 18px;
-            color: #8B796A;
-            text-align: center;
-            font-size: 15px;
-            flex-shrink: 0;
-        }
-        .security-item .left .title {
-            font-size: 14px;
-            font-weight: 500;
-            color: #333;
-        }
-        .security-item .left .desc {
-            font-size: 12px;
-            color: #7A7A7A;
-        }
-        .security-item .right {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            flex-shrink: 0;
-            flex-wrap: wrap;
-            justify-content: flex-end;
-        }
-        .security-item .right .badge {
-            font-size: 11px;
-            font-weight: 600;
-            padding: 2px 14px;
-            border-radius: 20px;
-            background: #E8F5E9;
-            color: #2E7D32;
-            white-space: nowrap;
-        }
-        .security-item .right .badge.inactive {
-            background: #FCE8E6;
-            color: #C5221F;
-        }
-        .security-item .right .btn-sm {
-            font-size: 11px;
-            padding: 4px 14px;
-            border-radius: 6px;
-        }
-
         /* ===== Edit Profile - 每行一个长文本框 ===== */
         .edit-card .form-grid {
             display: flex;
@@ -513,6 +326,68 @@
         }
         .edit-card .message.success { display: block; color: #2E7D32; }
         .edit-card .message.error { display: block; color: #C5221F; }
+
+        /* ===== Security 卡片 (整合原 Account Security) ===== */
+        .security-card .security-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #F5F0EA;
+            gap: 12px;
+        }
+        .security-card .security-item:last-child {
+            border-bottom: none;
+        }
+        .security-item .left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+            min-width: 0;
+        }
+        .security-item .left > i {
+            width: 18px;
+            color: #8B796A;
+            text-align: center;
+            font-size: 15px;
+            flex-shrink: 0;
+        }
+        .security-item .left .title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #333;
+        }
+        .security-item .left .desc {
+            font-size: 12px;
+            color: #7A7A7A;
+        }
+        .security-item .right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+        .security-item .right .badge {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 14px;
+            border-radius: 20px;
+            background: #E8F5E9;
+            color: #2E7D32;
+            white-space: nowrap;
+        }
+        .security-item .right .badge.inactive {
+            background: #FCE8E6;
+            color: #C5221F;
+        }
+        .security-item .right .btn-sm {
+            font-size: 11px;
+            padding: 4px 14px;
+            border-radius: 6px;
+        }
 
         .activity-card .activity-row {
             display: flex;
@@ -612,6 +487,14 @@
         .btn-sm {
             padding: 4px 14px;
             font-size: 12px;
+        }
+        .btn-danger {
+            background: #D32F2F;
+            color: #fff;
+            border: none;
+        }
+        .btn-danger:hover {
+            background: #B71C1C;
         }
 
         .modal-overlay {
@@ -727,8 +610,6 @@
         }
         .toast.show { opacity: 1; transform: translateY(0); }
 
-        .dashboard-container { padding: 0 32px 24px; }
-
         .twofa-status-card {
             display: flex;
             justify-content: space-between;
@@ -815,14 +696,12 @@
         }
         @media (max-width: 992px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
-            .info-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 14px; }
             .stat-card { padding: 16px 18px; }
             .stat-card i { width: 40px; height: 40px; font-size: 20px; }
             .stat-card h3 { font-size: 22px; }
-            .profile-top-row { flex-direction: column; align-items: center; text-align: center; }
             .info-grid { grid-template-columns: 1fr; }
             .security-item { flex-direction: column; align-items: flex-start; gap: 6px; }
             .security-item .right { align-self: flex-end; }
@@ -845,12 +724,7 @@
             .stat-card i { width: 36px; height: 36px; font-size: 18px; }
             .stat-card h3 { font-size: 20px; }
             .stat-card p { font-size: 12px; }
-            .profile-avatar-wrapper { width: 72px; height: 72px; }
-            .profile-avatar-wrapper .avatar-placeholder { font-size: 30px; }
-            .profile-name-title .name { font-size: 18px; }
             .page-heading h1 { font-size: 20px; }
-            .info-item .label { min-width: 60px; font-size: 10px; }
-            .info-item .value { font-size: 13px; }
         }
         .main-content .dashboard-container { padding-top: 0; }
 
@@ -936,72 +810,37 @@
                     <div class="stat-card">
                         <i class="fa-solid fa-right-to-bracket"></i>
                         <div>
-                            <h3 id="totalLogins">128</h3>
+                            <h3 id="totalLogins">0</h3>
                             <p>Total Logins</p>
                         </div>
                     </div>
                     <div class="stat-card">
                         <i class="fa-solid fa-shield-halved"></i>
                         <div>
-                            <h3>98%</h3>
+                            <h3 id="securityScore">90%</h3>
                             <p>Security Score</p>
                         </div>
                     </div>
                     <div class="stat-card">
                         <i class="fa-solid fa-desktop"></i>
                         <div>
-                            <h3>3</h3>
+                            <h3 id="activeSessions">0</h3>
                             <p>Active Sessions</p>
                         </div>
                     </div>
                     <div class="stat-card">
                         <i class="fa-solid fa-calendar-check"></i>
                         <div>
-                            <h3>873</h3>
+                            <h3 id="daysActive">0</h3>
                             <p>Days Active</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- ===== 主布局 ===== -->
+                <!-- ===== 主布局：左列 Edit Profile，右列 Security + Activity + Danger ===== -->
                 <div class="profile-grid">
                     <!-- 左侧 -->
                     <div class="left-stack">
-
-                        <!-- Profile Overview -->
-                        <div class="card profile-overview">
-                            <div class="card-header"><i class="fa-regular fa-user"></i> Profile Overview</div>
-                            <div class="card-body">
-                                <div class="overview-inner">
-                                    <div class="profile-top-row">
-                                        <div class="profile-avatar-wrapper">
-                                            <img id="profileAvatarImg" alt="Profile avatar" style="display:none;">
-                                            <span id="profileAvatarPlaceholder" class="avatar-placeholder">👤</span>
-                                        </div>
-                                        <div class="profile-name-title">
-                                            <div class="name" id="profileFullName">Admin</div>
-                                            <div><span class="role-badge-lg">Super Admin</span></div>
-                                            <div class="sub-info"><i class="fa-regular fa-envelope"></i> <span id="profileEmail">admin@pawcare.com</span></div>
-                                            <div style="margin-top:4px;">
-                                                <span class="change-photo-wrap">
-                                                    <button class="change-photo-btn"><i class="fa-solid fa-camera"></i> Change Photo</button>
-                                                    <input type="file" id="avatarUploadInput" accept="image/png,image/jpeg,image/gif,image/webp">
-                                                </span>
-                                                <span class="photo-help-text">JPG, PNG or GIF. Max 2MB.</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="info-grid">
-                                        <div class="info-item"><span class="label">Phone</span><span class="value" id="profilePhone">+60 12-345 6789</span></div>
-                                        <div class="info-item"><span class="label">Department</span><span class="value" id="profileDepartment">Management</span></div>
-                                        <div class="info-item"><span class="label">Employee ID</span><span class="value">ADM-0001</span></div>
-                                        <div class="info-item"><span class="label">Joined Date</span><span class="value">01 January 2024</span></div>
-                                        <div class="info-item"><span class="label">Last Login</span><span class="value" id="profileLastLogin">15 May 2026, 09:30 AM</span></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Edit Profile（每行一个长文本框） -->
                         <div class="card edit-card">
                             <div class="card-header"><i class="fa-regular fa-pen-to-square"></i> Edit Profile</div>
@@ -1041,7 +880,6 @@
                                 </form>
                             </div>
                         </div>
-
                     </div>
 
                     <!-- 右侧 -->
@@ -1060,17 +898,13 @@
                                     <div class="left"><i class="fa-solid fa-shield-halved"></i><div><div class="title">Two-Factor Authentication</div><div class="desc" id="twoFactorDesc">Extra layer of security</div></div></div>
                                     <div class="right"><span class="badge" id="twoFactorBadge">Enabled</span><button class="btn btn-outline btn-sm" id="manage2faBtn">Manage 2FA</button></div>
                                 </div>
-                                <!-- Login Sessions -->
                                 <div class="security-item">
-                                    <div class="left"><i class="fa-solid fa-desktop"></i><div><div class="title">Login Sessions</div><div class="desc" id="loginSessionsDesc">3 active sessions</div></div></div>
+                                    <div class="left"><i class="fa-solid fa-desktop"></i><div><div class="title">Login Sessions</div><div class="desc" id="loginSessionsDesc">0 active sessions</div></div></div>
                                     <div class="right"><button class="btn btn-outline btn-sm" id="viewSessionsBtn">View Sessions</button></div>
                                 </div>
-
-                                <!-- Email Verification -->
                                 <div class="security-item">
                                     <div class="left"><i class="fa-regular fa-envelope"></i><div><div class="title">Email Verification</div><div class="desc" id="emailVerificationDesc">admin@pawcare.com</div></div></div>
                                     <div class="right"><span class="badge"><i class="fa-solid fa-check"></i> Verified</span></div>
-                                </div>
                                 </div>
                             </div>
                         </div>
@@ -1080,10 +914,10 @@
                             <div class="card-header"><i class="fa-solid fa-chart-line"></i> Activity Summary</div>
                             <div class="card-body" style="padding-top:4px;">
                                 <div style="font-size:13px; color:#7A7A7A; margin-bottom:4px;">Your recent account activity.</div>
-                                <div class="activity-row"><span>Total Logins</span><span class="v" id="totalLoginsStat">128</span></div>
-                                <div class="activity-row"><span>Last Login</span><span class="v" id="lastLoginStat">15 May 2026, 09:30 AM</span></div>
-                                <div class="activity-row"><span>Password Changed</span><span class="v" id="pwdChanged">12 Apr 2026, 11:20 AM</span></div>
-                                <div class="activity-row"><span>Profile Last Updated</span><span class="v" id="profileUpdated">01 May 2026, 02:15 PM</span></div>
+                                <div class="activity-row"><span>Total Logins</span><span class="v" id="totalLoginsStat">0</span></div>
+                                <div class="activity-row"><span>Last Login</span><span class="v" id="lastLoginStat">Never</span></div>
+                                <div class="activity-row"><span>Password Changed</span><span class="v" id="pwdChanged">N/A</span></div>
+                                <div class="activity-row"><span>Profile Last Updated</span><span class="v" id="profileUpdated">N/A</span></div>
                             </div>
                         </div>
 
@@ -1142,7 +976,7 @@
     <div class="modal-overlay" id="changePwdModal">
         <div class="modal-box" style="text-align:left;">
             <button class="close-modal" data-close="changePwdModal"><i class="fa-solid fa-xmark"></i></button>
-            <button class="btn btn-outline btn-sm" id="changePwdBtn" onclick="openModal('changePwdModal')">Change Password</button>
+            <h2 class="modal-title">Change Password</h2>
             <p class="modal-subtitle">Enter your current and new password.</p>
             <form id="changePwdForm">
                 <div class="form-group" style="margin-bottom:14px;">
@@ -1195,10 +1029,8 @@
             <button class="close-modal" data-close="sessionsModal"><i class="fa-solid fa-xmark"></i></button>
             <h2 class="modal-title">Active Login Sessions</h2>
             <p class="modal-subtitle">Review devices currently signed in to your account.</p>
-            <div class="session-list">
-                <div class="session"><span><b>This device</b><br><small>Windows · Chrome</small></span><span class="badge">Current</span></div>
-                <div class="session"><span><b>Office PC</b><br><small>Windows · Edge</small></span><button class="btn btn-outline btn-sm sessionLogout">Log Out</button></div>
-                <div class="session"><span><b>Mobile</b><br><small>Android · Chrome</small></span><button class="btn btn-outline btn-sm sessionLogout">Log Out</button></div>
+            <div class="session-list" id="sessionList">
+                <!-- 由JS动态填充 -->
             </div>
         </div>
     </div>
@@ -1233,6 +1065,19 @@
         </div>
     </div>
 
+    <!-- CONFIRMATION MODAL (通用) -->
+    <div class="modal-overlay" id="confirmationModal">
+        <div class="modal-box">
+            <div class="modal-icon-circle success"><i class="fa-solid fa-check-circle"></i></div>
+            <h2 class="modal-title">Confirm</h2>
+            <p id="confirmationMessage" class="modal-subtitle">Are you sure?</p>
+            <div class="modal-btn-group">
+                <button class="btn btn-secondary" id="confirmationCancelBtn">Cancel</button>
+                <button class="btn btn-danger" id="confirmationOkBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
     <!-- USER MENU MODAL -->
     <div class="modal-overlay" id="userMenuModal">
         <div class="modal-box" style="max-width:340px; text-align:center;">
@@ -1255,14 +1100,11 @@
     <script>
 // 统一放在页面所有 <script> 的最顶部
 (function checkAuth() {
-    // 定义检查函数
     function doAuthCheck() {
         const token = localStorage.getItem('token');
         const user = localStorage.getItem('user');
-
         let shouldRedirect = false;
         let redirectUrl = 'index.html';
-
         if (!token) {
             shouldRedirect = true;
             redirectUrl = 'index.html';
@@ -1278,9 +1120,7 @@
                 redirectUrl = 'dashboard.html';
             }
         }
-
         if (shouldRedirect) {
-            // 清空整个页面
             document.documentElement.innerHTML = `
                 <html>
                     <head><title>Redirecting...</title></head>
@@ -1292,16 +1132,9 @@
             window.location.replace(redirectUrl);
         }
     }
-
-    // 页面初次加载执行
     doAuthCheck();
-
-    // 监听 pageshow 事件，处理 bfcache 恢复
     window.addEventListener('pageshow', function(event) {
-        // 如果页面是从 bfcache 恢复，重新执行检查
-        if (event.persisted) {
-            doAuthCheck();
-        }
+        if (event.persisted) doAuthCheck();
     });
 })();
 
@@ -1310,13 +1143,9 @@ const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
 const API_BASE_URL = ['2632', '5500'].includes(window.location.port) ? 'http://localhost:5000' : '';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
 
-// WRAPPER FOR API CALLS WITH TOKEN
 async function authFetch(url, options = {}) {
     const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.replace('login.html');
-        return;
-    }
+    if (!token) { window.location.replace('login.html'); return; }
     const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
@@ -1331,728 +1160,660 @@ async function authFetch(url, options = {}) {
     return response;
 }
 
-// SUPABASE DIRECT QUERY FUNCTIONS
-async function supabaseQuery(query, params = []) {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.replace('login.html');
-        return null;
-    }
-
-    try {
-        const response = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${query}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY
-            },
-            body: JSON.stringify({ params })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Supabase query failed: ${response.status}`);
-        }
-
-        return await response.json();
-    } catch (err) {
-        console.error('Supabase query error:', err);
-        return null;
-    }
-}
-
-// SCROLLBAR COMPENSATION FOR MODALS
 let modalCount = 0;
-
 function lockBodyScroll() {
     if (modalCount === 0) {
         const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-        if (scrollbarWidth > 0) {
-            document.body.style.paddingRight = scrollbarWidth + 'px';
-        }
+        if (scrollbarWidth > 0) document.body.style.paddingRight = scrollbarWidth + 'px';
         document.body.style.overflow = 'hidden';
     }
     modalCount++;
 }
-
 function unlockBodyScroll() {
     modalCount--;
-    if (modalCount <= 0) {
-        modalCount = 0;
-        document.body.style.paddingRight = '';
-        document.body.style.overflow = '';
-    }
+    if (modalCount <= 0) { modalCount = 0; document.body.style.paddingRight = ''; document.body.style.overflow = ''; }
 }
 
-// LOGOUT FUNCTIONS
 function showLogoutModal() {
     const modal = document.getElementById('logoutModal');
-    if (modal) {
-        lockBodyScroll();
-        modal.classList.add('active');
-    }
+    if (modal) { lockBodyScroll(); modal.classList.add('active'); }
 }
-
 function closeLogoutModal() {
     const modal = document.getElementById('logoutModal');
-    if (modal) {
-        modal.classList.remove('active');
-        unlockBodyScroll();
-    }
+    if (modal) { modal.classList.remove('active'); unlockBodyScroll(); }
 }
-
 function confirmLogout() {
     localStorage.clear();
     closeLogoutModal();
     window.location.replace('index.html');
 }
 
-var openModal, closeModal, showLogoutModal, closeLogoutModal, confirmLogout;
-
-// 挂载到全局，让 HTML 的 onclick 能调用
-window.openModal = function(id) {
+// 模态框工具
+function openModal(id) {
     const modal = document.getElementById(id);
     if (!modal) return;
     modal.classList.add('active');
     document.body.classList.add('modal-open');
-};
-
-window.closeModal = function(id) {
+    lockBodyScroll();
+}
+function closeModal(id) {
     const modal = document.getElementById(id);
     if (!modal) return;
     modal.classList.remove('active');
     if (!document.querySelector('.modal-overlay.active')) {
         document.body.classList.remove('modal-open');
-        document.body.style.paddingRight = '';
-        document.body.style.overflow = '';
+        unlockBodyScroll();
     }
-};
+}
 
-window.showLogoutModal = function() {
-    const modal = document.getElementById('logoutModal');
-    if (modal) {
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-};
+// 挂载到全局
+window.openModal = openModal;
+window.closeModal = closeModal;
+window.showLogoutModal = showLogoutModal;
+window.closeLogoutModal = closeLogoutModal;
+window.confirmLogout = confirmLogout;
 
-window.closeLogoutModal = function() {
-    const modal = document.getElementById('logoutModal');
-    if (modal) {
-        modal.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-};
+document.querySelectorAll('.modal-overlay').forEach(m => {
+    m.addEventListener('click', function(e) {
+        if (e.target === this) closeModal(this.id);
+    });
+});
+document.querySelectorAll('[data-close]').forEach(btn => {
+    btn.addEventListener('click', function() {
+        closeModal(this.dataset.close);
+    });
+});
 
-window.confirmLogout = function() {
-    localStorage.clear();
-    window.closeLogoutModal();
-    window.location.replace('index.html');
-};
-
-// ===== 这里才开启正确的 IIFE =====
 (function() {
     'use strict';
 
-    // ===== DEFAULTS =====
     const DEFAULTS = {
-                name: 'Admin',
-                email: 'pawcare071@gmail.com',
-                phone: '+60 12-345 6789',
-                department: 'Management',
-                joined: '01 January 2024',
-                lastLogin: '15 May 2026, 09:30 AM',
-                totalLogins: 0,
-                pwdChanged: '12 Apr 2026, 11:20 AM',
-                profileUpdated: '01 May 2026, 02:15 PM',
-                twoFactor: true,
-                theme: 'light'
-            };
+        name: 'Admin',
+        email: 'pawcare071@gmail.com',
+        phone: '+60 12-345 6789',
+        department: 'Management',
+        joined: '01 January 2024',
+        lastLogin: 'Never',
+        totalLogins: 0,
+        pwdChanged: 'N/A',
+        profileUpdated: 'N/A',
+        twoFactor: true,
+        theme: 'light'
+    };
 
-            const $ = id => document.getElementById(id);
-            const getData = () => {
-                try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem('pawcareAdminProfile') || '{}') }; } catch { return { ...DEFAULTS }; }
-            };
-            let data = getData();
+    const $ = id => document.getElementById(id);
+    const getData = () => {
+        try { return { ...DEFAULTS, ...JSON.parse(localStorage.getItem('pawcareAdminProfile') || '{}') }; } catch { return { ...DEFAULTS }; }
+    };
+    let data = getData();
 
-            function saveData() { localStorage.setItem('pawcareAdminProfile', JSON.stringify(data)); }
+    function saveData() { localStorage.setItem('pawcareAdminProfile', JSON.stringify(data)); }
 
-            function toast(message) {
-                const t = $('toast');
-                t.textContent = message;
-                t.classList.add('show');
-                clearTimeout(window.__toastTimer);
-                window.__toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
-            }
+    function toast(message) {
+        const t = $('toast');
+        t.textContent = message;
+        t.classList.add('show');
+        clearTimeout(window.__toastTimer);
+        window.__toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+    }
 
-            // ===== 模态框控制 =====
-            openModal = function(id) {
-                const modal = $(id);
-                if (!modal) return;
-                modal.classList.add('active');
-                document.body.classList.add('modal-open');
-            };
+    // 头像
+    function setAvatar(url) {
+        ['headerAvatarImg', 'profileAvatarImg'].forEach(id => {
+            const img = $(id);
+            if (img) { img.src = url; img.style.display = 'block'; }
+        });
+        const placeholder1 = $('headerAvatarPlaceholder');
+        const placeholder2 = $('profileAvatarPlaceholder');
+        if (placeholder1) placeholder1.style.display = 'none';
+        if (placeholder2) placeholder2.style.display = 'none';
+        localStorage.setItem('pawcareAvatar', url);
+    }
 
-            closeModal = function(id) {
-                const modal = $(id);
-                if (!modal) return;
-                modal.classList.remove('active');
-                if (!document.querySelector('.modal-overlay.active')) {
-                    document.body.classList.remove('modal-open');
-                    document.body.style.paddingRight = '';
-                    document.body.style.overflow = '';
+    function loadAvatar() {
+        const url = localStorage.getItem('pawcareAvatar');
+        if (url) setAvatar(url);
+    }
+
+    // 渲染
+    function render() {
+        $('headerName').textContent = data.name;
+        $('profileFullName') && ($('profileFullName').textContent = data.name);
+        $('profileEmail') && ($('profileEmail').textContent = data.email);
+        $('profilePhone') && ($('profilePhone').textContent = data.phone);
+        $('profileDepartment') && ($('profileDepartment').textContent = data.department);
+        $('profileLastLogin') && ($('profileLastLogin').textContent = data.lastLogin);
+        $('lastLoginStat') && ($('lastLoginStat').textContent = data.lastLogin);
+        $('totalLogins') && ($('totalLogins').textContent = data.totalLogins);
+        $('totalLoginsStat') && ($('totalLoginsStat').textContent = data.totalLogins);
+        $('pwdChanged') && ($('pwdChanged').textContent = data.pwdChanged);
+        $('profileUpdated') && ($('profileUpdated').textContent = data.profileUpdated);
+        $('editFullName') && ($('editFullName').value = data.name);
+        $('editEmail') && ($('editEmail').value = data.email);
+        $('editPhone') && ($('editPhone').value = data.phone);
+        $('editDepartment') && ($('editDepartment').value = data.department);
+
+        document.querySelectorAll('.theme-option').forEach(o => o.classList.toggle('active', o.dataset.theme === data.theme));
+        document.body.classList.toggle('dark', data.theme === 'dark');
+
+        const badge = $('twoFactorBadge');
+        if (badge) {
+            badge.textContent = data.twoFactor ? 'Enabled' : 'Disabled';
+            badge.classList.toggle('inactive', !data.twoFactor);
+        }
+        const desc = $('twoFactorDesc');
+        if (desc) desc.textContent = data.twoFactor ? 'Extra layer of security' : '2FA is currently disabled';
+        const toggleBtn = $('toggle2faBtn');
+        if (toggleBtn) toggleBtn.textContent = data.twoFactor ? 'Disable 2FA' : 'Enable 2FA';
+
+        const dot = $('twofaStatusDot');
+        if (dot) {
+            dot.className = 'status-dot ' + (data.twoFactor ? 'enabled' : 'disabled');
+            const label = $('twofaStatusLabel');
+            if (label) label.innerHTML = data.twoFactor ? '2FA is <strong>Enabled</strong>' : '2FA is <strong>Disabled</strong>';
+        }
+    }
+
+    // 加载活动统计
+    async function loadActivityStats() {
+        try {
+            const res = await authFetch('/api/admin/profile/activity');
+            const result = await res.json();
+            if (result.success) {
+                const stats = result.data;
+                const totalLogins = stats.totalLogins || 0;
+                $('totalLogins').textContent = totalLogins;
+                $('totalLoginsStat').textContent = totalLogins;
+                if ($('securityScore')) $('securityScore').textContent = (stats.securityScore || 90) + '%';
+                if ($('daysActive')) $('daysActive').textContent = stats.daysActive || 0;
+
+                const formatDate = (iso) => {
+                    if (!iso) return null;
+                    const d = new Date(iso);
+                    return d.toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                };
+                const lastLogin = formatDate(stats.lastLogin);
+                const pwdChanged = formatDate(stats.passwordUpdatedAt);
+                const profileUpdated = formatDate(stats.profileUpdatedAt);
+
+                if ($('lastLoginStat')) $('lastLoginStat').textContent = lastLogin || data.lastLogin;
+                if ($('profileLastLogin')) $('profileLastLogin').textContent = lastLogin || data.lastLogin;
+                if ($('pwdChanged')) $('pwdChanged').textContent = pwdChanged || data.pwdChanged;
+                if ($('profileUpdated')) $('profileUpdated').textContent = profileUpdated || data.profileUpdated;
+
+                // 更新 twoFactor 状态从数据库
+                if (stats.two_factor_enabled !== undefined) {
+                    data.twoFactor = stats.two_factor_enabled;
+                    saveData();
+                    render();
                 }
-            };
-
-            document.querySelectorAll('.modal-overlay').forEach(m => {
-                m.addEventListener('click', function(e) {
-                    if (e.target === this) closeModal(this.id);
-                });
-            });
-            document.querySelectorAll('[data-close]').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    closeModal(this.dataset.close);
-                });
-            });
-
-            // ===== 头像 =====
-            function setAvatar(url) {
-                ['headerAvatarImg', 'profileAvatarImg'].forEach(id => {
-                    const img = $(id);
-                    img.src = url;
-                    img.style.display = 'block';
-                });
-                $('headerAvatarPlaceholder').style.display = 'none';
-                $('profileAvatarPlaceholder').style.display = 'none';
-                localStorage.setItem('pawcareAvatar', url);
             }
+        } catch (err) { console.error('Failed to load activity stats:', err); }
+    }
 
-            function loadAvatar() {
-                const url = localStorage.getItem('pawcareAvatar');
-                if (url) setAvatar(url);
+    // 更新活跃会话数
+    async function updateActiveSessionsCount() {
+        try {
+            const res = await authFetch('/api/admin/sessions');
+            const result = await res.json();
+            if (result.success) {
+                const sessions = result.data;
+                const activeCount = sessions.filter(s => !s.loggedOut).length;
+                if ($('activeSessions')) $('activeSessions').textContent = activeCount;
+                if ($('loginSessionsDesc')) $('loginSessionsDesc').textContent = activeCount + ' active sessions';
             }
+        } catch (e) { console.error('Failed to update active sessions count:', e); }
+    }
 
-            // ===== 渲染 =====
-            function render() {
-                $('headerName').textContent = data.name;
-                $('profileFullName').textContent = data.name;
-                $('profileEmail').textContent = data.email;
-                $('profilePhone').textContent = data.phone;
-                $('profileDepartment').textContent = data.department;
-                $('profileLastLogin').textContent = data.lastLogin;
-                $('lastLoginStat').textContent = data.lastLogin;
-                $('totalLogins').textContent = data.totalLogins;
-                $('totalLoginsStat').textContent = data.totalLogins;
-                $('pwdChanged').textContent = data.pwdChanged;
-                $('profileUpdated').textContent = data.profileUpdated;
-                $('editFullName').value = data.name;
-                $('editEmail').value = data.email;
-                $('editPhone').value = data.phone;
-                $('editDepartment').value = data.department;
+    function showInfoModal(title, message) {
+        $('infoModalTitle').textContent = title || 'Notification';
+        $('infoModalMessage').textContent = message || 'No new notifications.';
+        openModal('infoModal');
+    }
 
-                document.querySelectorAll('.theme-option').forEach(o => o.classList.toggle('active', o.dataset.theme === data.theme));
-                document.body.classList.toggle('dark', data.theme === 'dark');
+    function openUserMenu() { openModal('userMenuModal'); }
 
-                const badge = $('twoFactorBadge');
-                badge.textContent = data.twoFactor ? 'Enabled' : 'Disabled';
-                badge.classList.toggle('inactive', !data.twoFactor);
-                $('twoFactorDesc').textContent = data.twoFactor ? 'Extra layer of security' : '2FA is currently disabled';
-                $('toggle2faBtn').textContent = data.twoFactor ? 'Disable 2FA' : 'Enable 2FA';
+    // ===== SIDEBAR =====
+    const menuToggle = $('menuToggle');
+    const sidebar = $('sidebar');
+    const sidebarClose = $('sidebarClose');
+    const overlay = $('sidebarOverlay');
 
-                const dot = document.getElementById('twofaStatusDot');
-                if (dot) {
-                    dot.className = 'status-dot ' + (data.twoFactor ? 'enabled' : 'disabled');
-                    document.getElementById('twofaStatusLabel').innerHTML = data.twoFactor ?
-                        '2FA is <strong>Enabled</strong>' :
-                        '2FA is <strong>Disabled</strong>';
+    function openSidebar() {
+        sidebar.classList.add('active');
+        overlay.classList.add('active');
+        if (!document.querySelector('.modal-overlay.active')) document.body.style.overflow = 'hidden';
+    }
+    function closeSidebar() {
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        if (!document.querySelector('.modal-overlay.active')) document.body.style.overflow = '';
+    }
+    if (menuToggle) menuToggle.addEventListener('click', openSidebar);
+    if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeSidebar();
+            document.querySelectorAll('.modal-overlay.active').forEach(m => closeModal(m.id));
+        }
+    });
+
+    // ===== DOMContentLoaded =====
+    document.addEventListener('DOMContentLoaded', function() {
+
+        // Notifications
+        $('notificationBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            showInfoModal('Notifications', 'No new notifications.');
+            $('notifCount').textContent = '0';
+        });
+
+        // Profile button -> user menu
+        $('profileBtn').addEventListener('click', function(e) {
+            e.stopPropagation();
+            openUserMenu();
+        });
+
+        $('userViewProfileBtn').addEventListener('click', function() {
+            closeModal('userMenuModal');
+            document.querySelector('.edit-card').scrollIntoView({ behavior: 'smooth' });
+        });
+        $('userLogoutBtn').addEventListener('click', function() {
+            closeModal('userMenuModal');
+            showLogoutModal();
+        });
+
+        // ===== Profile Form =====
+        $('profileForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const name = $('editFullName').value.trim();
+            const phone = $('editPhone').value.trim();
+            const msg = $('profileUpdateMessage');
+            if (name.length < 2) { msg.className = 'message error'; msg.textContent = 'Please enter a valid full name.'; return; }
+            if (!phone) { msg.className = 'message error'; msg.textContent = 'Phone number is required.'; return; }
+            try {
+                const res = await authFetch('/api/profile', {
+                    method: 'PUT',
+                    body: JSON.stringify({ full_name: name, phone_number: phone })
+                });
+                if (!res.ok) {
+                    let errMsg = 'Server error';
+                    try { const errData = await res.json(); errMsg = errData.message || errMsg; } catch (_) {}
+                    throw new Error(errMsg);
                 }
-            }
-
-            // Fix: Load Activity Stats (Use real data, avoid N/A, fix Total Logins and 2FA error)
-            async function loadActivityStats() {
-                try {
-                    const res = await authFetch('/api/admin/profile/activity');
-                    const result = await res.json();
-                    if (result.success) {
-                        const stats = result.data;
-                        data.totalLogins = stats.totalLogins || 0;
-                        document.getElementById('totalLogins').textContent = stats.totalLogins || 0;
-                        document.getElementById('totalLoginsStat').textContent = stats.totalLogins || 0;
-
-                        // Fix: Do not show "Never", retain last default date from data instead
-                        const formatDate = (iso) => {
-                            if (!iso) return null;
-                            const d = new Date(iso);
-                            return d.toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                        };
-
-                        const lastLogin = formatDate(stats.lastLogin);
-                        const pwdChanged = formatDate(stats.passwordUpdatedAt);
-                        const profileUpdated = formatDate(stats.profileUpdatedAt);
-
-                        document.getElementById('lastLoginStat').textContent = lastLogin || data.lastLogin;
-                        document.getElementById('profileLastLogin').textContent = lastLogin || data.lastLogin;
-                        document.getElementById('pwdChanged').textContent = pwdChanged || data.pwdChanged;
-                        document.getElementById('profileUpdated').textContent = profileUpdated || data.profileUpdated;
-
-                        const daysActiveElem = document.querySelector('.stat-card:nth-child(4) h3');
-                        if (daysActiveElem) daysActiveElem.textContent = stats.daysActive || 0;
-                        const securityScoreElem = document.querySelector('.stat-card:nth-child(2) h3');
-                        if (securityScoreElem && stats.securityScore !== undefined) securityScoreElem.textContent = stats.securityScore + '%';
-                    }
-                } catch (err) { console.error('Failed to load activity stats:', err); }
-            }
-
-            // Fix: Correctly show active session count and fix the "3 active sessions" text
-            async function updateActiveSessionsCount() {
-                try {
-                    const res = await authFetch('/api/admin/sessions');
-                    const result = await res.json();
-                    if (result.success) {
-                        const sessions = result.data;
-                        const activeCount = sessions.filter(s => !s.loggedOut).length;
-                        const activeSessionsElem = document.querySelector('.stat-card:nth-child(3) h3');
-                        if (activeSessionsElem) activeSessionsElem.textContent = activeCount;
-
-                        // 修复 Account Security 里的文本
-                        // Fix: Correctly show active session count and fix the "3 active sessions" text
-                        const sessionDesc = document.getElementById('loginSessionsDesc'); // 使用 ID 精确找到 Login Sessions
-                        if (sessionDesc) sessionDesc.textContent = activeCount + ' active sessions';
-                    }
-                } catch (e) { console.error('Failed to update active sessions count:', e); }
-            }
-
-            function showInfoModal(title, message) {
-                document.getElementById('infoModalTitle').textContent = title || 'Notification';
-                document.getElementById('infoModalMessage').textContent = message || 'No new notifications.';
-                openModal('infoModal');
-            }
-
-            function openUserMenu() {
-                openModal('userMenuModal');
-            }
-
-            // ===== SIDEBAR =====
-            const menuToggle = $('menuToggle');
-            const sidebar = $('sidebar');
-            const sidebarClose = $('sidebarClose');
-            const overlay = $('sidebarOverlay');
-
-            function openSidebar() {
-                sidebar.classList.add('active');
-                overlay.classList.add('active');
-                if (!document.querySelector('.modal-overlay.active')) document.body.style.overflow = 'hidden';
-            }
-
-            function closeSidebar() {
-                sidebar.classList.remove('active');
-                overlay.classList.remove('active');
-                if (!document.querySelector('.modal-overlay.active')) document.body.style.overflow = '';
-            }
-            if (menuToggle) menuToggle.addEventListener('click', openSidebar);
-            if (sidebarClose) sidebarClose.addEventListener('click', closeSidebar);
-            if (overlay) overlay.addEventListener('click', closeSidebar);
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeSidebar();
-                    document.querySelectorAll('.modal-overlay.active').forEach(m => closeModal(m.id));
+                const result = await res.json();
+                if (result.success) {
+                    const profile = JSON.parse(localStorage.getItem('pawcareAdminProfile') || '{}');
+                    profile.full_name = name;
+                    profile.phone_number = phone;
+                    localStorage.setItem('pawcareAdminProfile', JSON.stringify(profile));
+                    const user = JSON.parse(localStorage.getItem('user') || '{}');
+                    if (user && user.id) { user.name = name; localStorage.setItem('user', JSON.stringify(user)); }
+                    await loadAdminProfile(true);
+                    msg.className = 'message success';
+                    msg.textContent = '✓ Profile updated successfully!';
+                    toast('Profile changes saved.');
+                    loadActivityStats();
+                } else {
+                    msg.className = 'message error';
+                    msg.textContent = result.message || 'Update failed.';
                 }
+            } catch (err) {
+                console.error('Profile update error:', err);
+                msg.className = 'message error';
+                msg.textContent = 'Unable to connect to server. Please check your network.';
+                toast('Update failed: ' + err.message);
+            }
+        });
+
+        $('resetProfileBtn').addEventListener('click', function() {
+            $('editFullName').value = DEFAULTS.name;
+            $('editPhone').value = DEFAULTS.phone;
+            $('profileUpdateMessage').className = 'message';
+            $('profileUpdateMessage').textContent = '';
+            toast('Profile form has been reset.');
+        });
+
+        // ===== Change Photo =====
+        $('avatarUploadInput').addEventListener('change', async function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) { toast('Image too large, max 2MB.'); return; }
+            const formData = new FormData();
+            formData.append('avatar', file);
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch('/api/profile/avatar', {
+                    method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData
+                });
+                const result = await res.json();
+                if (result.success) { setAvatar(result.avatar_url); toast('Avatar updated successfully!'); }
+                else { toast('Failed to upload avatar: ' + result.message); }
+            } catch (err) { toast('Network error, upload failed.'); }
+        });
+
+        // ===== Change Password - 修复按钮点击 =====
+        // 使用独立 ID 避免冲突
+        const changePwdBtn = document.getElementById('changePwdBtn');
+        if (changePwdBtn) {
+            changePwdBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                openModal('changePwdModal');
+                // 清空表单
+                document.getElementById('currentPwd').value = '';
+                document.getElementById('newPwd').value = '';
+                document.getElementById('confirmPwd').value = '';
+                document.getElementById('pwdChangeMessage').textContent = '';
+                document.getElementById('pwdChangeMessage').className = 'message';
             });
+        }
 
-            // ===== HEADER 事件 =====
-            document.addEventListener('DOMContentLoaded', function() {
-                $('notificationBtn').addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    showInfoModal('Notifications', 'No new notifications.');
-                    $('notifCount').textContent = '0';
+        $('changePwdForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const current = $('currentPwd').value;
+            const newPwd = $('newPwd').value;
+            const confirm = $('confirmPwd').value;
+            const msg = $('pwdChangeMessage');
+            if (newPwd !== confirm) {
+                msg.textContent = 'Passwords do not match.';
+                msg.style.color = 'red';
+                msg.className = 'message error';
+                return;
+            }
+            try {
+                const res = await authFetch('/api/profile/password', {
+                    method: 'PUT', body: JSON.stringify({ currentPassword: current, newPassword: newPwd })
                 });
+                const result = await res.json();
+                if (result.success) {
+                    msg.textContent = 'Password updated successfully!';
+                    msg.style.color = 'green';
+                    msg.className = 'message success';
+                    $('currentPwd').value = ''; $('newPwd').value = ''; $('confirmPwd').value = '';
+                    loadActivityStats();
+                    toast('Password changed successfully!');
+                } else {
+                    msg.textContent = result.message || 'Update failed';
+                    msg.style.color = 'red';
+                    msg.className = 'message error';
+                }
+            } catch (err) {
+                msg.textContent = 'Unable to connect to server.';
+                msg.style.color = 'red';
+                msg.className = 'message error';
+            }
+        });
 
-                $('profileBtn').addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    openUserMenu();
-                });
+        // ===== Theme Switching =====
+        document.querySelectorAll('.theme-option').forEach(option => {
+            option.addEventListener('click', function() {
+                data.theme = this.dataset.theme;
+                saveData();
+                render();
+                toast('Theme switched to ' + (data.theme === 'dark' ? 'Dark' : 'Light'));
+            });
+        });
 
-                $('userViewProfileBtn').addEventListener('click', function() {
-                    closeModal('userMenuModal');
-                    document.querySelector('.profile-overview').scrollIntoView({ behavior: 'smooth' });
-                });
-                $('userLogoutBtn').addEventListener('click', function() {
-                    closeModal('userMenuModal');
-                    showLogoutModal();
-                });
+        // ===== 2FA =====
+        $('manage2faBtn').addEventListener('click', function() {
+            openModal('twoFactorModal');
+        });
 
-                // ===== Profile Form =====
-                $('profileForm').addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    const name = $('editFullName').value.trim();
-                    const phone = $('editPhone').value.trim();
-                    const msg = $('profileUpdateMessage');
-                    if (name.length < 2) { msg.className = 'message error'; msg.textContent = 'Please enter a valid full name.'; return; }
-                    if (!phone) { msg.className = 'message error'; msg.textContent = 'Phone number is required.'; return; }
+        // 修复 toggle2faBtn 点击
+        const toggle2faBtn = document.getElementById('toggle2faBtn');
+        if (toggle2faBtn) {
+            toggle2faBtn.addEventListener('click', function() {
+                const nextState = !data.twoFactor;
+                const message = nextState ?
+                    'Enable Two-Factor Authentication? This adds an extra layer of security to your account.' :
+                    'Disable Two-Factor Authentication? Your account will be less secure.';
 
-                    try {
-                        const res = await authFetch('/api/profile', {
-                            method: 'PUT',
-                            body: JSON.stringify({ full_name: name, phone_number: phone })
-                        });
-                        // 检查响应是否成功
-                        if (!res.ok) {
-                            let errMsg = 'Server error';
-                            try {
-                                const errData = await res.json();
-                                errMsg = errData.message || errMsg;
-                            } catch (_) {}
-                            throw new Error(errMsg);
-                        }
-                        const data = await res.json();
-                        if (data.success) {
-                            // 更新本地存储（可选）
-                            const profile = JSON.parse(localStorage.getItem('pawcareAdminProfile') || '{}');
-                            profile.full_name = name;
-                            profile.phone_number = phone;
-                            localStorage.setItem('pawcareAdminProfile', JSON.stringify(profile));
-                            // 更新 user 对象
-                            const user = JSON.parse(localStorage.getItem('user') || '{}');
-                            if (user && user.id) {
-                                user.name = name;
-                                localStorage.setItem('user', JSON.stringify(user));
-                            }
-                            // 重新加载资料（静默，不显示错误）
-                            await loadAdminProfile(true);
-                            msg.className = 'message success';
-                            msg.textContent = '✓ Profile updated successfully!';
-                            toast('Profile changes saved.');
-                            loadActivityStats();
-                        } else {
-                            msg.className = 'message error';
-                            msg.textContent = data.message || 'Update failed.';
-                        }
-                    } catch (err) {
-                        console.error('Profile update error:', err);
-                        msg.className = 'message error';
-                        msg.textContent = 'Unable to connect to server. Please check your network.';
-                        toast('Update failed: ' + err.message);
-                    }
-                });
+                // 使用通用确认模态框
+                document.getElementById('confirmationMessage').textContent = message;
+                document.getElementById('confirmationCancelBtn').style.display = 'inline-block';
+                document.getElementById('confirmationOkBtn').textContent = nextState ? 'Enable' : 'Disable';
+                document.getElementById('confirmationOkBtn').className = nextState ? 'btn btn-primary' : 'btn btn-danger';
 
-                // Fix: Reset Button
-                $('resetProfileBtn').addEventListener('click', function() {
-                    $('editFullName').value = DEFAULTS.name;
-                    $('editPhone').value = DEFAULTS.phone;
-                    $('profileUpdateMessage').className = 'message';
-                    $('profileUpdateMessage').textContent = '';
-                    toast('Profile form has been reset.');
-                });
+                // 移除旧监听，添加新监听
+                const okBtn = document.getElementById('confirmationOkBtn');
+                const newOkBtn = okBtn.cloneNode(true);
+                okBtn.parentNode.replaceChild(newOkBtn, okBtn);
 
-                // Fix: Change Photo
-                $('avatarUploadInput').addEventListener('change', async function(e) {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    if (file.size > 2 * 1024 * 1024) { toast('Image too large, max 2MB.'); return; }
-                    const formData = new FormData();
-                    formData.append('avatar', file);
+                newOkBtn.addEventListener('click', async function() {
+                    closeModal('confirmationModal');
                     try {
                         const token = localStorage.getItem('token');
-                        const res = await fetch('/api/profile/avatar', {
-                            method: 'POST', headers: { 'Authorization': `Bearer ${token}` }, body: formData
-                        });
-                        const result = await res.json();
-                        if (result.success) { setAvatar(result.avatar_url); toast('Avatar updated successfully!'); }
-                        else { toast('Failed to upload avatar: ' + result.message); }
-                    } catch (err) { toast('Network error, upload failed.'); }
-                });
-
-                // Fix: Change Password
-                $('changePwdForm').addEventListener('submit', async function(e) {
-                    e.preventDefault();
-                    const current = $('currentPwd').value;
-                    const newPwd = $('newPwd').value;
-                    const confirm = $('confirmPwd').value;
-                    if (newPwd !== confirm) {
-                        $('pwdChangeMessage').textContent = 'Passwords do not match.';
-                        $('pwdChangeMessage').style.color = 'red'; return;
-                    }
-                    try {
-                        const res = await authFetch('/api/profile/password', {
-                            method: 'PUT', body: JSON.stringify({ currentPassword: current, newPassword: newPwd })
+                        const res = await fetch('/api/profile/2fa', {
+                            method: 'PUT',
+                            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ two_factor_enabled: nextState })
                         });
                         const result = await res.json();
                         if (result.success) {
-                            $('pwdChangeMessage').textContent = 'Password updated successfully!';
-                            $('pwdChangeMessage').style.color = 'green';
-                            $('currentPwd').value = ''; $('newPwd').value = ''; $('confirmPwd').value = '';
-                            loadActivityStats(); 
+                            data.twoFactor = nextState;
+                            saveData();
+                            render();
+                            toast(data.twoFactor ? '2FA enabled successfully.' : '2FA disabled.');
+                            loadActivityStats();
                         } else {
-                            $('pwdChangeMessage').textContent = result.message || 'Update failed';
-                            $('pwdChangeMessage').style.color = 'red';
-                        }
-                    } catch (err) { $('pwdChangeMessage').textContent = 'Unable to connect to server.'; $('pwdChangeMessage').style.color = 'red'; }
-                });
-
-                // Fix: Theme Switching (Dark Mode)
-                document.querySelectorAll('.theme-option').forEach(option => {
-                    option.addEventListener('click', function() {
-                        data.theme = this.dataset.theme;
-                        saveData(); render();
-                        toast('Theme switched to ' + (data.theme === 'dark' ? 'Dark' : 'Light'));
-                    });
-                });
-
-                // ===== 2FA =====
-                $('manage2faBtn').addEventListener('click', function() { openModal('twoFactorModal'); });
-
-                $('toggle2faBtn').addEventListener('click', function() {
-                    const nextState = !data.twoFactor;
-                    const message = nextState ? 
-                        'Enable Two-Factor Authentication? This adds an extra layer of security to your account.' : 
-                        'Disable Two-Factor Authentication? Your account will be less secure.';
-                    
-                    document.getElementById('confirmationMessage').textContent = message;
-                    document.getElementById('confirmationOkBtn').onclick = async function() {
-                        closeModal('confirmationModal');
-                        document.getElementById('confirmationOkBtn').onclick = function() { closeModal('confirmationModal'); };
-                        
-                        // 尝试更新到数据库
-                        try {
-                            const token = localStorage.getItem('token');
-                            const res = await fetch('/api/profile/2fa', {
-                                method: 'PUT',
-                                headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ two_factor_enabled: nextState })
-                            });
-                            const result = await res.json();
-                            
-                            if (result.success) {
-                                data.twoFactor = nextState;
-                                saveData();
-                                render();
-                                toast(data.twoFactor ? '2FA enabled successfully. Extra security layer active.' : '2FA disabled.');
-                            } else {
-                                toast('Failed to update 2FA: ' + (result.message || 'Unknown error'));
-                            }
-                        } catch (err) {
-                            toast('Network error.');
-                        }
-                    };
-                    openModal('confirmationModal');
-                });
-
-                // ===== Sessions =====
-                function renderSessions(sessions) {
-                    const list = document.querySelector('.session-list');
-                    if (!list) return;
-
-                    // ===== 新增：空状态判断 =====
-                    if (!sessions || sessions.length === 0) {
-                        list.innerHTML = '<div style="text-align:center; padding:10px; color:#7A7A7A;">No active sessions</div>';
-                        return;
-                    }
-
-                    let html = '';
-                    sessions.forEach(s => {
-                        const isLoggedOut = s.loggedOut || false;
-                        const isCurrent = s.current || false;
-                        let statusText = '';
-                        if (isCurrent) statusText = '<span class="badge">Current</span>';
-                        else if (isLoggedOut) statusText = '<span class="badge">Logged Out</span>';
-                        else statusText = '<button class="btn btn-outline btn-sm sessionLogout" data-id="'+s.id+'">Log Out</button>';
-                        html += `<div class="session"><span><b>${s.device}</b><br><small>${s.browser}</small></span>${statusText}</div>`;
-                    });
-                    list.innerHTML = html;
-                }
-
-                $('viewSessionsBtn').addEventListener('click', async function() {
-                    openModal('sessionsModal');
-                    let sessions = JSON.parse(localStorage.getItem('pawcareSessions') || 'null');
-                    if (!sessions) {
-                        try {
-                            const res = await authFetch('/api/admin/sessions');
-                            const data = await res.json();
-                            if (data.success) {
-                                sessions = data.data;
-                                localStorage.setItem('pawcareSessions', JSON.stringify(sessions));
-                            }
-                        } catch (e) { /* fallback */ }
-                    }
-                    if (!sessions) sessions = [];
-                    renderSessions(sessions);
-                });
-
-                // 重新绑定单个 Session 登出
-                document.getElementById('sessionsModal').addEventListener('click', async function(e) {
-                    if (e.target.classList.contains('sessionLogout')) {
-                        const btn = e.target;
-                        const deviceId = btn.dataset.id;
-                        btn.textContent = 'Logging out...';
-                        btn.disabled = true;
-
-                        try {
-                            const res = await authFetch(`/api/admin/sessions/${deviceId}/logout`, { method: 'POST' });
-                            const data = await res.json();
-                            if (data.success) {
-                                // 重新获取会话列表
-                                const sessionsRes = await authFetch('/api/admin/sessions');
-                                const sessionsData = await sessionsRes.json();
-                                if (sessionsData.success) {
-                                    localStorage.setItem('pawcareSessions', JSON.stringify(sessionsData.data));
-                                    renderSessions(sessionsData.data);
-                                    updateActiveSessionsCount(); 
-                                }
-                                toast('Session logged out.');
-                            } else {
-                                toast('Failed to logout session: ' + data.message);
-                                btn.textContent = 'Log Out';
-                                btn.disabled = false;
-                            }
-                        } catch (err) {
-                            toast('Error logging out session.');
-                            btn.textContent = 'Log Out';
-                            btn.disabled = false;
-                        }
-                    }
-                });
-
-                // ===== Danger Zone =====
-                $('logoutAllBtn').addEventListener('click', function() {
-                    // 使用已有的 Confirmation Modal
-                    document.getElementById('confirmationMessage').textContent = 'Are you sure you want to log out from all active devices?';
-                    
-                    // 设置确认按钮的点击事件
-                    document.getElementById('confirmationOkBtn').onclick = async function() {
-                        // 先关闭弹窗
-                        closeModal('confirmationModal');
-                        
-                        // 【重要】立即重置 onclick，防止此操作残留到下一次弹窗
-                        document.getElementById('confirmationOkBtn').onclick = function() { closeModal('confirmationModal'); };
-                        
-                        try {
-                            const res = await authFetch('/api/admin/logout-all', { method: 'POST' });
-                            const data = await res.json();
-                            if (data.success) {
-                                const sessionsRes = await authFetch('/api/admin/sessions');
-                                const sessionsData = await sessionsRes.json();
-                                if (sessionsData.success) {
-                                    localStorage.setItem('pawcareSessions', JSON.stringify(sessionsData.data));
-                                    renderSessions(sessionsData.data);
-                                    updateActiveSessionsCount();
-                                }
-                                toast('All sessions have been logged out.');
-                                localStorage.removeItem('token');
-                                localStorage.removeItem('isLoggedIn');
-                                setTimeout(() => window.location.replace('index.html'), 800);
-                            } else {
-                                toast('Failed to logout all.');
-                            }
-                        } catch (e) { toast('Failed to logout all.'); }
-                    };
-                    openModal('confirmationModal');
-                });
-
-                $('deleteAccountBtn').addEventListener('click', function() {
-                    $('deleteConfirmInput').value = '';
-                    openModal('deleteModal');
-                });
-
-                $('confirmDeleteBtn').addEventListener('click', function() {
-                    if ($('deleteConfirmInput').value.trim() !== 'DELETE') { toast('Please type DELETE to confirm.');
-                        return; }
-                    ['pawcareAdminProfile', 'pawcareAvatar', 'token', 'user', 'isLoggedIn', 'customer',
-                        'customerId'
-                    ].forEach(k => localStorage.removeItem(k));
-                    closeModal('deleteModal');
-                    toast('Admin account deleted.');
-                    setTimeout(() => window.location.replace('index.html'), 800);
-                });
-
-                loadAvatar();
-                render();
-                // 加载管理员个人资料（真实数据）
-                async function loadAdminProfile(silent = false) {
-                    try {
-                        const res = await authFetch('/api/profile');
-                        const result = await res.json();
-                        if (result.success) {
-                            const admin = result.data;
-
-                            // 更新全局 data（使用 DEFAULTS 合并）
-                            const newData = {
-                                ...DEFAULTS,
-                                name: admin.full_name || DEFAULTS.name,
-                                email: admin.email || DEFAULTS.email,
-                                phone: admin.phone_number || DEFAULTS.phone,
-                                department: admin.department || DEFAULTS.department,
-                                profile_photo: admin.profile_photo || null
-                            };
-                            localStorage.setItem('pawcareAdminProfile', JSON.stringify(newData));
-                            data = getData();
-
-                            // 同步更新 localStorage 中的 user 对象
-                            const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-                            if (storedUser && storedUser.id) {
-                                storedUser.name = admin.full_name || storedUser.name;
-                                storedUser.email = admin.email || storedUser.email;
-                                localStorage.setItem('user', JSON.stringify(storedUser));
-                            }
-
-                            // 手动更新 DOM（确保一致性）
-                            document.getElementById('headerName').textContent = admin.full_name || 'Admin';
-                            document.getElementById('profileFullName').textContent = admin.full_name || 'Admin';
-                            document.getElementById('profileEmail').textContent = admin.email || 'pawcare071@gmail.com';
-                            document.getElementById('profilePhone').textContent = admin.phone_number || '';
-                            document.getElementById('editFullName').value = admin.full_name || '';
-                            document.getElementById('editEmail').value = admin.email || '';
-                            document.getElementById('editPhone').value = admin.phone_number || '';
-                            // Fix: 确保 Email Verification 下方显示的永远是 admin.email
-                            const emailDescEl = document.getElementById('emailVerificationDesc'); // 使用 ID 精确找到 Email Verification
-                            if (emailDescEl) emailDescEl.textContent = admin.email || 'pawcare071@gmail.com';
-
-                            // 头像处理
-                            if (admin.profile_photo) {
-                                ['headerAvatarImg', 'profileAvatarImg'].forEach(id => {
-                                    const img = document.getElementById(id);
-                                    img.src = admin.profile_photo;
-                                    img.style.display = 'block';
-                                });
-                                document.getElementById('headerAvatarPlaceholder').style.display = 'none';
-                                document.getElementById('profileAvatarPlaceholder').style.display = 'none';
-                                localStorage.setItem('pawcareAvatar', admin.profile_photo);
-                            } else {
-                                // 如果没有头像，显示占位符
-                                ['headerAvatarImg', 'profileAvatarImg'].forEach(id => {
-                                    document.getElementById(id).style.display = 'none';
-                                });
-                                document.getElementById('headerAvatarPlaceholder').style.display = 'inline';
-                                document.getElementById('profileAvatarPlaceholder').style.display = 'inline';
-                            }
-
-                            // 移除错误提示（如果有）
-                            const msg = document.getElementById('profileUpdateMessage');
-                            if (msg) {
-                                msg.className = 'message';
-                                msg.textContent = '';
-                            }
-
-                            if (!silent) toast('Profile loaded successfully.');
-                        } else {
-                            console.error('Failed to load profile:', result.message);
-                            if (!silent) toast('Failed to load profile: ' + (result.message || 'Unknown error'));
+                            toast('Failed to update 2FA: ' + (result.message || 'Unknown error'));
                         }
                     } catch (err) {
-                        console.error('Error loading admin profile:', err);
-                        console.error('Error stack:', err.stack);
-                        if (!silent) toast('Unable to connect to server. Please refresh and try again.');
+                        toast('Network error.');
                     }
-                }
+                });
 
-                // 在 DOMContentLoaded 内部调用
-                loadAdminProfile();
-                loadActivityStats();        // 新增
-                updateActiveSessionsCount(); // 新增
-                console.log('PawCare Admin Profile loaded.');
+                // 取消按钮
+                document.getElementById('confirmationCancelBtn').addEventListener('click', function() {
+                    closeModal('confirmationModal');
+                });
+
+                openModal('confirmationModal');
             });
+        }
 
-        })();
-    </script>
+        // ===== Sessions =====
+        function renderSessions(sessions) {
+            const list = document.getElementById('sessionList');
+            if (!list) return;
+            if (!sessions || sessions.length === 0) {
+                list.innerHTML = '<div style="text-align:center; padding:10px; color:#7A7A7A;">No active sessions</div>';
+                return;
+            }
+            let html = '';
+            sessions.forEach(s => {
+                const isLoggedOut = s.loggedOut || false;
+                const isCurrent = s.current || false;
+                let statusText = '';
+                if (isCurrent) statusText = '<span class="badge">Current</span>';
+                else if (isLoggedOut) statusText = '<span class="badge">Logged Out</span>';
+                else statusText = '<button class="btn btn-outline btn-sm sessionLogout" data-id="'+s.id+'">Log Out</button>';
+                html += `<div class="session"><span><b>${s.device}</b><br><small>${s.browser}</small></span>${statusText}</div>`;
+            });
+            list.innerHTML = html;
+        }
+
+        $('viewSessionsBtn').addEventListener('click', async function() {
+            openModal('sessionsModal');
+            let sessions = JSON.parse(localStorage.getItem('pawcareSessions') || 'null');
+            if (!sessions) {
+                try {
+                    const res = await authFetch('/api/admin/sessions');
+                    const data = await res.json();
+                    if (data.success) {
+                        sessions = data.data;
+                        localStorage.setItem('pawcareSessions', JSON.stringify(sessions));
+                    }
+                } catch (e) { /* fallback */ }
+            }
+            if (!sessions) sessions = [];
+            renderSessions(sessions);
+        });
+
+        // 单个 Session 登出
+        document.getElementById('sessionsModal').addEventListener('click', async function(e) {
+            if (e.target.classList.contains('sessionLogout')) {
+                const btn = e.target;
+                const deviceId = btn.dataset.id;
+                btn.textContent = 'Logging out...';
+                btn.disabled = true;
+                try {
+                    const res = await authFetch(`/api/admin/sessions/${deviceId}/logout`, { method: 'POST' });
+                    const data = await res.json();
+                    if (data.success) {
+                        const sessionsRes = await authFetch('/api/admin/sessions');
+                        const sessionsData = await sessionsRes.json();
+                        if (sessionsData.success) {
+                            localStorage.setItem('pawcareSessions', JSON.stringify(sessionsData.data));
+                            renderSessions(sessionsData.data);
+                            updateActiveSessionsCount();
+                        }
+                        toast('Session logged out.');
+                    } else {
+                        toast('Failed to logout session: ' + data.message);
+                        btn.textContent = 'Log Out';
+                        btn.disabled = false;
+                    }
+                } catch (err) {
+                    toast('Error logging out session.');
+                    btn.textContent = 'Log Out';
+                    btn.disabled = false;
+                }
+            }
+        });
+
+        // ===== Danger Zone =====
+        // 修复 logoutAllBtn
+        const logoutAllBtn = document.getElementById('logoutAllBtn');
+        if (logoutAllBtn) {
+            logoutAllBtn.addEventListener('click', function() {
+                document.getElementById('confirmationMessage').textContent = 'Are you sure you want to log out from all active devices?';
+                document.getElementById('confirmationCancelBtn').style.display = 'inline-block';
+                document.getElementById('confirmationOkBtn').textContent = 'Log Out All';
+                document.getElementById('confirmationOkBtn').className = 'btn btn-danger';
+
+                const okBtn = document.getElementById('confirmationOkBtn');
+                const newOkBtn = okBtn.cloneNode(true);
+                okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+
+                newOkBtn.addEventListener('click', async function() {
+                    closeModal('confirmationModal');
+                    try {
+                        const res = await authFetch('/api/admin/logout-all', { method: 'POST' });
+                        const data = await res.json();
+                        if (data.success) {
+                            const sessionsRes = await authFetch('/api/admin/sessions');
+                            const sessionsData = await sessionsRes.json();
+                            if (sessionsData.success) {
+                                localStorage.setItem('pawcareSessions', JSON.stringify(sessionsData.data));
+                                renderSessions(sessionsData.data);
+                                updateActiveSessionsCount();
+                            }
+                            toast('All sessions have been logged out.');
+                            localStorage.removeItem('token');
+                            localStorage.removeItem('isLoggedIn');
+                            setTimeout(() => window.location.replace('index.html'), 800);
+                        } else {
+                            toast('Failed to logout all.');
+                        }
+                    } catch (e) { toast('Failed to logout all.'); }
+                });
+
+                document.getElementById('confirmationCancelBtn').addEventListener('click', function() {
+                    closeModal('confirmationModal');
+                });
+
+                openModal('confirmationModal');
+            });
+        }
+
+        // Delete Account
+        $('deleteAccountBtn').addEventListener('click', function() {
+            $('deleteConfirmInput').value = '';
+            openModal('deleteModal');
+        });
+
+        $('confirmDeleteBtn').addEventListener('click', function() {
+            if ($('deleteConfirmInput').value.trim() !== 'DELETE') { toast('Please type DELETE to confirm.'); return; }
+            ['pawcareAdminProfile', 'pawcareAvatar', 'token', 'user', 'isLoggedIn', 'customer', 'customerId'].forEach(k => localStorage.removeItem(k));
+            closeModal('deleteModal');
+            toast('Admin account deleted.');
+            setTimeout(() => window.location.replace('index.html'), 800);
+        });
+
+        // ===== 加载管理员个人资料 =====
+        async function loadAdminProfile(silent = false) {
+            try {
+                const res = await authFetch('/api/profile');
+                const result = await res.json();
+                if (result.success) {
+                    const admin = result.data;
+                    const newData = {
+                        ...DEFAULTS,
+                        name: admin.full_name || DEFAULTS.name,
+                        email: admin.email || DEFAULTS.email,
+                        phone: admin.phone_number || DEFAULTS.phone,
+                        department: admin.department || DEFAULTS.department,
+                        profile_photo: admin.profile_photo || null
+                    };
+                    localStorage.setItem('pawcareAdminProfile', JSON.stringify(newData));
+                    data = getData();
+
+                    const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
+                    if (storedUser && storedUser.id) {
+                        storedUser.name = admin.full_name || storedUser.name;
+                        storedUser.email = admin.email || storedUser.email;
+                        localStorage.setItem('user', JSON.stringify(storedUser));
+                    }
+
+                    $('headerName').textContent = admin.full_name || 'Admin';
+                    $('profileFullName') && ($('profileFullName').textContent = admin.full_name || 'Admin');
+                    $('profileEmail') && ($('profileEmail').textContent = admin.email || 'pawcare071@gmail.com');
+                    $('profilePhone') && ($('profilePhone').textContent = admin.phone_number || '');
+                    $('editFullName').value = admin.full_name || '';
+                    $('editEmail').value = admin.email || '';
+                    $('editPhone').value = admin.phone_number || '';
+                    if ($('emailVerificationDesc')) $('emailVerificationDesc').textContent = admin.email || 'pawcare071@gmail.com';
+
+                    if (admin.profile_photo) {
+                        ['headerAvatarImg', 'profileAvatarImg'].forEach(id => {
+                            const img = document.getElementById(id);
+                            if (img) { img.src = admin.profile_photo; img.style.display = 'block'; }
+                        });
+                        const p1 = document.getElementById('headerAvatarPlaceholder');
+                        const p2 = document.getElementById('profileAvatarPlaceholder');
+                        if (p1) p1.style.display = 'none';
+                        if (p2) p2.style.display = 'none';
+                        localStorage.setItem('pawcareAvatar', admin.profile_photo);
+                    }
+
+                    const msg = document.getElementById('profileUpdateMessage');
+                    if (msg) { msg.className = 'message'; msg.textContent = ''; }
+
+                    if (!silent) toast('Profile loaded successfully.');
+                } else {
+                    console.error('Failed to load profile:', result.message);
+                    if (!silent) toast('Failed to load profile: ' + (result.message || 'Unknown error'));
+                }
+            } catch (err) {
+                console.error('Error loading admin profile:', err);
+                if (!silent) toast('Unable to connect to server. Please refresh and try again.');
+            }
+        }
+
+        // 初始化
+        loadAvatar();
+        render();
+        loadAdminProfile();
+        loadActivityStats();
+        updateActiveSessionsCount();
+
+        console.log('PawCare Admin Profile loaded.');
+    });
+
+})();
+</script>
 
 </body>
 </html>
