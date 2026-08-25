@@ -1407,13 +1407,55 @@ function confirmLogout() {
     window.location.replace('index.html');
 }
 
-        var openModal, closeModal, showLogoutModal, closeLogoutModal, confirmLogout;
+var openModal, closeModal, showLogoutModal, closeLogoutModal, confirmLogout;
 
-        (function() {
-            'use strict';
+// 挂载到全局，让 HTML 的 onclick 能调用
+window.openModal = function(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.add('active');
+    document.body.classList.add('modal-open');
+};
 
-            // ===== DEFAULTS =====
-            const DEFAULTS = {
+window.closeModal = function(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.remove('active');
+    if (!document.querySelector('.modal-overlay.active')) {
+        document.body.classList.remove('modal-open');
+        document.body.style.paddingRight = '';
+        document.body.style.overflow = '';
+    }
+};
+
+window.showLogoutModal = function() {
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+};
+
+window.closeLogoutModal = function() {
+    const modal = document.getElementById('logoutModal');
+    if (modal) {
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+};
+
+window.confirmLogout = function() {
+    localStorage.clear();
+    window.closeLogoutModal();
+    window.location.replace('index.html');
+};
+
+// ===== 这里才开启正确的 IIFE =====
+(function() {
+    'use strict';
+
+    // ===== DEFAULTS =====
+    const DEFAULTS = {
                 name: 'Admin',
                 email: 'pawcare071@gmail.com',
                 phone: '+60 12-345 6789',

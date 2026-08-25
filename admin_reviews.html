@@ -942,7 +942,7 @@ function confirmLogout() {
                                     : ``;
 
                                 html += `
-                                    <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; ${replyStyle} border-radius: 8px; padding: 10px;">
+                                        <div style="display: flex; align-items: flex-start; gap: 10px; margin-bottom: 10px; ${replyStyle}">
                                         <div style="width: 28px; height: 28px; border-radius: 50%; background: #FDF3E7; flex-shrink: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: #5A361A;">
                                             ${repAvatar}
                                         </div>
@@ -990,11 +990,8 @@ function confirmLogout() {
                                 ${repliesHtml}
                                 <div class="review-actions-admin">
                                     <button class="reply-btn-admin" data-review-id="${review.review_id}"><i class="fa-regular fa-comment"></i> Reply</button>
+                                    <button class="review-like-btn" data-review-id="${review.review_id}"><i class="fa-regular fa-thumbs-up"></i> <span class="like-count">${review.like_count || 0}</span></button>
                                     <button class="delete-btn-admin" data-review-id="${review.review_id}"><i class="fa-regular fa-trash-can"></i> Delete</button>
-                                    <!-- 修改这一行：加上按钮类名，并绑定事件 -->
-                                    <button class="review-like-btn" data-review-id="${review.review_id}" style="background:none; border:none; color:#7A7A7A; font-size:13px; cursor:pointer; display:flex; align-items:center; gap:6px; font-family:'Poppins',sans-serif;">
-                                        <i class="fa-regular fa-thumbs-up"></i> <span class="like-count">${review.like_count || 0}</span>
-                                    </button>
                                 </div>
                             </div>
                         </div>

@@ -627,11 +627,15 @@ app.put('/api/profile', async (req, res) => {
     }
 
   // 防止 RLS 阻止 Admin 更新自己的资料
-  const { error } = await supabaseAdmin
-    .from(table)
-    .update(updateData)
-    .eq(idField, userId);
+    // 在 try 块内，更新成功后：
+    const { error } = await supabaseAdmin.from(table).update(updateData).eq(idField, userId);
     if (error) throw error;
+
+    // 新增：只有在成功时，才更新修改时间
+    if (role === 'admin') {
+        await supabaseAdmin.from('admin').update({ profile_updated_at: new Date().toISOString() }).eq(idField, userId);
+    }
+
     res.json({ success: true, message: 'Profile updated.' });
   } catch (err) {
     console.error(err);
@@ -3392,8 +3396,10 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
             daysActive = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         }
 
-        // 安全分数（模拟，可改为实际规则）
-        const securityScore = 98;
+        // 读取 two_factor_enabled
+        const { data: adminSettings } = await supabaseAdmin.from('admin').select('two_factor_enabled').eq('admin_id', adminId).maybeSingle();
+        // 如果开启 2FA，给 100 分，否则 90 分。
+        const securityScore = adminSettings?.two_factor_enabled ? 100 : 90;
 
         // 返回数据
         res.json({
