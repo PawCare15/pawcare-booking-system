@@ -2203,7 +2203,12 @@
                   `<img src="${review.customer.profile_photo}" alt="Avatar">` :
                   customerName.substring(0, 2).toUpperCase();
 
-              // 构建回复树
+              // ===== 修复：主评论点赞状态 =====
+              const isLiked = review.liked_by_me || false;
+              const likeIconClass = isLiked ? 'fa-solid' : 'fa-regular';
+              const likeColor = isLiked ? 'style="color:#5A361A;"' : '';
+
+              // ===== 构建回复树 =====
               let repliesHtml = '';
               if (review.replies && review.replies.length > 0) {
                   const replyMap = {};
@@ -2253,7 +2258,7 @@
                   repliesHtml = `<div class="replies-section">${renderRepliesTree(roots)}</div>`;
               }
 
-              // 评论主体 — 无 Delete 按钮
+              // 评论主体 — 无 Delete 按钮，点赞使用动态状态
               html += `
                   <div class="review-item" data-review-id="${review.review_id}" data-service="${serviceName}" data-rating="${review.rating}" data-date="${review.created_at || ''}" data-likes="${review.like_count || 0}">
                       <div class="review-header">
@@ -2273,7 +2278,10 @@
                           <!-- 按钮区域：Reply, Like (无 Delete) -->
                           <div class="review-actions">
                               <button class="reply-btn" data-review-id="${review.review_id}"><i class="fa-regular fa-comment"></i> Reply</button>
-                              <button class="like-btn" data-review-id="${review.review_id}"><i class="fa-regular fa-thumbs-up"></i> <span class="like-count">${review.like_count || 0}</span></button>
+                              <button class="like-btn" ${likeColor} data-review-id="${review.review_id}">
+                                  <i class="${likeIconClass} fa-thumbs-up"></i>
+                                  <span class="like-count">${review.like_count || 0}</span>
+                              </button>
                           </div>
                           ${repliesHtml}
                       </div>

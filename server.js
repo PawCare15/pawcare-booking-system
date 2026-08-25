@@ -459,12 +459,20 @@ app.post('/api/login', async (req, res) => {
                     publicKey: process.env.EMAILJS_PUBLIC_KEY,
                     privateKey: process.env.EMAILJS_PRIVATE_KEY,
                 });
-                
+
                 try {
                     await emailjs.send(
                         process.env.EMAILJS_SERVICE_ID,
                         process.env.EMAILJS_TEMPLATE_ID,
-                        { otp_code: code, email: user.email }
+                        {
+                            otp_code: code,
+                            email: user.email,
+                            title: '🔐 Two-Factor Authentication',
+                            subject: 'Your 2FA Verification Code - PawCare',   // 新增
+                            description: 'Your 2FA verification code is:',
+                            badgeText: '2FA',
+                            badgeClass: 'badge-2fa'
+                        }
                     );
                 } catch (emailError) {
                     console.error('Failed to send 2FA email:', emailError);
@@ -2141,19 +2149,27 @@ app.post('/api/send-otp', async (req, res) => {
   }
 
   emailjs.init({
-    publicKey: process.env.EMAILJS_PUBLIC_KEY,
-    privateKey: process.env.EMAILJS_PRIVATE_KEY,
+      publicKey: process.env.EMAILJS_PUBLIC_KEY,
+      privateKey: process.env.EMAILJS_PRIVATE_KEY,
   });
   try {
-    await emailjs.send(
-      process.env.EMAILJS_SERVICE_ID,
-      process.env.EMAILJS_TEMPLATE_ID,
-      { otp_code: otp, email }
-    );
-    res.json({ success: true, message: 'OTP sent.' });
+            await emailjs.send(
+          process.env.EMAILJS_SERVICE_ID,
+          process.env.EMAILJS_TEMPLATE_ID,
+          {
+              otp_code: otp,
+              email: email,
+              title: '🔑 Password Reset',
+              subject: 'Password Reset OTP - PawCare',   // 新增
+              description: 'We received a request to reset your password. Use the OTP below:',
+              badgeText: 'Reset',
+              badgeClass: 'badge-reset'
+          }
+      );
+      res.json({ success: true, message: 'OTP sent.' });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: 'Failed to send email.' });
+      console.error(err);
+      res.status(500).json({ success: false, message: 'Failed to send email.' });
   }
 });
 
