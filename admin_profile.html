@@ -1559,48 +1559,33 @@ async function loadActivityStats() {
                 try {
                     const d = new Date(iso);
                     return d.toLocaleString('en-US', {
-                        day: '2-digit',
-                        month: 'short',
-                        year: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit'
+                        day: '2-digit', month: 'short', year: 'numeric',
+                        hour: '2-digit', minute: '2-digit'
                     });
                 } catch {
                     return 'Never';
                 }
             };
 
-            // 1. Update stats cards
+            // 1. 更新 stats 卡片
             document.getElementById('totalLogins').textContent = stats.totalLogins || 0;
             document.getElementById('securityScore').textContent = (stats.securityScore || 90) + '%';
             document.getElementById('daysActive').textContent = stats.daysActive || 0;
 
-            // 2. Update activity summary rows
-            const lastLogin = formatDate(stats.lastLogin);
-            const pwdChanged = formatDate(stats.passwordUpdatedAt);
-            const profileUpdated = formatDate(stats.profileUpdatedAt);
+            // 2. 更新 Activity Summary
+            document.getElementById('lastLoginStat').textContent = formatDate(stats.lastLogin);
+            document.getElementById('profileLastLogin').textContent = formatDate(stats.lastLogin);
+            document.getElementById('pwdChanged').textContent = formatDate(stats.passwordUpdatedAt);
+            document.getElementById('profileUpdated').textContent = formatDate(stats.profileUpdatedAt);
 
-            const lastLoginStatEl = document.getElementById('lastLoginStat');
-            const profileLastLoginEl = document.getElementById('profileLastLogin');
-            const pwdChangedEl = document.getElementById('pwdChanged');
-            const profileUpdatedEl = document.getElementById('profileUpdated');
-
-            if (lastLoginStatEl) lastLoginStatEl.textContent = lastLogin;
-            if (profileLastLoginEl) profileLastLoginEl.textContent = lastLogin;
-            if (pwdChangedEl) pwdChangedEl.textContent = pwdChanged;
-            if (profileUpdatedEl) profileUpdatedEl.textContent = profileUpdated;
-
-            // 3. Update Two-Factor Authentication status
+            // 3. 更新 2FA 状态
             if (stats.two_factor_enabled !== undefined) {
                 data.twoFactor = stats.two_factor_enabled;
                 saveData();
                 render();
             }
 
-            // 4. Update active sessions count
             await updateActiveSessionsCount();
-        } else {
-            console.warn('Failed to load activity stats:', result.message);
         }
     } catch (err) {
         console.error('Error loading activity stats:', err);
@@ -1857,11 +1842,10 @@ async function loadActivityStats() {
             return 0;
         }
 
-        async function showNotificationDetails() {
+async function showNotificationDetails() {
     const res = await authFetch('/api/profile');
+    // 注意：必须获取最新 profile，而不是使用缓存
     const profile = res.data || {};
-
-    // 检查资料完整性
     const phone = (profile.phone_number || '').trim();
     const photo = (profile.profile_photo || '').trim();
     const missingPhone = phone === '';

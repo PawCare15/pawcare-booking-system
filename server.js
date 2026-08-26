@@ -3413,9 +3413,7 @@ app.get('/api/admin/pets/stats', isAdmin, async (req, res) => {
 // ========== Admin Profile Activity Stats ==========
 app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
     try {
-        const adminId = req.user.customer_id; // 来自 isAdmin 中间件设置的 req.user
-
-        // 查询会话总数（登录次数）和最后登录时间
+        const adminId = req.user.customer_id; 
         const { data: sessions, error: sessionError } = await supabaseAdmin
             .from('admin_sessions')
             .select('created_at')
@@ -3424,8 +3422,16 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
 
         if (sessionError) throw sessionError;
 
+        // 获取管理员信息，读取 last_login 字段
+        const { data: adminInfo, error: adminInfoError } = await supabaseAdmin
+            .from('admin')
+            .select('last_login, password_updated_at, profile_updated_at, two_factor_enabled')
+            .eq('admin_id', adminId)
+            .maybeSingle();
+
         const totalLogins = sessions.length;
-        const lastLogin = sessions.length > 0 ? sessions[0].created_at : null;
+        // 优先使用 sessions 的最新时间，如果 sessions 为空则使用 adminInfo.last_login
+        const lastLogin = sessions.length > 0 ? sessions[0].created_at : (adminInfo?.last_login || null);
 
         // 查询管理员信息（含密码修改时间、资料修改时间）
         const { data: admin, error: adminError } = await supabaseAdmin
@@ -3448,27 +3454,25 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
         // 读取 two_factor_enabled
         const { data: adminSettings } = await supabaseAdmin.from('admin').select('two_factor_enabled').eq('admin_id', adminId).maybeSingle();
         // 如果开启 2FA，给 100 分，否则 90 分。
-        const securityScore = adminSettings?.two_factor_enabled ? 100 : 90;
+        const securityScore = adminInfo?.two_factor_enabled ? 100 : 90;
 
-        // 返回数据
-        // server.js 中 /api/admin/profile/activity 接口的 res.json 部分
-        res.json({
-            success: true,
-            data: {
-                totalLogins,
-                lastLogin: lastLogin || admin?.last_login || null,
-                passwordUpdatedAt: admin?.password_updated_at || null,
-                profileUpdatedAt: admin?.profile_updated_at || null,
-                daysActive,
-                securityScore,
-                two_factor_enabled: adminSettings?.two_factor_enabled || false // 新增此行
+                res.json({
+                    success: true,
+                    data: {
+                        totalLogins,
+                        lastLogin: lastLogin,
+                        passwordUpdatedAt: adminInfo?.password_updated_at || null,
+                        profileUpdatedAt: adminInfo?.profile_updated_at || null,
+                        daysActive,
+                        securityScore,
+                        two_factor_enabled: adminInfo?.two_factor_enabled || false
+                    }
+                });
+            } catch (err) {
+                console.error('Error fetching admin activity:', err);
+                res.status(500).json({ success: false, message: err.message });
             }
         });
-    } catch (err) {
-        console.error('Error fetching admin activity:', err);
-        res.status(500).json({ success: false, message: err.message });
-    }
-});
 
 // ========== 启动服务器 ==========
 const PORT = process.env.PORT || 5000;

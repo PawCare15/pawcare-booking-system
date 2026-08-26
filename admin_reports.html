@@ -1414,44 +1414,36 @@ async function showNotificationDetails() {
             }
 
             // 加载预约趋势图
-            async function loadTrendChart() {
-                try {
-                    const res = await authFetch('/api/admin/bookings-trend');
-                    if (!res) {
-                        console.warn('No response from bookings-trend API');
-                        return;
-                    }
-                    const result = await res.json();
-                    if (result.success) {
-                        const trend = result.data || [];
-                        if (trend.length === 0) {
-                            document.querySelector('#bookingsTrendChart').parentElement.innerHTML =
-                                '<div style="text-align:center;padding:20px;color:#7A7A7A;">No booking data available</div>';
-                            return;
-                        }
-                        const labels = trend.map(d => d.date.slice(5)); // "MM-DD"
-                        const counts = trend.map(d => d.count);
-                        const chart = Chart.getChart('bookingsTrendChart');
-                        if (chart) {
-                            chart.data.labels = labels;
-                            chart.data.datasets[0].data = counts;
-                            // If you have a second dataset for 'Completed' (dataset index 1)
-                            if (chart.data.datasets.length > 1) {
-                                chart.data.datasets[1].data = trend.map(() => 0);
-                            }
-                            chart.update();
-                        } else {
-                            console.error('Chart instance "bookingsTrendChart" not found');
-                        }
-                    } else {
-                        console.error('API error:', result.message);
-                    }
-                } catch (err) {
-                    console.error('Trend error:', err);
-                    document.querySelector('#bookingsTrendChart').parentElement.innerHTML =
-                        '<div style="text-align:center;padding:20px;color:#DC2626;">Failed to load trend data</div>';
-                }
+async function loadTrendChart() {
+    try {
+        const res = await authFetch('/api/admin/bookings-trend');
+        if (!res) { console.warn('No response from bookings-trend API'); return; }
+        const result = await res.json();
+        if (result.success) {
+            const trend = result.data || [];
+            if (trend.length === 0) {
+                document.querySelector('#bookingsTrendChart').parentElement.innerHTML =
+                    '<div style="text-align:center;padding:20px;color:#7A7A7A;">No booking data available</div>';
+                return;
             }
+            // 确保 Chart.js 实例存在再更新
+            const chart = Chart.getChart('bookingsTrendChart');
+            if (chart) {
+                chart.data.labels = trend.map(d => d.date.slice(5));
+                chart.data.datasets[0].data = trend.map(d => d.count);
+                chart.update();
+            } else {
+                console.error('Chart "bookingsTrendChart" not found');
+            }
+        } else {
+            console.error('API error:', result.message);
+        }
+    } catch (err) {
+        console.error('Trend error:', err);
+        const canvas = document.querySelector('#bookingsTrendChart');
+        if (canvas) canvas.parentElement.innerHTML = '<div style="text-align:center;padding:20px;color:#DC2626;">Failed to load trend data</div>';
+    }
+}
 
             // 加载热门服务
             async function loadPopularServices() {
@@ -1502,43 +1494,86 @@ async function showNotificationDetails() {
 
             // 加载月度比较图
             async function loadMonthlyComparison() {
-    try {
-        const res = await authFetch('/api/admin/monthly-trend');
-        if (!res) {
-            console.warn('No response from monthly-trend API');
-            return;
-        }
-        const result = await res.json();
-        if (result.success) {
-            const { labels, trend } = result.data;
-            if (!labels || labels.length === 0) {
-                document.querySelector('#monthlyComparisonChart').parentElement.innerHTML =
-                    '<div style="text-align:center;padding:20px;color:#7A7A7A;">No monthly data available</div>';
-                return;
-            }
-            const chart = Chart.getChart('monthlyComparisonChart');
-            if (chart) {
-                chart.data.labels = labels.map(label => {
-                    const parts = label.split('-');
-                    return new Date(parts[0], parts[1]-1).toLocaleString('default', { month: 'short' });
-                });
-                chart.data.datasets[0].data = trend.map(item => item.count);
-                if (chart.data.datasets.length > 1 && trend[0]?.completed !== undefined) {
-                    chart.data.datasets[1].data = trend.map(item => item.completed || 0);
+                try {
+                    const res = await authFetch('/api/admin/monthly-trend');
+                    if (!res) {
+                        console.warn('No response from monthly-trend API');
+                        return;
+                    }
+                    const result = await res.json();
+                    if (result.success) {
+                        const data = result.data;
+                        // 兼容后台返回结构（有的返回 {labels, trend}，有的直接就是数组）
+                        const labels = data.labels || [];
+                        const trend = data.trend || data || [];
+
+                        if (!labels.length || !trend.length) {
+                            document.querySelector('#monthlyComparisonChart').parentElement.innerHTML =
+                                '<div style="text-align:center;padding:20px;color:#7A7A7A;">No monthly data available</div>';
+                            return;
+                        }
+
+                        // 安全获取 canvas DOM 节点
+                        const canvas = document.getElementById('monthlyComparisonChart');
+                        if (!canvas) {
+                            console.error('Canvas element "monthlyComparisonChart" not found');
+                            return;
+                        }
+
+                        // 安全获取 Chart 实例，如果找不到就重新创建
+                        let chart = Chart.getChart(canvas);
+                        if (!chart) {
+                            chart = new Chart(canvas.getContext('2d'), {
+                                type: 'bar',
+                                data: {
+                                    labels: [],
+                                    datasets: [
+                                        { label: 'Bookings', data: [], backgroundColor: 'rgba(74, 51, 39, 0.7)', borderRadius: 4, barPercentage: 0.5 },
+                                        { label: 'Completed', data: [], backgroundColor: 'rgba(46, 125, 50, 0.7)', borderRadius: 4, barPercentage: 0.5 }
+                                    ]
+                                },
+                                options: {
+                                    responsive: true,
+                                    maintainAspectRatio: false,
+                                    plugins: { legend: { position: 'top', labels: { boxWidth: 12, padding: 10, font: { size: 10, family: 'Poppins' } } } },
+                                    scales: { y: { beginAtZero: true, ticks: { font: { size: 9 } } }, x: { grid: { display: false }, ticks: { font: { size: 10, weight: '500' } } } }
+                                }
+                            });
+                        }
+
+                        // 正确映射并格式化月份（避免时区问题，直接拼接）
+                        chart.data.labels = labels.map(label => {
+                            const parts = String(label).split('-');
+                            if (parts.length >= 2) {
+                                const monthNum = parseInt(parts[1], 10) - 1;
+                                const date = new Date(parts[0], monthNum, 1);
+                                return date.toLocaleString('default', { month: 'short' });
+                            }
+                            return label;
+                        });
+
+                        // 更新主要数据 Bookings
+                        chart.data.datasets[0].data = trend.map(item => item.count || 0);
+
+                        // 处理第二个数据集 Completed（如果原数据里没有 completed，则自动补 0，避免报错）
+                        if (chart.data.datasets.length > 1) {
+                            chart.data.datasets[1].data = trend.map(item => item.completed || 0);
+                        }
+
+                        chart.update();
+                    } else {
+                        console.error('API error:', result.message);
+                        document.querySelector('#monthlyComparisonChart').parentElement.innerHTML =
+                            '<div style="text-align:center;padding:20px;color:#DC2626;">Failed to load monthly data</div>';
+                    }
+                } catch (err) {
+                    console.error('Monthly comparison error:', err);
+                    const parent = document.querySelector('#monthlyComparisonChart')?.parentElement;
+                    if (parent) {
+                        parent.innerHTML = '<div style="text-align:center;padding:20px;color:#DC2626;">Failed to load monthly data</div>';
+                    }
                 }
-                chart.update();
-            } else {
-                console.error('Chart instance "monthlyComparisonChart" not found');
             }
-        } else {
-            console.error('API error:', result.message);
-        }
-    } catch (err) {
-        console.error('Monthly comparison error:', err);
-        document.querySelector('#monthlyComparisonChart').parentElement.innerHTML =
-            '<div style="text-align:center;padding:20px;color:#DC2626;">Failed to load monthly data</div>';
-    }
-}
 
             // 调用这些函数
             loadStats();
@@ -1547,7 +1582,7 @@ async function showNotificationDetails() {
             loadPopularServices();
             loadTopCustomers();
             loadMonthlyComparison(); 
-            
+
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('view') === 'report') {
                 document.querySelector('.charts-row')?.scrollIntoView({ behavior: 'smooth' });

@@ -2859,36 +2859,23 @@ if (notifModal) {
         // ============================================================
 async function loadServices() {
     try {
-        const token = getToken();
-        if (!token) {
-            console.error('No token found');
-            return;
-        }
-
-        console.log('Fetching services from /api/admin/services');
         const response = await authFetch('/api/admin/services');
-        if (!response) {
-            throw new Error('No response from server');
-        }
+        if (!response) return;
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
 
         const result = await response.json();
-        console.log('Services API response:', result);
         if (!result.success) {
             throw new Error(result.message || 'API returned success=false');
         }
 
         const services = result.data || [];
         if (services.length === 0) {
-            console.warn('No services found in database');
-            allServices = [];
-            filteredServices = [];
-            renderServicesTable([]);
-            updateTableCount(0);
-            updatePagination(0);
+            // 渲染“无服务”提示
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#7A7A7A;">No services found. Click "Add New Service" to create one.</td></tr>';
             return;
         }
 
@@ -2939,13 +2926,12 @@ async function loadServices() {
         const tbody = document.getElementById('tableBody');
         tbody.innerHTML = `
             <tr>
-                <td colspan="7" style="text-align:center;padding:40px 20px;color:#DC2626;">
-                    <i class="fa-solid fa-circle-exclamation" style="font-size:24px;display:block;margin-bottom:10px;"></i>
+                <td colspan="7" style="text-align:center;padding:40px;color:#DC2626;">
+                    <i class="fa-solid fa-circle-exclamation"></i> 
                     Failed to load services: ${escapeHtml(err.message)}
                     <br><small style="color:#7A7A7A;">Please check server logs.</small>
                 </td>
-            </tr>
-        `;
+            </tr>`;
     }
 }
 
