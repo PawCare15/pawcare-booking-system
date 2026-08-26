@@ -528,17 +528,20 @@ app.post('/api/login', async (req, res) => {
     const ip = req.ip || req.connection.remoteAddress || '';
     const { device, browser } = parseUserAgent(userAgent);
 
-    // 插入会话记录
-    const { error: sessionError } = await supabaseAdmin
-      .from('admin_sessions')
-      .insert({
-        admin_id: userId,
-        token: token,
-        device: device,
-        browser: browser,
-        ip: ip,
-        is_active: true
-      });
+        // 确保总登录数有记录，并且这里绝不抛出异常导致登录失败
+    try {
+      const { error: sessionError } = await supabaseAdmin
+        .from('admin_sessions')
+        .insert({
+          admin_id: userId,
+          token: token,
+          device: device,
+          browser: browser,
+          ip: ip,
+          is_active: true
+        });
+      if (sessionError) console.error('Failed to record session:', sessionError);
+    } catch (e) { console.error('Session insert exception:', e); }
 
     if (sessionError) {
       console.error('Failed to record session:', sessionError);
@@ -586,7 +589,7 @@ app.get('/api/profile', async (req, res) => {
       table = 'admin';
       idField = 'admin_id';
       // 管理员表没有 created_at 字段，必须删掉以免报错
-      selectFields = 'admin_id, full_name, email, phone_number, profile_photo'; 
+      selectFields = 'admin_id, full_name, email, phone_number, profile_photo, two_factor_enabled'; 
     }
 
     // 使用 supabaseAdmin 绕过 RLS，且改为 maybeSingle() 防止报错
@@ -641,7 +644,11 @@ app.put('/api/profile', async (req, res) => {
 
     // 新增：只有在成功时，才更新修改时间
     if (role === 'admin') {
-        await supabaseAdmin.from('admin').update({ profile_updated_at: new Date().toISOString() }).eq(idField, userId);
+        try {
+            await supabaseAdmin.from('admin').update({ profile_updated_at: new Date().toISOString() }).eq(idField, userId);
+        } catch (e) {
+            console.error('Failed to update profile_updated_at, check if column exists:', e.message);
+        }
     }
 
     res.json({ success: true, message: 'Profile updated.' });
@@ -653,10 +660,14 @@ app.put('/api/profile', async (req, res) => {
     }
     // 更新资料修改时间
     if (role === 'admin') {
-        await supabaseAdmin
-            .from('admin')
-            .update({ profile_updated_at: new Date().toISOString() })
-            .eq(idField, userId);
+        try {
+            await supabaseAdmin
+                .from('admin')
+                .update({ password_updated_at: new Date().toISOString() })
+                .eq(idField, userId);
+        } catch (e) {
+            console.error('Failed to update password_updated_at, check if column exists:', e.message);
+        }
     }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
   }
@@ -3434,10 +3445,11 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
 
         // 2. Last Login：优先取 sessions 的最新时间，如果没有 session 则取 admin 表的 last_login
         let lastLogin = sessions.length > 0 ? sessions[0].created_at : (adminInfo?.last_login || null);
-
-        // 3. 密码修改时间、资料修改时间
+        // 确保数据不丢失，也避免 undefined
         let passwordUpdatedAt = adminInfo?.password_updated_at || null;
         let profileUpdatedAt = adminInfo?.profile_updated_at || null;
+        // 确保 two_factor_enabled 明确返回
+        const twoFactorEnabled = adminInfo?.two_factor_enabled || false;
 
         // 4. 活跃天数
         let daysActive = 0;
@@ -3460,7 +3472,7 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
                 profileUpdatedAt,
                 daysActive,
                 securityScore,
-                two_factor_enabled: adminInfo?.two_factor_enabled || false
+                two_factor_enabled: twoFactorEnabled
             }
         });
     } catch (err) {

@@ -78,16 +78,28 @@
             margin-bottom: 24px;
         }
         .stat-report-card {
-            background: #FFFFFF;
-            border-radius: 14px;
-            padding: 16px 18px;
-            border: 1px solid #EFECE6;
+            background: linear-gradient(135deg, #ffffff 0%, #fbf8f4 100%); /* 增加轻微渐变 */
+            border-radius: 16px;
+            padding: 20px;
+            border: 1px solid #F0EBE3;
             display: flex;
             align-items: center;
             gap: 14px;
             transition: all 0.25s ease;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04); /* 阴影更柔和 */
             min-height: 100px;
+        }
+        .chart-card {
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #F0EBE3;
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.04);
+            transition: all 0.25s ease;
+            min-height: 320px;
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 24px; /* 增加间距 */
         }
         .stat-report-card:hover {
             border-color: #D3C4B8;
@@ -886,7 +898,7 @@
     <!-- ================================================================ -->
     <script>
 
-// 添加到 admin_services.html 和 admin_reports.html 的 <script> 最前面
+const API_BASE_URL = ['2632', '5500'].includes(window.location.port) ? 'http://localhost:5000' : '';
 async function authFetch(url, options = {}) {
     const token = localStorage.getItem('token');
     if (!token) { window.location.replace('login.html'); return null; }
@@ -895,7 +907,7 @@ async function authFetch(url, options = {}) {
         'Authorization': `Bearer ${token}`,
         ...options.headers
     };
-    const response = await fetch(url, { ...options, headers });
+    const response = await fetch(`${API_BASE_URL}${url}`, { ...options, headers });
     if (response.status === 401) {
         localStorage.clear();
         window.location.replace('login.html');
@@ -1302,13 +1314,15 @@ async function loadNotificationCount() {
 }
 
 async function showNotificationDetails() {
-    // 拉取报告所需数据
-    const [statsRes, trendRes] = await Promise.all([
-        authFetch('/api/admin/stats'),
-        authFetch('/api/admin/bookings-trend')
-    ]);
-    const stats = statsRes.data || {};
-    const trend = trendRes.data || [];
+    try {
+        const [statsRes, trendRes] = await Promise.all([
+            authFetch('/api/admin/stats'),
+            authFetch('/api/admin/bookings-trend')
+        ]);
+        if (!statsRes || !trendRes) return; // 防止空响应报错
+        
+        const stats = statsRes.data || {};
+        const trend = trendRes.data || [];
 
     // 计算指标（模拟计算 Booking 下降趋势）
     const lastMonthCount = trend.length > 1 ? trend[trend.length - 2].count : 0;
@@ -1347,6 +1361,10 @@ async function showNotificationDetails() {
     document.getElementById('notificationsModalContent').innerHTML = html;
     document.getElementById('notificationsModal').classList.add('active');
     lockBodyScroll();
+} catch(e) {
+        console.error('Notification error:', e);
+        document.getElementById('notificationsModalContent').innerHTML = '<div style="text-align:center; padding:40px 20px;">Failed to load notifications.</div>';
+    }
 }
 
     // 加载 header 头像

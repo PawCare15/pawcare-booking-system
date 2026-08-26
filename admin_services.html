@@ -2345,19 +2345,19 @@
         // ============================================================
         // 3. AUTH FETCH
         // ============================================================
+        // 必须添加 API_BASE_URL 判断
+        const API_BASE_URL = ['2632', '5500'].includes(window.location.port) ? 'http://localhost:5000' : '';
+        
         async function authFetch(url, options = {}) {
             const token = localStorage.getItem('token');
-            if (!token) {
-                window.location.replace('login.html');
-                return null;
-            }
+            if (!token) { window.location.replace('login.html'); return null; }
             const headers = {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
-                'apikey': SUPABASE_ANON_KEY,
                 ...options.headers
             };
-            const response = await fetch(url, { ...options, headers });
+            // 加上 API_BASE_URL
+            const response = await fetch(`${API_BASE_URL}${url}`, { ...options, headers });
             if (response.status === 401) {
                 localStorage.clear();
                 window.location.replace('login.html');
@@ -2861,8 +2861,8 @@ async function loadServices() {
     try {
         const response = await authFetch('/api/admin/services');
         if (!response) {
-            // 加入错误提示，防止卡在 Loading 界面
             const tbody = document.getElementById('tableBody');
+            // 直接报错，不转圈
             tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#DC2626;">Failed to load services: No response from server (Token might be invalid).</td></tr>';
             return;
         }
@@ -2878,7 +2878,6 @@ async function loadServices() {
 
         const services = result.data || [];
         if (services.length === 0) {
-            // 渲染“无服务”提示
             const tbody = document.getElementById('tableBody');
             tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#7A7A7A;">No services found. Click "Add New Service" to create one.</td></tr>';
             return;

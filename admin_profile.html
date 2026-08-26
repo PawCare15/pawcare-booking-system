@@ -1550,6 +1550,7 @@ document.querySelectorAll('[data-close]').forEach(btn => {
 async function loadActivityStats() {
     try {
         const res = await authFetch('/api/admin/profile/activity');
+        if (!res) return;
         const result = await res.json();
         if (result.success) {
             const stats = result.data;
@@ -1558,6 +1559,7 @@ async function loadActivityStats() {
                 if (!iso) return 'Never';
                 try {
                     const d = new Date(iso);
+                    // 确保显示具体的时间和日期
                     return d.toLocaleString('en-US', {
                         day: '2-digit', month: 'short', year: 'numeric',
                         hour: '2-digit', minute: '2-digit'
@@ -1572,7 +1574,7 @@ async function loadActivityStats() {
             document.getElementById('securityScore').textContent = (stats.securityScore || 90) + '%';
             document.getElementById('daysActive').textContent = stats.daysActive || 0;
 
-            // 2. 更新 Activity Summary
+            // 2. 更新 Activity Summary (这里一定要放最新修改的时间)
             document.getElementById('lastLoginStat').textContent = formatDate(stats.lastLogin);
             document.getElementById('profileLastLogin').textContent = formatDate(stats.lastLogin);
             document.getElementById('pwdChanged').textContent = formatDate(stats.passwordUpdatedAt);
@@ -1584,8 +1586,6 @@ async function loadActivityStats() {
                 saveData();
                 render();
             }
-
-            await updateActiveSessionsCount();
         }
     } catch (err) {
         console.error('Error loading activity stats:', err);
@@ -1843,12 +1843,24 @@ async function loadActivityStats() {
         }
 
 async function showNotificationDetails() {
+    // 必须防止 res 为 null，不然会一直报错导致点不了
     const res = await authFetch('/api/profile');
-    // 注意：必须获取最新 profile
+    if (!res) return;
     const profile = res.data || {};
     
     let phone = (profile.phone_number || '').trim();
     let photo = (profile.profile_photo || '').trim();
+
+    // 如果后端没返回，本地缓存里取
+    if (!phone) {
+        try {
+            const localData = JSON.parse(localStorage.getItem('pawcareAdminProfile') || '{}');
+            phone = (localData.phone || localData.phone_number || '').trim();
+        } catch (e) {}
+    }
+    if (!photo) {
+        photo = localStorage.getItem('pawcareAvatar') || '';
+    }
 
     // 🛑 修正：如果后端数据库中的 phone_number 为空，但用户本地缓存里有，则使用缓存，防止误报
     if (!phone) {
@@ -1889,6 +1901,12 @@ async function showNotificationDetails() {
 
     let html = '';
     if (passwordExpiry) html += notifCard("🔒", "#FEF7E0", "#D97706", "Password Expiry", "Password perlu ditukar", "Medium", "#FEF7E0", "#D97706", "admin_profile.html");
+    
+    // 新增：2FA 安全检查（如果本地缓存的 twoFactor 是 false）
+    if (!data.twoFactor) {
+        html += notifCard("⚠️", "#FCE8E6", "#DC2626", "Security Warning", "2FA is currently disabled. Enable it for better security.", "Medium", "#FCE8E6", "#DC2626", "admin_profile.html");
+    }
+
     if (profileIncomplete) html += notifCard("❗", "#E3F2FD", "#0D47A1", "Profile Incomplete", "Profile photo/phone belum lengkap", "Low", "#E3F2FD", "#0D47A1", "admin_profile.html");
 
     if (!html) { html = '<div style="text-align:center; padding:40px 20px;">No profile notifications.</div>'; }
