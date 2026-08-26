@@ -1065,64 +1065,37 @@ async function loadNotificationCount() {
 }
 
 async function showNotificationDetails() {
-    await loadNotificationCount();
-    const data = window.notificationData || { newReviews: 0, lowRating: 0, noReply: 0 };
+    const res = await authFetch('/api/reviews');
+    const reviews = res.data || [];
+
+    const newReviews = reviews.filter(r => new Date(r.created_at) > new Date(Date.now() - 24*60*60*1000)).length;
+    const lowRating = reviews.filter(r => r.rating <= 2).length;
+    const noReply = reviews.filter(r => !r.replies || r.replies.length === 0).length;
+    const mostLiked = reviews.filter(r => r.like_count > 5).length;
+
+    const notifCount = document.getElementById('notifCount');
+    if (notifCount) {
+        const total = newReviews + lowRating;
+        notifCount.textContent = total; notifCount.style.display = total > 0 ? 'flex' : 'none';
+    }
+
+    function notifCard(icon, iconBg, iconColor, title, desc, count, badgeBg, badgeColor, link) {
+        return `<div style="display:flex; gap:12px; padding:16px; margin-bottom:10px; border-radius:12px; background:#FFFFFF; border-left:4px solid ${badgeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; background:${iconBg}; color:${iconColor};">${icon}</div>
+            <div style="flex:1; min-width:0;"><div style="font-weight:600; font-size:14px; color:#333;">${title}</div><div style="font-size:12px; color:#7A7A7A;">${desc}</div></div>
+            <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between;">
+                <span style="background:${badgeBg}; color:${badgeColor}; padding:3px 12px; border-radius:20px; font-size:11px; font-weight:700; margin-bottom:8px;">${count}</span>
+                <a href="${link}" style="font-size:11px; color:#5A361A; font-weight:600; text-decoration:none;">View →</a>
+            </div></div>`;
+    }
 
     let html = '';
-    let hasNotifications = false;
+    if (newReviews > 0) html += notifCard("📝", "#FEF7E0", "#D97706", "New Reviews", "Review baru yang belum dibaca", newReviews, "#FEF7E0", "#D97706", "admin_reviews.html");
+    if (lowRating > 0) html += notifCard("⚠️", "#FCE8E6", "#DC2626", "Low Rating Reviews", "Review 1-2 bintang", lowRating, "#FCE8E6", "#DC2626", "admin_reviews.html");
+    if (noReply > 0) html += notifCard("💬", "#FEF7E0", "#D97706", "Reviews Without Reply", "Review yang belum ada admin reply", noReply, "#FEF7E0", "#D97706", "admin_reviews.html");
+    if (mostLiked > 0) html += notifCard("🔥", "#E8F5E9", "#2E7D32", "Most Liked Reviews", "Review dengan like terbanyak", mostLiked, "#E8F5E9", "#2E7D32", "admin_reviews.html");
 
-    if (data.lowRating > 0) {
-        hasNotifications = true;
-        html += `
-            <div style="background:#FCE8E6; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #DC2626;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span><strong>⚠️ Low Rating Reviews</strong></span>
-                    <span style="background:#DC2626; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.lowRating}</span>
-                </div>
-                <div style="font-size:12px; color:#7A7A7A;">${data.lowRating} review(s) with 1-2 stars</div>
-                <a href="admin_reviews.html?filter=low" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
-            </div>
-        `;
-    }
-
-    if (data.newReviews > 0) {
-        hasNotifications = true;
-        html += `
-            <div style="background:#E3F2FD; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #0D47A1;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span><strong>📝 New Reviews</strong></span>
-                    <span style="background:#0D47A1; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.newReviews}</span>
-                </div>
-                <div style="font-size:12px; color:#7A7A7A;">${data.newReviews} new review(s) to read</div>
-                <a href="admin_reviews.html?filter=new" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
-            </div>
-        `;
-    }
-
-    if (data.noReply > 0) {
-        hasNotifications = true;
-        html += `
-            <div style="background:#FFF3E0; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #E65100;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span><strong>💬 Reviews Without Reply</strong></span>
-                    <span style="background:#E65100; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.noReply}</span>
-                </div>
-                <div style="font-size:12px; color:#7A7A7A;">${data.noReply} review(s) need your reply</div>
-                <a href="admin_reviews.html?filter=no_reply" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
-            </div>
-        `;
-    }
-
-    if (!hasNotifications) {
-        html = `
-            <div style="text-align:center; padding:30px 20px; color:#7A7A7A;">
-                <i class="fa-regular fa-star" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i>
-                <h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">No Review Notifications</h3>
-                <p style="font-size:13px;">All reviews are up to date.</p>
-            </div>
-        `;
-    }
-
+    if (!html) { html = '<div style="text-align:center; padding:40px 20px;">No review notifications.</div>'; }
     document.getElementById('notificationsModalContent').innerHTML = html;
     document.getElementById('notificationsModal').classList.add('active');
     lockBodyScroll();

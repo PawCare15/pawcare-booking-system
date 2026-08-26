@@ -1140,7 +1140,7 @@ app.post('/api/admin/services', isAdmin, async (req, res) => {
   }
 });
 
-app.all('/api/admin/services/:id', isAdmin, async (req, res) => {
+app.put('/api/admin/services/:id', isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { duration, price, species } = req.body;
@@ -2991,6 +2991,7 @@ app.get('/api/admin/bookings', isAdmin, async (req, res) => {
                 booking_date,
                 booking_time,
                 status,
+                payment_status,
                 special_notes,
                 reschedule_status,
                 reschedule_requested_date,
@@ -3043,6 +3044,7 @@ app.get('/api/admin/bookings', isAdmin, async (req, res) => {
             booking_date: b.booking_date,
             booking_time: b.booking_time,
             status: b.status,
+            payment_status: b.payment_status || 'unpaid',
             reschedule_status: b.reschedule_status || 'none',
             reschedule_requested_date: b.reschedule_requested_date,
             reschedule_requested_time: b.reschedule_requested_time,
@@ -3449,6 +3451,7 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
         const securityScore = adminSettings?.two_factor_enabled ? 100 : 90;
 
         // 返回数据
+        // server.js 中 /api/admin/profile/activity 接口的 res.json 部分
         res.json({
             success: true,
             data: {
@@ -3458,7 +3461,7 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
                 profileUpdatedAt: admin?.profile_updated_at || null,
                 daysActive,
                 securityScore,
-                // 也可返回 firstLogin 用于其他用途
+                two_factor_enabled: adminSettings?.two_factor_enabled || false // 新增此行
             }
         });
     } catch (err) {

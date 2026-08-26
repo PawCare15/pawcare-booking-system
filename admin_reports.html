@@ -885,6 +885,25 @@
     <!-- JAVASCRIPT -->
     <!-- ================================================================ -->
     <script>
+
+// 添加到 admin_services.html 和 admin_reports.html 的 <script> 最前面
+async function authFetch(url, options = {}) {
+    const token = localStorage.getItem('token');
+    if (!token) { window.location.replace('login.html'); return null; }
+    const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        ...options.headers
+    };
+    const response = await fetch(url, { ...options, headers });
+    if (response.status === 401) {
+        localStorage.clear();
+        window.location.replace('login.html');
+        return null;
+    }
+    return response;
+}
+
 // 统一放在页面所有 <script> 的最顶部
 (function checkAuth() {
     // 定义检查函数
@@ -1283,36 +1302,46 @@ async function loadNotificationCount() {
 }
 
 async function showNotificationDetails() {
-    await loadNotificationCount();
-    const data = window.notificationData || { reportGenerated: false };
+    // 拉取报告所需数据
+    const [statsRes, trendRes] = await Promise.all([
+        authFetch('/api/admin/stats'),
+        authFetch('/api/admin/bookings-trend')
+    ]);
+    const stats = statsRes.data || {};
+    const trend = trendRes.data || [];
 
-    let html = '';
-    let hasNotifications = false;
+    // 计算指标（模拟计算 Booking 下降趋势）
+    const lastMonthCount = trend.length > 1 ? trend[trend.length - 2].count : 0;
+    const currentMonthCount = trend.length > 0 ? trend[trend.length - 1].count : 0;
+    const declinePercent = lastMonthCount > 0 ? ((lastMonthCount - currentMonthCount) / lastMonthCount) * 100 : 0;
+    const isDecline = declinePercent > 20;
+    
+    const notifCount = document.getElementById('notifCount');
+    if (notifCount) { notifCount.style.display = 'none'; } // 报告低优先级
 
-    if (data.reportGenerated) {
-        hasNotifications = true;
-        html += `
-            <div style="background:#E8F5E9; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #2E7D32;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span><strong>📊 Monthly Report Ready</strong></span>
-                    <span style="background:#2E7D32; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">New</span>
-                </div>
-                <div style="font-size:12px; color:#7A7A7A;">This month's report is ready to view</div>
-                <a href="admin_reports.html#report" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View Report →</a>
-            </div>
-        `;
+    function notifCard(icon, iconBg, iconColor, title, desc, count, badgeBg, badgeColor, link) {
+        return `<div style="display:flex; gap:12px; padding:16px; margin-bottom:10px; border-radius:12px; background:#FFFFFF; border-left:4px solid ${badgeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; background:${iconBg}; color:${iconColor};">${icon}</div>
+            <div style="flex:1; min-width:0;"><div style="font-weight:600; font-size:14px; color:#333;">${title}</div><div style="font-size:12px; color:#7A7A7A;">${desc}</div></div>
+            <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between;">
+                <span style="background:${badgeBg}; color:${badgeColor}; padding:3px 12px; border-radius:20px; font-size:11px; font-weight:700; margin-bottom:8px;">${count}</span>
+                <a href="${link}" style="font-size:11px; color:#5A361A; font-weight:600; text-decoration:none;">View →</a>
+            </div></div>`;
     }
 
-    // 可以添加更多报告通知...
-
-    if (!hasNotifications) {
-        html = `
-            <div style="text-align:center; padding:30px 20px; color:#7A7A7A;">
-                <i class="fa-solid fa-chart-bar" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i>
-                <h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">No Report Notifications</h3>
-                <p style="font-size:13px;">All reports are up to date.</p>
-            </div>
-        `;
+    let html = '';
+    // 模拟月度报告已生成
+    html += notifCard("📊", "#FEF7E0", "#D97706", "Monthly Report Ready", "Laporan bulanan siap", "Ready", "#FEF7E0", "#D97706", "admin_reports.html#report");
+    
+    // Booking Decline Alert
+    if (isDecline) {
+        html += notifCard("🔻", "#FCE8E6", "#DC2626", "Booking Decline Alert", "Booking turun > 20%", declinePercent.toFixed(0) + "%", "#FCE8E6", "#DC2626", "admin_reports.html");
+    }
+    
+    // Revenue Milestone
+    const revenue = stats.totalBookings * 100; // 粗略估算
+    if (revenue > 10000) {
+        html += notifCard("🎉", "#E3F2FD", "#0D47A1", "Revenue Milestone", "Revenue mencapai target", "RM " + Math.floor(revenue), "#E3F2FD", "#0D47A1", "admin_reports.html");
     }
 
     document.getElementById('notificationsModalContent').innerHTML = html;

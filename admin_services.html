@@ -2269,6 +2269,24 @@
 
     <!-- ===== JAVASCRIPT ===== -->
     <script>
+        // 添加到 admin_services.html 和 admin_reports.html 的 <script> 最前面
+        async function authFetch(url, options = {}) {
+            const token = localStorage.getItem('token');
+            if (!token) { window.location.replace('login.html'); return null; }
+            const headers = {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+                ...options.headers
+            };
+            const response = await fetch(url, { ...options, headers });
+            if (response.status === 401) {
+                localStorage.clear();
+                window.location.replace('login.html');
+                return null;
+            }
+            return response;
+        }
+
         // ============================================================
         // 1. SUPABASE CONFIGURATION
         // ============================================================
@@ -2634,18 +2652,44 @@ async function loadNotificationCount() {
 }
 
 async function showNotificationDetails() {
-    const html = `
-        <div style="text-align:center; padding:30px 20px; color:#7A7A7A;">
-            <i class="fa-solid fa-scissors" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i>
-            <h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">Service Management</h3>
-            <p style="font-size:13px;">Check popular services and pricing updates in the main panel.</p>
-            <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
-                <span style="background:#F5F0EB; padding:4px 12px; border-radius:20px; font-size:11px;">📊 Most Booked: Grooming</span>
-                <span style="background:#F5F0EB; padding:4px 12px; border-radius:20px; font-size:11px;">💰 8 services active</span>
-            </div>
-        </div>
-    `;
+    const [svcRes, bookRes] = await Promise.all([
+        authFetch('/api/admin/services'),
+        authFetch('/api/admin/bookings')
+    ]);
+    const services = svcRes.data || [];
+    const bookings = bookRes.data || [];
+    
+    // 计算大部分
+    const serviceNames = services.map(s => s.service_name);
+    const mostBooked = serviceNames.reduce((a, b, i, arr) => (arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b), serviceNames[0]);
+    const mostBookedCount = serviceNames.filter(n => n === mostBooked).length;
+    
+    // 无预订服务计算
+    const noBookingsCount = services.filter(s => !bookings.some(b => b.services && b.services.some(bs => bs.service_name === s.service_name))).length;
+    
+    // 价格更新（这里简化为是否有价格低于 50 的服务）
+    const priceChangesCount = services.filter(s => (s.price || 0) < 50).length;
 
+    // 更新 Badge 数量（按需求总为 0，因为它不是紧急通知）
+    const notifCount = document.getElementById('notifCount');
+    if (notifCount) { notifCount.style.display = 'none'; }
+
+    function notifCard(icon, iconBg, iconColor, title, desc, count, badgeBg, badgeColor, link) {
+        return `<div style="display:flex; gap:12px; padding:16px; margin-bottom:10px; border-radius:12px; background:#FFFFFF; border-left:4px solid ${badgeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+            <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; background:${iconBg}; color:${iconColor};">${icon}</div>
+            <div style="flex:1; min-width:0;"><div style="font-weight:600; font-size:14px; color:#333;">${title}</div><div style="font-size:12px; color:#7A7A7A;">${desc}</div></div>
+            <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between;">
+                <span style="background:${badgeBg}; color:${badgeColor}; padding:3px 12px; border-radius:20px; font-size:11px; font-weight:700; margin-bottom:8px;">${count}</span>
+                <a href="${link}" style="font-size:11px; color:#5A361A; font-weight:600; text-decoration:none;">View →</a>
+            </div></div>`;
+    }
+
+    let html = '';
+    if (mostBooked) html += notifCard("⭐", "#FEF7E0", "#D97706", "Most Booked Services", `Service paling popular minggu ini: ${mostBooked}`, mostBookedCount, "#FEF7E0", "#D97706", "admin_services.html");
+    if (noBookingsCount > 0) html += notifCard("📉", "#E3F2FD", "#0D47A1", "Services with No Bookings", "Service yang tak pernah booking > 1 bulan", noBookingsCount, "#E3F2FD", "#0D47A1", "admin_services.html");
+    if (priceChangesCount > 0) html += notifCard("💰", "#E3F2FD", "#0D47A1", "Price Changes Needed", "Service yang pricing outdated", priceChangesCount, "#E3F2FD", "#0D47A1", "admin_services.html");
+
+    if (!html) { html = '<div style="text-align:center; padding:40px 20px;">No service notifications.</div>'; }
     document.getElementById('notificationsModalContent').innerHTML = html;
     document.getElementById('notificationsModal').classList.add('active');
     lockBodyScroll();
