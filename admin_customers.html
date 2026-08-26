@@ -116,6 +116,7 @@
                         <p class="page-header-profile-subtitle">Manage your customer information and contact details</p>
                     </div>
                 </div>
+                <span class="admin-page-date"><i class="fa-regular fa-calendar"></i> <span id="adminPageDate">Loading...</span></span>
             </div>
 
             <!-- STATS CARDS - 4 CARDS -->
@@ -328,5 +329,8 @@
     <!-- JAVASCRIPT -->
     <script src="admin_customers.js"></script>
 
+    <script>
+        document.getElementById('adminPageDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    </script>
 </body>
 </html>

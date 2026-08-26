@@ -3249,3 +3249,20 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+.admin-page-date {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: 1px solid #EFECE6;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.65);
+    color: #7A7A7A;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+.admin-page-date i {
+    color: #D97706;
+}

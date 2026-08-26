@@ -67,6 +67,19 @@
             color: #D97706;
         }
 
+        .page-header-profile > .header-date {
+            padding: 8px 16px;
+            border: 1px solid #EFECE6;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.6);
+            color: #7A7A7A;
+            font-size: 14px;
+        }
+        .page-header-profile > .header-date i {
+            margin-right: 8px;
+            color: #D97706;
+        }
+
         /* ===== STATS ROW ===== */
         .stats-row {
             display: grid;
@@ -550,6 +563,7 @@
             max-height: 90vh;
             overflow-y: auto;
         }
+
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(30px) scale(0.95); }
             to { opacity: 1; transform: translateY(0) scale(1); }
@@ -1244,6 +1258,21 @@
             </div>
         </div>
 
+        <!-- ===== DELETE BOOKING MODAL ===== -->
+        <div class="modal-overlay-base" id="deleteModal">
+            <div class="modal-box-base" style="width:min(92vw,420px);text-align:center;padding:30px 28px 28px;">
+                <div class="modal-icon-circle warning" style="width:72px;height:72px;margin:0 auto 16px;background:#FCE8E6;border:2px solid #F8B4B0;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#C62828;font-size:28px;">
+                    <i class="fa-regular fa-trash-can"></i>
+                </div>
+                <h2 class="modal-title">Delete Booking?</h2>
+                <p class="modal-subtitle">Are you sure you want to delete booking <strong id="deleteBookingId">-</strong>? This action cannot be undone.</p>
+                <div class="modal-actions" style="display:flex;gap:12px;justify-content:center;">
+                    <button class="btn btn-secondary" id="cancelDeleteBtn" style="flex:1;min-width:0;">Cancel</button>
+                    <button class="btn btn-danger" id="confirmDeleteBtn" style="flex:1;min-width:0;">Delete</button>
+                </div>
+            </div>
+        </div>
+
         <!-- ===== VIEW BOOKING DETAIL MODAL ===== -->
         <div class="modal-overlay-base" id="viewModal">
             <div class="modal-box-base view-modal-box">
@@ -1420,12 +1449,15 @@
         const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
 
+        const ADMIN_DATE_FORMAT = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+
         // ===== STATE =====
         let allBookings = [];
         let filteredBookings = [];
         let currentPage = 1;
         const rowsPerPage = 8;
         let currentEditId = null;
+        let pendingDeleteId = null;
 
         // ===== UTILITY FUNCTIONS =====
         function getToken() {
@@ -2331,8 +2363,14 @@ if (typeof bindUserMenuEvents === 'function') {
                     })
                 });
 
+                if (!response) return;
                 if (!response.ok) {
-                    throw new Error(`Failed to update: ${response.status}`);
+                    let message = `Failed to update: ${response.status}`;
+                    try {
+                        const errorResult = await response.json();
+                        if (errorResult.message) message = errorResult.message;
+                    } catch (parseError) {}
+                    throw new Error(message);
                 }
 
                 // Update local data
@@ -2353,7 +2391,7 @@ if (typeof bindUserMenuEvents === 'function') {
 
             } catch (error) {
                 console.error('Error updating booking:', error);
-                alert('Failed to update booking. Please try again.');
+                alert(`Failed to update booking: ${error.message}`);
             }
         }
 
@@ -2387,7 +2425,22 @@ if (typeof bindUserMenuEvents === 'function') {
 
         // ===== DELETE BOOKING =====
         async function deleteBooking(bookingId) {
-            if (!confirm(`Are you sure you want to delete ${bookingId}?`)) return;
+            pendingDeleteId = bookingId;
+            document.getElementById('deleteBookingId').textContent = bookingId;
+            document.getElementById('deleteModal').classList.add('active');
+            lockBodyScroll();
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.remove('active');
+            unlockBodyScroll();
+            pendingDeleteId = null;
+        }
+
+        async function confirmDeleteBooking() {
+            const bookingId = pendingDeleteId;
+            if (!bookingId) return;
+            closeDeleteModal();
 
             const token = getToken();
             if (!token) return;
@@ -2431,7 +2484,7 @@ if (typeof bindUserMenuEvents === 'function') {
 
             } catch (error) {
                 console.error('Error deleting booking:', error);
-                alert('Failed to delete booking. Please try again.');
+                alert(`Failed to delete booking: ${error.message}`);
             }
         }
 
@@ -2513,9 +2566,8 @@ if (typeof bindUserMenuEvents === 'function') {
         // ===== SET DATE =====
         function setCurrentDate() {
             const now = new Date();
-            const options = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
             const el = document.getElementById('headerCurrentDate');
-            if (el) el.textContent = now.toLocaleDateString('en-US', options);
+            if (el) el.textContent = now.toLocaleDateString('en-US', ADMIN_DATE_FORMAT);
         }
         setCurrentDate();
         loadAdminHeaderProfile();
@@ -2556,11 +2608,19 @@ if (typeof bindUserMenuEvents === 'function') {
             if (e.target === this) closeSuccessModal();
         });
 
+        // Delete modal events
+        document.getElementById('cancelDeleteBtn').addEventListener('click', closeDeleteModal);
+        document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDeleteBooking);
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDeleteModal();
+        });
+
         // Escape key
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 if (document.getElementById('viewModal').classList.contains('active')) closeViewModal();
                 if (document.getElementById('editModal').classList.contains('active')) closeEditModal();
+                if (document.getElementById('deleteModal').classList.contains('active')) closeDeleteModal();
                 if (document.getElementById('successModal').classList.contains('active')) closeSuccessModal();
             }
         });

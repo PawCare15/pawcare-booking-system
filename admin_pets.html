@@ -17,6 +17,21 @@
 
     <!-- CUSTOM ADMIN CSS -->
     <link rel="stylesheet" href="admin_style.css">
+        <style>
+            .pets-header-actions {
+                display: flex;
+                align-items: center;
+                justify-content: flex-end;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+            @media (max-width: 600px) {
+                .pets-header-actions {
+                    width: 100%;
+                    justify-content: flex-start;
+                }
+            }
+        </style>
 </head>
 <body>
 
@@ -134,9 +149,12 @@
                         <p class="page-header-profile-subtitle">View and manage all pet profiles.</p>
                     </div>
                 </div>
-                <button class="btn btn-primary" onclick="openAddPetModal()">
-                    <i class="fa-solid fa-plus"></i> Add New Pet
-                </button>
+                <div class="pets-header-actions">
+                    <span class="admin-page-date"><i class="fa-regular fa-calendar"></i> <span id="adminPageDate">Loading...</span></span>
+                    <button class="btn btn-primary" onclick="openAddPetModal()">
+                        <i class="fa-solid fa-plus"></i> Add New Pet
+                    </button>
+                </div>
             </div>
 
             <!-- STATS CARDS - 3 CARDS -->
@@ -332,5 +350,8 @@
     <!-- JAVASCRIPT -->
     <script src="admin_pets.js"></script>
 
+    <script>
+        document.getElementById('adminPageDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    </script>
 </body>
 </html>

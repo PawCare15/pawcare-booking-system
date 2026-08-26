@@ -532,6 +532,7 @@
                     </h1>
                     <p style="font-size:14px; color:#7A7A7A; margin-top:4px;">Manage customer reviews and ratings, reply to feedback, and monitor review trends.</p>
                 </div>
+                <span class="admin-page-date"><i class="fa-regular fa-calendar"></i> <span id="adminPageDate">Loading...</span></span>
                 <span style="background:#E8F5E9; color:#2E7D32; padding:4px 16px; border-radius:20px; font-size:13px; font-weight:600;">
                     <i class="fa-solid fa-circle" style="font-size:8px; margin-right:6px;"></i> All Reviews
                 </span>
@@ -1659,5 +1660,8 @@ if (notifModal) {
 });
 </script>
 
+    <script>
+        document.getElementById('adminPageDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    </script>
 </body>
 </html>

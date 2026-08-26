@@ -976,6 +976,7 @@
                         <h1><i class="fa-regular fa-id-card"></i> Admin Profile</h1>
                         <p style="font-size:14px; color:#7A7A7A; margin-top:4px;">View and manage your admin profile, security settings, and account activity.</p>
                     </div>
+                    <span class="admin-page-date"><i class="fa-regular fa-calendar"></i> <span id="adminPageDate">Loading...</span></span>
                     <span class="status-badge"><i class="fa-solid fa-circle"></i> Active</span>
                 </div>
 
@@ -2417,5 +2418,8 @@ if (typeof bindUserMenuEvents === 'function') {
 })();
 </script>
 
+    <script>
+        document.getElementById('adminPageDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    </script>
 </body>
 </html>

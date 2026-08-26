@@ -388,6 +388,19 @@
             color: #D97706;
         }
 
+        .page-header-profile .header-actions .header-date {
+            padding: 8px 16px;
+            border: 1px solid #EFECE6;
+            border-radius: 10px;
+            background: rgba(255,255,255,0.6);
+            color: #7A7A7A;
+            font-size: 14px;
+        }
+        .page-header-profile .header-actions .header-date i {
+            margin-right: 8px;
+            color: #D97706;
+        }
+
         /* ===== TOP QUICK ACTION CARDS ===== */
         .top-quick-actions {
             display: grid;
@@ -807,6 +820,83 @@
             background: #FCE8E6;
             color: #DC2626;
         }
+
+        #deleteModal .modal-box {
+            max-width: 540px;
+            padding: 34px 42px 38px;
+            border-radius: 28px;
+            text-align: center;
+        }
+        #deleteModal .delete-modal-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 92px;
+            height: 92px;
+            margin: 8px auto 24px;
+            border: 3px solid #F7B0AE;
+            border-radius: 50%;
+            background: #FCE8E6;
+            color: #D92D32;
+            font-size: 38px;
+        }
+        #deleteModal .delete-warning {
+            display: block;
+            min-height: 0;
+            padding: 0;
+            margin: 0 auto 32px;
+            border: none;
+            background: transparent;
+            color: #858585;
+            font-size: 17px;
+            font-weight: 400;
+            line-height: 1.55;
+            text-align: center;
+        }
+        #deleteModal .delete-warning i {
+            display: none;
+        }
+        #deleteModal .delete-service-name {
+            display: none;
+        }
+        #deleteModal .modal-title {
+            margin-bottom: 14px;
+            color: #303030;
+            font-size: 29px;
+            font-weight: 700;
+        }
+        #deleteModal .delete-modal-actions {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin: 0;
+        }
+        #deleteModal .delete-modal-actions .btn {
+            flex: 1;
+            min-height: 44px;
+            padding: 9px 18px;
+            border: 1px solid #A8A8A8;
+            border-radius: 4px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, border-color 0.2s;
+        }
+        #deleteModal .delete-modal-actions .btn-secondary {
+            background: #F7F7F7;
+            color: #202020;
+        }
+        #deleteModal .delete-modal-actions .btn-secondary:hover { background: #EDEDED; border-color: #777777; }
+        #deleteModal .delete-modal-actions .btn-danger { background: #D92D32; border-color: #D92D32; color: #FFFFFF; }
+        #deleteModal .delete-modal-actions .btn-danger:hover { background: #B92328; border-color: #B92328; }
+        @media (max-width: 560px) {
+            #deleteModal .modal-box { padding: 28px 22px 30px; border-radius: 22px; }
+            #deleteModal .modal-title { font-size: 24px; }
+            #deleteModal .delete-warning { font-size: 15px; margin-bottom: 26px; }
+            #deleteModal .delete-modal-actions { gap: 10px; }
+            #deleteModal .delete-modal-actions .btn { font-size: 14px; }
+        }
         .modal-box .modal-icon-wrap .icon-circle.success-icon {
             background: #E8F5E9;
             color: #2E7D32;
@@ -1079,6 +1169,22 @@
         }
         .booking-stats-grid .bs-item.bs-month .bs-number {
             color: #2E7D32;
+        }
+
+        .booking-overview-view-all {
+            border: none;
+            padding: 4px 0;
+            background: transparent;
+            color: #5A361A;
+            font: 600 12px 'Poppins', sans-serif;
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+        .booking-overview-view-all:hover,
+        .booking-overview-view-all:focus-visible {
+            color: #D97706;
+            text-decoration: underline;
+            outline: none;
         }
 
         /* Success Details */
@@ -2066,7 +2172,7 @@
                 <div style="margin:8px 0 12px;padding:12px 14px;background:#FAF8F5;border-radius:10px;border:1px solid #EFECE6;">
                     <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #EFECE6;">
                         <span style="font-weight:600;color:#4A3327;">Today's Bookings</span>
-                        <span style="color:#7A7A7A;">View all →</span>
+                        <button class="booking-overview-view-all" type="button" onclick="viewAllBookings()">View all →</button>
                     </div>
                     <div style="font-size:12px;color:#7A7A7A;padding-top:6px;" id="todayBookingsList">
                         <div style="text-align:center;padding:8px 0;color:#B0A090;">No bookings today</div>
@@ -2110,26 +2216,12 @@
         <!-- DELETE MODAL -->
         <div class="modal-overlay" id="deleteModal">
             <div class="modal-box">
-                <button class="modal-close" onclick="closeDeleteModal()"><i class="fa-solid fa-xmark"></i></button>
-                <div class="modal-icon-wrap">
-                    <div class="icon-circle delete-icon"><i class="fa-regular fa-trash-can"></i></div>
-                    <div class="header-text">
-                        <h2>Delete Service</h2>
-                        <p>This action cannot be undone</p>
-                    </div>
-                </div>
-                <div class="divider"></div>
-                <div class="delete-warning" style="text-align:center;color:#DC2626;font-size:13px;font-weight:500;background:#FEF2F2;padding:14px;border-radius:10px;margin-bottom:14px;border:1px solid #FECACA;">
-                    <i class="fa-solid fa-triangle-exclamation" style="margin-right:8px;"></i>
-                    Are you sure you want to permanently delete this service?
-                </div>
-                <div class="delete-service-name" style="text-align:center;font-size:16px;font-weight:600;color:#1F1F1F;padding:10px;background:#FAF7F2;border-radius:10px;margin-bottom:14px;" id="deleteServiceName">
-                    <i class="fa-regular fa-file-lines" style="margin-right:10px;color:#7A7A7A;"></i>
-                    Service Name
-                </div>
-                <div class="btn-group center">
-                    <button class="btn btn-secondary" onclick="closeDeleteModal()">Cancel</button>
-                    <button class="btn btn-danger" onclick="confirmDelete()"><i class="fa-solid fa-trash-can"></i> Yes, Delete</button>
+                <div class="delete-modal-icon"><i class="fa-regular fa-trash-can"></i></div>
+                <h2 class="modal-title">Delete Service?</h2>
+                <p class="delete-warning">Are you sure you want to delete <strong id="deleteServiceName">this service</strong>?<br>This action cannot be undone.</p>
+                <div class="delete-modal-actions">
+                    <button class="btn btn-secondary" type="button" onclick="closeDeleteModal()">Cancel</button>
+                    <button class="btn btn-danger" type="button" onclick="confirmDelete()">Delete</button>
                 </div>
             </div>
         </div>
@@ -2347,7 +2439,7 @@
         closeBtn.addEventListener('click', closeSidebar);
         overlay.addEventListener('click', closeSidebar);
 
-        // ================================================================
+// ================================================================
 // 统一的 HEADER 功能 - 所有 Admin 页面共用
 // ================================================================
 
@@ -2563,6 +2655,8 @@ async function showNotificationDetails() {
 // 在 DOMContentLoaded 中初始化
 // ================================================================
 document.addEventListener('DOMContentLoaded', function() {
+    const ADMIN_DATE_FORMAT = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+
     // 加载 header 头像
     loadAdminHeaderProfile();
     // 绑定 user menu 事件
@@ -2581,12 +2675,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const dateEl = document.getElementById('headerCurrentDate');
     if (dateEl) {
         const now = new Date();
-        dateEl.textContent = now.toLocaleDateString('en-US', {
-            weekday: 'long',
-            day: '2-digit',
-            month: 'long',
-            year: 'numeric'
-        });
+        dateEl.textContent = now.toLocaleDateString('en-US', ADMIN_DATE_FORMAT);
     }
 
     // ===== 修复通知弹窗关闭 =====
@@ -2623,9 +2712,8 @@ if (notifModal) {
         // ============================================================
         function setCurrentDate() {
             const now = new Date();
-            const options = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
             const el = document.getElementById('headerCurrentDate');
-            if (el) el.textContent = now.toLocaleDateString('en-US', options);
+            if (el) el.textContent = now.toLocaleDateString('en-US', ADMIN_DATE_FORMAT);
         }
         setCurrentDate();
 
@@ -3189,7 +3277,7 @@ if (notifModal) {
 
         async function editCategory(index) {
             const oldName = categories[index];
-            const category = categoryRecords.find(record => record.name === oldName);
+            const category = categoryRecords[index];
             const newName = await showCategoryEditModal(oldName);
             if (!newName) return;
             if (newName === oldName) return;
@@ -3466,6 +3554,12 @@ if (notifModal) {
             document.getElementById('bookingOverviewModal').classList.remove('active');
             unlockBodyScroll();
         }
+
+        function viewAllBookings() {
+            closeBookingOverviewModal();
+            window.location.href = 'admin_bookings.html';
+        }
+
         document.getElementById('bookingOverviewModal').addEventListener('click', function(e) {
             if (e.target === this) closeBookingOverviewModal();
         });
@@ -3558,8 +3652,7 @@ if (notifModal) {
         function openDeleteModal(btn) {
             const row = btn.closest('tr');
             currentDeleteRow = row;
-            document.getElementById('deleteServiceName').innerHTML =
-                `<i class="fa-regular fa-file-lines" style="margin-right:10px;color:#7A7A7A;"></i>${escapeHtml(row.dataset.service || 'this service')}`;
+            document.getElementById('deleteServiceName').textContent = row.dataset.service || 'this service';
             document.getElementById('deleteModal').classList.add('active');
             lockBodyScroll();
         }
@@ -3588,7 +3681,12 @@ if (notifModal) {
                 });
 
                 if (!serviceDeleteResponse || !serviceDeleteResponse.ok) {
-                    throw new Error('Failed to delete service');
+                    let message = `Failed to delete service (${serviceDeleteResponse?.status || 'no response'})`;
+                    try {
+                        const errorResult = await serviceDeleteResponse.json();
+                        if (errorResult.message) message = errorResult.message;
+                    } catch (parseError) {}
+                    throw new Error(message);
                 }
 
                 // UI 删除动画
