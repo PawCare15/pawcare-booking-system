@@ -1844,10 +1844,23 @@ async function loadActivityStats() {
 
 async function showNotificationDetails() {
     const res = await authFetch('/api/profile');
-    // 注意：必须获取最新 profile，而不是使用缓存
+    // 注意：必须获取最新 profile
     const profile = res.data || {};
-    const phone = (profile.phone_number || '').trim();
-    const photo = (profile.profile_photo || '').trim();
+    
+    let phone = (profile.phone_number || '').trim();
+    let photo = (profile.profile_photo || '').trim();
+
+    // 🛑 修正：如果后端数据库中的 phone_number 为空，但用户本地缓存里有，则使用缓存，防止误报
+    if (!phone) {
+        try {
+            const localData = JSON.parse(localStorage.getItem('pawcareAdminProfile') || '{}');
+            phone = (localData.phone || localData.phone_number || '').trim();
+        } catch (e) {}
+    }
+    if (!photo) {
+        photo = localStorage.getItem('pawcareAvatar') || '';
+    }
+
     const missingPhone = phone === '';
     const missingAvatar = photo === '';
     const profileIncomplete = missingPhone || missingAvatar;

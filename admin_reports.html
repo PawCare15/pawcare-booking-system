@@ -1421,20 +1421,36 @@ async function loadTrendChart() {
         const result = await res.json();
         if (result.success) {
             const trend = result.data || [];
-            if (trend.length === 0) {
-                document.querySelector('#bookingsTrendChart').parentElement.innerHTML =
-                    '<div style="text-align:center;padding:20px;color:#7A7A7A;">No booking data available</div>';
-                return;
+            
+            // 安全获取 canvas 和 Chart 实例，如果没有实例就创建
+            const canvas = document.getElementById('bookingsTrendChart');
+            if (!canvas) return;
+            
+            let chart = Chart.getChart(canvas);
+            if (!chart) {
+                chart = new Chart(canvas.getContext('2d'), {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [{
+                            label: 'Total Bookings',
+                            data: [],
+                            borderColor: '#4A3327',
+                            backgroundColor: 'rgba(74, 51, 39, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: false }
+                });
             }
-            // 确保 Chart.js 实例存在再更新
-            const chart = Chart.getChart('bookingsTrendChart');
-            if (chart) {
-                chart.data.labels = trend.map(d => d.date.slice(5));
-                chart.data.datasets[0].data = trend.map(d => d.count);
-                chart.update();
-            } else {
-                console.error('Chart "bookingsTrendChart" not found');
-            }
+
+            // 无论数据是否为空，都更新图表
+            chart.data.labels = trend.map(d => d.date.slice(5));
+            chart.data.datasets[0].data = trend.map(d => d.count || 0);
+            chart.update();
+            
         } else {
             console.error('API error:', result.message);
         }

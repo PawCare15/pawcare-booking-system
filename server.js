@@ -3422,57 +3422,52 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
 
         if (sessionError) throw sessionError;
 
-        // 获取管理员信息，读取 last_login 字段
+        // 获取管理员信息，读取 last_login, password_updated_at 等字段
         const { data: adminInfo, error: adminInfoError } = await supabaseAdmin
             .from('admin')
             .select('last_login, password_updated_at, profile_updated_at, two_factor_enabled')
             .eq('admin_id', adminId)
             .maybeSingle();
 
+        // 1. Total Logins 直接取 sessions 的长度（这是最准确的，登录一次加一条）
         const totalLogins = sessions.length;
-        // 优先使用 sessions 的最新时间，如果 sessions 为空则使用 adminInfo.last_login
-        const lastLogin = sessions.length > 0 ? sessions[0].created_at : (adminInfo?.last_login || null);
 
-        // 查询管理员信息（含密码修改时间、资料修改时间）
-        const { data: admin, error: adminError } = await supabaseAdmin
-            .from('admin')
-          .select('password_updated_at, profile_updated_at, last_login')
-            .eq('admin_id', adminId)
-            .maybeSingle();
+        // 2. Last Login：优先取 sessions 的最新时间，如果没有 session 则取 admin 表的 last_login
+        let lastLogin = sessions.length > 0 ? sessions[0].created_at : (adminInfo?.last_login || null);
 
-        if (adminError) throw adminError;
+        // 3. 密码修改时间、资料修改时间
+        let passwordUpdatedAt = adminInfo?.password_updated_at || null;
+        let profileUpdatedAt = adminInfo?.profile_updated_at || null;
 
-        // 计算活跃天数（从首次登录到今天）
+        // 4. 活跃天数
         let daysActive = 0;
         if (sessions.length > 0) {
-          const firstLogin = new Date(sessions[sessions.length - 1].created_at);
+            const firstLogin = new Date(sessions[sessions.length - 1].created_at);
             const now = new Date();
             const diffTime = Math.abs(now - firstLogin);
             daysActive = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
         }
 
-        // 读取 two_factor_enabled
-        const { data: adminSettings } = await supabaseAdmin.from('admin').select('two_factor_enabled').eq('admin_id', adminId).maybeSingle();
-        // 如果开启 2FA，给 100 分，否则 90 分。
+        // 5. Security Score
         const securityScore = adminInfo?.two_factor_enabled ? 100 : 90;
 
-                res.json({
-                    success: true,
-                    data: {
-                        totalLogins,
-                        lastLogin: lastLogin,
-                        passwordUpdatedAt: adminInfo?.password_updated_at || null,
-                        profileUpdatedAt: adminInfo?.profile_updated_at || null,
-                        daysActive,
-                        securityScore,
-                        two_factor_enabled: adminInfo?.two_factor_enabled || false
-                    }
-                });
-            } catch (err) {
-                console.error('Error fetching admin activity:', err);
-                res.status(500).json({ success: false, message: err.message });
+        res.json({
+            success: true,
+            data: {
+                totalLogins,
+                lastLogin,
+                passwordUpdatedAt,
+                profileUpdatedAt,
+                daysActive,
+                securityScore,
+                two_factor_enabled: adminInfo?.two_factor_enabled || false
             }
         });
+    } catch (err) {
+        console.error('Error fetching admin activity:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
+});
 
 // ========== 启动服务器 ==========
 const PORT = process.env.PORT || 5000;

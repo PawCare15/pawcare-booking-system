@@ -2860,7 +2860,12 @@ if (notifModal) {
 async function loadServices() {
     try {
         const response = await authFetch('/api/admin/services');
-        if (!response) return;
+        if (!response) {
+            // 加入错误提示，防止卡在 Loading 界面
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:40px;color:#DC2626;">Failed to load services: No response from server (Token might be invalid).</td></tr>';
+            return;
+        }
         if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`HTTP ${response.status}: ${errorText}`);
