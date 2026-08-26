@@ -1548,39 +1548,71 @@ document.querySelectorAll('[data-close]').forEach(btn => {
 
     // ===== 加载活动统计 =====
     async function loadActivityStats() {
-        try {
-            const res = await authFetch('/api/admin/profile/activity');
-            const result = await res.json();
-            if (result.success) {
-                const stats = result.data;
-                const totalLogins = stats.totalLogins || 0;
-                if ($('totalLogins')) $('totalLogins').textContent = totalLogins;
-                if ($('totalLoginsStat')) $('totalLoginsStat').textContent = totalLogins;
-                if ($('securityScore')) $('securityScore').textContent = (stats.securityScore || 90) + '%';
-                if ($('daysActive')) $('daysActive').textContent = stats.daysActive || 0;
+    try {
+        const res = await authFetch('/api/admin/profile/activity');
+        const result = await res.json();
+        if (result.success) {
+            const stats = result.data;
 
-                const formatDate = (iso) => {
-                    if (!iso) return null;
+            // Format helper
+            const formatDate = (iso) => {
+                if (!iso) return 'Never';
+                try {
                     const d = new Date(iso);
-                    return d.toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-                };
-                const lastLogin = formatDate(stats.lastLogin);
-                const pwdChanged = formatDate(stats.passwordUpdatedAt);
-                const profileUpdated = formatDate(stats.profileUpdatedAt);
-
-                if ($('lastLoginStat')) $('lastLoginStat').textContent = lastLogin || data.lastLogin;
-                if ($('profileLastLogin')) $('profileLastLogin').textContent = lastLogin || data.lastLogin;
-                if ($('pwdChanged')) $('pwdChanged').textContent = pwdChanged || data.pwdChanged;
-                if ($('profileUpdated')) $('profileUpdated').textContent = profileUpdated || data.profileUpdated;
-
-                if (stats.two_factor_enabled !== undefined) {
-                    data.twoFactor = stats.two_factor_enabled;
-                    saveData();
-                    render();
+                    return d.toLocaleString('en-US', {
+                        day: '2-digit',
+                        month: 'short',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                } catch {
+                    return 'Never';
                 }
+            };
+
+            // 1. Update stats cards
+            const totalLoginsEl = document.getElementById('totalLogins');
+            if (totalLoginsEl) totalLoginsEl.textContent = stats.totalLogins || 0;
+
+            const securityScoreEl = document.getElementById('securityScore');
+            if (securityScoreEl) securityScoreEl.textContent = (stats.securityScore || 90) + '%';
+
+            const daysActiveEl = document.getElementById('daysActive');
+            if (daysActiveEl) daysActiveEl.textContent = stats.daysActive || 0;
+
+            // 2. Update activity summary rows
+            const lastLogin = formatDate(stats.lastLogin);
+            const pwdChanged = formatDate(stats.passwordUpdatedAt);
+            const profileUpdated = formatDate(stats.profileUpdatedAt);
+
+            const lastLoginStatEl = document.getElementById('lastLoginStat');
+            const profileLastLoginEl = document.getElementById('profileLastLogin');
+            const pwdChangedEl = document.getElementById('pwdChanged');
+            const profileUpdatedEl = document.getElementById('profileUpdated');
+
+            if (lastLoginStatEl) lastLoginStatEl.textContent = lastLogin;
+            if (profileLastLoginEl) profileLastLoginEl.textContent = lastLogin;
+            if (pwdChangedEl) pwdChangedEl.textContent = pwdChanged;
+            if (profileUpdatedEl) profileUpdatedEl.textContent = profileUpdated;
+
+            // 3. Update Two-Factor Authentication status (if returned)
+            if (stats.two_factor_enabled !== undefined) {
+                data.twoFactor = stats.two_factor_enabled;
+                saveData();
+                render(); // updates badge, toggle button, and status dot
             }
-        } catch (err) { console.error('Failed to load activity stats:', err); }
+
+            // 4. Update active sessions count (calls separate API)
+            await updateActiveSessionsCount();
+
+        } else {
+            console.warn('Failed to load activity stats:', result.message);
+        }
+    } catch (err) {
+        console.error('Error loading activity stats:', err);
     }
+}
 
     // ===== 更新活跃会话数 =====
     async function updateActiveSessionsCount() {
@@ -1837,8 +1869,10 @@ document.querySelectorAll('[data-close]').forEach(btn => {
     const profile = res.data || {};
 
     // 检查资料完整性
-    const missingPhone = !profile.phone_number || profile.phone_number.length === 0;
-    const missingAvatar = !profile.profile_photo;
+    const phone = (profile.phone_number || '').trim();
+    const photo = (profile.profile_photo || '').trim();
+    const missingPhone = phone === '';
+    const missingAvatar = photo === '';
     const profileIncomplete = missingPhone || missingAvatar;
     
     // 模拟密码过期（如果创建时间超过了180天）
