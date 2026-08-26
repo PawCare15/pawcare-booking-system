@@ -543,11 +543,6 @@ app.post('/api/login', async (req, res) => {
       if (sessionError) console.error('Failed to record session:', sessionError);
     } catch (e) { console.error('Session insert exception:', e); }
 
-    if (sessionError) {
-      console.error('Failed to record session:', sessionError);
-      // 不影响登录，仅记录错误
-    }
-
     // 登录成功后更新 admin 表的 last_login
     if (role === 'admin') {
         const now = new Date().toISOString();
