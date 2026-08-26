@@ -1547,14 +1547,13 @@ document.querySelectorAll('[data-close]').forEach(btn => {
     }
 
     // ===== 加载活动统计 =====
-    async function loadActivityStats() {
+async function loadActivityStats() {
     try {
         const res = await authFetch('/api/admin/profile/activity');
         const result = await res.json();
         if (result.success) {
             const stats = result.data;
 
-            // Format helper
             const formatDate = (iso) => {
                 if (!iso) return 'Never';
                 try {
@@ -1572,14 +1571,9 @@ document.querySelectorAll('[data-close]').forEach(btn => {
             };
 
             // 1. Update stats cards
-            const totalLoginsEl = document.getElementById('totalLogins');
-            if (totalLoginsEl) totalLoginsEl.textContent = stats.totalLogins || 0;
-
-            const securityScoreEl = document.getElementById('securityScore');
-            if (securityScoreEl) securityScoreEl.textContent = (stats.securityScore || 90) + '%';
-
-            const daysActiveEl = document.getElementById('daysActive');
-            if (daysActiveEl) daysActiveEl.textContent = stats.daysActive || 0;
+            document.getElementById('totalLogins').textContent = stats.totalLogins || 0;
+            document.getElementById('securityScore').textContent = (stats.securityScore || 90) + '%';
+            document.getElementById('daysActive').textContent = stats.daysActive || 0;
 
             // 2. Update activity summary rows
             const lastLogin = formatDate(stats.lastLogin);
@@ -1596,16 +1590,15 @@ document.querySelectorAll('[data-close]').forEach(btn => {
             if (pwdChangedEl) pwdChangedEl.textContent = pwdChanged;
             if (profileUpdatedEl) profileUpdatedEl.textContent = profileUpdated;
 
-            // 3. Update Two-Factor Authentication status (if returned)
+            // 3. Update Two-Factor Authentication status
             if (stats.two_factor_enabled !== undefined) {
                 data.twoFactor = stats.two_factor_enabled;
                 saveData();
-                render(); // updates badge, toggle button, and status dot
+                render();
             }
 
-            // 4. Update active sessions count (calls separate API)
+            // 4. Update active sessions count
             await updateActiveSessionsCount();
-
         } else {
             console.warn('Failed to load activity stats:', result.message);
         }

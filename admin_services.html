@@ -2857,99 +2857,97 @@ if (notifModal) {
         // ============================================================
         // 11. SERVICES - FROM API + SERVICE_PRICE
         // ============================================================
-        async function loadServices() {
-            try {
-                if (!getToken()) {
-                    console.error('No token found');
-                    return;
-                }
-
-                console.log('Fetching services from /api/admin/services');
-                const response = await authFetch('/api/admin/services');
-                if (!response) {
-                    throw new Error('No response from server');
-                }
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-
-                const result = await response.json();
-                console.log('Services API response:', result);
-                if (!result.success) {
-                    throw new Error(result.message || 'API returned success=false');
-                }
-
-                const services = result.data || [];
-                if (services.length === 0) {
-                    console.warn('No services found in database');
-                    // Show empty state
-                    allServices = [];
-                    filteredServices = [];
-                    renderServicesTable([]);
-                    updateTableCount(0);
-                    updatePagination(0);
-                    return;
-                }
-
-                // Merge logic with fallback
-                const mergedServices = [];
-                services.forEach(service => {
-                    const priceBySpecies = new Map();
-                    if (service.price_dog !== null && service.price_dog !== undefined) {
-                        priceBySpecies.set('dog', service.price_dog);
-                    }
-                    if (service.price_cat !== null && service.price_cat !== undefined) {
-                        priceBySpecies.set('cat', service.price_cat);
-                    }
-                    // If no species-specific prices, use the generic price field
-                    if (priceBySpecies.size === 0 && service.price !== null && service.price !== undefined) {
-                        // Use the service.pet_type to decide which species to show
-                        const species = String(service.pet_type || '').toLowerCase();
-                        if (species === 'dog' || species === 'cat') {
-                            priceBySpecies.set(species, service.price);
-                        } else {
-                            // Default to dog if unknown
-                            priceBySpecies.set('dog', service.price);
-                        }
-                    }
-
-                    const speciesToShow = priceBySpecies.size > 0 ? Array.from(priceBySpecies.keys()) : ['dog'];
-                    speciesToShow.forEach(species => {
-                        mergedServices.push({
-                            service_id: `${service.service_id}_${species}`,
-                            actual_service_id: service.service_id,
-                            service_name: service.service_name,
-                            description: service.description,
-                            category: service.category,
-                            duration: service.duration,
-                            pet_type: species,
-                            price: priceBySpecies.get(species) || 0,
-                            created_at: service.created_at
-                        });
-                    });
-                });
-
-                console.log(`Merged ${mergedServices.length} service entries`);
-                allServices = mergedServices;
-                filteredServices = [...allServices];
-                renderServicesTable(filteredServices);
-                updateTableCount(filteredServices.length);
-                updatePagination(filteredServices.length);
-            } catch (err) {
-                console.error('Error loading services:', err);
-                const tbody = document.getElementById('tableBody');
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="7" style="text-align:center;padding:40px 20px;color:#DC2626;">
-                            <i class="fa-solid fa-circle-exclamation" style="font-size:24px;display:block;margin-bottom:10px;"></i>
-                            Failed to load services: ${escapeHtml(err.message)}
-                            <br><small style="color:#7A7A7A;">Please check server logs.</small>
-                        </td>
-                    </tr>
-                `;
-            }
+async function loadServices() {
+    try {
+        const token = getToken();
+        if (!token) {
+            console.error('No token found');
+            return;
         }
+
+        console.log('Fetching services from /api/admin/services');
+        const response = await authFetch('/api/admin/services');
+        if (!response) {
+            throw new Error('No response from server');
+        }
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`HTTP ${response.status}: ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('Services API response:', result);
+        if (!result.success) {
+            throw new Error(result.message || 'API returned success=false');
+        }
+
+        const services = result.data || [];
+        if (services.length === 0) {
+            console.warn('No services found in database');
+            allServices = [];
+            filteredServices = [];
+            renderServicesTable([]);
+            updateTableCount(0);
+            updatePagination(0);
+            return;
+        }
+
+        // Merge services with species-specific prices
+        const mergedServices = [];
+        services.forEach(service => {
+            const priceBySpecies = new Map();
+            if (service.price_dog !== null && service.price_dog !== undefined) {
+                priceBySpecies.set('dog', service.price_dog);
+            }
+            if (service.price_cat !== null && service.price_cat !== undefined) {
+                priceBySpecies.set('cat', service.price_cat);
+            }
+            // Fallback: if no species-specific prices, use generic price
+            if (priceBySpecies.size === 0 && service.price !== null && service.price !== undefined) {
+                const species = String(service.pet_type || '').toLowerCase();
+                if (species === 'dog' || species === 'cat') {
+                    priceBySpecies.set(species, service.price);
+                } else {
+                    priceBySpecies.set('dog', service.price);
+                }
+            }
+
+            const speciesToShow = priceBySpecies.size > 0 ? Array.from(priceBySpecies.keys()) : ['dog'];
+            speciesToShow.forEach(species => {
+                mergedServices.push({
+                    service_id: `${service.service_id}_${species}`,
+                    actual_service_id: service.service_id,
+                    service_name: service.service_name,
+                    description: service.description,
+                    category: service.category,
+                    duration: service.duration,
+                    pet_type: species,
+                    price: priceBySpecies.get(species) || 0,
+                    created_at: service.created_at
+                });
+            });
+        });
+
+        console.log(`Merged ${mergedServices.length} service entries`);
+        allServices = mergedServices;
+        filteredServices = [...allServices];
+        renderServicesTable(filteredServices);
+        updateTableCount(filteredServices.length);
+        updatePagination(filteredServices.length);
+    } catch (err) {
+        console.error('Error loading services:', err);
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align:center;padding:40px 20px;color:#DC2626;">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size:24px;display:block;margin-bottom:10px;"></i>
+                    Failed to load services: ${escapeHtml(err.message)}
+                    <br><small style="color:#7A7A7A;">Please check server logs.</small>
+                </td>
+            </tr>
+        `;
+    }
+}
 
         function renderServicesTable(services) {
             const tbody = document.getElementById('tableBody');

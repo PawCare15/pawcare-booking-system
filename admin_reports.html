@@ -1417,35 +1417,39 @@ async function showNotificationDetails() {
             async function loadTrendChart() {
                 try {
                     const res = await authFetch('/api/admin/bookings-trend');
-                    if (!res) return;
+                    if (!res) {
+                        console.warn('No response from bookings-trend API');
+                        return;
+                    }
                     const result = await res.json();
                     if (result.success) {
                         const trend = result.data || [];
                         if (trend.length === 0) {
-                            console.warn('No trend data available');
-                            // Optionally display a message
+                            document.querySelector('#bookingsTrendChart').parentElement.innerHTML =
+                                '<div style="text-align:center;padding:20px;color:#7A7A7A;">No booking data available</div>';
                             return;
                         }
-                        const labels = trend.map(d => d.date.slice(5));
+                        const labels = trend.map(d => d.date.slice(5)); // "MM-DD"
                         const counts = trend.map(d => d.count);
                         const chart = Chart.getChart('bookingsTrendChart');
                         if (chart) {
                             chart.data.labels = labels;
                             chart.data.datasets[0].data = counts;
-                            // If you have a second dataset for 'Completed', update accordingly
-                            chart.data.datasets[1].data = trend.map(() => 0);
+                            // If you have a second dataset for 'Completed' (dataset index 1)
+                            if (chart.data.datasets.length > 1) {
+                                chart.data.datasets[1].data = trend.map(() => 0);
+                            }
                             chart.update();
                         } else {
-                            console.error('Chart instance not found');
+                            console.error('Chart instance "bookingsTrendChart" not found');
                         }
                     } else {
                         console.error('API error:', result.message);
                     }
                 } catch (err) {
                     console.error('Trend error:', err);
-                    // Show a user-friendly message in the chart container
-                    document.querySelector('#bookingsTrendChart').parentElement.innerHTML = 
-                        '<div style="text-align:center;padding:20px;color:#7A7A7A;">No booking data available</div>';
+                    document.querySelector('#bookingsTrendChart').parentElement.innerHTML =
+                        '<div style="text-align:center;padding:20px;color:#DC2626;">Failed to load trend data</div>';
                 }
             }
 
@@ -1498,35 +1502,43 @@ async function showNotificationDetails() {
 
             // 加载月度比较图
             async function loadMonthlyComparison() {
-                try {
-                    const res = await authFetch('/api/admin/monthly-trend');
-                    if (!res) return;
-                    const result = await res.json();
-                    if (result.success) {
-                        const { labels, trend } = result.data;
-                        if (!labels || labels.length === 0) {
-                            console.warn('No monthly data');
-                            return;
-                        }
-                        const chart = Chart.getChart('monthlyComparisonChart');
-                        if (chart) {
-                            chart.data.labels = labels.map(label => {
-                                const parts = label.split('-');
-                                return new Date(parts[0], parts[1]-1).toLocaleString('default', { month: 'short' });
-                            });
-                            chart.data.datasets[0].data = trend.map(item => item.count);
-                            if (chart.data.datasets.length > 1 && trend[0]?.completed !== undefined) {
-                                chart.data.datasets[1].data = trend.map(item => item.completed || 0);
-                            }
-                            chart.update();
-                        }
-                    }
-                } catch (err) {
-                    console.error('Monthly comparison error:', err);
-                    document.querySelector('#monthlyComparisonChart').parentElement.innerHTML = 
-                        '<div style="text-align:center;padding:20px;color:#7A7A7A;">No monthly data available</div>';
-                }
+    try {
+        const res = await authFetch('/api/admin/monthly-trend');
+        if (!res) {
+            console.warn('No response from monthly-trend API');
+            return;
+        }
+        const result = await res.json();
+        if (result.success) {
+            const { labels, trend } = result.data;
+            if (!labels || labels.length === 0) {
+                document.querySelector('#monthlyComparisonChart').parentElement.innerHTML =
+                    '<div style="text-align:center;padding:20px;color:#7A7A7A;">No monthly data available</div>';
+                return;
             }
+            const chart = Chart.getChart('monthlyComparisonChart');
+            if (chart) {
+                chart.data.labels = labels.map(label => {
+                    const parts = label.split('-');
+                    return new Date(parts[0], parts[1]-1).toLocaleString('default', { month: 'short' });
+                });
+                chart.data.datasets[0].data = trend.map(item => item.count);
+                if (chart.data.datasets.length > 1 && trend[0]?.completed !== undefined) {
+                    chart.data.datasets[1].data = trend.map(item => item.completed || 0);
+                }
+                chart.update();
+            } else {
+                console.error('Chart instance "monthlyComparisonChart" not found');
+            }
+        } else {
+            console.error('API error:', result.message);
+        }
+    } catch (err) {
+        console.error('Monthly comparison error:', err);
+        document.querySelector('#monthlyComparisonChart').parentElement.innerHTML =
+            '<div style="text-align:center;padding:20px;color:#DC2626;">Failed to load monthly data</div>';
+    }
+}
 
             // 调用这些函数
             loadStats();
@@ -1535,8 +1547,7 @@ async function showNotificationDetails() {
             loadPopularServices();
             loadTopCustomers();
             loadMonthlyComparison(); 
-
-            // Inside DOMContentLoaded, after chart creation
+            
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('view') === 'report') {
                 document.querySelector('.charts-row')?.scrollIntoView({ behavior: 'smooth' });
