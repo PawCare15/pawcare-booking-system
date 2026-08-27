@@ -357,6 +357,50 @@ body {
     align-items: center !important;
 }
 
+.review-page-header,
+.profile-container .page-heading.admin-page-banner {
+    background: #FDF3E7 !important;
+    border: 1px solid #EFE4D8 !important;
+    border-radius: 18px !important;
+    padding: 28px 34px !important;
+    margin-bottom: 24px !important;
+}
+
+.review-page-header > div:first-child h1,
+.profile-container .page-heading.admin-page-banner h1 {
+    font-size: 30px !important;
+    color: #342218 !important;
+}
+
+.review-page-header h1 i,
+.profile-container .page-heading.admin-page-banner h1 > i {
+    width: 64px !important;
+    height: 64px !important;
+    font-size: 42px !important;
+    border-radius: 14px !important;
+    background: #FFF9F0 !important;
+    color: #D97706 !important;
+}
+
+.review-page-header > div:first-child p,
+.profile-container .page-heading.admin-page-banner > div:first-child p {
+    margin-top: 4px !important;
+    font-size: 17px !important;
+    color: #7A6B5A !important;
+}
+
+@media (max-width: 600px) {
+    .review-page-header,
+    .profile-container .page-heading.admin-page-banner {
+        padding: 22px 20px !important;
+    }
+
+    .review-page-header > div:first-child h1,
+    .profile-container .page-heading.admin-page-banner h1 {
+        font-size: 24px !important;
+    }
+}
+
 .user-profile {
     display: flex;
     align-items: center;

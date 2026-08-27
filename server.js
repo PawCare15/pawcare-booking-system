@@ -40,7 +40,7 @@ function parseUserAgent(userAgent) {
 const emailUser = String(process.env.EMAIL_USER || '').split(/\s+#/)[0].trim();
 const emailPass = String(process.env.EMAIL_PASS || '').split(/\s+#/)[0].trim().replace(/\s+/g, '');
 const emailHost = String(process.env.EMAIL_HOST || 'smtp.gmail.com').trim();
-const emailPort = Number(process.env.EMAIL_PORT || 465);
+const emailPort = Number(process.env.EMAIL_PORT || 587);
 const emailSecure = String(process.env.EMAIL_SECURE || (emailPort === 465 ? 'true' : 'false')).toLowerCase() === 'true';
 const emailConfigured = Boolean(emailUser && emailPass);
 const transporter = emailConfigured ? nodemailer.createTransport({
@@ -190,7 +190,35 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
         response: error.response,
         message: error.message
       });
+      try {
+        emailjs.init({
+          publicKey: process.env.EMAILJS_PUBLIC_KEY,
+          privateKey: process.env.EMAILJS_PRIVATE_KEY
+        });
+        await emailjs.send(
+          process.env.EMAILJS_SERVICE_ID,
+          process.env.EMAILJS_TEMPLATE_ID,
+          {
+            to_email: customerEmail,
+            email: customerEmail,
+            otp_code: deleteLink,
+            title: 'Account Deletion Request - PawCare',
+            subject: 'Account Deletion Request - PawCare',
+            description: `Dear ${customerName}, open this link to confirm account deletion: ${deleteLink}`,
+            badgeText: 'ACCOUNT DELETION',
+            badgeClass: 'account-deletion'
+          }
+        );
+        console.log(`✅ Deletion email sent through EmailJS fallback to ${customerEmail}`);
+        return true;
+      } catch (fallbackError) {
+        console.error('❌ EmailJS deletion email fallback failed:', {
+          status: fallbackError.status,
+          text: fallbackError.text,
+          message: fallbackError.message
+        });
         return false;
+      }
     }
 }
 

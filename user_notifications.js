@@ -67,7 +67,7 @@
                 console.error('Unable to mark user notifications as read:', error);
                 refreshBadge();
             }
-        }, 500);
+        }, 1200);
     });
 
     refreshBadge();

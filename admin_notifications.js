@@ -23,20 +23,9 @@
             .then(result => {
                 const count = Number(result.total) || 0;
                 window.adminNotificationSummary = result.data || {};
-                setBadge(sessionStorage.getItem('pawcareAdminNotificationsViewed') ? 0 : count);
+                setBadge(count);
             })
             .catch(error => console.error('Unable to load admin notification count:', error));
-
-        button.addEventListener('click', function() {
-            // Page-specific handlers render the modal asynchronously. Only mark it viewed after it opens.
-            window.setTimeout(function() {
-                const modal = document.getElementById('notificationsModal');
-                if (modal && modal.classList.contains('active')) {
-                    sessionStorage.setItem('pawcareAdminNotificationsViewed', 'true');
-                    setBadge(0);
-                }
-            }, 500);
-        });
 
         window.adminNotificationSummaryRequest = summaryRequest;
     }
