@@ -95,16 +95,43 @@ async function ensureBucketExists(bucketName) {
     }
 }   // <-- 到这里结束
 
+async function sendEmailJsTemplate(templateParams) {
+  emailjs.init({
+    publicKey: process.env.EMAILJS_PUBLIC_KEY,
+    privateKey: process.env.EMAILJS_PRIVATE_KEY
+  });
+  return emailjs.send(
+    process.env.EMAILJS_SERVICE_ID,
+    process.env.EMAILJS_TEMPLATE_ID,
+    templateParams
+  );
+}
+
 // ================================================================ ✅ TAMBAH BARU
 // SEND DELETE CONFIRMATION EMAIL (With direct delete link)
 // ================================================================
 async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteToken) {
-  if (!transporter) {
-    console.error('Deletion email is not configured. Set EMAIL_USER and EMAIL_PASS in the server environment.');
-    return false;
-  }
-    const baseUrl = process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5000';
+    const baseUrl = process.env.RENDER_EXTERNAL_URL || process.env.BASE_URL || 'http://localhost:5000';
     const deleteLink = `${baseUrl}/api/delete-account?token=${deleteToken}&email=${encodeURIComponent(customerEmail)}`;
+
+    try {
+      await sendEmailJsTemplate({
+        to_email: customerEmail,
+        email: customerEmail,
+        otp_code: deleteLink,
+        delete_link: deleteLink,
+        title: 'Account Deletion Request - PawCare',
+        subject: 'Account Deletion Request - PawCare',
+        description: `Dear ${customerName}, open this link to confirm account deletion: ${deleteLink}`,
+        badgeText: 'ACCOUNT DELETION',
+        badgeClass: 'account-deletion'
+      });
+      console.log(`✅ Deletion email sent through EmailJS to ${customerEmail}`);
+      return true;
+    } catch (error) {
+      console.error('❌ EmailJS deletion email failed:', { status: error.status, text: error.text, message: error.message });
+      return false;
+    }
     
     const mailOptions = {
         from: `"PawCare Booking System" <${emailUser}>`,
@@ -226,10 +253,23 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
 // SEND DELETION CONFIRMATION EMAIL (After successful delete)
 // ================================================================
 async function sendDeletionConfirmedEmail(customerEmail, customerName) {
-  if (!transporter) {
-    console.error('Deletion email is not configured. Set EMAIL_USER and EMAIL_PASS in the server environment.');
+  try {
+    await sendEmailJsTemplate({
+      to_email: customerEmail,
+      email: customerEmail,
+      title: 'Account Deleted Successfully - PawCare',
+      subject: 'Account Deleted Successfully - PawCare',
+      description: `Dear ${customerName}, your PawCare account has been successfully deleted.`,
+      badgeText: 'ACCOUNT DELETED',
+      badgeClass: 'account-deleted'
+    });
+    console.log(`✅ Deletion confirmed email sent through EmailJS to ${customerEmail}`);
+    return true;
+  } catch (error) {
+    console.error('❌ EmailJS confirmation email failed:', { status: error.status, text: error.text, message: error.message });
     return false;
   }
+  /*
     const mailOptions = {
         from: `"PawCare Booking System" <${emailUser}>`,
         to: customerEmail,
@@ -291,6 +331,7 @@ async function sendDeletionConfirmedEmail(customerEmail, customerName) {
         console.error('❌ Error sending confirmation email:', error);
         return false;
     }
+  */
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
@@ -2797,7 +2838,7 @@ app.post('/api/customers/:customerId/delete-request', async (req, res) => {
 });
 
 // API: DIRECT DELETE ACCOUNT (Customer clicks link in email)
-app.get('/api/delete-account', async (req, res) => {
+app.all('/api/delete-account', async (req, res) => {
     try {
         const { token, email } = req.query;
 
@@ -2853,6 +2894,27 @@ app.get('/api/delete-account', async (req, res) => {
             `);
         }
 
+          // GET displays confirmation only; mail scanners must not delete accounts.
+          if (req.method === 'GET') {
+            const actionUrl = `/api/delete-account?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
+            return res.send(`
+              <!DOCTYPE html>
+              <html>
+              <head><title>Confirm Account Deletion</title></head>
+              <body style="font-family:Arial;background:#f5f0eb;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:20px;">
+                <div style="max-width:460px;background:#fff;border-radius:16px;padding:36px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.1);">
+                  <h1 style="color:#dc2626;">Confirm Account Deletion</h1>
+                  <p>This will permanently delete your PawCare profile, pets, bookings, and reviews.</p>
+                  <form method="post" action="${actionUrl}">
+                    <button type="submit" style="border:0;border-radius:8px;padding:13px 28px;background:#dc2626;color:#fff;font-weight:700;cursor:pointer;">Delete My Account</button>
+                  </form>
+                  <p style="margin-top:18px;"><a href="/" style="color:#5a361a;">Back to Home</a></p>
+                </div>
+              </body>
+              </html>
+            `);
+          }
+
         // Check if already deleted
         if (customer.status === 'deleted') {
             return res.status(400).send(`
@@ -2905,7 +2967,8 @@ app.get('/api/delete-account', async (req, res) => {
         }
 
         // Send confirmation email
-        await sendDeletionConfirmedEmail(customerEmail, customerName);
+        // Do not hold the deletion response open while an optional email is delivered.
+        void sendDeletionConfirmedEmail(customerEmail, customerName);
 
         // Show success page
         res.send(`
