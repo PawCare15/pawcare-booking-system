@@ -1631,13 +1631,10 @@
             if (!token) return;
 
             const response = await fetch(
-                `${SUPABASE_URL}/rest/v1/customer_notifications?select=*&order=created_at.desc&limit=20`,
+                '/api/notifications',
                 {
                     method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'apikey': SUPABASE_ANON_KEY
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 }
             );
 
@@ -1645,7 +1642,8 @@
                 throw new Error(`Failed to fetch notifications: ${response.status}`);
             }
 
-            const notifications = await response.json();
+            const notificationResponse = await response.json();
+            const notifications = notificationResponse.data || [];
 
             // Count unread
             const unread = notifications.filter(n => !n.is_read).length;
@@ -1800,18 +1798,10 @@
 
             if (unreadIds.length === 0) return;
 
-            for (const id of unreadIds) {
-                await fetch(`${SUPABASE_URL}/rest/v1/customer_notifications?notification_id=eq.${id}`, {
-                    method: 'PATCH',
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'apikey': SUPABASE_ANON_KEY,
-                        'Content-Type': 'application/json',
-                        'Prefer': 'return=minimal'
-                    },
-                    body: JSON.stringify({ is_read: true })
-                });
-            }
+            await fetch('/api/notifications/read', {
+              method: 'PUT',
+              headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' }
+            });
 
             // Update local data
             window.customerNotifications.forEach(n => { n.is_read = true; });

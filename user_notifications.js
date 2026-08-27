@@ -54,15 +54,21 @@
         }
     }
 
-    notificationButton.addEventListener('click', async function() {
-        localStorage.setItem('pawcareUserNotificationsSeenAt', new Date().toISOString());
-        setBadge(0);
-        try {
-            await request('/api/notifications/read', { method: 'PUT' });
-        } catch (error) {
-            console.error('Unable to mark user notifications as read:', error);
-        }
-    }, true);
+    notificationButton.addEventListener('click', function() {
+        // Existing page handlers fetch and render the modal. Mark notifications viewed only after that succeeds.
+        window.setTimeout(async function() {
+            const modal = document.getElementById('notificationsModal');
+            if (!modal || !modal.classList.contains('active')) return;
+            localStorage.setItem('pawcareUserNotificationsSeenAt', new Date().toISOString());
+            setBadge(0);
+            try {
+                await request('/api/notifications/read', { method: 'PUT' });
+            } catch (error) {
+                console.error('Unable to mark user notifications as read:', error);
+                refreshBadge();
+            }
+        }, 500);
+    });
 
     refreshBadge();
 })();

@@ -6,6 +6,36 @@
   text-align: center !important;
 }
 
+#notificationsModal .modal-box {
+  width: min(92vw, 600px) !important;
+  max-width: 600px !important;
+  max-height: min(88vh, 680px) !important;
+  padding: 34px 38px 30px !important;
+  border-radius: 20px !important;
+  overflow: hidden !important;
+}
+
+#notificationsModal #notificationsModalContent {
+  max-height: min(58vh, 460px) !important;
+  overflow-y: auto !important;
+  scrollbar-width: thin;
+  scrollbar-color: #8B8B8B transparent;
+}
+
+#notificationsModal .modal-box > div:first-child {
+  margin-bottom: 18px !important;
+}
+
+#notificationsModal h3 {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: #5A361A !important;
+}
+
+#notificationsModal #notificationsModalContent > div {
+  border-radius: 11px;
+}
+
 #logoutModal .modal-icon-circle.warning {
   width: 72px !important;
   height: 72px !important;

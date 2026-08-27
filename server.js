@@ -47,6 +47,8 @@ const transporter = emailConfigured ? nodemailer.createTransport({
   host: emailHost,
   port: emailPort,
   secure: emailSecure,
+  requireTLS: emailPort === 587,
+  tls: { minVersion: 'TLSv1.2' },
   auth: {
     user: emailUser,
     pass: emailPass
@@ -101,7 +103,7 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
     console.error('Deletion email is not configured. Set EMAIL_USER and EMAIL_PASS in the server environment.');
     return false;
   }
-    const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+    const baseUrl = process.env.BASE_URL || process.env.RENDER_EXTERNAL_URL || 'http://localhost:5000';
     const deleteLink = `${baseUrl}/api/delete-account?token=${deleteToken}&email=${encodeURIComponent(customerEmail)}`;
     
     const mailOptions = {
@@ -1320,7 +1322,8 @@ app.get('/api/admin/notifications/summary', isAdmin, async (req, res) => {
       supabaseAdmin.from('booking').select('booking_id', { count: 'exact', head: true }).eq('booking_date', tomorrow),
       supabaseAdmin.from('customer').select('customer_id', { count: 'exact', head: true }).gte('created_at', todayIso),
       supabaseAdmin.from('customer').select('customer_id', { count: 'exact', head: true }).eq('status', 'pending_deletion'),
-      supabaseAdmin.from('pet').select('pet_id', { count: 'exact', head: true }).gte('created_at', todayIso),
+      // Older databases do not have pet.created_at; keep the rest of the summary available.
+      Promise.resolve({ count: 0, data: [], error: null }),
       supabaseAdmin.from('booking').select('booking_id', { count: 'exact', head: true }).gte('booking_date', today).lte('booking_date', tomorrowDate.toISOString().split('T')[0]),
       supabaseAdmin.from('review').select('review_id, review_date, rating'),
       supabaseAdmin.from('review_replies').select('review_id'),
@@ -1328,9 +1331,13 @@ app.get('/api/admin/notifications/summary', isAdmin, async (req, res) => {
       supabaseAdmin.from('booking_service').select('service_id')
     ]);
 
-    const queryError = [pending, reschedule, todayBookings, tomorrowBookings, newCustomers, pendingDeletion,
-      newPets, upcoming, reviews, replies, services, bookedServices].find(result => result.error);
-    if (queryError) throw queryError.error;
+    const queryResults = [pending, reschedule, todayBookings, tomorrowBookings, newCustomers, pendingDeletion,
+      newPets, upcoming, reviews, replies, services, bookedServices];
+    queryResults.filter(result => result.error).forEach(result => {
+      console.error('Admin notification query skipped:', result.error.message);
+      result.count = 0;
+      result.data = [];
+    });
 
     const repliedReviewIds = new Set((replies.data || []).map(reply => reply.review_id));
     const noReplyReviews = (reviews.data || []).filter(review => !repliedReviewIds.has(review.review_id)).length;
@@ -2712,7 +2719,8 @@ app.post('/api/customers/:customerId/delete-request', async (req, res) => {
             .from('customer')
             .update({
                 delete_token: deleteToken,
-                delete_token_expiry: tokenExpiry.toISOString()
+            delete_token_expiry: tokenExpiry.toISOString(),
+            status: 'pending_deletion'
             })
             .eq('customer_id', customerId);
 
@@ -2733,7 +2741,8 @@ app.post('/api/customers/:customerId/delete-request', async (req, res) => {
                 .from('customer')
                 .update({
                     delete_token: null,
-                    delete_token_expiry: null
+                  delete_token_expiry: null,
+                  status: 'Active'
                 })
                 .eq('customer_id', customerId);
                 

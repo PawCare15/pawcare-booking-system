@@ -297,6 +297,25 @@ body {
     padding: 28px 30px !important;
 }
 
+.modal-overlay#notificationsModal .modal-box > div:first-child {
+    margin-bottom: 16px !important;
+}
+
+.modal-overlay#notificationsModal h3 {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+    color: #5A361A !important;
+}
+
+.modal-overlay#notificationsModal #notificationsModalContent {
+    scrollbar-width: thin;
+    scrollbar-color: #8B8B8B transparent;
+}
+
+.modal-overlay#notificationsModal #notificationsModalContent > div {
+    border-radius: 11px;
+}
+
 .modal-overlay#notificationsModal #notificationsModalContent {
     max-height: 400px;
     overflow-y: auto;
@@ -319,6 +338,23 @@ body {
 .review-page-header h1,
 .profile-container .page-heading h1 {
     gap: 14px;
+}
+
+.review-page-header h1 i,
+.profile-container .page-heading h1 > i {
+    margin-right: 0 !important;
+}
+
+.review-page-header > div:first-child,
+.profile-container .page-heading > div:first-child {
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-container .page-heading > div:first-child h1,
+.review-page-header > div:first-child h1 {
+    display: flex !important;
+    align-items: center !important;
 }
 
 .user-profile {

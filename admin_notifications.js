@@ -13,7 +13,7 @@
             badge.style.display = normalizedCount > 0 ? 'flex' : 'none';
         }
 
-        fetch('/api/admin/notifications/summary', {
+        const summaryRequest = fetch('/api/admin/notifications/summary', {
             headers: { Authorization: `Bearer ${token}` }
         })
             .then(response => {
@@ -22,14 +22,23 @@
             })
             .then(result => {
                 const count = Number(result.total) || 0;
+                window.adminNotificationSummary = result.data || {};
                 setBadge(sessionStorage.getItem('pawcareAdminNotificationsViewed') ? 0 : count);
             })
             .catch(error => console.error('Unable to load admin notification count:', error));
 
         button.addEventListener('click', function() {
-            sessionStorage.setItem('pawcareAdminNotificationsViewed', 'true');
-            setBadge(0);
-        }, true);
+            // Page-specific handlers render the modal asynchronously. Only mark it viewed after it opens.
+            window.setTimeout(function() {
+                const modal = document.getElementById('notificationsModal');
+                if (modal && modal.classList.contains('active')) {
+                    sessionStorage.setItem('pawcareAdminNotificationsViewed', 'true');
+                    setBadge(0);
+                }
+            }, 500);
+        });
+
+        window.adminNotificationSummaryRequest = summaryRequest;
     }
 
     if (document.readyState === 'loading') {
