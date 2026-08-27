@@ -98,7 +98,8 @@ async function supabaseQuery(query, params = []) {
             throw new Error(`Supabase query failed: ${response.status}`);
         }
 
-        return await response.json();
+        const result = await response.json();
+        return result.success ? (result.data || []) : [];
     } catch (err) {
         console.error('Supabase query error:', err);
         return null;
@@ -459,7 +460,8 @@ async function getNewCustomersToday() {
             throw new Error(`Failed to fetch new customers: ${response.status}`);
         }
 
-        return await response.json();
+        const result = await response.json();
+        return result.success ? (result.data || []) : [];
     } catch (err) {
         console.error('Error getting new customers today:', err);
         return [];
@@ -477,7 +479,8 @@ async function getCustomersWithPendingBookings() {
             throw new Error(`Failed to fetch pending bookings: ${response.status}`);
         }
 
-        return await response.json();
+        const result = await response.json();
+        return result.success ? (result.data || []) : [];
     } catch (err) {
         console.error('Error getting customers with pending bookings:', err);
         return [];

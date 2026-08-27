@@ -97,7 +97,8 @@ async function supabaseQuery(query, params = []) {
             throw new Error(`Supabase query failed: ${response.status}`);
         }
 
-        return await response.json();
+        const result = await response.json();
+        return result.success ? (result.data || []) : [];
     } catch (err) {
         console.error('Supabase query error:', err);
         return null;
@@ -465,7 +466,8 @@ async function getNewPetsToday() {
             throw new Error(`Failed to fetch new pets: ${response.status}`);
         }
 
-        return await response.json();
+        const result = await response.json();
+        return result.success ? (result.data || []) : [];
     } catch (err) {
         console.error('Error getting new pets today:', err);
         return [];
@@ -490,7 +492,8 @@ async function getPetsWithUpcomingBookings() {
             throw new Error(`Failed to fetch upcoming bookings: ${response.status}`);
         }
 
-        return await response.json();
+        const result = await response.json();
+        return result.success ? (result.data || []) : [];
     } catch (err) {
         console.error('Error getting pets with upcoming bookings:', err);
         return [];

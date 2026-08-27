@@ -37,16 +37,24 @@ function parseUserAgent(userAgent) {
 }
 
 // ========== Email Configuration (Nodemailer) ========== ✅ TAMBAH BARU
-const emailConfigured = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+const emailUser = String(process.env.EMAIL_USER || '').split(/\s+#/)[0].trim();
+const emailPass = String(process.env.EMAIL_PASS || '').split(/\s+#/)[0].replace(/\s+/g, '').trim();
+const emailConfigured = Boolean(emailUser && emailPass);
 const transporter = emailConfigured ? nodemailer.createTransport({
   host: process.env.EMAIL_HOST || 'smtp.gmail.com',
   port: Number(process.env.EMAIL_PORT || 465),
   secure: String(process.env.EMAIL_SECURE || 'true') === 'true',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    user: emailUser,
+    pass: emailPass
   }
 }) : null;
+
+if (transporter) {
+  transporter.verify()
+    .then(() => console.log('Email SMTP connection verified.'))
+    .catch(error => console.error('Email SMTP verification failed:', error.message));
+}
 
 // ========== Supabase 初始化 ==========
 const supabase = createClient(
@@ -92,7 +100,7 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
     const deleteLink = `${baseUrl}/api/delete-account?token=${deleteToken}&email=${encodeURIComponent(customerEmail)}`;
     
     const mailOptions = {
-        from: `"PawCare Booking System" <${process.env.EMAIL_USER || 'pawcare@gmail.com'}>`,
+        from: `"PawCare Booking System" <${emailUser}>`,
         to: customerEmail,
         subject: '⚠️ Account Deletion Request - PawCare',
         html: `
@@ -148,7 +156,7 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
                         <p class="link-expiry">⏳ This link will expire in <strong>7 days</strong>.</p>
                         
                         <p style="margin-top: 16px; color: #7a7a7a; font-size: 13px;">
-                            If you did not request this deletion, please <a href="mailto:${process.env.EMAIL_USER || 'pawcare@gmail.com'}" style="color: #a75e31;">contact us</a> immediately.
+                            If you did not request this deletion, please <a href="mailto:${emailUser}" style="color: #a75e31;">contact us</a> immediately.
                         </p>
                     </div>
                     <div class="footer">
@@ -178,7 +186,7 @@ async function sendDeletionConfirmedEmail(customerEmail, customerName) {
     return false;
   }
     const mailOptions = {
-        from: `"PawCare Booking System" <${process.env.EMAIL_USER || 'pawcare@gmail.com'}>`,
+        from: `"PawCare Booking System" <${emailUser}>`,
         to: customerEmail,
         subject: '✅ Account Deleted Successfully - PawCare',
         html: `
@@ -1299,7 +1307,7 @@ app.get('/api/admin/notifications/summary', isAdmin, async (req, res) => {
       supabaseAdmin.from('customer').select('customer_id', { count: 'exact', head: true }).eq('status', 'pending_deletion'),
       supabaseAdmin.from('pet').select('pet_id', { count: 'exact', head: true }).gte('created_at', todayIso),
       supabaseAdmin.from('booking').select('booking_id', { count: 'exact', head: true }).gte('booking_date', today).lte('booking_date', tomorrowDate.toISOString().split('T')[0]),
-      supabaseAdmin.from('review').select('review_id, review_date'),
+      supabaseAdmin.from('review').select('review_id, review_date, rating'),
       supabaseAdmin.from('review_replies').select('review_id'),
       supabaseAdmin.from('service').select('service_id, price'),
       supabaseAdmin.from('booking_service').select('service_id')
@@ -1339,8 +1347,9 @@ app.get('/api/admin/notifications/summary', isAdmin, async (req, res) => {
     };
     res.json({ success: true, data, total: Object.values(data).reduce((sum, value) => sum + value, 0) });
   } catch (err) {
-    console.error('Error fetching admin notification summary:', err);
-    res.status(500).json({ success: false, message: err.message });
+    const message = err?.message || JSON.stringify(err) || 'Unknown notification query error';
+    console.error('Error fetching admin notification summary:', message);
+    res.status(500).json({ success: false, message });
   }
 });
 

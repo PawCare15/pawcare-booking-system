@@ -1609,8 +1609,7 @@
     function showNotificationsModal() {
         const content = document.getElementById('notificationsModalContent');
         if (!content) return;
-        
-        fetchNotificationsData().then(html => {
+      fetchNotificationsData().then(html => {
             content.innerHTML = html || '<div style="text-align:center; padding:20px; color:#7A7A7A;">No upcoming appointments.</div>';
             lockBodyScroll();
             notificationsModal.classList.add('active');
@@ -2425,8 +2424,8 @@
             notificationBtn.removeEventListener('click', showNotificationsModal);
             notificationBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                console.log('🔔 Notification button clicked - Combined modal');
-                showCombinedNotificationsModal();
+                console.log('🔔 Notification button clicked');
+                showNotificationsModal();
             });
         }
 
