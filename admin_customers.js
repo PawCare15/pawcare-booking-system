@@ -667,50 +667,244 @@ async function loadNotificationCount() {
 // SHOW NOTIFICATION DETAILS - CUSTOMER PAGE
 // ================================================================
 async function showNotificationDetails() {
-    const [custRes, bookRes] = await Promise.all([
-        authFetch('/api/admin/customers'),
-        authFetch('/api/admin/bookings')
-    ]);
-    const customers = custRes.data || [];
-    const bookings = bookRes.data || [];
+    try {
+        // Show loading state
+        const modal = document.getElementById('notificationsModal');
+        const content = document.getElementById('notificationsModalContent');
+        if (content) {
+            content.innerHTML = `
+                <div style="text-align: center; padding: 30px 20px; color: #7A7A7A;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 30px; display: block; margin-bottom: 10px;"></i>
+                    <p>Loading notifications...</p>
+                </div>
+            `;
+        }
+        
+        if (modal) {
+            lockBodyScroll();
+            modal.classList.add('active');
+        }
 
-    const today = new Date().toISOString().split('T')[0];
-    const threeMonthsAgo = new Date(); threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3); const threeMonthsAgoStr = threeMonthsAgo.toISOString().split('T')[0];
+        // Get all notification data
+        const newCustomers = await getNewCustomersToday();
+        const pendingBookings = await getCustomersWithPendingBookings();
+        const inactiveCustomers = await getInactiveCustomers();
+        const topCustomers = await getTopCustomers(3);
+        
+        const uniqueCustomersWithPending = new Set();
+        pendingBookings.forEach(b => {
+            if (b.customer_id) uniqueCustomersWithPending.add(b.customer_id);
+        });
+        
+        let html = '';
+        let hasNotifications = false;
 
-    // 前端计算
-    const newCustomers = customers.filter(c => c.created_at && c.created_at.startsWith(today)).length;
-    const pendingBookings = bookings.filter(b => b.status === 'pending').length;
-    const inactiveCustomers = customers.filter(c => !bookings.some(b => b.customer_id === c.customer_id && b.booking_date >= threeMonthsAgoStr)).length;
-    // Top customers 直接拿后端已经有的统计接口
-    const topRes = await authFetch('/api/admin/top-customers');
-    const topCustomers = topRes.data || [];
+        // ============================================================
+        // SECTION 1: NEW CUSTOMERS TODAY (Medium Priority)
+        // ============================================================
+        if (newCustomers.length > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="margin-bottom: 16px;">
+                    <h4 style="color: #2E7D32; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-regular fa-user-plus"></i> New Customers Today (${newCustomers.length})
+                    </h4>
+            `;
+            newCustomers.forEach(customer => {
+                const joinTime = new Date(customer.created_at).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                html += `
+                    <div style="background: #E8F5E9; border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; border-left: 3px solid #2E7D32; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="font-size: 14px;">${customer.full_name || 'Unknown'}</strong>
+                            <div style="font-size: 12px; color: #7A7A7A;">${customer.email || 'No email'}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 11px; color: #7A7A7A;">${customer.phone_number || ''}</span>
+                            <div style="font-size: 10px; color: #B0A090;">Joined ${joinTime}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `
+                    <div style="margin-top: 8px;">
+                        <a href="admin_customers.html" style="font-size: 12px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View All Customers
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
 
-    const notifCount = document.getElementById('notifCount');
-    if (notifCount) {
-        const total = newCustomers + pendingBookings;
-        notifCount.textContent = total; notifCount.style.display = total > 0 ? 'flex' : 'none';
+        // ============================================================
+        // SECTION 2: CUSTOMERS WITH PENDING BOOKINGS (Medium Priority)
+        // ============================================================
+        if (pendingBookings.length > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="margin-bottom: 16px;">
+                    <h4 style="color: #D97706; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-regular fa-clock"></i> Customers with Pending Bookings (${pendingBookings.length})
+                    </h4>
+            `;
+            pendingBookings.forEach(booking => {
+                const date = new Date(booking.booking_date).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                const customer = customersData.find(c => c.customer_id === booking.customer_id);
+                const customerName = customer ? customer.name : booking.customer_id || 'N/A';
+                
+                html += `
+                    <div style="background: #FEF7E0; border-radius: 8px; padding: 8px 14px; margin-bottom: 6px; border-left: 3px solid #D97706;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                            <span><strong>${customerName}</strong></span>
+                            <span style="color: #7A7A7A; font-size: 12px;">${date} ${booking.booking_time || ''}</span>
+                        </div>
+                        <div style="font-size: 12px; color: #7A7A7A; margin-top: 2px;">
+                            Booking ID: ${booking.booking_id}
+                        </div>
+                        <a href="admin_bookings.html" style="font-size: 11px; color: #5A361A; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 4px;">
+                            <i class="fa-regular fa-eye"></i> View & Approve
+                        </a>
+                    </div>
+                `;
+            });
+            html += `
+                    <div style="margin-top: 8px;">
+                        <a href="admin_bookings.html" style="font-size: 12px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View All Bookings
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // SECTION 3: INACTIVE CUSTOMERS (Low Priority)
+        // ============================================================
+        if (inactiveCustomers.length > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="margin-bottom: 16px; padding-top: 12px; border-top: 1px solid #EFECE6;">
+                    <h4 style="color: #BF360C; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-regular fa-circle-xmark"></i> Inactive Customers (${inactiveCustomers.length})
+                    </h4>
+                    <div style="font-size: 12px; color: #7A7A7A; margin-bottom: 8px;">
+                        No bookings in the last 3 months
+                    </div>
+            `;
+            const displayInactive = inactiveCustomers.slice(0, 5);
+            displayInactive.forEach(customer => {
+                const joinedDate = new Date(customer.created_at).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                html += `
+                    <div style="background: #FBE9E7; border-radius: 6px; padding: 8px 12px; margin-bottom: 4px; border-left: 3px solid #BF360C; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="font-size: 13px;">${customer.full_name || 'Unknown'}</strong>
+                            <span style="color: #7A7A7A; font-size: 11px; margin-left: 8px;">Joined: ${joinedDate}</span>
+                        </div>
+                        <a href="admin_customers.html" style="font-size: 11px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View
+                        </a>
+                    </div>
+                `;
+            });
+            if (inactiveCustomers.length > 5) {
+                html += `
+                    <div style="font-size: 12px; color: #7A7A7A; text-align: center; margin-top: 4px;">
+                        + ${inactiveCustomers.length - 5} more inactive customers
+                    </div>
+                `;
+            }
+            html += `
+                    <div style="margin-top: 8px;">
+                        <a href="admin_customers.html" style="font-size: 12px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View All Customers
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // SECTION 4: TOP CUSTOMERS (Low Priority - Bonus)
+        // ============================================================
+        if (topCustomers.length > 0) {
+            hasNotifications = true;
+            const medals = ['🥇', '🥈', '🥉'];
+            html += `
+                <div style="margin-bottom: 4px; padding-top: 12px; border-top: 1px solid #EFECE6;">
+                    <h4 style="color: #4A148C; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-trophy"></i> Top Customers This Month
+                    </h4>
+            `;
+            topCustomers.forEach((customer, index) => {
+                html += `
+                    <div style="background: #F3E5F5; border-radius: 6px; padding: 8px 12px; margin-bottom: 4px; border-left: 3px solid #7B1FA2; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <span style="font-size: 16px; margin-right: 8px;">${medals[index] || '🏅'}</span>
+                            <strong style="font-size: 13px;">${customer.name}</strong>
+                            <span style="color: #7A7A7A; font-size: 11px; margin-left: 8px;">${customer.email}</span>
+                        </div>
+                        <span style="font-weight: 700; color: #4A148C; font-size: 14px;">${customer.bookings} bookings</span>
+                    </div>
+                `;
+            });
+            html += `
+                    <div style="margin-top: 8px;">
+                        <a href="admin_customers.html" style="font-size: 12px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View All Customers
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ============================================================
+        // EMPTY STATE - No notifications
+        // ============================================================
+        if (!hasNotifications) {
+            html = `
+                <div style="text-align: center; padding: 40px 20px;">
+                    <i class="fa-regular fa-bell" style="font-size: 56px; display: block; margin-bottom: 16px; color: #D3C4B8;"></i>
+                    <h3 style="font-size: 18px; font-weight: 600; color: #333333; margin-bottom: 6px;">No Notifications</h3>
+                    <p style="font-size: 14px; color: #7A7A7A; max-width: 280px; margin: 0 auto;">
+                        No pending bookings, new customers, or inactive customers at the moment.
+                    </p>
+                    <div style="margin-top: 16px; padding: 10px 20px; background: #F5F0EB; border-radius: 8px; display: inline-block; font-size: 12px; color: #7A7A7A;">
+                        <i class="fa-regular fa-circle-check" style="color: #2E7D32;"></i> All caught up!
+                    </div>
+                </div>
+            `;
+        }
+
+        // Update modal content
+        if (content) {
+            content.innerHTML = html;
+        }
+
+    } catch (err) {
+        console.error('Error loading notification details:', err);
+        const content = document.getElementById('notificationsModalContent');
+        if (content) {
+            content.innerHTML = `
+                <div style="text-align: center; padding: 30px 20px; color: #DC2626;">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size: 30px; display: block; margin-bottom: 10px;"></i>
+                    <p>Failed to load notifications. Please try again.</p>
+                    <button onclick="showNotificationDetails()" style="margin-top: 10px; padding: 8px 20px; background: #5A361A; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
     }
-
-    function notifCard(icon, iconBg, iconColor, title, desc, count, badgeBg, badgeColor, link) {
-        return `<div style="display:flex; gap:12px; padding:16px; margin-bottom:10px; border-radius:12px; background:#FFFFFF; border-left:4px solid ${badgeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-            <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; background:${iconBg}; color:${iconColor};">${icon}</div>
-            <div style="flex:1; min-width:0;"><div style="font-weight:600; font-size:14px; color:#333;">${title}</div><div style="font-size:12px; color:#7A7A7A;">${desc}</div></div>
-            <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between;">
-                <span style="background:${badgeBg}; color:${badgeColor}; padding:3px 12px; border-radius:20px; font-size:11px; font-weight:700; margin-bottom:8px;">${count}</span>
-                <a href="${link}" style="font-size:11px; color:#5A361A; font-weight:600; text-decoration:none;">View →</a>
-            </div></div>`;
-    }
-
-    let html = '';
-    if (newCustomers > 0) html += notifCard("👤", "#FEF7E0", "#D97706", "New Customers Today", "Pelanggan baru daftar hari ini", newCustomers, "#FEF7E0", "#D97706", "admin_customers.html");
-    if (pendingBookings > 0) html += notifCard("📋", "#FEF7E0", "#D97706", "Customers with Pending Bookings", "Pelanggan yang ada booking pending", pendingBookings, "#FEF7E0", "#D97706", "admin_bookings.html");
-    if (inactiveCustomers.length > 0) html += notifCard("📉", "#E3F2FD", "#0D47A1", "Inactive Customers", "Pelanggan yang tak pernah booking > 3 bulan", inactiveCustomers.length, "#E3F2FD", "#0D47A1", "admin_customers.html?status=inactive");
-    if (topCustomers.length > 0) html += notifCard("🏆", "#E8F5E9", "#2E7D32", "Top Customers", "Pelanggan dengan booking terbanyak", topCustomers.length, "#E8F5E9", "#2E7D32", "admin_customers.html");
-
-    if (!html) { html = '<div style="text-align:center; padding:40px 20px;">No customer notifications.</div>'; }
-    document.getElementById('notificationsModalContent').innerHTML = html;
-    document.getElementById('notificationsModal').classList.add('active');
-    lockBodyScroll();
 }
 
 // ================================================================

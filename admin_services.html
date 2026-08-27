@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="#" type="image/png">
-    <title>PawCare · Service Management</title>
+    <link rel="icon" href="image/logo.png" type="image/png" class="logo" />
+    <title>PAWCARE BOOKING SYSTEM</title>
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
     <meta http-equiv="Pragma" content="no-cache" />
     <meta http-equiv="Expires" content="0" />
@@ -335,6 +335,10 @@
             background: linear-gradient(135deg, #FDF5E6 0%, #F5E8D8 100%);
             flex-wrap: wrap;
         }
+        .page-header-profile > .page-header-profile-left {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
         .page-header-profile-left {
             display: flex;
             align-items: center;
@@ -351,7 +355,20 @@
         .header-actions {
             display: flex;
             gap: 8px;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            margin-left: auto;
+            flex: 0 0 auto;
+        }
+        @media (max-width: 480px) {
+            .header-actions {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+            .header-actions .btn-add {
+                width: fit-content;
+                min-width: 0;
+                padding: 9px 16px;
+            }
         }
         .btn-add {
             background: #5A361A;
@@ -648,12 +665,12 @@
             justify-content: center;
         }
         .action-icons .action-btn {
-            width: 32px;
-            height: 32px;
-            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
             border: none;
-            background: transparent;
-            color: #7A7A7A;
+            background: #E8F0FE;
+            color: #1A73E8;
             cursor: pointer;
             transition: all 0.2s ease;
             display: flex;
@@ -665,13 +682,21 @@
             background: #EFECE6;
             color: #4A3327;
         }
+        .action-icons .action-btn.edit {
+            background: #F3E8FF;
+            color: #7C3AED;
+        }
+        .action-icons .action-btn.delete {
+            background: #FEE8E8;
+            color: #DC2626;
+        }
         .action-icons .action-btn.edit:hover {
-            background: #FFF3E0;
-            color: #E65100;
+            background: #7C3AED;
+            color: #FFFFFF;
         }
         .action-icons .action-btn.delete:hover {
-            background: #FCE8E6;
-            color: #C5221F;
+            background: #DC2626;
+            color: #FFFFFF;
         }
 
         .table-footer {
@@ -2269,23 +2294,6 @@
 
     <!-- ===== JAVASCRIPT ===== -->
     <script>
-        // 添加到 admin_services.html 和 admin_reports.html 的 <script> 最前面
-        async function authFetch(url, options = {}) {
-            const token = localStorage.getItem('token');
-            if (!token) { window.location.replace('login.html'); return null; }
-            const headers = {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-                ...options.headers
-            };
-            const response = await fetch(url, { ...options, headers });
-            if (response.status === 401) {
-                localStorage.clear();
-                window.location.replace('login.html');
-                return null;
-            }
-            return response;
-        }
 
         // ============================================================
         // 1. SUPABASE CONFIGURATION
@@ -2345,19 +2353,19 @@
         // ============================================================
         // 3. AUTH FETCH
         // ============================================================
-        // 必须添加 API_BASE_URL 判断
-        const API_BASE_URL = ['2632', '5500'].includes(window.location.port) ? 'http://localhost:5000' : '';
-        
         async function authFetch(url, options = {}) {
             const token = localStorage.getItem('token');
-            if (!token) { window.location.replace('login.html'); return null; }
+            if (!token) {
+                window.location.replace('login.html');
+                return null;
+            }
             const headers = {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
+                'apikey': SUPABASE_ANON_KEY,
                 ...options.headers
             };
-            // 加上 API_BASE_URL
-            const response = await fetch(`${API_BASE_URL}${url}`, { ...options, headers });
+            const response = await fetch(url, { ...options, headers });
             if (response.status === 401) {
                 localStorage.clear();
                 window.location.replace('login.html');
@@ -2642,37 +2650,32 @@ function listenForAvatarUpdates() {
 // ================================================================
 
 async function loadNotificationCount() {
-    // Services 页面很少需要紧急通知，显示 0
-    const notifCount = document.getElementById('notifCount');
-    if (notifCount) {
-        notifCount.style.display = 'none';
-        notifCount.textContent = '0';
+    try {
+        const response = await authFetch('/api/admin/notifications/summary');
+        const result = await response.json();
+        const data = result.success ? result.data : {};
+        window.notificationData = data;
+        const total = (data.servicesWithoutBookings || 0) + (data.servicesNeedingPriceReview || 0);
+        const notifCount = document.getElementById('notifCount');
+        if (notifCount) {
+            notifCount.textContent = total || '';
+            notifCount.style.display = total > 0 ? 'flex' : 'none';
+        }
+        return total;
+    } catch (err) {
+        console.error('Error loading service notifications:', err);
+        return 0;
     }
-    return 0;
 }
 
 async function showNotificationDetails() {
-    const [svcRes, bookRes] = await Promise.all([
-        authFetch('/api/admin/services'),
-        authFetch('/api/admin/bookings')
-    ]);
-    const services = svcRes.data || [];
-    const bookings = bookRes.data || [];
-    
-    // 计算大部分
-    const serviceNames = services.map(s => s.service_name);
-    const mostBooked = serviceNames.reduce((a, b, i, arr) => (arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b), serviceNames[0]);
-    const mostBookedCount = serviceNames.filter(n => n === mostBooked).length;
-    
-    // 无预订服务计算
-    const noBookingsCount = services.filter(s => !bookings.some(b => b.services && b.services.some(bs => bs.service_name === s.service_name))).length;
-    
-    // 价格更新（这里简化为是否有价格低于 50 的服务）
-    const priceChangesCount = services.filter(s => (s.price || 0) < 50).length;
+    await loadNotificationCount();
+    const data = window.notificationData || {};
+    const noBookingsCount = data.servicesWithoutBookings || 0;
+    const priceChangesCount = data.servicesNeedingPriceReview || 0;
 
-    // 更新 Badge 数量（按需求总为 0，因为它不是紧急通知）
     const notifCount = document.getElementById('notifCount');
-    if (notifCount) { notifCount.style.display = 'none'; }
+    if (notifCount) notifCount.style.display = (noBookingsCount + priceChangesCount) > 0 ? 'flex' : 'none';
 
     function notifCard(icon, iconBg, iconColor, title, desc, count, badgeBg, badgeColor, link) {
         return `<div style="display:flex; gap:12px; padding:16px; margin-bottom:10px; border-radius:12px; background:#FFFFFF; border-left:4px solid ${badgeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
@@ -2685,7 +2688,6 @@ async function showNotificationDetails() {
     }
 
     let html = '';
-    if (mostBooked) html += notifCard("⭐", "#FEF7E0", "#D97706", "Most Booked Services", `Service paling popular minggu ini: ${mostBooked}`, mostBookedCount, "#FEF7E0", "#D97706", "admin_services.html");
     if (noBookingsCount > 0) html += notifCard("📉", "#E3F2FD", "#0D47A1", "Services with No Bookings", "Service yang tak pernah booking > 1 bulan", noBookingsCount, "#E3F2FD", "#0D47A1", "admin_services.html");
     if (priceChangesCount > 0) html += notifCard("💰", "#E3F2FD", "#0D47A1", "Price Changes Needed", "Service yang pricing outdated", priceChangesCount, "#E3F2FD", "#0D47A1", "admin_services.html");
 
@@ -2698,8 +2700,8 @@ async function showNotificationDetails() {
 // ================================================================
 // 在 DOMContentLoaded 中初始化
 // ================================================================
+const ADMIN_DATE_FORMAT = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
 document.addEventListener('DOMContentLoaded', function() {
-    const ADMIN_DATE_FORMAT = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
 
     // 加载 header 头像
     loadAdminHeaderProfile();

@@ -440,70 +440,91 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-async function showNotificationDetails() {
-    const modal = document.getElementById('notificationsModal');
-    const content = document.getElementById('notificationsModalContent');
+    async function showNotificationDetails() {
+        const modal = document.getElementById('notificationsModal');
+        const content = document.getElementById('notificationsModalContent');
 
-    // 1. 从 Supabase 拉取所有相关数据
-    const [pendingRes, reschedRes, custRes, revRes, upRes] = await Promise.all([
-        authFetch('/api/admin/bookings?status=pending'),
-        authFetch('/api/admin/bookings?reschedule_status=pending'),
-        authFetch('/api/admin/customers?new_today=true'),
-        authFetch('/api/reviews'),
-        authFetch('/api/admin/bookings?upcoming=true')
-    ]);
+        // 加载数据
+        await loadNotificationCount();
+        const data = window.notificationData || { pending: 0, reschedule: 0, newCustomers: 0, upcoming: 0 };
 
-    const pending = (await pendingRes?.json()?.data || []).length;
-    const reschedule = (await reschedRes?.json()?.data || []).length;
-    const newCustomers = (await custRes?.json()?.data || []).length;
-    const reviews = (await revRes?.json()?.data || []);
-    const upcoming = (await upRes?.json()?.data || []).length;
+        let html = '';
+        let hasNotifications = false;
 
-    // 前端计算需要的统计数据
-    const newReviews = reviews.filter(r => new Date(r.created_at) > new Date(Date.now() - 24*60*60*1000)).length;
-    const lowRatingReviews = reviews.filter(r => r.rating <= 2).length;
-    const total = pending + reschedule + newCustomers + upcoming + newReviews + lowRatingReviews;
-
-    // 更新顶部红点数量
-    const notifCount = document.getElementById('notifCount');
-    if (notifCount) {
-        notifCount.textContent = total;
-        notifCount.style.display = total > 0 ? 'flex' : 'none';
-    }
-
-    // 通用精美卡片生成器
-    function notifCard(icon, iconBg, iconColor, title, desc, count, badgeBg, badgeColor, link) {
-        return `
-            <div style="display:flex; align-items:flex-start; gap:12px; padding:16px; margin-bottom:10px; border-radius:12px; background:#FFFFFF; border-left:4px solid ${badgeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-                <div style="flex-shrink:0; width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; background:${iconBg}; color:${iconColor};">${icon}</div>
-                <div style="flex:1; min-width:0;">
-                    <div style="font-weight:600; font-size:14px; color:#333; margin-bottom:2px;">${title}</div>
-                    <div style="font-size:12px; color:#7A7A7A; line-height:1.4;">${desc}</div>
+        // Pending Bookings (High)
+        if (data.pending > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="background:#FEF7E0; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #D97706;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span><strong>📋 Pending Bookings</strong></span>
+                        <span style="background:#D97706; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.pending}</span>
+                    </div>
+                    <div style="font-size:12px; color:#7A7A7A;">${data.pending} booking(s) need approval</div>
+                    <a href="admin_bookings.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
                 </div>
-                <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between;">
-                    <span style="background:${badgeBg}; color:${badgeColor}; padding:3px 12px; border-radius:20px; font-size:11px; font-weight:700; margin-bottom:8px;">${count}</span>
-                    <a href="${link}" style="font-size:11px; color:#5A361A; font-weight:600; text-decoration:none;">View →</a>
+            `;
+        }
+
+        // Reschedule Requests (High)
+        if (data.reschedule > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="background:#FFF3E0; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #E65100;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span><strong>🔄 Reschedule Requests</strong></span>
+                        <span style="background:#E65100; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.reschedule}</span>
+                    </div>
+                    <div style="font-size:12px; color:#7A7A7A;">${data.reschedule} customer(s) requested reschedule</div>
+                    <a href="admin_bookings.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
                 </div>
-            </div>
-        `;
+            `;
+        }
+
+        // New Customers Today (Medium)
+        if (data.newCustomers > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="background:#E8F5E9; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #2E7D32;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span><strong>👤 New Customers Today</strong></span>
+                        <span style="background:#2E7D32; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.newCustomers}</span>
+                    </div>
+                    <div style="font-size:12px; color:#7A7A7A;">${data.newCustomers} new customer(s) registered</div>
+                    <a href="admin_customers.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                </div>
+            `;
+        }
+
+        // Upcoming Appointments (Low)
+        if (data.upcoming > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="background:#E3F2FD; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #0D47A1;">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <span><strong>📅 Upcoming Appointments</strong></span>
+                        <span style="background:#0D47A1; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.upcoming}</span>
+                    </div>
+                    <div style="font-size:12px; color:#7A7A7A;">${data.upcoming} booking(s) in next 3 days</div>
+                    <a href="admin_bookings.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                </div>
+            `;
+        }
+
+        if (!hasNotifications) {
+            html = `
+                <div style="text-align:center; padding:30px 20px; color:#7A7A7A;">
+                    <i class="fa-regular fa-bell" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i>
+                    <h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">All Clear!</h3>
+                    <p style="font-size:13px;">No notifications at the moment.</p>
+                </div>
+            `;
+        }
+
+        content.innerHTML = html;
+        modal.classList.add('active');
+        lockBodyScroll();
     }
-
-    let html = '';
-    if (pending > 0) html += notifCard("📋", "#FCE8E6", "#DC2626", "Pending Bookings", `${pending} booking(s) need approval`, pending, "#FCE8E6", "#DC2626", "admin_bookings.html");
-    if (reschedule > 0) html += notifCard("🔄", "#FCE8E6", "#DC2626", "Reschedule Requests", `${reschedule} customer(s) requested reschedule`, reschedule, "#FCE8E6", "#DC2626", "admin_bookings.html");
-    if (newCustomers > 0) html += notifCard("👤", "#FEF7E0", "#D97706", "New Customers Today", `${newCustomers} new customer(s) registered`, newCustomers, "#FEF7E0", "#D97706", "admin_customers.html");
-    if (newReviews > 0) html += notifCard("📝", "#FEF7E0", "#D97706", "New Reviews", `${newReviews} new review(s) to read`, newReviews, "#FEF7E0", "#D97706", "admin_reviews.html");
-    if (lowRatingReviews > 0) html += notifCard("⚠️", "#FCE8E6", "#DC2626", "Low Rating Reviews", `${lowRatingReviews} review(s) with 1-2 stars`, lowRatingReviews, "#FCE8E6", "#DC2626", "admin_reviews.html");
-    if (upcoming > 0) html += notifCard("📅", "#E3F2FD", "#0D47A1", "Upcoming Appointments", `${upcoming} booking(s) in next 3 days`, upcoming, "#E3F2FD", "#0D47A1", "admin_bookings.html");
-
-    if (!html) {
-        html = `<div style="text-align:center; padding:40px 20px;"><i class="fa-regular fa-bell" style="font-size:56px; display:block; margin-bottom:16px; color:#D3C4B8;"></i><h3 style="font-size:18px; font-weight:600; color:#333; margin-bottom:6px;">All Clear!</h3><p style="font-size:14px; color:#7A7A7A;">You're all up to date!</p></div>`;
-    }
-
-    content.innerHTML = html;
-    modal.classList.add('active');
-    lockBodyScroll();
-}
 
     // 加载 header 头像
     loadAdminHeaderProfile();

@@ -2888,6 +2888,10 @@ body {
     .stat-total .stat-info h3 {
         font-size: 28px;
     }
+    .stat-total .stat-info {
+        align-items: flex-start;
+        text-align: left;
+    }
     .stat-total .stat-icon {
         width: 48px;
         height: 48px;
@@ -3254,93 +3258,227 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 16px;
+    padding: 8px 16px;
     border: 1px solid #EFECE6;
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.65);
+    background: rgba(255, 255, 255, 0.6);
     color: #7A7A7A;
     font-size: 14px;
     white-space: nowrap;
-    margin-left: auto; /* 新增这一行，使日期靠右对齐 */
+    margin-left: auto;
 }
 
 .admin-page-date i {
     color: #D97706;
 }
 
-/* 精美通知卡片样式 - 通用 */
-.notif-card {
-    display: flex;
-    gap: 14px;
-    padding: 14px;
-    margin-bottom: 12px;
-    border-radius: 12px;
-    background: #FFFFFF;
-    border: 1px solid #EFECE6;
-    border-left: 5px solid #D97706; /* 默认颜色，会被JS覆盖 */
-    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-    transition: all 0.2s ease;
-    align-items: center;
+html,
+body {
+    max-width: 100%;
+    overflow-x: hidden;
 }
 
-.notif-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+img,
+canvas,
+svg {
+    max-width: 100%;
 }
 
-.notif-card .notif-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-    color: #fff;
-}
-
-.notif-card .notif-content {
-    flex: 1;
+.main-content,
+.dashboard-container,
+.profile-container,
+.reports-container,
+.reviews-container {
     min-width: 0;
 }
 
-.notif-card .notif-title {
-    font-size: 14px;
-    font-weight: 700;
-    color: #333;
-    margin-bottom: 2px;
+.dashboard-grid > *,
+.left-column > *,
+.right-column > *,
+.card,
+.chart-wrapper,
+.quick-actions-grid {
+    min-width: 0;
+    max-width: 100%;
 }
 
-.notif-card .notif-desc {
-    font-size: 12px;
-    color: #7A7A7A;
-    line-height: 1.4;
-    margin-bottom: 4px;
+.chart-wrapper canvas {
+    max-width: 100% !important;
 }
 
-.notif-card .notif-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.table-card,
+.table-container,
+.data-table-container,
+.table-responsive {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
 }
 
-.notif-card .notif-badge {
-    background: #F5F0EB;
-    color: #5A361A;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 10px;
-    border-radius: 12px;
+@media (max-width: 1024px) {
+    .main-content {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .page-header-profile,
+    .admin-page-banner {
+        padding-left: 22px !important;
+        padding-right: 22px !important;
+    }
+
+    .stats-grid-reports,
+    .stats-grid-4,
+    .stats-grid-3,
+    .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
-.notif-card .notif-link {
-    font-size: 12px;
-    color: #5A361A;
-    font-weight: 600;
-    text-decoration: none;
+@media (max-width: 768px) {
+    .top-header {
+        min-height: 56px;
+    }
+
+    .page-header-profile,
+    .admin-page-banner {
+        width: 100%;
+        gap: 14px;
+    }
+
+    .page-header-profile-left,
+    .page-header-profile-left > div,
+    .admin-page-banner > div:first-child {
+        min-width: 0;
+    }
+
+    .page-header-profile-title,
+    .admin-page-banner h1 {
+        overflow-wrap: anywhere;
+    }
+
+    .admin-page-date {
+        max-width: 100%;
+        font-size: 12px;
+        padding: 7px 12px;
+    }
+
+    .filter-bar,
+    .filter-group,
+    .header-actions,
+    .pets-header-actions {
+        max-width: 100%;
+    }
+
+    .modal-box,
+    .modal-box-base {
+        width: min(92vw, 650px) !important;
+        max-width: 92vw !important;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    .data-table,
+    .data-table-container table {
+        min-width: 680px;
+    }
+
+    .dashboard-grid {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .left-column,
+    .right-column {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 }
 
-.notif-card .notif-link:hover {
-    text-decoration: underline;
+@media (max-width: 480px) {
+    .main-content {
+        padding-left: 10px;
+        padding-right: 10px;
+    }
+
+    .page-header-profile,
+    .admin-page-banner {
+        padding: 16px !important;
+        align-items: flex-start;
+    }
+
+    .page-header-profile-left {
+        width: 100%;
+    }
+
+    .page-header-profile-icon {
+        flex: 0 0 auto;
+    }
+
+    .admin-page-date,
+    .page-header-profile > .header-date {
+        margin-left: 0;
+        align-self: flex-start;
+    }
+
+    .stats-grid-reports,
+    .stats-grid-4,
+    .stats-grid-3,
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-container .stats-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .profile-container .stats-grid .stat-card {
+        min-height: 82px;
+        padding: 10px;
+        gap: 8px;
+    }
+
+    .profile-container .stats-grid .stat-card i {
+        width: 34px;
+        height: 34px;
+        font-size: 16px;
+        flex: 0 0 34px;
+    }
+
+    .profile-container .stats-grid .stat-card h3 {
+        font-size: 18px;
+    }
+
+    .profile-container .stats-grid .stat-card p {
+        font-size: 10px;
+    }
+
+    .quick-actions-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+    }
+
+    .quick-actions-grid .qa-item {
+        min-width: 0;
+        min-height: 62px;
+        padding: 8px 4px;
+        font-size: 10px;
+    }
+
+    .quick-actions-grid .qa-item i {
+        font-size: 16px;
+        margin-bottom: 3px;
+    }
+
+    .modal-btn-group,
+    .modal-actions,
+    .detail-actions {
+        flex-wrap: wrap;
+    }
 }

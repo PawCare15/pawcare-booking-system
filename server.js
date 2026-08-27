@@ -25,7 +25,7 @@ app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // 安全托管静态文件
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, '..')));
 
 function parseUserAgent(userAgent) {
     const parser = new UAParser(userAgent);
@@ -1268,6 +1268,64 @@ app.get('/api/admin/notifications/unread-count', isAdmin, async (req, res) => {
   }
 });
 
+app.get('/api/admin/notifications/summary', isAdmin, async (req, res) => {
+  try {
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    const today = startOfToday.toISOString().split('T')[0];
+    const tomorrowDate = new Date(startOfToday);
+    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
+    const tomorrow = tomorrowDate.toISOString().split('T')[0];
+    const todayIso = startOfToday.toISOString();
+
+    const [pending, reschedule, todayBookings, tomorrowBookings, newCustomers, pendingDeletion, newPets,
+      upcoming, reviews, replies, services, bookedServices] = await Promise.all([
+      supabaseAdmin.from('booking').select('booking_id', { count: 'exact', head: true }).eq('status', 'pending'),
+      supabaseAdmin.from('booking').select('booking_id', { count: 'exact', head: true }).eq('reschedule_status', 'pending'),
+      supabaseAdmin.from('booking').select('booking_id', { count: 'exact', head: true }).eq('booking_date', today),
+      supabaseAdmin.from('booking').select('booking_id', { count: 'exact', head: true }).eq('booking_date', tomorrow),
+      supabaseAdmin.from('customer').select('customer_id', { count: 'exact', head: true }).gte('created_at', todayIso),
+      supabaseAdmin.from('customer').select('customer_id', { count: 'exact', head: true }).eq('status', 'pending_deletion'),
+      supabaseAdmin.from('pet').select('pet_id'),
+      supabaseAdmin.from('booking').select('booking_id', { count: 'exact', head: true }).gte('booking_date', today).lte('booking_date', tomorrowDate.toISOString().split('T')[0]),
+      supabaseAdmin.from('review').select('review_id, review_date'),
+      supabaseAdmin.from('review_replies').select('review_id'),
+      supabaseAdmin.from('service').select('service_id, price'),
+      supabaseAdmin.from('booking_service').select('service_id')
+    ]);
+
+    const queryError = [pending, reschedule, todayBookings, tomorrowBookings, newCustomers, pendingDeletion,
+      newPets, upcoming, reviews, replies, services, bookedServices].find(result => result.error);
+    if (queryError) throw queryError.error;
+
+    const repliedReviewIds = new Set((replies.data || []).map(reply => reply.review_id));
+    const noReplyReviews = (reviews.data || []).filter(review => !repliedReviewIds.has(review.review_id)).length;
+    const recentReviews = (reviews.data || []).filter(review => review.review_date >= todayIso).length;
+    const bookedServiceIds = new Set((bookedServices.data || []).map(item => item.service_id));
+    const noBookingServices = (services.data || []).filter(service => !bookedServiceIds.has(service.service_id)).length;
+    const lowPriceServices = (services.data || []).filter(service => Number(service.price || 0) < 50).length;
+
+    const data = {
+      pendingBookings: pending.count || 0,
+      rescheduleRequests: reschedule.count || 0,
+      todayBookings: todayBookings.count || 0,
+      tomorrowBookings: tomorrowBookings.count || 0,
+      newCustomers: newCustomers.count || 0,
+      pendingDeletionCustomers: pendingDeletion.count || 0,
+      newPets: 0,
+      upcomingBookings: upcoming.count || 0,
+      newReviews: recentReviews,
+      reviewsWithoutReply: noReplyReviews,
+      servicesWithoutBookings: noBookingServices,
+      servicesNeedingPriceReview: lowPriceServices
+    };
+    res.json({ success: true, data, total: Object.values(data).reduce((sum, value) => sum + value, 0) });
+  } catch (err) {
+    console.error('Error fetching admin notification summary:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // 2. 预约趋势（最近30天）
 app.get('/api/admin/bookings-trend', async (req, res) => {
   try {
@@ -1281,21 +1339,26 @@ app.get('/api/admin/bookings-trend', async (req, res) => {
 
     const { data, error } = await supabaseAdmin
       .from('booking')
-      .select('booking_date')
+      .select('booking_date, status')
       .gte('booking_date', dates[0])
       .lte('booking_date', dates[29]);
 
     if (error) throw error;
 
     const countMap = {};
+    const completedMap = {};
     data.forEach(b => {
       const date = b.booking_date;
       countMap[date] = (countMap[date] || 0) + 1;
+      if (String(b.status || '').trim().toLowerCase() === 'completed') {
+        completedMap[date] = (completedMap[date] || 0) + 1;
+      }
     });
 
     const trend = dates.map(date => ({
       date,
-      count: countMap[date] || 0
+      count: countMap[date] || 0,
+      completed: completedMap[date] || 0
     }));
 
     res.json({ success: true, data: trend });

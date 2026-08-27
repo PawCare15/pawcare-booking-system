@@ -654,48 +654,239 @@ async function loadNotificationCount() {
 // SHOW NOTIFICATION DETAILS - PET PAGE
 // ================================================================
 async function showNotificationDetails() {
-    const [petRes, bookRes] = await Promise.all([
-        authFetch('/api/admin/pets'),
-        authFetch('/api/admin/bookings')
-    ]);
-    const pets = petRes.data || [];
-    const bookings = bookRes.data || [];
+    try {
+        const modal = document.getElementById('notificationsModal');
+        const content = document.getElementById('notificationsModalContent');
+        if (content) {
+            content.innerHTML = `
+                <div style="text-align: center; padding: 30px 20px; color: #7A7A7A;">
+                    <i class="fa-solid fa-spinner fa-spin" style="font-size: 30px; display: block; margin-bottom: 10px;"></i>
+                    <p>Loading notifications...</p>
+                </div>
+            `;
+        }
+        
+        if (modal) {
+            lockBodyScroll();
+            modal.classList.add('active');
+        }
 
-    const today = new Date().toISOString().split('T')[0];
-    const in3Days = new Date(); in3Days.setDate(in3Days.getDate() + 3); const in3DaysStr = in3Days.toISOString().split('T')[0];
-    const sixMonthsAgo = new Date(); sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6); const sixMonthsAgoStr = sixMonthsAgo.toISOString().split('T')[0];
+        const newPets = await getNewPetsToday();
+        const upcomingBookings = await getPetsWithUpcomingBookings();
+        const specialNotesPets = await getPetsWithSpecialNotes();
+        const inactivePets = await getInactivePets();
+        
+        const uniquePetsWithUpcoming = new Set();
+        upcomingBookings.forEach(b => {
+            if (b.pet_id) uniquePetsWithUpcoming.add(b.pet_id);
+        });
+        
+        let html = '';
+        let hasNotifications = false;
 
-    const newPets = pets.filter(p => p.created_at && p.created_at.startsWith(today)).length;
-    const upcomingPets = bookings.filter(b => b.booking_date >= today && b.booking_date <= in3DaysStr && ['pending', 'upcoming'].includes(b.status)).length;
-    const specialNotePets = pets.filter(p => p.special_notes && p.special_notes.length > 0).length;
-    const inactivePets = pets.filter(p => !bookings.some(b => b.pet_id === p.pet_id && b.booking_date >= sixMonthsAgoStr)).length;
+        // SECTION 1: NEW PETS TODAY
+        if (newPets.length > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="margin-bottom: 16px;">
+                    <h4 style="color: #2E7D32; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-paw"></i> New Pets Today (${newPets.length})
+                    </h4>
+            `;
+            newPets.forEach(pet => {
+                const speciesIcon = pet.species === 'Dog' ? '🐕' : '🐈';
+                const createdTime = new Date(pet.created_at).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+                html += `
+                    <div style="background: #E8F5E9; border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; border-left: 3px solid #2E7D32; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="font-size: 14px;">${speciesIcon} ${pet.pet_name}</strong>
+                            <div style="font-size: 12px; color: #7A7A7A;">${pet.breed || 'Unknown breed'}</div>
+                        </div>
+                        <div style="text-align: right;">
+                            <span style="font-size: 11px; color: #7A7A7A;">${pet.species}</span>
+                            <div style="font-size: 10px; color: #B0A090;">Added ${createdTime}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `
+                    <div style="margin-top: 8px;">
+                        <a href="admin_pets.html" style="font-size: 12px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View All Pets
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
 
-    const notifCount = document.getElementById('notifCount');
-    if (notifCount) {
-        const total = newPets + upcomingPets;
-        notifCount.textContent = total; notifCount.style.display = total > 0 ? 'flex' : 'none';
+        // SECTION 2: PETS WITH UPCOMING BOOKINGS
+        if (upcomingBookings.length > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="margin-bottom: 16px;">
+                    <h4 style="color: #D97706; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-regular fa-calendar"></i> Pets with Upcoming Bookings (${upcomingBookings.length})
+                    </h4>
+            `;
+            upcomingBookings.forEach(booking => {
+                const date = new Date(booking.booking_date).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                html += `
+                    <div style="background: #FEF7E0; border-radius: 8px; padding: 8px 14px; margin-bottom: 6px; border-left: 3px solid #D97706;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
+                            <span><strong>Pet ID: ${booking.pet_id || 'N/A'}</strong></span>
+                            <span style="color: #7A7A7A; font-size: 12px;">${date} ${booking.booking_time || ''}</span>
+                        </div>
+                        <div style="font-size: 12px; color: #7A7A7A; margin-top: 2px;">
+                            Status: ${booking.status || 'Pending'}
+                        </div>
+                        <a href="admin_bookings.html" style="font-size: 11px; color: #5A361A; text-decoration: none; font-weight: 600; display: inline-block; margin-top: 4px;">
+                            <i class="fa-regular fa-eye"></i> View Bookings
+                        </a>
+                    </div>
+                `;
+            });
+            html += `
+                    <div style="margin-top: 8px;">
+                        <a href="admin_bookings.html" style="font-size: 12px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View All Bookings
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // SECTION 3: PETS WITH SPECIAL NOTES
+        if (specialNotesPets.length > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="margin-bottom: 16px; padding-top: 12px; border-top: 1px solid #EFECE6;">
+                    <h4 style="color: #4A148C; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid fa-pen"></i> Pets with Special Notes (${specialNotesPets.length})
+                    </h4>
+            `;
+            const displaySpecial = specialNotesPets.slice(0, 5);
+            displaySpecial.forEach(pet => {
+                const speciesIcon = pet.species === 'Dog' ? '🐕' : '🐈';
+                html += `
+                    <div style="background: #F3E5F5; border-radius: 6px; padding: 8px 12px; margin-bottom: 4px; border-left: 3px solid #7B1FA2; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="font-size: 13px;">${speciesIcon} ${pet.pet_name}</strong>
+                            <span style="color: #7A7A7A; font-size: 11px; margin-left: 8px;">${pet.breed || ''}</span>
+                        </div>
+                        <a href="admin_pets.html" style="font-size: 11px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View
+                        </a>
+                    </div>
+                `;
+            });
+            if (specialNotesPets.length > 5) {
+                html += `
+                    <div style="font-size: 12px; color: #7A7A7A; text-align: center; margin-top: 4px;">
+                        + ${specialNotesPets.length - 5} more pets with special notes
+                    </div>
+                `;
+            }
+            html += `
+                    <div style="margin-top: 8px;">
+                        <a href="admin_pets.html" style="font-size: 12px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View All Pets
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // SECTION 4: INACTIVE PETS
+        if (inactivePets.length > 0) {
+            hasNotifications = true;
+            html += `
+                <div style="margin-bottom: 4px; padding-top: 12px; border-top: 1px solid #EFECE6;">
+                    <h4 style="color: #BF360C; font-size: 14px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-regular fa-circle-xmark"></i> Inactive Pets (${inactivePets.length})
+                    </h4>
+                    <div style="font-size: 12px; color: #7A7A7A; margin-bottom: 8px;">
+                        No bookings in the last 6 months
+                    </div>
+            `;
+            const displayInactive = inactivePets.slice(0, 5);
+            displayInactive.forEach(pet => {
+                const speciesIcon = pet.species === 'Dog' ? '🐕' : '🐈';
+                const joinedDate = new Date(pet.created_at).toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
+                });
+                html += `
+                    <div style="background: #FBE9E7; border-radius: 6px; padding: 8px 12px; margin-bottom: 4px; border-left: 3px solid #BF360C; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <strong style="font-size: 13px;">${speciesIcon} ${pet.pet_name}</strong>
+                            <span style="color: #7A7A7A; font-size: 11px; margin-left: 8px;">Joined: ${joinedDate}</span>
+                        </div>
+                        <a href="admin_pets.html" style="font-size: 11px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View
+                        </a>
+                    </div>
+                `;
+            });
+            if (inactivePets.length > 5) {
+                html += `
+                    <div style="font-size: 12px; color: #7A7A7A; text-align: center; margin-top: 4px;">
+                        + ${inactivePets.length - 5} more inactive pets
+                    </div>
+                `;
+            }
+            html += `
+                    <div style="margin-top: 8px;">
+                        <a href="admin_pets.html" style="font-size: 12px; color: #5A361A; text-decoration: none; font-weight: 600;">
+                            <i class="fa-regular fa-eye"></i> View All Pets
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // EMPTY STATE
+        if (!hasNotifications) {
+            html = `
+                <div style="text-align: center; padding: 40px 20px;">
+                    <i class="fa-regular fa-bell" style="font-size: 56px; display: block; margin-bottom: 16px; color: #D3C4B8;"></i>
+                    <h3 style="font-size: 18px; font-weight: 600; color: #333333; margin-bottom: 6px;">No Pet Notifications</h3>
+                    <p style="font-size: 14px; color: #7A7A7A; max-width: 280px; margin: 0 auto;">
+                        No new pets, upcoming bookings, or inactive pets at the moment.
+                    </p>
+                    <div style="margin-top: 16px; padding: 10px 20px; background: #F5F0EB; border-radius: 8px; display: inline-block; font-size: 12px; color: #7A7A7A;">
+                        <i class="fa-regular fa-circle-check" style="color: #2E7D32;"></i> All caught up!
+                    </div>
+                </div>
+            `;
+        }
+
+        if (content) {
+            content.innerHTML = html;
+        }
+
+    } catch (err) {
+        console.error('Error loading notification details:', err);
+        const content = document.getElementById('notificationsModalContent');
+        if (content) {
+            content.innerHTML = `
+                <div style="text-align: center; padding: 30px 20px; color: #DC2626;">
+                    <i class="fa-solid fa-circle-exclamation" style="font-size: 30px; display: block; margin-bottom: 10px;"></i>
+                    <p>Failed to load notifications. Please try again.</p>
+                    <button onclick="showNotificationDetails()" style="margin-top: 10px; padding: 8px 20px; background: #5A361A; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        Retry
+                    </button>
+                </div>
+            `;
+        }
     }
-
-    function notifCard(icon, iconBg, iconColor, title, desc, count, badgeBg, badgeColor, link) {
-        return `<div style="display:flex; gap:12px; padding:16px; margin-bottom:10px; border-radius:12px; background:#FFFFFF; border-left:4px solid ${badgeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-            <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; background:${iconBg}; color:${iconColor};">${icon}</div>
-            <div style="flex:1; min-width:0;"><div style="font-weight:600; font-size:14px; color:#333;">${title}</div><div style="font-size:12px; color:#7A7A7A;">${desc}</div></div>
-            <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between;">
-                <span style="background:${badgeBg}; color:${badgeColor}; padding:3px 12px; border-radius:20px; font-size:11px; font-weight:700; margin-bottom:8px;">${count}</span>
-                <a href="${link}" style="font-size:11px; color:#5A361A; font-weight:600; text-decoration:none;">View →</a>
-            </div></div>`;
-    }
-
-    let html = '';
-    if (newPets > 0) html += notifCard("🐾", "#FEF7E0", "#D97706", "New Pets Added Today", "Pets baru diregister hari ini", newPets, "#FEF7E0", "#D97706", "admin_pets.html");
-    if (upcomingPets > 0) html += notifCard("📅", "#FEF7E0", "#D97706", "Pets with Upcoming Bookings", "Pets yang ada booking dalam 3 hari", upcomingPets, "#FEF7E0", "#D97706", "admin_bookings.html");
-    if (specialNotePets > 0) html += notifCard("📝", "#E3F2FD", "#0D47A1", "Pets with Special Notes", "Pets yang ada medical notes/keperluan khas", specialNotePets, "#E3F2FD", "#0D47A1", "admin_pets.html");
-    if (inactivePets.length > 0) html += notifCard("📉", "#E3F2FD", "#0D47A1", "Inactive Pets", "Pets yang tak booking > 6 bulan", inactivePets.length, "#E3F2FD", "#0D47A1", "admin_pets.html");
-
-    if (!html) { html = '<div style="text-align:center; padding:40px 20px;">No pet notifications.</div>'; }
-    document.getElementById('notificationsModalContent').innerHTML = html;
-    document.getElementById('notificationsModal').classList.add('active');
-    lockBodyScroll();
 }
 
 // ================================================================

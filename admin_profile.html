@@ -163,6 +163,7 @@
         .page-heading .status-badge {
             background: #E8F5E9;
             color: #2E7D32;
+            border: 2px solid #66BB6A;
             border-radius: 20px;
             padding: 6px 18px;
             font-size: 13px;
@@ -171,6 +172,7 @@
             align-items: center;
             gap: 6px;
             white-space: nowrap;
+            box-shadow: 0 1px 3px rgba(46, 125, 50, 0.12);
         }
         .page-heading .status-badge i { font-size: 9px; }
 
@@ -846,6 +848,10 @@
         }
         @media (max-width: 480px) {
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+            .stats-grid .stat-card {
+                grid-column: auto !important;
+                grid-row: auto !important;
+            }
             .stat-card { padding: 14px 16px; }
             .stat-card i { width: 36px; height: 36px; font-size: 18px; }
             .stat-card h3 { font-size: 20px; }
@@ -1414,10 +1420,10 @@ function closeModal(id) {
     const modal = document.getElementById(id);
     if (!modal) return;
     modal.classList.remove('active');
-    
-    // 强制清除 body 样式，移除 modal-open 并解锁滚动（不再检查其他弹窗状态）
-    document.body.classList.remove('modal-open');
-    unlockBodyScroll();
+    if (!document.querySelector('.modal-overlay.active')) {
+        document.body.classList.remove('modal-open');
+        unlockBodyScroll();
+    }
 }
 
 // 挂载到全局
@@ -1547,50 +1553,45 @@ document.querySelectorAll('[data-close]').forEach(btn => {
     }
 
     // ===== 加载活动统计 =====
-async function loadActivityStats() {
-    try {
-        const res = await authFetch('/api/admin/profile/activity');
-        if (!res) return;
-        const result = await res.json();
-        if (result.success) {
-            const stats = result.data;
+    async function loadActivityStats() {
+        try {
+            const res = await authFetch('/api/admin/profile/activity');
+            const result = await res.json();
+            if (result.success) {
+                const stats = result.data;
+                const totalLogins = stats.totalLogins || 0;
+                if ($('totalLogins')) $('totalLogins').textContent = totalLogins;
+                if ($('totalLoginsStat')) $('totalLoginsStat').textContent = totalLogins;
+                if ($('securityScore')) $('securityScore').textContent = (stats.securityScore || 90) + '%';
+                if ($('daysActive')) $('daysActive').textContent = stats.daysActive || 0;
 
-            const formatDate = (iso) => {
-                if (!iso) return 'Never';
-                try {
+                const formatDate = (iso) => {
+                    if (!iso) return null;
                     const d = new Date(iso);
-                    // 确保显示具体的时间和日期
-                    return d.toLocaleString('en-US', {
-                        day: '2-digit', month: 'short', year: 'numeric',
-                        hour: '2-digit', minute: '2-digit'
-                    });
-                } catch {
-                    return 'Never';
-                }
-            };
+                    return d.toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+                };
+                const lastLogin = formatDate(stats.lastLogin);
+                const pwdChanged = formatDate(stats.passwordUpdatedAt);
+                const profileUpdated = formatDate(stats.profileUpdatedAt);
 
-            // 1. 更新 stats 卡片
-            document.getElementById('totalLogins').textContent = stats.totalLogins || 0;
-            document.getElementById('securityScore').textContent = (stats.securityScore || 90) + '%';
-            document.getElementById('daysActive').textContent = stats.daysActive || 0;
-
-            // 2. 更新 Activity Summary (这里一定要放最新修改的时间)
-            document.getElementById('lastLoginStat').textContent = formatDate(stats.lastLogin);
-            document.getElementById('profileLastLogin').textContent = formatDate(stats.lastLogin);
-            document.getElementById('pwdChanged').textContent = formatDate(stats.passwordUpdatedAt);
-            document.getElementById('profileUpdated').textContent = formatDate(stats.profileUpdatedAt);
-
-            // 3. 更新 2FA 状态
-            if (stats.two_factor_enabled !== undefined) {
-                data.twoFactor = stats.two_factor_enabled;
+                data.totalLogins = totalLogins;
+                data.lastLogin = lastLogin || 'Never';
+                data.pwdChanged = pwdChanged || 'N/A';
+                data.profileUpdated = profileUpdated || 'N/A';
                 saveData();
-                render();
+                if ($('lastLoginStat')) $('lastLoginStat').textContent = data.lastLogin;
+                if ($('profileLastLogin')) $('profileLastLogin').textContent = data.lastLogin;
+                if ($('pwdChanged')) $('pwdChanged').textContent = data.pwdChanged;
+                if ($('profileUpdated')) $('profileUpdated').textContent = data.profileUpdated;
+
+                if (stats.two_factor_enabled !== undefined) {
+                    data.twoFactor = stats.two_factor_enabled;
+                    saveData();
+                    render();
+                }
             }
-        }
-    } catch (err) {
-        console.error('Error loading activity stats:', err);
+        } catch (err) { console.error('Failed to load activity stats:', err); }
     }
-}
 
     // ===== 更新活跃会话数 =====
     async function updateActiveSessionsCount() {
@@ -1834,86 +1835,43 @@ async function loadActivityStats() {
         // ================================================================
 
         async function loadNotificationCount() {
-            const notifCount = document.getElementById('notifCount');
-            if (notifCount) {
-                notifCount.style.display = 'none';
-                notifCount.textContent = '0';
+            try {
+                const response = await authFetch('/api/admin/profile/activity');
+                const result = await response.json();
+                const data = result.success ? result.data : {};
+                window.notificationData = data;
+                const notifCount = document.getElementById('notifCount');
+                if (notifCount) {
+                    notifCount.textContent = data.lastLogin ? '1' : '';
+                    notifCount.style.display = data.lastLogin ? 'flex' : 'none';
+                }
+                return data.lastLogin ? 1 : 0;
+            } catch (err) {
+                console.error('Error loading profile notifications:', err);
+                return 0;
             }
-            return 0;
         }
 
-async function showNotificationDetails() {
-    // 必须防止 res 为 null，不然会一直报错导致点不了
-    const res = await authFetch('/api/profile');
-    if (!res) return;
-    const profile = res.data || {};
-    
-    let phone = (profile.phone_number || '').trim();
-    let photo = (profile.profile_photo || '').trim();
+        async function showNotificationDetails() {
+            await loadNotificationCount();
+            const activity = window.notificationData || {};
+            const formatDate = iso => iso ? new Date(iso).toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never';
+            const html = `
+                <div style="text-align:center; padding:30px 20px; color:#7A7A7A;">
+                    <i class="fa-regular fa-id-card" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i>
+                    <h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">Profile Management</h3>
+                    <p style="font-size:13px;">Latest activity from your admin account.</p>
+                    <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
+                        <span style="background:#E8F5E9; padding:4px 12px; border-radius:20px; font-size:11px;">🔐 Last login: ${formatDate(activity.lastLogin)}</span>
+                        <span style="background:#F5F0EB; padding:4px 12px; border-radius:20px; font-size:11px;">🔑 Logins: ${activity.totalLogins || 0}</span>
+                    </div>
+                </div>
+            `;
 
-    // 如果后端没返回，本地缓存里取
-    if (!phone) {
-        try {
-            const localData = JSON.parse(localStorage.getItem('pawcareAdminProfile') || '{}');
-            phone = (localData.phone || localData.phone_number || '').trim();
-        } catch (e) {}
-    }
-    if (!photo) {
-        photo = localStorage.getItem('pawcareAvatar') || '';
-    }
-
-    // 🛑 修正：如果后端数据库中的 phone_number 为空，但用户本地缓存里有，则使用缓存，防止误报
-    if (!phone) {
-        try {
-            const localData = JSON.parse(localStorage.getItem('pawcareAdminProfile') || '{}');
-            phone = (localData.phone || localData.phone_number || '').trim();
-        } catch (e) {}
-    }
-    if (!photo) {
-        photo = localStorage.getItem('pawcareAvatar') || '';
-    }
-
-    const missingPhone = phone === '';
-    const missingAvatar = photo === '';
-    const profileIncomplete = missingPhone || missingAvatar;
-    
-    // 模拟密码过期（如果创建时间超过了180天）
-    let passwordExpiry = false;
-    if (profile.created_at) {
-        const createdDate = new Date(profile.created_at);
-        const now = Date.now();
-        const daysSinceCreation = (now - createdDate.getTime()) / (1000 * 60 * 60 * 24);
-        if (daysSinceCreation > 180) passwordExpiry = true;
-    }
-
-    const notifCount = document.getElementById('notifCount');
-    if (notifCount) { notifCount.style.display = 'none'; } // Profile 非紧急
-
-    function notifCard(icon, iconBg, iconColor, title, desc, count, badgeBg, badgeColor, link) {
-        return `<div style="display:flex; gap:12px; padding:16px; margin-bottom:10px; border-radius:12px; background:#FFFFFF; border-left:4px solid ${badgeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-            <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; background:${iconBg}; color:${iconColor};">${icon}</div>
-            <div style="flex:1; min-width:0;"><div style="font-weight:600; font-size:14px; color:#333;">${title}</div><div style="font-size:12px; color:#7A7A7A;">${desc}</div></div>
-            <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between;">
-                <span style="background:${badgeBg}; color:${badgeColor}; padding:3px 12px; border-radius:20px; font-size:11px; font-weight:700; margin-bottom:8px;">${count}</span>
-                <a href="${link}" style="font-size:11px; color:#5A361A; font-weight:600; text-decoration:none;">View →</a>
-            </div></div>`;
-    }
-
-    let html = '';
-    if (passwordExpiry) html += notifCard("🔒", "#FEF7E0", "#D97706", "Password Expiry", "Password perlu ditukar", "Medium", "#FEF7E0", "#D97706", "admin_profile.html");
-    
-    // 新增：2FA 安全检查（如果本地缓存的 twoFactor 是 false）
-    if (!data.twoFactor) {
-        html += notifCard("⚠️", "#FCE8E6", "#DC2626", "Security Warning", "2FA is currently disabled. Enable it for better security.", "Medium", "#FCE8E6", "#DC2626", "admin_profile.html");
-    }
-
-    if (profileIncomplete) html += notifCard("❗", "#E3F2FD", "#0D47A1", "Profile Incomplete", "Profile photo/phone belum lengkap", "Low", "#E3F2FD", "#0D47A1", "admin_profile.html");
-
-    if (!html) { html = '<div style="text-align:center; padding:40px 20px;">No profile notifications.</div>'; }
-    document.getElementById('notificationsModalContent').innerHTML = html;
-    document.getElementById('notificationsModal').classList.add('active');
-    lockBodyScroll();
-}
+            document.getElementById('notificationsModalContent').innerHTML = html;
+            document.getElementById('notificationsModal').classList.add('active');
+            lockBodyScroll();
+        }
 
         // 加载 header 头像
         loadAdminHeaderProfile();
@@ -2404,12 +2362,10 @@ if (typeof bindUserMenuEvents === 'function') {
                         email: admin.email || DEFAULTS.email,
                         phone: admin.phone_number || DEFAULTS.phone,
                         department: admin.department || DEFAULTS.department,
-                        profile_photo: admin.profile_photo || null,
-                        twoFactor: admin.two_factor_enabled // 关键：必须读取后端真实状态
+                        profile_photo: admin.profile_photo || null
                     };
                     localStorage.setItem('pawcareAdminProfile', JSON.stringify(newData));
                     data = getData();
-                    render(); // 强制重新渲染 UI
 
                     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
                     if (storedUser && storedUser.id) {

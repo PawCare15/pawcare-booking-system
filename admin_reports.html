@@ -662,7 +662,7 @@
                     <i class="fa-solid fa-chart-bar page-header-profile-icon"></i>
                     <div><h1 class="page-header-profile-title">Reports &amp; Analytics</h1><p class="page-header-profile-subtitle">Review booking, customer, and service performance.</p></div>
                 </div>
-                <span class="date-badge"><i class="fa-regular fa-calendar"></i> <span id="reportDate">May 2026</span></span>
+                <span class="admin-page-date"><i class="fa-regular fa-calendar"></i> <span id="adminPageDate">Loading...</span></span>
             </div>
 
             <!-- ===== STATS 卡片 (5个) ===== -->
@@ -1251,18 +1251,10 @@ function listenForAvatarUpdates() {
 
 async function loadNotificationCount() {
     try {
-        // 检查月度报告是否生成（模拟）
-        const now = new Date();
-        const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
-        const reportKey = `report_${now.getFullYear()}_${now.getMonth()}`;
-        const reportGenerated = localStorage.getItem(reportKey) === 'true';
-
-        // 检查 booking 下降（模拟）
-        // 实际应该从后端获取数据对比
-
-        let count = 0;
-        if (reportGenerated) count++;
-        // 如果有 booking decline alert，count++
+        const response = await authFetch('/api/admin/notifications/summary');
+        const result = await response.json();
+        const data = result.success ? result.data : {};
+        const count = (data.pendingBookings || 0) + (data.newReviews || 0);
 
         const notifCount = document.getElementById('notifCount');
         if (notifCount) {
@@ -1274,7 +1266,7 @@ async function loadNotificationCount() {
             }
         }
 
-        window.notificationData = { reportGenerated };
+        window.notificationData = data;
         return count;
     } catch (err) {
         console.error('Error loading report notifications:', err);
@@ -1284,23 +1276,28 @@ async function loadNotificationCount() {
 
 async function showNotificationDetails() {
     await loadNotificationCount();
-    const data = window.notificationData || { reportGenerated: false };
+    const data = window.notificationData || {};
 
     let html = '';
     let hasNotifications = false;
 
-    if (data.reportGenerated) {
+    if (data.pendingBookings > 0) {
         hasNotifications = true;
         html += `
-            <div style="background:#E8F5E9; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #2E7D32;">
+            <div style="background:#FEF7E0; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #D97706;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span><strong>📊 Monthly Report Ready</strong></span>
-                    <span style="background:#2E7D32; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">New</span>
+                    <span><strong>📋 Pending Bookings</strong></span>
+                    <span style="background:#D97706; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.pendingBookings}</span>
                 </div>
-                <div style="font-size:12px; color:#7A7A7A;">This month's report is ready to view</div>
-                <a href="admin_reports.html#report" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View Report →</a>
+                <div style="font-size:12px; color:#7A7A7A;">Booking(s) need admin approval</div>
+                <a href="admin_bookings.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
             </div>
         `;
+    }
+
+    if (data.newReviews > 0) {
+        hasNotifications = true;
+        html += `<div style="background:#E8F5E9; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #2E7D32;"><strong>⭐ New Reviews</strong><div style="font-size:12px;color:#7A7A7A;">${data.newReviews} new review(s) from customers</div><a href="admin_reviews.html" style="font-size:11px;color:#5A361A;font-weight:600;text-decoration:none;">View →</a></div>`;
     }
 
     // 可以添加更多报告通知...
@@ -1393,12 +1390,12 @@ async function showNotificationDetails() {
                         const trend = data.data;
                         const labels = trend.map(d => d.date.slice(5)); // "MM-DD"
                         const counts = trend.map(d => d.count);
+                        const completedCounts = trend.map(d => d.completed || 0);
                         const chart = Chart.getChart('bookingsTrendChart');
                         if (chart) {
                             chart.data.labels = labels;
                             chart.data.datasets[0].data = counts;
-                            // 将第二个数据集（Completed）的数据也设为 0 或根据后端处理
-                            chart.data.datasets[1].data = trend.map(() => 0); 
+                            chart.data.datasets[1].data = completedCounts;
                             chart.update();
                         }
                     }
@@ -1483,7 +1480,6 @@ async function showNotificationDetails() {
             // 调用这些函数
             loadStats();
             loadNotificationCount();
-            loadTrendChart();
             loadPopularServices();
             loadTopCustomers();
             loadMonthlyComparison(); 
@@ -1492,8 +1488,10 @@ async function showNotificationDetails() {
             // SET DATE
             // ================================================================
             const now = new Date();
-            document.getElementById('reportDate').textContent =
-                now.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+            const reportDate = document.getElementById('reportDate');
+            if (reportDate) {
+                reportDate.textContent = now.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+            }
 
             // ================================================================
             // CHARTS - 使用 Chart.js
@@ -1552,6 +1550,8 @@ async function showNotificationDetails() {
                 }
             });
 
+            loadTrendChart();
+
             // 2. Monthly Comparisons (Bar)
             const ctx4 = document.getElementById('monthlyComparisonChart').getContext('2d');
             new Chart(ctx4, {
@@ -1592,5 +1592,8 @@ async function showNotificationDetails() {
         });
     </script>
 
+    <script>
+        document.getElementById('adminPageDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+    </script>
 </body>
 </html>

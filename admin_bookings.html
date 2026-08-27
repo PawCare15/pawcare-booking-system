@@ -418,14 +418,42 @@
             justify-content: center;
         }
         .action-icons i {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             font-size: 16px;
-            color: #7A6B5A;
             cursor: pointer;
-            transition: color 0.2s, transform 0.2s;
+            transition: all 0.2s ease;
+        }
+        .action-icons i.view-btn {
+            background: #E8F0FE;
+            color: #1A73E8;
+        }
+        .action-icons i.edit-btn {
+            background: #F3E8FF;
+            color: #7C3AED;
+        }
+        .action-icons i.delete-btn {
+            background: #FEE8E8;
+            color: #DC2626;
         }
         .action-icons i:hover {
-            color: #D97706;
-            transform: scale(1.15);
+            transform: translateY(-2px) scale(1.08);
+        }
+        .action-icons i.view-btn:hover {
+            background: #1A73E8;
+            color: #FFFFFF;
+        }
+        .action-icons i.edit-btn:hover {
+            background: #7C3AED;
+            color: #FFFFFF;
+        }
+        .action-icons i.delete-btn:hover {
+            background: #DC2626;
+            color: #FFFFFF;
         }
 
         /* Status & Payment pills */
@@ -1754,47 +1782,129 @@
             }
         }
 
-async function showNotificationDetails() {
-    const res = await authFetch('/api/admin/bookings');
-    const bookings = res.data || [];
+        async function showNotificationDetails() {
+            await loadNotificationCount();
+            const data = window.notificationData || { pending: 0, reschedule: 0, today: 0, tomorrow: 0, cancelled: 0 };
 
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1); const tomorrowStr = tomorrow.toISOString().split('T')[0];
+            let html = '';
+            let hasNotifications = false;
 
-    const pending = bookings.filter(b => b.status === 'pending').length;
-    const reschedule = bookings.filter(b => b.reschedule_status === 'pending').length;
-    const todayCount = bookings.filter(b => b.booking_date === today).length;
-    const tomorrowCount = bookings.filter(b => b.booking_date === tomorrowStr).length;
-    const cancelledToday = bookings.filter(b => b.status === 'cancelled' && b.booking_date === today).length;
+            // Pending Bookings (High)
+            if (data.pending > 0) {
+                hasNotifications = true;
+                html += `
+                    <div style="background:#FEF7E0; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #D97706;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span><strong>⏳ Pending Bookings</strong></span>
+                            <span style="background:#D97706; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.pending}</span>
+                        </div>
+                        <div style="font-size:12px; color:#7A7A7A;">${data.pending} booking(s) need approval</div>
+                        <a href="admin_bookings.html?filter=pending" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                    </div>
+                `;
+            }
 
-    const notifCount = document.getElementById('notifCount');
-    if (notifCount) {
-        notifCount.textContent = pending + reschedule;
-        notifCount.style.display = (pending + reschedule) > 0 ? 'flex' : 'none';
-    }
+            // Reschedule Requests (High)
+            if (data.reschedule > 0) {
+                hasNotifications = true;
+                html += `
+                    <div style="background:#FFF3E0; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #E65100;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span><strong>🔄 Reschedule Requests</strong></span>
+                            <span style="background:#E65100; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.reschedule}</span>
+                        </div>
+                        <div style="font-size:12px; color:#7A7A7A;">${data.reschedule} request(s) pending</div>
+                        <a href="admin_bookings.html?filter=reschedule" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                    </div>
+                `;
+            }
 
-    function notifCard(icon, iconBg, iconColor, title, desc, count, badgeBg, badgeColor, link) {
-        return `<div style="display:flex; gap:12px; padding:16px; margin-bottom:10px; border-radius:12px; background:#FFFFFF; border-left:4px solid ${badgeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-            <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; background:${iconBg}; color:${iconColor};">${icon}</div>
-            <div style="flex:1; min-width:0;"><div style="font-weight:600; font-size:14px; color:#333;">${title}</div><div style="font-size:12px; color:#7A7A7A;">${desc}</div></div>
-            <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between;">
-                <span style="background:${badgeBg}; color:${badgeColor}; padding:3px 12px; border-radius:20px; font-size:11px; font-weight:700; margin-bottom:8px;">${count}</span>
-                <a href="${link}" style="font-size:11px; color:#5A361A; font-weight:600; text-decoration:none;">View →</a>
-            </div></div>`;
-    }
+            // Today's Bookings (Medium)
+            if (data.today > 0) {
+                hasNotifications = true;
+                html += `
+                    <div style="background:#E3F2FD; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #0D47A1;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span><strong>📅 Today's Bookings</strong></span>
+                            <span style="background:#0D47A1; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.today}</span>
+                        </div>
+                        <div style="font-size:12px; color:#7A7A7A;">${data.today} booking(s) today</div>
+                        <a href="admin_bookings.html?date=today" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                    </div>
+                `;
+            }
 
-    let html = '';
-    if (pending > 0) html += notifCard("📋", "#FCE8E6", "#DC2626", "Pending Bookings", "Booking perlu diluluskan", pending, "#FCE8E6", "#DC2626", "admin_bookings.html?status=pending");
-    if (reschedule > 0) html += notifCard("🔄", "#FCE8E6", "#DC2626", "Reschedule Requests", "Permohonan tukar tarikh", reschedule, "#FCE8E6", "#DC2626", "admin_bookings.html?status=reschedule");
-    if (todayCount > 0) html += notifCard("📅", "#FEF7E0", "#D97706", "Today's Bookings", "Booking untuk hari ini", todayCount, "#FEF7E0", "#D97706", "admin_bookings.html?date=today");
-    if (tomorrowCount > 0) html += notifCard("📅", "#E3F2FD", "#0D47A1", "Tomorrow's Bookings", "Booking untuk esok", tomorrowCount, "#E3F2FD", "#0D47A1", "admin_bookings.html?date=tomorrow");
-    if (cancelledToday > 0) html += notifCard("🚫", "#FEF7E0", "#D97706", "Cancelled Bookings Today", "Pembatalan hari ini", cancelledToday, "#FEF7E0", "#D97706", "admin_bookings.html?status=cancelled");
+            // Tomorrow's Bookings (Low)
+            if (data.tomorrow > 0) {
+                hasNotifications = true;
+                html += `
+                    <div style="background:#F5F5F5; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #757575;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span><strong>📅 Tomorrow's Bookings</strong></span>
+                            <span style="background:#757575; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.tomorrow}</span>
+                        </div>
+                        <div style="font-size:12px; color:#7A7A7A;">${data.tomorrow} booking(s) tomorrow</div>
+                        <a href="admin_bookings.html?date=tomorrow" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                    </div>
+                `;
+            }
 
-    if (!html) { html = '<div style="text-align:center; padding:40px 20px;">No bookings notifications.</div>'; }
-    document.getElementById('notificationsModalContent').innerHTML = html;
-    document.getElementById('notificationsModal').classList.add('active');
-    lockBodyScroll();
-}
+            // Cancelled Today (Medium)
+            if (data.cancelled > 0) {
+                hasNotifications = true;
+                html += `
+                    <div style="background:#FCE8E6; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #DC2626;">
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span><strong>🚫 Cancelled Today</strong></span>
+                            <span style="background:#DC2626; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.cancelled}</span>
+                        </div>
+                        <div style="font-size:12px; color:#7A7A7A;">${data.cancelled} cancellation(s) today</div>
+                        <a href="admin_bookings.html?status=cancelled" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                    </div>
+                `;
+            }
+
+            if (!hasNotifications) {
+                html = `
+                    <div style="text-align:center; padding:30px 20px; color:#7A7A7A;">
+                        <i class="fa-regular fa-calendar-check" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i>
+                        <h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">No Booking Notifications</h3>
+                        <p style="font-size:13px;">All bookings are up to date.</p>
+                    </div>
+                `;
+            }
+
+            document.getElementById('notificationsModalContent').innerHTML = html;
+            document.getElementById('notificationsModal').classList.add('active');
+            lockBodyScroll();
+        }
+
+        // ================================================================
+        // 在 DOMContentLoaded 中初始化
+        // ================================================================
+        document.addEventListener('DOMContentLoaded', function() {
+            // 加载 header 头像
+            loadAdminHeaderProfile();
+            // 绑定 user menu 事件
+            bindUserMenuEvents();
+            // 监听头像更新
+            listenForAvatarUpdates();
+
+            // 设置当前日期（如果有这个元素）
+            const dateEl = document.getElementById('headerCurrentDate');
+            if (dateEl) {
+                const now = new Date();
+                dateEl.textContent = now.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    day: '2-digit',
+                    month: 'long',
+                    year: 'numeric'
+                });
+            }
+
+            // 每个页面调用自己的 notification 加载函数
+            // 由各页面单独实现
+        });
 
         // ===== 修复通知弹窗关闭（OK / X / 背景点击） =====
 const closeNotifBtn = document.getElementById('closeNotificationsModal');
