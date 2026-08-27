@@ -118,8 +118,7 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
       await sendEmailJsTemplate({
         to_email: customerEmail,
         email: customerEmail,
-        otp_code: deleteLink,
-        delete_link: deleteLink,
+        delete_link: deleteLink,           // ✅ 只传链接，不再传 otp_code
         title: 'Account Deletion Request - PawCare',
         subject: 'Account Deletion Request - PawCare',
         description: `Dear ${customerName}, open this link to confirm account deletion: ${deleteLink}`,
@@ -131,121 +130,6 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
     } catch (error) {
       console.error('❌ EmailJS deletion email failed:', { status: error.status, text: error.text, message: error.message });
       return false;
-    }
-    
-    const mailOptions = {
-        from: `"PawCare Booking System" <${emailUser}>`,
-        to: customerEmail,
-      replyTo: emailUser,
-        subject: '⚠️ Account Deletion Request - PawCare',
-      text: `Dear ${customerName}, an admin has requested deletion of your PawCare account. Open this link to confirm: ${deleteLink}`,
-        html: `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <style>
-                    body { font-family: Arial, sans-serif; background: #f5f0eb; padding: 20px; }
-                    .container { max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-                    .header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid #efebe6; }
-                    .header h1 { color: #a75e31; margin: 0; }
-                    .content { padding: 20px 0; }
-                    .content p { color: #555; line-height: 1.6; }
-                    .warning { background: #fef7e0; border-left: 4px solid #d97706; padding: 12px 16px; border-radius: 4px; margin: 16px 0; }
-                    .warning strong { color: #92400e; }
-                    .btn { display: inline-block; padding: 14px 36px; background: #dc2626; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 16px 0; }
-                    .btn:hover { background: #b91c1c; }
-                    .btn-container { text-align: center; }
-                    .footer { text-align: center; padding-top: 20px; border-top: 1px solid #efebe6; font-size: 12px; color: #999; }
-                    .link-expiry { color: #7a7a7a; font-size: 13px; margin-top: 8px; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>🐾 PawCare</h1>
-                        <p style="color: #7a7a7a; margin: 0;">Booking System</p>
-                    </div>
-                    <div class="content">
-                        <h2>Account Deletion Request</h2>
-                        <p>Dear <strong>${customerName}</strong>,</p>
-                        <p>An admin has initiated a request to delete your PawCare account.</p>
-                        
-                        <div class="warning">
-                            <strong>⚠️ Important:</strong> This action will permanently delete all your data including:
-                            <ul style="margin: 8px 0 0 20px; color: #555;">
-                                <li>Your profile information</li>
-                                <li>Pet profiles</li>
-                                <li>Booking history</li>
-                                <li>Reviews</li>
-                            </ul>
-                        </div>
-                        
-                        <div class="btn-container">
-                            <a href="${deleteLink}" class="btn">🗑️ Delete My Account Now</a>
-                        </div>
-                        
-                        <p style="text-align: center; font-size: 14px; color: #7a7a7a;">
-                            <strong>OR</strong> copy this link into your browser:<br>
-                            <span style="word-break: break-all; font-size: 12px; color: #999;">${deleteLink}</span>
-                        </p>
-                        
-                        <p class="link-expiry">⏳ This link will expire in <strong>7 days</strong>.</p>
-                        
-                        <p style="margin-top: 16px; color: #7a7a7a; font-size: 13px;">
-                            If you did not request this deletion, please <a href="mailto:${emailUser}" style="color: #a75e31;">contact us</a> immediately.
-                        </p>
-                    </div>
-                    <div class="footer">
-                        <p>© 2026 PawCare Booking System — Paw Walker Grooming House</p>
-                    </div>
-                </div>
-            </html>
-        `
-    };
-
-    try {
-      const delivery = await transporter.sendMail(mailOptions);
-      if (!delivery.accepted || delivery.accepted.length === 0) {
-        throw new Error('SMTP accepted no recipients.');
-      }
-        console.log(`✅ Deletion email sent to ${customerEmail}`);
-        return true;
-    } catch (error) {
-      console.error('❌ Error sending deletion email:', {
-        code: error.code,
-        responseCode: error.responseCode,
-        response: error.response,
-        message: error.message
-      });
-      try {
-        emailjs.init({
-          publicKey: process.env.EMAILJS_PUBLIC_KEY,
-          privateKey: process.env.EMAILJS_PRIVATE_KEY
-        });
-        await emailjs.send(
-          process.env.EMAILJS_SERVICE_ID,
-          process.env.EMAILJS_TEMPLATE_ID,
-          {
-            to_email: customerEmail,
-            email: customerEmail,
-            otp_code: deleteLink,
-            title: 'Account Deletion Request - PawCare',
-            subject: 'Account Deletion Request - PawCare',
-            description: `Dear ${customerName}, open this link to confirm account deletion: ${deleteLink}`,
-            badgeText: 'ACCOUNT DELETION',
-            badgeClass: 'account-deletion'
-          }
-        );
-        console.log(`✅ Deletion email sent through EmailJS fallback to ${customerEmail}`);
-        return true;
-      } catch (fallbackError) {
-        console.error('❌ EmailJS deletion email fallback failed:', {
-          status: fallbackError.status,
-          text: fallbackError.text,
-          message: fallbackError.message
-        });
-        return false;
-      }
     }
 }
 
@@ -269,69 +153,6 @@ async function sendDeletionConfirmedEmail(customerEmail, customerName) {
     console.error('❌ EmailJS confirmation email failed:', { status: error.status, text: error.text, message: error.message });
     return false;
   }
-  /*
-    const mailOptions = {
-        from: `"PawCare Booking System" <${emailUser}>`,
-        to: customerEmail,
-        subject: '✅ Account Deleted Successfully - PawCare',
-        html: `
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <style>
-                    body { font-family: Arial, sans-serif; background: #f5f0eb; padding: 20px; }
-                    .container { max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-                    .header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid #efebe6; }
-                    .header h1 { color: #a75e31; margin: 0; }
-                    .content { padding: 20px 0; text-align: center; }
-                    .content p { color: #555; line-height: 1.6; }
-                    .success-icon { font-size: 64px; margin: 16px 0; }
-                    .footer { text-align: center; padding-top: 20px; border-top: 1px solid #efebe6; font-size: 12px; color: #999; }
-                    .btn { display: inline-block; padding: 12px 32px; background: #5a361a; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 8px 0; }
-                    .btn:hover { background: #402410; }
-                </style>
-            </head>
-            <body>
-                <div class="container">
-                    <div class="header">
-                        <h1>🐾 PawCare</h1>
-                        <p style="color: #7a7a7a; margin: 0;">Booking System</p>
-                    </div>
-                    <div class="content">
-                        <div class="success-icon">✅</div>
-                        <h2>Account Deleted Successfully</h2>
-                        <p>Dear <strong>${customerName}</strong>,</p>
-                        <p>Your PawCare account has been successfully deleted as requested.</p>
-                        <p>All your data has been permanently removed from our system.</p>
-                        <br>
-                        <p style="color: #7a7a7a; font-size: 13px;">
-                            If you wish to use our services again in the future,<br>
-                            you are welcome to create a new account anytime.
-                        </p>
-                        <p style="color: #7a7a7a; font-size: 13px; margin-top: 16px;">
-                            Thank you for being part of PawCare! 🐾
-                        </p>
-                        <div style="margin-top: 16px;">
-                            <a href="${process.env.BASE_URL || 'http://localhost:5000'}" class="btn">🏠 Back to Home</a>
-                        </div>
-                    </div>
-                    <div class="footer">
-                        <p>© 2026 PawCare Booking System — Paw Walker Grooming House</p>
-                    </div>
-                </div>
-            </html>
-        `
-    };
-
-    try {
-        await transporter.sendMail(mailOptions);
-        console.log(`✅ Deletion confirmed email sent to ${customerEmail}`);
-        return true;
-    } catch (error) {
-        console.error('❌ Error sending confirmation email:', error);
-        return false;
-    }
-  */
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
