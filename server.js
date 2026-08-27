@@ -38,24 +38,27 @@ function parseUserAgent(userAgent) {
 
 // ========== Email Configuration (Nodemailer) ========== ✅ TAMBAH BARU
 const emailUser = String(process.env.EMAIL_USER || '').split(/\s+#/)[0].trim();
-const emailPass = String(process.env.EMAIL_PASS || '').split(/\s+#/)[0].replace(/\s+/g, '').trim();
+const emailPass = String(process.env.EMAIL_PASS || '').split(/\s+#/)[0].trim().replace(/\s+/g, '');
+const emailHost = String(process.env.EMAIL_HOST || 'smtp.gmail.com').trim();
+const emailPort = Number(process.env.EMAIL_PORT || 465);
+const emailSecure = String(process.env.EMAIL_SECURE || (emailPort === 465 ? 'true' : 'false')).toLowerCase() === 'true';
 const emailConfigured = Boolean(emailUser && emailPass);
-const emailPort = Number(process.env.EMAIL_PORT || 587);
 const transporter = emailConfigured ? nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  host: emailHost,
   port: emailPort,
-  secure: emailPort === 465,
-  requireTLS: emailPort === 587,
+  secure: emailSecure,
   auth: {
     user: emailUser,
     pass: emailPass
   }
 }) : null;
 
-if (transporter) {
+if (!emailConfigured) {
+  console.error('Email SMTP is disabled: EMAIL_USER and EMAIL_PASS are required.');
+} else if (transporter) {
   transporter.verify()
-    .then(() => console.log('Email SMTP connection verified.'))
-    .catch(error => console.error('Email SMTP verification failed:', error.message));
+    .then(() => console.log(`Email SMTP connection verified (${emailHost}:${emailPort}).`))
+    .catch(error => console.error('Email SMTP verification failed:', error.code || error.message));
 }
 
 // ========== Supabase 初始化 ==========
@@ -104,7 +107,9 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
     const mailOptions = {
         from: `"PawCare Booking System" <${emailUser}>`,
         to: customerEmail,
+      replyTo: emailUser,
         subject: '⚠️ Account Deletion Request - PawCare',
+      text: `Dear ${customerName}, an admin has requested deletion of your PawCare account. Open this link to confirm: ${deleteLink}`,
         html: `
             <!DOCTYPE html>
             <html>
@@ -170,11 +175,19 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
     };
 
     try {
-        await transporter.sendMail(mailOptions);
+      const delivery = await transporter.sendMail(mailOptions);
+      if (!delivery.accepted || delivery.accepted.length === 0) {
+        throw new Error('SMTP accepted no recipients.');
+      }
         console.log(`✅ Deletion email sent to ${customerEmail}`);
         return true;
     } catch (error) {
-        console.error('❌ Error sending email:', error);
+      console.error('❌ Error sending deletion email:', {
+        code: error.code,
+        responseCode: error.responseCode,
+        response: error.response,
+        message: error.message
+      });
         return false;
     }
 }
@@ -1307,7 +1320,7 @@ app.get('/api/admin/notifications/summary', isAdmin, async (req, res) => {
       supabaseAdmin.from('booking').select('booking_id', { count: 'exact', head: true }).eq('booking_date', tomorrow),
       supabaseAdmin.from('customer').select('customer_id', { count: 'exact', head: true }).gte('created_at', todayIso),
       supabaseAdmin.from('customer').select('customer_id', { count: 'exact', head: true }).eq('status', 'pending_deletion'),
-      supabaseAdmin.from('pet').select('pet_id', { count: 'exact', head: true }),
+      supabaseAdmin.from('pet').select('pet_id', { count: 'exact', head: true }).gte('created_at', todayIso),
       supabaseAdmin.from('booking').select('booking_id', { count: 'exact', head: true }).gte('booking_date', today).lte('booking_date', tomorrowDate.toISOString().split('T')[0]),
       supabaseAdmin.from('review').select('review_id, review_date, rating'),
       supabaseAdmin.from('review_replies').select('review_id'),
@@ -1338,7 +1351,7 @@ app.get('/api/admin/notifications/summary', isAdmin, async (req, res) => {
       tomorrowBookings: tomorrowBookings.count || 0,
       newCustomers: newCustomers.count || 0,
       pendingDeletionCustomers: pendingDeletion.count || 0,
-      newPets: 0,
+      newPets: newPets.count || 0,
       upcomingBookings: upcoming.count || 0,
       newReviews: recentReviews,
       lowRatingReviews: (reviews.data || []).filter(review => Number(review.rating) <= 2).length,
@@ -3347,13 +3360,14 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
 
         if (species && species !== 'all') query = query.eq('species', species);
         if (search) query = query.or(`pet_name.ilike.%${search}%,breed.ilike.%${search}%`);
+        if (new_today === 'true') {
+          const startOfToday = new Date();
+          startOfToday.setHours(0, 0, 0, 0);
+          query = query.gte('created_at', startOfToday.toISOString());
+        }
 
         const { data, error } = await query;
         if (error) throw error;
-
-        if (new_today === 'true') {
-          return res.json({ success: true, data: [] });
-        }
 
         const customerIds = [...new Set(data.map(pet => pet.customer_id).filter(Boolean))];
         let customersById = {};

@@ -1,0 +1,54 @@
+#logoutModal .modal-box {
+  width: min(92vw, 420px) !important;
+  max-width: 420px !important;
+  padding: 36px 40px 32px !important;
+  border-radius: 18px !important;
+  text-align: center !important;
+}
+
+#logoutModal .modal-icon-circle.warning {
+  width: 72px !important;
+  height: 72px !important;
+  margin: 0 auto 16px !important;
+  background: #FEF7E0 !important;
+  border: 2px solid #FDE68A !important;
+  border-radius: 50% !important;
+}
+
+#logoutModal .modal-icon-circle.warning i {
+  color: #D97706 !important;
+  font-size: 30px !important;
+}
+
+#logoutModal .modal-title {
+  margin-bottom: 8px !important;
+}
+
+#logoutModal .modal-subtitle {
+  margin-bottom: 24px !important;
+}
+
+#logoutModal .modal-btn-group {
+  display: flex !important;
+  gap: 12px !important;
+  justify-content: center !important;
+}
+
+#logoutModal .modal-btn-group .btn {
+  flex: 1 1 120px !important;
+  min-width: 120px !important;
+  padding: 12px 24px !important;
+  border-radius: 10px !important;
+}
+
+@media (max-width: 480px) {
+  #logoutModal .modal-box {
+    padding: 30px 20px 26px !important;
+  }
+
+  #logoutModal .modal-btn-group .btn {
+    min-width: 0 !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+}

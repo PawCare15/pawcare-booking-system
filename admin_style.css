@@ -271,6 +271,56 @@ body {
     justify-content: center;
 }
 
+/* Shared admin notification treatment */
+.notification-badge {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: #FDF3E7;
+    color: #5A361A;
+}
+
+.notification-badge .count {
+    min-width: 18px;
+    width: auto;
+    padding: 0 5px;
+    border: 2px solid #FFFFFF;
+}
+
+.modal-overlay#notificationsModal .modal-box {
+    width: min(92vw, 480px);
+    max-width: 480px !important;
+    border-radius: 18px;
+    padding: 28px 30px !important;
+}
+
+.modal-overlay#notificationsModal #notificationsModalContent {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.review-page-header h1 i,
+.profile-container .page-heading h1 > i {
+    font-size: 36px;
+    width: 52px;
+    height: 52px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 14px;
+    background: #FDF3E7;
+    color: #D97706;
+    flex-shrink: 0;
+}
+
+.review-page-header h1,
+.profile-container .page-heading h1 {
+    gap: 14px;
+}
+
 .user-profile {
     display: flex;
     align-items: center;
