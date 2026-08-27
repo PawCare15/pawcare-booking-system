@@ -1044,17 +1044,14 @@ function listenForAvatarUpdates() {
 
 async function loadNotificationCount() {
     try {
-        const [newRes, lowRatingRes, noReplyRes] = await Promise.all([
-            authFetch('/api/reviews?unread=true'),
-            authFetch('/api/reviews?rating_low=true'),
-            authFetch('/api/reviews?no_reply=true')
-        ]);
+        const response = await authFetch('/api/admin/notifications/summary');
+        const result = await response.json();
+        const summary = result.success ? result.data : {};
+        const newReviews = summary.newReviews || 0;
+        const lowRating = summary.lowRatingReviews || 0;
+        const noReply = summary.reviewsWithoutReply || 0;
 
-        const newReviews = ((await newRes.json()).data || []).length;
-        const lowRating = ((await lowRatingRes.json()).data || []).length;
-        const noReply = ((await noReplyRes.json()).data || []).length;
-
-        const total = newReviews + lowRating;
+        const total = newReviews + lowRating + noReply;
 
         const notifCount = document.getElementById('notifCount');
         if (notifCount) {

@@ -1461,25 +1461,6 @@
     </div>
 
     <!-- ================================================================
-      LOGOUT CONFIRM MODAL
-      ================================================================ -->
-      <div class="modal-overlay" id="logoutModal">
-          <div class="modal-box" style="width: min(92vw, 420px); max-width: 420px; text-align: center; padding: 30px 28px 28px; border-radius: 18px;">
-              <div class="modal-icon-circle warning" style="margin: 0 auto 16px; background: #FEF7E0; border-color: #FDE68A; width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #FDE68A;">
-                  <i class="fa-solid fa-sign-out-alt" style="color: #D97706; font-size: 30px;"></i>
-              </div>
-              <h2 class="modal-title" style="margin-bottom: 8px;">Confirm Logout</h2>
-              <p class="modal-subtitle" style="margin-bottom: 24px;">
-                  Are you sure you want to logout?
-              </p>
-              <div class="modal-btn-group" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
-                  <button class="btn btn-secondary" onclick="closeLogoutModal()" style="flex:1 1 120px; padding: 12px 18px; font-size: 14px; border-radius: 10px;">Cancel</button>
-                  <button class="btn btn-danger" onclick="confirmLogout()" style="flex:1 1 120px; padding: 12px 18px; font-size: 14px; border-radius: 10px;">Logout</button>
-              </div>
-          </div>
-      </div>
-
-    <!-- ================================================================
     CONFIRM ACTION MODAL (新加)
     ================================================================ -->
     <div class="modal-overlay" id="confirmActionModal">
@@ -1530,6 +1511,7 @@
   <!-- ================================================================
   JAVASCRIPT - All Functions
   ================================================================ -->
+  <script src="user_notifications.js"></script>
   <script>
     // ================================================================
     // AUTH CHECK - 防止后退访问已登出页面
@@ -2339,17 +2321,21 @@
         const serviceName = upcoming.services && upcoming.services.length > 0 
             ? upcoming.services.map(s => s.service_name).join(', ') 
             : 'Service';
-        const date = new Date(upcoming.booking_date).toLocaleDateString('en-GB', {
+        const displayDate = upcoming.reschedule_status === 'pending' && upcoming.reschedule_requested_date ? upcoming.reschedule_requested_date : upcoming.booking_date;
+        const displayTime = upcoming.reschedule_status === 'pending' && upcoming.reschedule_requested_time ? upcoming.reschedule_requested_time : upcoming.booking_time;
+        const date = new Date(displayDate).toLocaleDateString('en-GB', {
             day: '2-digit', month: 'short', year: 'numeric'
         });
-        const time = upcoming.booking_time || 'N/A';
-        let statusClass = upcoming.status === 'pending' ? 'warning' : upcoming.status === 'completed' ? 'success' : 'danger';
-        let statusLabel = upcoming.status.charAt(0).toUpperCase() + upcoming.status.slice(1);
+        const time = displayTime || 'N/A';
+        const baseStatus = upcoming.status === 'upcoming' ? 'confirmed' : upcoming.status;
+        let statusClass = baseStatus === 'pending' ? 'warning' : baseStatus === 'completed' ? 'success' : 'confirmed';
+        let statusLabel = baseStatus.charAt(0).toUpperCase() + baseStatus.slice(1);
 
         if (upcoming.reschedule_status === 'pending') {
             statusLabel = 'Pending Approval';
             statusClass = 'warning';
         }
+        if (upcoming.reschedule_status === 'approved') statusLabel = 'Confirmed';
 
         const bookingDateTime = new Date(upcoming.booking_date + 'T' + upcoming.booking_time);
         const diffHours = (bookingDateTime - new Date()) / (1000 * 60 * 60);
@@ -2378,6 +2364,8 @@
                     </ul>
                     <div class="action-btns">
                         <button class="btn btn-primary" onclick="showAppointmentModal('${upcoming.booking_id}')">View Details</button>
+                        ${upcoming.reschedule_status === 'approved' ? '<span class="badge confirmed">Reschedule Approved</span>' : ''}
+                        ${upcoming.reschedule_status === 'rejected' ? '<span class="badge danger">Reschedule Rejected</span>' : ''}
                         ${canReschedule ? `<button class="btn btn-secondary" onclick="showRescheduleModal()">Reschedule</button>` : ''}
                         ${upcoming.reschedule_status === 'pending' ? `<button class="btn btn-danger" onclick="cancelRescheduleRequestFromDashboard('${upcoming.booking_id}')">Cancel Request</button>` : ''}
                         ${(upcoming.status === 'pending' && upcoming.reschedule_status !== 'pending') ? `<button class="btn btn-danger" onclick="cancelBookingFromDashboard('${upcoming.booking_id}')">Cancel</button>` : ''}

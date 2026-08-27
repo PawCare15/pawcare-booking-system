@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 const crypto = require('crypto');
 const express = require('express');
 const cors = require('cors');
@@ -7,7 +8,6 @@ const jwt = require('jsonwebtoken');
 const { createClient } = require('@supabase/supabase-js');
 const emailjs = require('@emailjs/nodejs');
 const multer = require('multer');
-const path = require('path');
 const nodemailer = require('nodemailer'); // ✅ TAMBAH BARU
 const UAParser = require('ua-parser-js');
 
@@ -37,13 +37,16 @@ function parseUserAgent(userAgent) {
 }
 
 // ========== Email Configuration (Nodemailer) ========== ✅ TAMBAH BARU
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER || 'pawcare@gmail.com',
-        pass: process.env.EMAIL_PASS || 'xxxx xxxx xxxx xxxx'
-    }
-});
+const emailConfigured = Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS);
+const transporter = emailConfigured ? nodemailer.createTransport({
+  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  port: Number(process.env.EMAIL_PORT || 465),
+  secure: String(process.env.EMAIL_SECURE || 'true') === 'true',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+}) : null;
 
 // ========== Supabase 初始化 ==========
 const supabase = createClient(
@@ -81,6 +84,10 @@ async function ensureBucketExists(bucketName) {
 // SEND DELETE CONFIRMATION EMAIL (With direct delete link)
 // ================================================================
 async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteToken) {
+  if (!transporter) {
+    console.error('Deletion email is not configured. Set EMAIL_USER and EMAIL_PASS in the server environment.');
+    return false;
+  }
     const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
     const deleteLink = `${baseUrl}/api/delete-account?token=${deleteToken}&email=${encodeURIComponent(customerEmail)}`;
     
@@ -166,6 +173,10 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
 // SEND DELETION CONFIRMATION EMAIL (After successful delete)
 // ================================================================
 async function sendDeletionConfirmedEmail(customerEmail, customerName) {
+  if (!transporter) {
+    console.error('Deletion email is not configured. Set EMAIL_USER and EMAIL_PASS in the server environment.');
+    return false;
+  }
     const mailOptions = {
         from: `"PawCare Booking System" <${process.env.EMAIL_USER || 'pawcare@gmail.com'}>`,
         to: customerEmail,
@@ -1304,6 +1315,11 @@ app.get('/api/admin/notifications/summary', isAdmin, async (req, res) => {
     const bookedServiceIds = new Set((bookedServices.data || []).map(item => item.service_id));
     const noBookingServices = (services.data || []).filter(service => !bookedServiceIds.has(service.service_id)).length;
     const lowPriceServices = (services.data || []).filter(service => Number(service.price || 0) < 50).length;
+    const serviceBookingCounts = (bookedServices.data || []).reduce((counts, item) => {
+      counts[item.service_id] = (counts[item.service_id] || 0) + 1;
+      return counts;
+    }, {});
+    const mostBookedServiceCount = Object.values(serviceBookingCounts).sort((a, b) => b - a)[0] || 0;
 
     const data = {
       pendingBookings: pending.count || 0,
@@ -1315,10 +1331,11 @@ app.get('/api/admin/notifications/summary', isAdmin, async (req, res) => {
       newPets: newPets.count || 0,
       upcomingBookings: upcoming.count || 0,
       newReviews: recentReviews,
+      lowRatingReviews: (reviews.data || []).filter(review => Number(review.rating) <= 2).length,
       reviewsWithoutReply: noReplyReviews,
       servicesWithoutBookings: noBookingServices,
       servicesNeedingPriceReview: lowPriceServices,
-      mostBookedServices: bookedServiceIds.size
+      mostBookedServices: mostBookedServiceCount
     };
     res.json({ success: true, data, total: Object.values(data).reduce((sum, value) => sum + value, 0) });
   } catch (err) {
@@ -1514,6 +1531,7 @@ app.get('/api/bookings', async (req, res) => {
         booking_id,
         booking_date,
         booking_time,
+        updated_at,
         check_in_datetime,
         check_out_datetime,
         status,
@@ -1545,6 +1563,7 @@ app.get('/api/bookings', async (req, res) => {
         booking_id: b.booking_id,
         booking_date: b.booking_date,
         booking_time: b.booking_time,
+        updated_at: b.updated_at || null,
         check_in_datetime: b.check_in_datetime,
         check_out_datetime: b.check_out_datetime,
         status: b.status,
@@ -1755,7 +1774,8 @@ app.post('/api/bookings/:booking_id/reschedule-request', async (req, res) => {
       .update({
         reschedule_requested_date: new_date,
         reschedule_requested_time: new_time,
-        reschedule_status: 'pending'
+        reschedule_status: 'pending',
+        updated_at: new Date().toISOString()
       })
       .eq('booking_id', booking_id)
       .select('reschedule_status');
@@ -1811,7 +1831,8 @@ app.put('/api/bookings/:booking_id/reschedule-approve', async (req, res) => {
           booking_date: newDate,
           booking_time: newTime,
           reschedule_status: 'approved',
-          status: 'upcoming'  // 或 'rescheduled'
+          status: 'confirmed',
+          updated_at: new Date().toISOString()
         })
         .eq('booking_id', booking_id);
 
@@ -1820,7 +1841,7 @@ app.put('/api/bookings/:booking_id/reschedule-approve', async (req, res) => {
     } else { // reject
       const { error: updateError } = await supabaseAdmin
         .from('booking')
-        .update({ reschedule_status: 'rejected' })
+        .update({ reschedule_status: 'rejected', updated_at: new Date().toISOString() })
         .eq('booking_id', booking_id);
 
       if (updateError) throw updateError;
@@ -1860,7 +1881,8 @@ app.put('/api/bookings/:booking_id/reschedule-cancel', async (req, res) => {
       .update({
         reschedule_status: 'none',
         reschedule_requested_date: null,
-        reschedule_requested_time: null
+        reschedule_requested_time: null,
+        updated_at: new Date().toISOString()
       })
       .eq('booking_id', booking_id);
 
@@ -3282,10 +3304,11 @@ app.put('/api/admin/bookings/:id/reschedule', isAdmin, async (req, res) => {
                 booking_date: booking.reschedule_requested_date,
                 booking_time: booking.reschedule_requested_time,
                 reschedule_status: 'approved',
-                status: 'upcoming'
+                status: 'confirmed',
+                updated_at: new Date().toISOString()
             };
         } else {
-            updateData = { reschedule_status: 'rejected' };
+            updateData = { reschedule_status: 'rejected', updated_at: new Date().toISOString() };
         }
 
         const { error: updateError } = await supabaseAdmin
@@ -3576,4 +3599,37 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+});
+
+app.get('/api/notifications', async (req, res) => {
+  try {
+    const customerId = getCustomerId(req);
+    const { data, error } = await supabaseAdmin
+      .from('customer_notifications')
+      .select('notification_id, title, message, type, is_read, created_at')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (error) throw error;
+    res.json({ success: true, data: data || [] });
+  } catch (err) {
+    console.error('Error fetching customer notifications:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.put('/api/notifications/read', async (req, res) => {
+  try {
+    const customerId = getCustomerId(req);
+    const { error } = await supabaseAdmin
+      .from('customer_notifications')
+      .update({ is_read: true })
+      .eq('customer_id', customerId)
+      .eq('is_read', false);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error marking customer notifications as read:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
 });

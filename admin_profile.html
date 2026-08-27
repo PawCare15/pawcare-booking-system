@@ -1856,16 +1856,12 @@ document.querySelectorAll('[data-close]').forEach(btn => {
             await loadNotificationCount();
             const activity = window.notificationData || {};
             const formatDate = iso => iso ? new Date(iso).toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never';
+            const securityColor = activity.two_factor_enabled ? '#2E7D32' : '#DC2626';
             const html = `
-                <div style="text-align:center; padding:30px 20px; color:#7A7A7A;">
-                    <i class="fa-regular fa-id-card" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i>
-                    <h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">Profile Management</h3>
-                    <p style="font-size:13px;">Latest activity from your admin account.</p>
-                    <div style="margin-top:10px; color:${activity.two_factor_enabled ? '#137333' : '#C5221F'}; font-size:12px; font-weight:600;">${activity.two_factor_enabled ? '🛡️ 2FA enabled: your account is secure.' : '⚠️ 2FA disabled: security attention required.'}</div>
-                    <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
-                        <span style="background:#E8F5E9; padding:4px 12px; border-radius:20px; font-size:11px;">🔐 Last login: ${formatDate(activity.lastLogin)}</span>
-                        <span style="background:#F5F0EB; padding:4px 12px; border-radius:20px; font-size:11px;">🔑 Logins: ${activity.totalLogins || 0}</span>
-                    </div>
+                <div style="display:flex; gap:12px; padding:16px; margin-bottom:10px; border-radius:12px; background:#FFFFFF; border-left:4px solid ${securityColor}; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+                    <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; background:${activity.two_factor_enabled ? '#E8F5E9' : '#FCE8E6'}; color:${securityColor};"><i class="fa-solid fa-shield-halved"></i></div>
+                    <div style="flex:1; min-width:0;"><div style="font-weight:600; font-size:14px; color:#333;">${activity.two_factor_enabled ? 'Security Protected' : 'Security Attention Required'}</div><div style="font-size:12px; color:#7A7A7A;">${activity.two_factor_enabled ? '2FA is enabled and your account is secure.' : '2FA is disabled. Enable it to protect your account.'}</div><div style="font-size:11px; color:#7A7A7A; margin-top:8px;">Last login: ${formatDate(activity.lastLogin)} · Logins: ${activity.totalLogins || 0}</div></div>
+                    <span style="background:${activity.two_factor_enabled ? '#E8F5E9' : '#FCE8E6'}; color:${securityColor}; padding:3px 12px; height:max-content; border-radius:20px; font-size:11px; font-weight:700;">${activity.two_factor_enabled ? 'Secure' : 'Action'}</span>
                 </div>
             `;
 
@@ -1902,6 +1898,7 @@ document.querySelectorAll('[data-close]').forEach(btn => {
 
         // 每个页面调用自己的 notification 加载函数
         // 由各页面单独实现
+        loadNotificationCount();
 
         // ===== 修复通知弹窗关闭（OK / X / 背景点击） =====
 const closeNotifBtn = document.getElementById('closeNotificationsModal');
@@ -2063,6 +2060,17 @@ if (typeof bindUserMenuEvents === 'function') {
         }
 
         // ---- Change Password Form Submit ----
+        document.querySelectorAll('.toggle-password').forEach(toggle => {
+            toggle.addEventListener('click', function() {
+                const input = $(this.dataset.target);
+                if (!input) return;
+                const isVisible = input.type === 'text';
+                input.type = isVisible ? 'password' : 'text';
+                this.setAttribute('aria-label', isVisible ? 'Show password' : 'Hide password');
+                this.innerHTML = `<i class="fa-regular fa-eye${isVisible ? '' : '-slash'}"></i>`;
+            });
+        });
+
         const changePwdForm = $('changePwdForm');
         if (changePwdForm) {
             changePwdForm.addEventListener('submit', async function(e) {

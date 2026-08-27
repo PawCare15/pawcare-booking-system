@@ -2001,17 +2001,17 @@ if (typeof bindUserMenuEvents === 'function') {
                         b.reschedule_status === 'pending' && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date,
                         b.reschedule_status === 'pending' && b.reschedule_requested_time ? b.reschedule_requested_time : b.booking_time
                     ),
-                    status: b.reschedule_status === 'pending' ? 'Pending Approval' : (b.status || 'pending'),
+                    status: b.status === 'upcoming' ? 'confirmed' : (b.status || 'pending'),
                     payment: b.payment_status || 'unpaid',
                     paymentClass: b.payment_status || 'unpaid',
-                    statusClass: b.status || 'pending',
+                    statusClass: b.status === 'upcoming' ? 'confirmed' : (b.status || 'pending'),
                     // Store all original data for editing
                     raw: b,
                     customer_id: b.customer_id,
                     pet_id: b.pet_id,
                     admin_id: b.admin_id,
-                    booking_date: b.booking_date,
-                    booking_time: b.booking_time,
+                    booking_date: b.reschedule_status === 'pending' && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date,
+                    booking_time: b.reschedule_status === 'pending' && b.reschedule_requested_time ? b.reschedule_requested_time : b.booking_time,
                     check_in_datetime: b.check_in_datetime,
                     check_out_datetime: b.check_out_datetime,
                     special_notes: b.special_notes || 'N/A',
@@ -2117,6 +2117,7 @@ if (typeof bindUserMenuEvents === 'function') {
         const statusMap = {
             'pending': { label: 'Pending', class: 'pending' },
             'confirmed': { label: 'Confirmed', class: 'confirmed' },
+            'upcoming': { label: 'Confirmed', class: 'confirmed' },
             'completed': { label: 'Completed', class: 'completed' },
             'cancelled': { label: 'Cancelled', class: 'cancelled' }
         };
@@ -2204,7 +2205,7 @@ if (typeof bindUserMenuEvents === 'function') {
                             <i class="fa-regular fa-eye view-btn" title="View"></i>
                             <i class="fa-regular fa-pen-to-square edit-btn" title="Edit" data-id="${b.id}"></i>
                             <i class="fa-regular fa-trash-can delete-btn" title="Delete"></i>
-                            ${b.reschedule_status === 'pending' ? `<button class="btn-action approve-reschedule-btn" data-id="${b.id}" title="Approve requested date"><i class="fa-solid fa-check"></i> Approve</button><button class="btn-action reject-reschedule-btn" data-id="${b.id}" title="Reject requested date"><i class="fa-solid fa-xmark"></i> Reject</button>` : ''}
+                            ${b.reschedule_status === 'pending' ? `<button class="btn-action approve-reschedule-btn" data-id="${b.id}" title="Approve reschedule"><i class="fa-solid fa-check"></i></button><button class="btn-action reject-reschedule-btn" data-id="${b.id}" title="Reject reschedule"><i class="fa-solid fa-xmark"></i></button>` : ''}
                         </div>
                     </td>
                 </tr>
@@ -2222,6 +2223,7 @@ if (typeof bindUserMenuEvents === 'function') {
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(result.message || 'Unable to update reschedule request.');
             await fetchBookings();
+            await loadNotificationCount();
         }
 
         // ===== UPDATE PAGINATION =====
@@ -2701,6 +2703,7 @@ if (typeof bindUserMenuEvents === 'function') {
             document.getElementById('endDate').value = lastDay.toISOString().split('T')[0];
 
             fetchBookings();
+            loadNotificationCount();
         }
 
         console.log('PawCare Admin Booking Management (Database Connected) loaded.');

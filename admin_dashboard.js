@@ -934,10 +934,11 @@ if (typeof bindUserMenuEvents === 'function') {
     // UPDATE NOTIFICATION COUNT - FROM SUPABASE
     async function updateNotificationCount() {
         try {
-            const response = await authFetch('/api/admin/notifications/unread-count');
+            const response = await authFetch('/api/admin/notifications/summary');
             if (!response || !response.ok) return;
             const result = await response.json();
-            const count = result.count || 0;
+            const data = result.data || {};
+            const count = (data.pendingBookings || 0) + (data.rescheduleRequests || 0) + (data.newCustomers || 0) + (data.upcomingBookings || 0);
             document.getElementById('notifCount').textContent = count;
             document.getElementById('notifCount').style.display = count > 0 ? 'flex' : 'none';
         } catch (err) {

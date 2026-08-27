@@ -3482,3 +3482,31 @@ svg {
         flex-wrap: wrap;
     }
 }
+
+.btn-action.approve-reschedule-btn {
+    background: #E8F5E9;
+    color: #2E7D32;
+}
+
+.btn-action.approve-reschedule-btn:hover {
+    background: #2E7D32;
+    color: #FFFFFF;
+    transform: translateY(-2px) scale(1.08);
+    box-shadow: 0 6px 20px rgba(46, 125, 50, 0.35);
+}
+
+.btn-action.reject-reschedule-btn {
+    background: #FFF3E0;
+    color: #E65100;
+}
+
+.btn-action.reject-reschedule-btn:hover {
+    background: #E65100;
+    color: #FFFFFF;
+    transform: translateY(-2px) scale(1.08);
+    box-shadow: 0 6px 20px rgba(230, 81, 0, 0.35);
+}
+
+.action-icons .btn-action {
+    flex: 0 0 36px;
+}

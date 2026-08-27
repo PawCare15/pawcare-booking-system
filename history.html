@@ -611,6 +611,11 @@
       color: #B06000;
     }
 
+    .status-badge.confirmed {
+      background: #E3F2FD;
+      color: #0D47A1;
+    }
+
     .status-badge.pending i {
       margin-right: 4px;
     }
@@ -1553,6 +1558,7 @@
 
   </div>
 
+  <script src="user_notifications.js"></script>
   <script>
 
     // ================================================================
@@ -1925,15 +1931,17 @@ async function fetchNotificationsData() {
                             petInitials: b.pet ? b.pet.name.substring(0, 2).toUpperCase() : 'UN',
                             service: serviceNames || 'Unknown',
                             serviceDesc: serviceNames || 'Unknown',
-                            date: new Date(b.booking_date).toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' }),
-                            time: b.booking_time || 'N/A',
+                            date: new Date(b.reschedule_status === 'pending' && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date).toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' }),
+                            time: b.reschedule_status === 'pending' && b.reschedule_requested_time ? b.reschedule_requested_time : (b.booking_time || 'N/A'),
                             price: b.total_price || 0,
                             isFixed: false,
-                            status: b.status || 'pending',
-                            statusClass: b.status || 'pending',
+                            status: b.status === 'upcoming' ? 'confirmed' : (b.status || 'pending'),
+                            statusClass: b.status === 'upcoming' ? 'confirmed' : (b.status || 'pending'),
                             booking_id: b.booking_id,
                             services: services,
-                            reschedule_status: b.reschedule_status || null
+                            reschedule_status: b.reschedule_status || null,
+                            reschedule_requested_date: b.reschedule_requested_date || null,
+                            reschedule_requested_time: b.reschedule_requested_time || null
                         };
                     });
                     renderBookings();
@@ -2263,8 +2271,8 @@ async function fetchNotificationsData() {
                                 <span class="status-badge ${booking.reschedule_status === 'pending' && booking.status !== 'cancelled' ? 'warning' : booking.statusClass}">
                                     <i class="${statusIcon}"></i> ${displayStatus}
                                 </span>
-                                ${booking.reschedule_status === 'approved' ? '<span style="display:inline-block; background:#E6F4EA; color:#137333; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">✅ Approved</span>' : ''}
-                                ${booking.reschedule_status === 'rejected' ? '<span style="display:inline-block; background:#FCE8E6; color:#C5221F; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">❌ Rejected</span>' : ''}
+                                ${booking.reschedule_status === 'approved' ? '<span style="display:inline-block; background:#E6F4EA; color:#137333; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">✅ Reschedule Approved</span>' : ''}
+                                ${booking.reschedule_status === 'rejected' ? '<span style="display:inline-block; background:#FCE8E6; color:#C5221F; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">❌ Reschedule Rejected</span>' : ''}
                             </td>
                             <td>
                                 <div class="action-cell">
