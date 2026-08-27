@@ -40,10 +40,12 @@ function parseUserAgent(userAgent) {
 const emailUser = String(process.env.EMAIL_USER || '').split(/\s+#/)[0].trim();
 const emailPass = String(process.env.EMAIL_PASS || '').split(/\s+#/)[0].replace(/\s+/g, '').trim();
 const emailConfigured = Boolean(emailUser && emailPass);
+const emailPort = Number(process.env.EMAIL_PORT || 587);
 const transporter = emailConfigured ? nodemailer.createTransport({
   host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-  port: Number(process.env.EMAIL_PORT || 465),
-  secure: String(process.env.EMAIL_SECURE || 'true') === 'true',
+  port: emailPort,
+  secure: emailPort === 465,
+  requireTLS: emailPort === 587,
   auth: {
     user: emailUser,
     pass: emailPass
@@ -1305,7 +1307,7 @@ app.get('/api/admin/notifications/summary', isAdmin, async (req, res) => {
       supabaseAdmin.from('booking').select('booking_id', { count: 'exact', head: true }).eq('booking_date', tomorrow),
       supabaseAdmin.from('customer').select('customer_id', { count: 'exact', head: true }).gte('created_at', todayIso),
       supabaseAdmin.from('customer').select('customer_id', { count: 'exact', head: true }).eq('status', 'pending_deletion'),
-      supabaseAdmin.from('pet').select('pet_id', { count: 'exact', head: true }).gte('created_at', todayIso),
+      supabaseAdmin.from('pet').select('pet_id', { count: 'exact', head: true }),
       supabaseAdmin.from('booking').select('booking_id', { count: 'exact', head: true }).gte('booking_date', today).lte('booking_date', tomorrowDate.toISOString().split('T')[0]),
       supabaseAdmin.from('review').select('review_id, review_date, rating'),
       supabaseAdmin.from('review_replies').select('review_id'),
@@ -1336,7 +1338,7 @@ app.get('/api/admin/notifications/summary', isAdmin, async (req, res) => {
       tomorrowBookings: tomorrowBookings.count || 0,
       newCustomers: newCustomers.count || 0,
       pendingDeletionCustomers: pendingDeletion.count || 0,
-      newPets: newPets.count || 0,
+      newPets: 0,
       upcomingBookings: upcoming.count || 0,
       newReviews: recentReviews,
       lowRatingReviews: (reviews.data || []).filter(review => Number(review.rating) <= 2).length,
@@ -3345,14 +3347,13 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
 
         if (species && species !== 'all') query = query.eq('species', species);
         if (search) query = query.or(`pet_name.ilike.%${search}%,breed.ilike.%${search}%`);
-        if (new_today === 'true') {
-          const startOfToday = new Date();
-          startOfToday.setHours(0, 0, 0, 0);
-          query = query.gte('created_at', startOfToday.toISOString());
-        }
 
         const { data, error } = await query;
         if (error) throw error;
+
+        if (new_today === 'true') {
+          return res.json({ success: true, data: [] });
+        }
 
         const customerIds = [...new Set(data.map(pet => pet.customer_id).filter(Boolean))];
         let customersById = {};
