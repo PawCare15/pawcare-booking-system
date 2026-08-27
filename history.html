@@ -2206,7 +2206,7 @@ async function fetchNotificationsData() {
                     const bookingDateTime = new Date(booking.date.split('/').reverse().join('-') + 'T' + booking.time);
                     const diffHours = (bookingDateTime - new Date()) / (1000 * 60 * 60);
                     // 可改期条件：状态 pending/upcoming，且距离预约时间 >= 24小时，且没有正在进行的改期请求（pending 或 approved）
-                    const canReschedule = (booking.status === 'pending' || booking.status === 'upcoming')
+                    const canReschedule = (booking.status === 'pending' || booking.status === 'upcoming' || booking.status === 'confirmed')
                                           && diffHours >= 24
                                           && (booking.reschedule_status !== 'pending' && booking.reschedule_status !== 'approved');
 

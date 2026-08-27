@@ -1752,8 +1752,8 @@
                     authFetch('/api/admin/bookings?status=cancelled&date=today')
                 ]);
 
-                const pending = (await pendingRes?.json()?.data || []).length;
-                const reschedule = (await rescheduleRes?.json()?.data || []).length;
+                const pending = ((await pendingRes.json()).data || []).length;
+                const reschedule = ((await rescheduleRes.json()).data || []).length;
 
                 const total = pending + reschedule;
 
@@ -1770,9 +1770,9 @@
                 window.notificationData = {
                     pending,
                     reschedule,
-                    today: (await todayRes?.json()?.data || []).length,
-                    tomorrow: (await tomorrowRes?.json()?.data || []).length,
-                    cancelled: (await cancelledRes?.json()?.data || []).length,
+                    today: ((await todayRes.json()).data || []).length,
+                    tomorrow: ((await tomorrowRes.json()).data || []).length,
+                    cancelled: ((await cancelledRes.json()).data || []).length,
                     total
                 };
                 return total;
@@ -1997,8 +1997,11 @@ if (typeof bindUserMenuEvents === 'function') {
                     breed: b.pet ? b.pet.breed || 'N/A' : 'N/A',
                     petEmoji: getPetEmoji(b.pet ? b.pet.species : ''),
                     service: b.services?.[0]?.service_name || 'N/A',
-                    date: formatBookingDate(b.booking_date, b.booking_time),
-                    status: b.status || 'pending',
+                    date: formatBookingDate(
+                        b.reschedule_status === 'pending' && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date,
+                        b.reschedule_status === 'pending' && b.reschedule_requested_time ? b.reschedule_requested_time : b.booking_time
+                    ),
+                    status: b.reschedule_status === 'pending' ? 'Pending Approval' : (b.status || 'pending'),
                     payment: b.payment_status || 'unpaid',
                     paymentClass: b.payment_status || 'unpaid',
                     statusClass: b.status || 'pending',
@@ -2201,6 +2204,7 @@ if (typeof bindUserMenuEvents === 'function') {
                             <i class="fa-regular fa-eye view-btn" title="View"></i>
                             <i class="fa-regular fa-pen-to-square edit-btn" title="Edit" data-id="${b.id}"></i>
                             <i class="fa-regular fa-trash-can delete-btn" title="Delete"></i>
+                            ${b.reschedule_status === 'pending' ? `<button class="btn-action approve-reschedule-btn" data-id="${b.id}" title="Approve requested date"><i class="fa-solid fa-check"></i> Approve</button><button class="btn-action reject-reschedule-btn" data-id="${b.id}" title="Reject requested date"><i class="fa-solid fa-xmark"></i> Reject</button>` : ''}
                         </div>
                     </td>
                 </tr>
@@ -2208,6 +2212,16 @@ if (typeof bindUserMenuEvents === 'function') {
 
             document.getElementById('entriesInfo').textContent =
                 `Showing ${start + 1} to ${end} of ${bookings.length} entries`;
+        }
+
+        async function processRescheduleRequest(bookingId, action) {
+            const response = await authFetch(`/api/admin/bookings/${encodeURIComponent(bookingId)}/reschedule`, {
+                method: 'PUT',
+                body: JSON.stringify({ action })
+            });
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.message || 'Unable to update reschedule request.');
+            await fetchBookings();
         }
 
         // ===== UPDATE PAGINATION =====
@@ -2655,6 +2669,12 @@ if (typeof bindUserMenuEvents === 'function') {
 
         // ===== ACTION ICON CLICK =====
         document.addEventListener('click', function(e) {
+            const approvalButton = e.target.closest('.approve-reschedule-btn, .reject-reschedule-btn');
+            if (approvalButton) {
+                processRescheduleRequest(approvalButton.dataset.id, approvalButton.classList.contains('approve-reschedule-btn') ? 'approve' : 'reject')
+                    .catch(error => alert(error.message));
+                return;
+            }
             const icon = e.target.closest('.action-icons i');
             if (!icon) return;
             const row = icon.closest('tr');

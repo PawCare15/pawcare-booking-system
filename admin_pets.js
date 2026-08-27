@@ -459,16 +459,7 @@ async function getNewPetsToday() {
         today.setHours(0, 0, 0, 0);
         const todayStr = today.toISOString();
         
-        const response = await fetch(
-            `${SUPABASE_URL}/rest/v1/pet?select=pet_id,pet_name,species,breed,customer_id,created_at&created_at=gte.${todayStr}&order=created_at.desc`,
-            {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'apikey': SUPABASE_ANON_KEY
-                }
-            }
-        );
+        const response = await authFetch('/api/admin/pets?new_today=true');
 
         if (!response.ok) {
             throw new Error(`Failed to fetch new pets: ${response.status}`);
@@ -493,16 +484,7 @@ async function getPetsWithUpcomingBookings() {
         threeDaysLater.setDate(threeDaysLater.getDate() + 3);
         const threeDaysStr = threeDaysLater.toISOString();
         
-        const response = await fetch(
-            `${SUPABASE_URL}/rest/v1/booking?select=pet_id,booking_date,booking_time,status&status=in.(pending,upcoming)&booking_date=gte.${todayStr}&booking_date=lte.${threeDaysStr}&order=booking_date.asc`,
-            {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'apikey': SUPABASE_ANON_KEY
-                }
-            }
-        );
+        const response = await authFetch('/api/admin/bookings?upcoming=true');
 
         if (!response.ok) {
             throw new Error(`Failed to fetch upcoming bookings: ${response.status}`);

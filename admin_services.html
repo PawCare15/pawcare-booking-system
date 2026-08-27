@@ -2655,7 +2655,7 @@ async function loadNotificationCount() {
         const result = await response.json();
         const data = result.success ? result.data : {};
         window.notificationData = data;
-        const total = (data.servicesWithoutBookings || 0) + (data.servicesNeedingPriceReview || 0);
+        const total = (data.servicesWithoutBookings || 0) + (data.servicesNeedingPriceReview || 0) + (data.mostBookedServices || 0);
         const notifCount = document.getElementById('notifCount');
         if (notifCount) {
             notifCount.textContent = total || '';
@@ -2673,9 +2673,10 @@ async function showNotificationDetails() {
     const data = window.notificationData || {};
     const noBookingsCount = data.servicesWithoutBookings || 0;
     const priceChangesCount = data.servicesNeedingPriceReview || 0;
+    const mostBookedCount = data.mostBookedServices || 0;
 
     const notifCount = document.getElementById('notifCount');
-    if (notifCount) notifCount.style.display = (noBookingsCount + priceChangesCount) > 0 ? 'flex' : 'none';
+    if (notifCount) notifCount.style.display = (noBookingsCount + priceChangesCount + mostBookedCount) > 0 ? 'flex' : 'none';
 
     function notifCard(icon, iconBg, iconColor, title, desc, count, badgeBg, badgeColor, link) {
         return `<div style="display:flex; gap:12px; padding:16px; margin-bottom:10px; border-radius:12px; background:#FFFFFF; border-left:4px solid ${badgeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
@@ -2690,6 +2691,7 @@ async function showNotificationDetails() {
     let html = '';
     if (noBookingsCount > 0) html += notifCard("📉", "#E3F2FD", "#0D47A1", "Services with No Bookings", "Service yang tak pernah booking > 1 bulan", noBookingsCount, "#E3F2FD", "#0D47A1", "admin_services.html");
     if (priceChangesCount > 0) html += notifCard("💰", "#E3F2FD", "#0D47A1", "Price Changes Needed", "Service yang pricing outdated", priceChangesCount, "#E3F2FD", "#0D47A1", "admin_services.html");
+    if (mostBookedCount > 0) html += notifCard("🏆", "#E8F5E9", "#2E7D32", "Most Booked Services", "Services currently used in bookings", mostBookedCount, "#E8F5E9", "#2E7D32", "admin_reports.html");
 
     if (!html) { html = '<div style="text-align:center; padding:40px 20px;">No service notifications.</div>'; }
     document.getElementById('notificationsModalContent').innerHTML = html;

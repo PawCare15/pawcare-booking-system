@@ -414,10 +414,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 authFetch('/api/admin/bookings?upcoming=true')
             ]);
 
-            const pending = (await pendingRes?.json()?.data || []).length;
-            const reschedule = (await rescheduleRes?.json()?.data || []).length;
-            const newCustomers = (await newCustomersRes?.json()?.data || []).length;
-            const upcoming = (await upcomingRes?.json()?.data || []).length;
+            const pending = ((await pendingRes.json()).data || []).length;
+            const reschedule = ((await rescheduleRes.json()).data || []).length;
+            const newCustomers = ((await newCustomersRes.json()).data || []).length;
+            const upcoming = ((await upcomingRes.json()).data || []).length;
 
             const total = pending + reschedule + newCustomers + upcoming;
 

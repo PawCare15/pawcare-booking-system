@@ -453,16 +453,7 @@ async function getNewCustomersToday() {
         today.setHours(0, 0, 0, 0);
         const todayStr = today.toISOString();
         
-        const response = await fetch(
-            `${SUPABASE_URL}/rest/v1/customer?select=customer_id,full_name,email,phone_number,created_at&created_at=gte.${todayStr}&order=created_at.desc`,
-            {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'apikey': SUPABASE_ANON_KEY
-                }
-            }
-        );
+        const response = await authFetch('/api/admin/customers?new_today=true');
 
         if (!response.ok) {
             throw new Error(`Failed to fetch new customers: ${response.status}`);
@@ -480,16 +471,7 @@ async function getCustomersWithPendingBookings() {
     try {
         const token = localStorage.getItem('token');
         
-        const response = await fetch(
-            `${SUPABASE_URL}/rest/v1/booking?select=booking_id,customer_id,booking_date,booking_time,status&status=eq.pending&order=booking_date.asc`,
-            {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'apikey': SUPABASE_ANON_KEY
-                }
-            }
-        );
+        const response = await authFetch('/api/admin/bookings?status=pending');
 
         if (!response.ok) {
             throw new Error(`Failed to fetch pending bookings: ${response.status}`);

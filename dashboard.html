@@ -450,6 +450,12 @@
     }
 
     .badge.confirmed {
+      background: #E8F5E9;
+      color: #137333;
+      border: 1px solid #B7DFBE;
+    }
+
+    .badge.confirmed {
       background: #E6F4EA;
       color: #137333;
     }
@@ -2311,7 +2317,7 @@
 
         const upcoming = bookings
             .filter(b => {
-                if (b.status !== 'pending' && b.status !== 'upcoming') return false;
+                if (!['pending', 'upcoming', 'confirmed'].includes(b.status)) return false;
                 const bookingDate = new Date(b.booking_date);
                 bookingDate.setHours(0, 0, 0, 0);
                 return bookingDate >= today;
@@ -2347,7 +2353,7 @@
 
         const bookingDateTime = new Date(upcoming.booking_date + 'T' + upcoming.booking_time);
         const diffHours = (bookingDateTime - new Date()) / (1000 * 60 * 60);
-        const canReschedule = (upcoming.status === 'pending' || upcoming.status === 'upcoming') 
+        const canReschedule = (upcoming.status === 'pending' || upcoming.status === 'upcoming' || upcoming.status === 'confirmed') 
                               && diffHours >= 24
                               && (upcoming.reschedule_status !== 'pending' && upcoming.reschedule_status !== 'approved');
 
@@ -2587,7 +2593,7 @@
 
     function showRescheduleModal() {
         if (window.dashboardBookings && window.dashboardBookings.length > 0) {
-            const upcoming = window.dashboardBookings.find(b => b.status === 'pending' || b.status === 'upcoming');
+            const upcoming = window.dashboardBookings.find(b => ['pending', 'upcoming', 'confirmed'].includes(b.status));
             if (!upcoming) {
                 showDashboardMessage('❌ No upcoming bookings to reschedule.', false);
                 return;
@@ -2676,8 +2682,8 @@
     });
 
     async function cancelRescheduleRequestFromDashboard(bookingId) {
-        if (!confirm('Are you sure you want to cancel the reschedule request?')) return;
-        try {
+      showConfirmActionModal('Cancel Reschedule Request', 'Are you sure you want to cancel the reschedule request?', async function() {
+      try {
             const res = await authFetch(`/api/bookings/${bookingId}/reschedule-cancel`, {
                 method: 'PUT'
             });
@@ -2699,6 +2705,7 @@
             console.error(err);
             showDashboardMessage('❌ Unable to connect to server.', false);
         }
+        });
     }
 
     async function cancelBookingFromDashboard(bookingId) {

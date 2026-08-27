@@ -1251,10 +1251,17 @@ function listenForAvatarUpdates() {
 
 async function loadNotificationCount() {
     try {
-        const response = await authFetch('/api/admin/notifications/summary');
-        const result = await response.json();
-        const data = result.success ? result.data : {};
-        const count = (data.pendingBookings || 0) + (data.newReviews || 0);
+        const [statsResponse, trendResponse] = await Promise.all([
+            authFetch('/api/admin/stats'),
+            authFetch('/api/admin/monthly-trend')
+        ]);
+        const statsResult = await statsResponse.json();
+        const trendResult = await trendResponse.json();
+        const trend = trendResult.success ? (trendResult.data.trend || []) : [];
+        const current = trend[trend.length - 1]?.count || 0;
+        const previous = trend[trend.length - 2]?.count || 0;
+        const data = { monthlyReady: current > 0, bookingDecline: previous > 0 && current < previous * 0.8, current, previous, stats: statsResult.data || {} };
+        const count = Number(data.monthlyReady) + Number(data.bookingDecline);
 
         const notifCount = document.getElementById('notifCount');
         if (notifCount) {
@@ -1281,23 +1288,23 @@ async function showNotificationDetails() {
     let html = '';
     let hasNotifications = false;
 
-    if (data.pendingBookings > 0) {
+    if (data.monthlyReady) {
         hasNotifications = true;
         html += `
             <div style="background:#FEF7E0; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #D97706;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span><strong>📋 Pending Bookings</strong></span>
-                    <span style="background:#D97706; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.pendingBookings}</span>
+                    <span><strong>📊 Monthly Report Ready</strong></span>
+                    <span style="background:#D97706; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.current}</span>
                 </div>
-                <div style="font-size:12px; color:#7A7A7A;">Booking(s) need admin approval</div>
-                <a href="admin_bookings.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
+                <div style="font-size:12px; color:#7A7A7A;">${data.current} bookings recorded this month</div>
+                <a href="admin_reports.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View report →</a>
             </div>
         `;
     }
 
-    if (data.newReviews > 0) {
+    if (data.bookingDecline) {
         hasNotifications = true;
-        html += `<div style="background:#E8F5E9; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #2E7D32;"><strong>⭐ New Reviews</strong><div style="font-size:12px;color:#7A7A7A;">${data.newReviews} new review(s) from customers</div><a href="admin_reviews.html" style="font-size:11px;color:#5A361A;font-weight:600;text-decoration:none;">View →</a></div>`;
+        html += `<div style="background:#FCE8E6; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #DC2626;"><strong>📉 Booking Decline Alert</strong><div style="font-size:12px;color:#7A7A7A;">Bookings dropped more than 20% versus last month</div><a href="admin_reports.html" style="font-size:11px;color:#5A361A;font-weight:600;text-decoration:none;">Investigate →</a></div>`;
     }
 
     // 可以添加更多报告通知...

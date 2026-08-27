@@ -1198,15 +1198,15 @@
             <form id="changePwdForm">
                 <div class="form-group" style="margin-bottom:14px;">
                     <label style="font-size:13px; font-weight:600; color:#4A3327; display:block; margin-bottom:4px;"><i class="fa-solid fa-lock"></i> Current Password</label>
-                    <input type="password" class="form-control" id="currentPwd" required style="width:100%; border:1.5px solid #E8E2D8; border-radius:8px; padding:8px 14px; font-size:14px; outline:none; font-family:'Poppins',sans-serif;">
+                    <div style="position:relative;"><input type="password" class="form-control" id="currentPwd" required style="width:100%; border:1.5px solid #E8E2D8; border-radius:8px; padding:8px 42px 8px 14px; font-size:14px; outline:none; font-family:'Poppins',sans-serif;"><button type="button" class="toggle-password" data-target="currentPwd" aria-label="Show current password" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); border:0; background:transparent; color:#7A6B5A; cursor:pointer;"><i class="fa-regular fa-eye"></i></button></div>
                 </div>
                 <div class="form-group" style="margin-bottom:14px;">
                     <label style="font-size:13px; font-weight:600; color:#4A3327; display:block; margin-bottom:4px;"><i class="fa-solid fa-key"></i> New Password</label>
-                    <input type="password" class="form-control" id="newPwd" placeholder="Min 8 chars, 1 uppercase, 1 number, 1 special" required style="width:100%; border:1.5px solid #E8E2D8; border-radius:8px; padding:8px 14px; font-size:14px; outline:none; font-family:'Poppins',sans-serif;">
+                    <div style="position:relative;"><input type="password" class="form-control" id="newPwd" placeholder="Min 8 chars, 1 uppercase, 1 number, 1 special" required style="width:100%; border:1.5px solid #E8E2D8; border-radius:8px; padding:8px 42px 8px 14px; font-size:14px; outline:none; font-family:'Poppins',sans-serif;"><button type="button" class="toggle-password" data-target="newPwd" aria-label="Show new password" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); border:0; background:transparent; color:#7A6B5A; cursor:pointer;"><i class="fa-regular fa-eye"></i></button></div>
                 </div>
                 <div class="form-group" style="margin-bottom:14px;">
                     <label style="font-size:13px; font-weight:600; color:#4A3327; display:block; margin-bottom:4px;"><i class="fa-solid fa-check"></i> Confirm New Password</label>
-                    <input type="password" class="form-control" id="confirmPwd" required style="width:100%; border:1.5px solid #E8E2D8; border-radius:8px; padding:8px 14px; font-size:14px; outline:none; font-family:'Poppins',sans-serif;">
+                    <div style="position:relative;"><input type="password" class="form-control" id="confirmPwd" required style="width:100%; border:1.5px solid #E8E2D8; border-radius:8px; padding:8px 42px 8px 14px; font-size:14px; outline:none; font-family:'Poppins',sans-serif;"><button type="button" class="toggle-password" data-target="confirmPwd" aria-label="Show confirmed password" style="position:absolute; right:10px; top:50%; transform:translateY(-50%); border:0; background:transparent; color:#7A6B5A; cursor:pointer;"><i class="fa-regular fa-eye"></i></button></div>
                 </div>
                 <div id="pwdChangeMessage" class="message" style="display:block; font-size:13px; margin-top:4px;"></div>
                 <div class="modal-btn-group" style="justify-content:flex-end; margin-top:16px;">
@@ -1861,6 +1861,7 @@ document.querySelectorAll('[data-close]').forEach(btn => {
                     <i class="fa-regular fa-id-card" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i>
                     <h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">Profile Management</h3>
                     <p style="font-size:13px;">Latest activity from your admin account.</p>
+                    <div style="margin-top:10px; color:${activity.two_factor_enabled ? '#137333' : '#C5221F'}; font-size:12px; font-weight:600;">${activity.two_factor_enabled ? '🛡️ 2FA enabled: your account is secure.' : '⚠️ 2FA disabled: security attention required.'}</div>
                     <div style="margin-top:12px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
                         <span style="background:#E8F5E9; padding:4px 12px; border-radius:20px; font-size:11px;">🔐 Last login: ${formatDate(activity.lastLogin)}</span>
                         <span style="background:#F5F0EB; padding:4px 12px; border-radius:20px; font-size:11px;">🔑 Logins: ${activity.totalLogins || 0}</span>

@@ -1286,7 +1286,7 @@ app.get('/api/admin/notifications/summary', isAdmin, async (req, res) => {
       supabaseAdmin.from('booking').select('booking_id', { count: 'exact', head: true }).eq('booking_date', tomorrow),
       supabaseAdmin.from('customer').select('customer_id', { count: 'exact', head: true }).gte('created_at', todayIso),
       supabaseAdmin.from('customer').select('customer_id', { count: 'exact', head: true }).eq('status', 'pending_deletion'),
-      supabaseAdmin.from('pet').select('pet_id'),
+      supabaseAdmin.from('pet').select('pet_id', { count: 'exact', head: true }).gte('created_at', todayIso),
       supabaseAdmin.from('booking').select('booking_id', { count: 'exact', head: true }).gte('booking_date', today).lte('booking_date', tomorrowDate.toISOString().split('T')[0]),
       supabaseAdmin.from('review').select('review_id, review_date'),
       supabaseAdmin.from('review_replies').select('review_id'),
@@ -1300,7 +1300,7 @@ app.get('/api/admin/notifications/summary', isAdmin, async (req, res) => {
 
     const repliedReviewIds = new Set((replies.data || []).map(reply => reply.review_id));
     const noReplyReviews = (reviews.data || []).filter(review => !repliedReviewIds.has(review.review_id)).length;
-    const recentReviews = (reviews.data || []).filter(review => review.review_date >= todayIso).length;
+    const recentReviews = (reviews.data || []).filter(review => String(review.review_date || '').slice(0, 10) >= today).length;
     const bookedServiceIds = new Set((bookedServices.data || []).map(item => item.service_id));
     const noBookingServices = (services.data || []).filter(service => !bookedServiceIds.has(service.service_id)).length;
     const lowPriceServices = (services.data || []).filter(service => Number(service.price || 0) < 50).length;
@@ -1312,12 +1312,13 @@ app.get('/api/admin/notifications/summary', isAdmin, async (req, res) => {
       tomorrowBookings: tomorrowBookings.count || 0,
       newCustomers: newCustomers.count || 0,
       pendingDeletionCustomers: pendingDeletion.count || 0,
-      newPets: 0,
+      newPets: newPets.count || 0,
       upcomingBookings: upcoming.count || 0,
       newReviews: recentReviews,
       reviewsWithoutReply: noReplyReviews,
       servicesWithoutBookings: noBookingServices,
-      servicesNeedingPriceReview: lowPriceServices
+      servicesNeedingPriceReview: lowPriceServices,
+      mostBookedServices: bookedServiceIds.size
     };
     res.json({ success: true, data, total: Object.values(data).reduce((sum, value) => sum + value, 0) });
   } catch (err) {
@@ -1721,7 +1722,7 @@ app.post('/api/bookings/:booking_id/reschedule-request', async (req, res) => {
     // 验证预约是否存在且属于当前用户，且状态为 pending 或 upcoming
     const { data: booking, error: fetchError } = await supabaseAdmin
       .from('booking')
-      .select('status, booking_date, booking_time')
+      .select('status, booking_date, booking_time, reschedule_status')
       .eq('booking_id', booking_id)
       .eq('customer_id', customer_id)
       .single();
@@ -1730,8 +1731,17 @@ app.post('/api/bookings/:booking_id/reschedule-request', async (req, res) => {
       return res.status(404).json({ success: false, message: 'Booking not found.' });
     }
 
-    if (!['pending', 'upcoming'].includes(booking.status)) {
+    if (!['pending', 'upcoming', 'confirmed'].includes(booking.status)) {
       return res.status(400).json({ success: false, message: 'Only pending or upcoming bookings can be rescheduled.' });
+    }
+
+    if (booking.reschedule_status === 'pending' || booking.reschedule_status === 'approved') {
+      return res.status(400).json({ success: false, message: 'This booking already has a reschedule request.' });
+    }
+
+    const originalDateTime = new Date(`${booking.booking_date}T${booking.booking_time}`);
+    if (Number.isNaN(originalDateTime.getTime()) || originalDateTime.getTime() - Date.now() < 24 * 60 * 60 * 1000) {
+      return res.status(400).json({ success: false, message: 'Rescheduling is only allowed at least 24 hours before the appointment.' });
     }
 
     // 检查新日期是否为周四（闭店日）
@@ -2868,10 +2878,15 @@ app.get('/api/delete-account', async (req, res) => {
 // 🆕 TAMBAHAN: ========== ADMIN CUSTOMER MANAGEMENT ==========
 app.get('/api/admin/customers', isAdmin, async (req, res) => {
     try {
-        const { data, error } = await supabaseAdmin
+    const { new_today } = req.query;
+    const startOfToday = new Date();
+    startOfToday.setHours(0, 0, 0, 0);
+    let customerQuery = supabaseAdmin
             .from('customer')
             .select('*')
             .order('created_at', { ascending: false });
+    if (new_today === 'true') customerQuery = customerQuery.gte('created_at', startOfToday.toISOString());
+    const { data, error } = await customerQuery;
 
         if (error) throw error;
 
@@ -3049,7 +3064,7 @@ app.get('/api/admin/customers/:id/bookings', isAdmin, async (req, res) => {
 // 🆕 TAMBAHAN: ========== ADMIN BOOKING MANAGEMENT ==========
 app.get('/api/admin/bookings', isAdmin, async (req, res) => {
     try {
-        const { status, start_date, end_date, search } = req.query;
+        const { status, start_date, end_date, search, reschedule_status, date, upcoming } = req.query;
         
         let query = supabaseAdmin
             .from('booking')
@@ -3076,8 +3091,21 @@ app.get('/api/admin/bookings', isAdmin, async (req, res) => {
             .order('booking_date', { ascending: false });
 
         if (status && status !== 'all') query = query.eq('status', status);
+        if (reschedule_status) query = query.eq('reschedule_status', reschedule_status);
         if (start_date) query = query.gte('booking_date', start_date);
         if (end_date) query = query.lte('booking_date', end_date);
+        if (date === 'today') query = query.eq('booking_date', new Date().toISOString().split('T')[0]);
+        if (date === 'tomorrow') {
+          const tomorrow = new Date();
+          tomorrow.setDate(tomorrow.getDate() + 1);
+          query = query.eq('booking_date', tomorrow.toISOString().split('T')[0]);
+        }
+        if (upcoming === 'true') {
+          const today = new Date().toISOString().split('T')[0];
+          const limit = new Date();
+          limit.setDate(limit.getDate() + 3);
+          query = query.gte('booking_date', today).lte('booking_date', limit.toISOString().split('T')[0]);
+        }
         if (search) {
             const { data: customers } = await supabaseAdmin
                 .from('customer')
@@ -3276,7 +3304,7 @@ app.put('/api/admin/bookings/:id/reschedule', isAdmin, async (req, res) => {
 // 🆕 TAMBAHAN: ========== ADMIN PET MANAGEMENT ==========
 app.get('/api/admin/pets', isAdmin, async (req, res) => {
     try {
-        const { species, status, search } = req.query;
+    const { species, status, search, new_today } = req.query;
         
         let query = supabaseAdmin
           .from('pet')
@@ -3285,6 +3313,11 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
 
         if (species && species !== 'all') query = query.eq('species', species);
         if (search) query = query.or(`pet_name.ilike.%${search}%,breed.ilike.%${search}%`);
+        if (new_today === 'true') {
+          const startOfToday = new Date();
+          startOfToday.setHours(0, 0, 0, 0);
+          query = query.gte('created_at', startOfToday.toISOString());
+        }
 
         const { data, error } = await query;
         if (error) throw error;

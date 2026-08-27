@@ -1964,6 +1964,7 @@ async function fetchNotificationsData() {
                 servicesList.forEach(svc => {
                     // 根据当前 petType 选择对应的价格
                     const currentPrice = petType === 'dog' ? svc.price_dog : svc.price_cat;
+                    if (!currentPrice || Number(currentPrice) <= 0) return;
                     // 价格显示：如果有价格则显示 "From RM XX"，否则显示 "—"
                     let priceDisplay = currentPrice ? `From RM ${currentPrice}` : '—';
                     const icon = 'fa-solid fa-paw';
