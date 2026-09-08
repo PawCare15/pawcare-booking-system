@@ -24,12 +24,7 @@ const localOrigins = new Set([
   'http://127.0.0.1:5501'
 ]);
 const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin || origin === 'null' || localOrigins.has(origin) || origin === process.env.CLIENT_URL) {
-      return callback(null, true);
-    }
-    return callback(new Error('Origin is not allowed by CORS'));
-  },
+  origin: process.env.CLIENT_URL || 'http://localhost:3000',
   methods: ['GET','POST','PUT','DELETE'],
   allowedHeaders: ['Content-Type','Authorization']
 };
@@ -37,8 +32,8 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// 安全托管项目静态文件
-app.use(express.static(path.join(__dirname, '..')));
+// 安全托管静态文件
+app.use(express.static(__dirname));
 
 function parseUserAgent(userAgent) {
     const parser = new UAParser(userAgent);
