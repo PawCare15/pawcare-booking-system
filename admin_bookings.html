@@ -322,8 +322,13 @@
             font-weight: 600;
             color: #5A4A3A;
             padding: 12px 14px;
-            text-align: left;
+            text-align: center;
             white-space: nowrap;
+        }
+        #bookingTable thead th {
+            text-align: center !important;
+            padding-left: 14px !important;
+            padding-right: 14px !important;
         }
         .data-table td {
             padding: 12px 14px;
@@ -335,6 +340,17 @@
         }
         .data-table tbody tr:hover {
             background: #FAF7F2;
+        }
+        #bookingTable tbody tr {
+            height: 72px;
+        }
+        #bookingTable tbody td {
+            height: 72px;
+            line-height: 1.35;
+            vertical-align: middle;
+        }
+        #bookingTable td:nth-child(5) {
+            line-height: 1.45;
         }
 
         /* Customer cell */
@@ -357,6 +373,13 @@
             color: #5A361A;
             flex-shrink: 0;
             border: 2px solid #EFECE6;
+        }
+        .customer-avatar img,
+        .pet-avatar img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
         }
         .customer-info {
             display: flex;
@@ -410,12 +433,116 @@
             white-space: nowrap;
         }
 
+        #bookingTable {
+            min-width: 1180px;
+            table-layout: fixed;
+        }
+        #bookingTable th:nth-child(1),
+        #bookingTable td:nth-child(1) { width: 145px; }
+        #bookingTable th:nth-child(2),
+        #bookingTable td:nth-child(2) { width: 210px; }
+        #bookingTable th:nth-child(3),
+        #bookingTable td:nth-child(3) { width: 190px; }
+        #bookingTable th:nth-child(4),
+        #bookingTable td:nth-child(4) { width: 130px; }
+        #bookingTable th:nth-child(5),
+        #bookingTable td:nth-child(5) { width: 135px; }
+        #bookingTable th:nth-child(6),
+        #bookingTable td:nth-child(6) { width: 110px; }
+        #bookingTable th:nth-child(7),
+        #bookingTable td:nth-child(7) { width: 100px; }
+        #bookingTable th:nth-child(8),
+        #bookingTable td:nth-child(8) { width: 170px; }
+        #bookingTable th:nth-child(9),
+        #bookingTable td:nth-child(9) { width: 170px; }
+        #bookingTable th:last-child,
+        #bookingTable td:last-child {
+            width: 170px !important;
+            min-width: 170px !important;
+            text-align: center !important;
+        }
+        #bookingTable th:last-child {
+            text-align: center !important;
+            padding-left: 14px;
+        }
+        #bookingTable .reschedule-column-hidden {
+            display: none !important;
+        }
+        #bookingTable th:nth-child(8),
+        #bookingTable td:nth-child(8) {
+            width: 170px !important;
+            min-width: 170px !important;
+            text-align: center !important;
+        }
+        #bookingTable th:nth-child(6),
+        #bookingTable td:nth-child(6),
+        #bookingTable th:nth-child(7),
+        #bookingTable td:nth-child(7) {
+            text-align: center !important;
+        }
+        #bookingTable th:nth-child(4),
+        #bookingTable td:nth-child(4),
+        #bookingTable th:nth-child(5),
+        #bookingTable td:nth-child(5) {
+            text-align: center !important;
+        }
+        #bookingTable th:nth-child(5),
+        #bookingTable td:nth-child(5) {
+            width: 190px !important;
+            min-width: 190px !important;
+            white-space: nowrap;
+        }
+        #bookingTable td:first-child strong {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        #bookingTable .customer-info,
+        #bookingTable .pet-info {
+            overflow: hidden;
+        }
+        #bookingTable th:nth-child(2),
+        #bookingTable td:nth-child(2),
+        #bookingTable th:nth-child(3),
+        #bookingTable td:nth-child(3) {
+            text-align: left;
+        }
+        #bookingTable .customer-cell,
+        #bookingTable .pet-cell {
+            display: grid;
+            grid-template-columns: 40px minmax(0, 1fr);
+            align-items: center;
+            width: 176px;
+            margin: 0;
+            gap: 12px;
+            text-align: left;
+        }
+
         /* Action icons */
         .action-icons {
             display: flex;
             align-items: center;
             gap: 12px;
+            justify-content: flex-start;
+            width: 132px;
+            margin: 0 auto;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .reschedule-icons {
+            display: flex;
+            align-items: center;
             justify-content: center;
+            gap: 8px;
+            min-height: 36px;
+            white-space: nowrap;
+        }
+        .action-icons > i,
+        .action-icons > .btn-action {
+            flex: 0 0 36px;
+            width: 36px;
+            height: 36px;
         }
         .action-icons i {
             width: 36px;
@@ -439,6 +566,19 @@
         .action-icons i.delete-btn {
             background: #FEE8E8;
             color: #DC2626;
+        }
+        .action-icons .suggest-reschedule-btn {
+            background: #F1F1F1;
+            color: #111827;
+        }
+        .action-icons .admin-pending-btn {
+            background: #FFF3E0;
+            color: #B45309;
+        }
+        .action-icons .suggest-reschedule-btn {
+            display: inline-flex;
+            background: #F1F1F1;
+            color: #111827;
         }
         .action-icons i:hover {
             transform: translateY(-2px) scale(1.08);
@@ -585,6 +725,7 @@
             border-radius: 20px;
             width: 100%;
             max-width: 520px;
+            box-sizing: border-box;
             padding: 32px 36px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.2);
             animation: slideUp 0.3s ease;
@@ -703,10 +844,18 @@
             padding-bottom: 12px;
             border-bottom: 1px solid #EFECE6;
         }
+        .edit-modal-box {
+            box-sizing: border-box;
+            width: min(100%, 520px);
+            max-height: calc(100vh - 32px);
+            overflow-y: auto;
+        }
         .edit-modal-box .modal-header h2 {
             font-size: 18px;
             font-weight: 700;
             color: #4A3327;
+            min-width: 0;
+            line-height: 1.25;
         }
         .edit-modal-box .modal-header .close-modal {
             background: none;
@@ -727,6 +876,9 @@
             padding: 8px 14px;
             background: #F9F6F0;
             border-radius: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
         .edit-modal-box .form-group {
             margin-bottom: 16px;
@@ -739,6 +891,7 @@
             margin-bottom: 6px;
         }
         .edit-modal-box .form-group select {
+            box-sizing: border-box;
             width: 100%;
             padding: 10px 14px;
             border-radius: 10px;
@@ -762,6 +915,7 @@
         }
         .edit-modal-box .modal-actions {
             display: flex;
+            flex-wrap: nowrap;
             gap: 12px;
             margin-top: 20px;
             padding-top: 16px;
@@ -769,7 +923,11 @@
         }
         .edit-modal-box .modal-actions .btn {
             flex: 1;
-            padding: 10px 20px;
+            min-width: 0;
+            min-height: 46px;
+            padding: 10px 16px;
+            justify-content: center;
+            align-items: center;
             border-radius: 10px;
             font-size: 13px;
             font-weight: 600;
@@ -778,6 +936,9 @@
             transition: all 0.25s ease;
             font-family: 'Poppins', sans-serif;
             text-align: center;
+        }
+        .edit-modal-box .modal-actions .btn i {
+            font-size: 13px;
         }
         .edit-modal-box .modal-actions .btn-secondary {
             background: #EFECE6;
@@ -792,6 +953,145 @@
         }
         .edit-modal-box .modal-actions .btn-primary:hover {
             background: #2D1F14;
+        }
+
+        #deleteModal .modal-actions .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .suggest-reschedule-box {
+            max-width: 500px;
+            padding: 30px;
+            border: 1px solid #F0E7DC;
+        }
+        .suggest-reschedule-box .modal-header {
+            margin-bottom: 18px;
+        }
+        .suggest-reschedule-box .modal-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+        }
+        .suggest-reschedule-box .modal-header h2 i {
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 10px;
+            background: #FFF3E0;
+            font-size: 16px;
+        }
+        .suggest-reschedule-note {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 22px;
+            padding: 12px 14px;
+            border: 1px solid #FDE6B5;
+            border-radius: 10px;
+            background: #FFFAF0;
+            color: #7C5A22;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .suggest-reschedule-note i {
+            margin-top: 2px;
+            color: #D97706;
+        }
+        .suggest-reschedule-box .form-group {
+            margin-bottom: 18px;
+        }
+        .suggest-reschedule-box .form-group label {
+            margin-bottom: 8px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+            color: #806B5D;
+        }
+        .suggest-reschedule-box .form-group input,
+        .suggest-reschedule-box .form-group select {
+            box-sizing: border-box;
+            width: 100%;
+            height: 46px;
+            padding: 0 14px;
+            border: 1px solid #E6D9CC;
+            border-radius: 10px;
+            background-color: #FFFCF9;
+            color: #3F3028;
+            font: 500 13px 'Poppins', sans-serif;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s, background-color .2s;
+        }
+        .suggest-reschedule-box .form-group input:focus,
+        .suggest-reschedule-box .form-group select:focus {
+            border-color: #D97706;
+            background: #FFFFFF;
+            box-shadow: 0 0 0 3px rgba(217, 119, 6, .12);
+        }
+        .suggest-reschedule-box .modal-actions {
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 20px;
+        }
+        .suggest-reschedule-box .modal-actions .btn {
+            min-height: 44px;
+        }
+
+        .reschedule-sent-box {
+            width: min(100%, 390px);
+            max-width: 390px;
+            padding: 34px 30px 30px;
+            text-align: center;
+        }
+        .reschedule-sent-icon {
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+            border-radius: 50%;
+            background: #EAF7EF;
+            color: #21874A;
+            font-size: 24px;
+            box-shadow: 0 8px 20px rgba(33, 135, 74, .12);
+        }
+        .reschedule-sent-box h3 {
+            margin: 0;
+            color: #4A3327;
+            font-size: 20px;
+        }
+        .reschedule-sent-box p {
+            margin: 10px auto 24px;
+            max-width: 290px;
+            color: #7A6B5A;
+            font-size: 13px;
+            line-height: 1.55;
+        }
+        .reschedule-sent-box .btn {
+            display: block;
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 44px;
+            border: 0;
+            border-radius: 10px;
+            background: #4A3327;
+            color: #FFFFFF;
+            font: 600 13px 'Poppins', sans-serif;
+            cursor: pointer;
+        }
+        .reschedule-sent-box .btn:hover {
+            background: #2D1F14;
+        }
+        .reschedule-error-box .reschedule-sent-icon {
+            background: #FDECEC;
+            color: #D92D20;
+            box-shadow: 0 8px 20px rgba(217, 45, 32, .10);
         }
 
         /* ===== SUCCESS MODAL ===== */
@@ -1024,6 +1324,17 @@
             .pagination-area { font-size: 12px; flex-direction: column; align-items: flex-start; gap: 6px; }
             .pagination-area .pages span { font-size: 12px; padding: 3px 10px; }
             .modal-box-base { padding: 20px 16px; }
+            .edit-modal-box {
+                width: 100%;
+                max-height: calc(100vh - 24px);
+                border-radius: 16px;
+            }
+            .edit-modal-box .modal-header h2 { font-size: 17px; }
+            .edit-modal-box .modal-header { margin-bottom: 16px; }
+            .edit-modal-box .booking-id-display { font-size: 12px; margin-bottom: 16px; }
+            .edit-modal-box .form-group { margin-bottom: 14px; }
+            .edit-modal-box .modal-actions { gap: 8px; margin-top: 18px; padding-top: 16px; }
+            .edit-modal-box .modal-actions .btn { min-height: 44px; padding: 9px 10px; font-size: 12px; }
             .view-modal-box .modal-header h2 { font-size: 16px; }
             .modal-box { padding: 24px 20px; }
         }
@@ -1034,6 +1345,7 @@
             .stat-row-card .stat-label { font-size: 10px; }
             .filter-bar select { flex: 1 1 100%; }
             .filter-bar .btn-filter, .filter-bar .btn-clear { flex: 1 1 100%; }
+            .edit-modal-box .modal-actions .btn { font-size: 11px; padding-left: 6px; padding-right: 6px; }
         }
     </style>
 </head>
@@ -1247,11 +1559,12 @@
                             <th>Status</th>
                             <th>Payment</th>
                             <th style="text-align:center;">Action</th>
+                            <th id="rescheduleColumnHeader" style="text-align:center;">Reschedule</th>
                         </tr>
                     </thead>
                     <tbody id="bookingTableBody">
                         <tr>
-                            <td colspan="8" style="text-align:center; padding:30px;">
+                            <td colspan="9" style="text-align:center; padding:30px;">
                                 <div class="loading-spinner">
                                     <i class="fa-solid fa-spinner"></i>
                                 </div>
@@ -1391,6 +1704,62 @@
             </div>
         </div>
 
+        <!-- ===== ADMIN RESCHEDULE SUGGESTION MODAL ===== -->
+        <div class="modal-overlay-base" id="suggestRescheduleModal">
+            <div class="modal-box-base edit-modal-box suggest-reschedule-box">
+                <div class="modal-header">
+                    <h2><i class="fa-regular fa-calendar-plus" style="color:#D97706;"></i> Suggest Reschedule</h2>
+                    <button class="close-modal" id="closeSuggestRescheduleModal">&times;</button>
+                </div>
+                <div class="suggest-reschedule-note">
+                    <i class="fa-solid fa-circle-info"></i>
+                    <span>The customer must approve this new appointment time before the booking changes.</span>
+                </div>
+                <div class="form-group">
+                    <label for="suggestRescheduleDate">New date</label>
+                    <input type="date" id="suggestRescheduleDate">
+                </div>
+                <div class="form-group">
+                    <label for="suggestRescheduleTime">New time</label>
+                    <select id="suggestRescheduleTime">
+                        <option value="10:00 AM">10:00 AM</option>
+                        <option value="10:30 AM">10:30 AM</option>
+                        <option value="11:30 AM">11:30 AM</option>
+                        <option value="01:00 PM">01:00 PM</option>
+                        <option value="02:00 PM">02:00 PM</option>
+                        <option value="03:00 PM">03:00 PM</option>
+                        <option value="04:00 PM">04:00 PM</option>
+                        <option value="05:00 PM">05:00 PM</option>
+                        <option value="06:00 PM">06:00 PM</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="cancelSuggestRescheduleBtn">Cancel</button>
+                    <button class="btn btn-primary" id="submitSuggestRescheduleBtn">Send Suggestion</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== RESCHEDULE SENT MODAL ===== -->
+        <div class="modal-overlay-base" id="rescheduleSentModal">
+            <div class="modal-box-base reschedule-sent-box">
+                <div class="reschedule-sent-icon"><i class="fa-solid fa-paper-plane"></i></div>
+                <h3>Suggestion Sent</h3>
+                <p>The customer has been notified and must approve the new appointment time.</p>
+                <button class="btn btn-primary" id="closeRescheduleSentBtn">Done</button>
+            </div>
+        </div>
+
+        <!-- ===== RESCHEDULE ERROR MODAL ===== -->
+        <div class="modal-overlay-base" id="rescheduleErrorModal">
+            <div class="modal-box-base reschedule-sent-box reschedule-error-box">
+                <div class="reschedule-sent-icon"><i class="fa-solid fa-circle-exclamation"></i></div>
+                <h3>Unable to Update</h3>
+                <p id="rescheduleErrorMessage">No pending reschedule request.</p>
+                <button class="btn btn-primary" id="closeRescheduleErrorBtn">Close</button>
+            </div>
+        </div>
+
         <!-- ===== SUCCESS MODAL ===== -->
         <div class="modal-overlay-base" id="successModal">
             <div class="modal-box-base success-modal-box">
@@ -1486,6 +1855,7 @@
         const rowsPerPage = 8;
         let currentEditId = null;
         let pendingDeleteId = null;
+        let currentSuggestRescheduleId = null;
 
         // ===== UTILITY FUNCTIONS =====
         function getToken() {
@@ -1991,15 +2361,17 @@ if (typeof bindUserMenuEvents === 'function') {
                 // Transform the data for display
                 allBookings = data.map(b => ({
                     id: b.booking_id || 'N/A',
-                    customer: b.customer ? b.customer.full_name : 'Unknown',
+                    customer: b.customer ? b.customer.full_name : 'Deleted Customer',
                     phone: b.customer ? b.customer.phone_number : 'N/A',
-                    pet: b.pet ? b.pet.name : 'Unknown',
+                    customerPhoto: b.customer?.profile_photo || '',
+                    pet: b.pet ? b.pet.name : 'Deleted Pet',
                     breed: b.pet ? b.pet.breed || 'N/A' : 'N/A',
+                    petPhoto: b.pet?.photo_url || '',
                     petEmoji: getPetEmoji(b.pet ? b.pet.species : ''),
                     service: b.services?.[0]?.service_name || 'N/A',
                     date: formatBookingDate(
-                        b.reschedule_status === 'pending' && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date,
-                        b.reschedule_status === 'pending' && b.reschedule_requested_time ? b.reschedule_requested_time : b.booking_time
+                        ['pending', 'admin_pending'].includes(b.reschedule_status) && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date,
+                        ['pending', 'admin_pending'].includes(b.reschedule_status) && b.reschedule_requested_time ? b.reschedule_requested_time : b.booking_time
                     ),
                     status: b.status === 'upcoming' ? 'confirmed' : (b.status || 'pending'),
                     payment: b.payment_status || 'unpaid',
@@ -2010,8 +2382,8 @@ if (typeof bindUserMenuEvents === 'function') {
                     customer_id: b.customer_id,
                     pet_id: b.pet_id,
                     admin_id: b.admin_id,
-                    booking_date: b.reschedule_status === 'pending' && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date,
-                    booking_time: b.reschedule_status === 'pending' && b.reschedule_requested_time ? b.reschedule_requested_time : b.booking_time,
+                    booking_date: ['pending', 'admin_pending'].includes(b.reschedule_status) && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date,
+                    booking_time: ['pending', 'admin_pending'].includes(b.reschedule_status) && b.reschedule_requested_time ? b.reschedule_requested_time : b.booking_time,
                     check_in_datetime: b.check_in_datetime,
                     check_out_datetime: b.check_out_datetime,
                     special_notes: b.special_notes || 'N/A',
@@ -2031,7 +2403,7 @@ if (typeof bindUserMenuEvents === 'function') {
             } catch (error) {
                 console.error('Error fetching bookings:', error);
                 document.getElementById('bookingTableBody').innerHTML = `
-                    <tr><td colspan="8" style="text-align:center; padding:30px; color:#C62828;">
+                    <tr><td colspan="9" style="text-align:center; padding:30px; color:#C62828;">
                         <i class="fa-solid fa-circle-exclamation"></i> 
                         Failed to load bookings. Please try again.
                     </td></tr>
@@ -2098,9 +2470,13 @@ if (typeof bindUserMenuEvents === 'function') {
         function formatTime(timeStr) {
             if (!timeStr) return 'N/A';
             try {
-                const [hours, minutes] = timeStr.split(':');
+                const normalized = String(timeStr).trim();
+                const meridiemMatch = normalized.match(/\s*(AM|PM)$/i);
+                const meridiem = meridiemMatch ? meridiemMatch[1].toUpperCase() : null;
+                const timeOnly = normalized.replace(/\s*(AM|PM)$/i, '');
+                const [hours, minutes] = timeOnly.split(':');
                 const h = parseInt(hours);
-                const ampm = h >= 12 ? 'PM' : 'AM';
+                const ampm = meridiem || (h >= 12 ? 'PM' : 'AM');
                 const h12 = h % 12 || 12;
                 return `${h12}:${minutes} ${ampm}`;
             } catch {
@@ -2145,6 +2521,7 @@ if (typeof bindUserMenuEvents === 'function') {
         // ===== RENDER TABLE =====
         function renderBookings(bookings) {
             const tbody = document.getElementById('bookingTableBody');
+            updateRescheduleColumnVisibility(bookings);
 
             // Pagination
             const start = (currentPage - 1) * rowsPerPage;
@@ -2153,7 +2530,7 @@ if (typeof bindUserMenuEvents === 'function') {
 
             if (pageData.length === 0) {
                 tbody.innerHTML = `
-                    <tr><td colspan="8" style="text-align:center; padding:30px; color:#7A7A7A;">
+                    <tr><td colspan="9" style="text-align:center; padding:30px; color:#7A7A7A;">
                         No bookings found
                     </td></tr>
                 `;
@@ -2170,6 +2547,12 @@ if (typeof bindUserMenuEvents === 'function') {
                 const pIdx = index % petColors.length;
                 const statusInfo = statusMap[b.statusClass] || { label: b.status, class: 'pending' };
                 const paymentInfo = paymentMap[b.paymentClass] || { label: b.payment, class: 'unpaid' };
+                const customerAvatar = b.customerPhoto
+                    ? `<img src="${b.customerPhoto}" alt="${b.customer}" loading="lazy">`
+                    : initials;
+                const petAvatar = b.petPhoto
+                    ? `<img src="${b.petPhoto}" alt="${b.pet}" loading="lazy">`
+                    : b.petEmoji;
 
                 return `
                 <tr data-id="${b.id}">
@@ -2177,7 +2560,7 @@ if (typeof bindUserMenuEvents === 'function') {
                     <td>
                         <div class="customer-cell">
                             <div class="customer-avatar" style="background:${custColors[cIdx]};">
-                                ${initials}
+                                ${customerAvatar}
                             </div>
                             <div class="customer-info">
                                 <span class="name">${b.customer}</span>
@@ -2188,7 +2571,7 @@ if (typeof bindUserMenuEvents === 'function') {
                     <td>
                         <div class="pet-cell">
                             <div class="pet-avatar" style="background:${petColors[pIdx]};">
-                                ${b.petEmoji}
+                                ${petAvatar}
                             </div>
                             <div class="pet-info">
                                 <span class="pet-name">${b.pet}</span>
@@ -2205,7 +2588,13 @@ if (typeof bindUserMenuEvents === 'function') {
                             <i class="fa-regular fa-eye view-btn" title="View"></i>
                             <i class="fa-regular fa-pen-to-square edit-btn" title="Edit" data-id="${b.id}"></i>
                             <i class="fa-regular fa-trash-can delete-btn" title="Delete"></i>
-                            ${b.reschedule_status === 'pending' ? `<button class="btn-action approve-reschedule-btn" data-id="${b.id}" title="Approve reschedule"><i class="fa-solid fa-check"></i></button><button class="btn-action reject-reschedule-btn" data-id="${b.id}" title="Reject reschedule"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                        </div>
+                    </td>
+                    <td class="reschedule-cell">
+                        <div class="reschedule-icons">
+                            ${b.reschedule_status === 'pending' ? `<button class="btn-action approve-reschedule-btn" data-id="${b.id}" title="Approve customer request"><i class="fa-solid fa-check"></i></button><button class="btn-action reject-reschedule-btn" data-id="${b.id}" title="Reject customer request"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                            ${b.reschedule_status === 'admin_pending' ? `<button class="btn-action admin-pending-btn" data-id="${b.id}" title="Waiting for customer approval"><i class="fa-solid fa-hourglass-half"></i></button>` : ''}
+                            ${String(b.statusClass || '').toLowerCase() === 'pending' ? `<button class="btn-action suggest-reschedule-btn" data-id="${b.id}" title="Suggest reschedule" style="display:inline-flex;background:#FFF3CD;color:#A16207;border:1px solid #F6D98B;"><i class="fa-regular fa-calendar-plus"></i></button>` : ''}
                         </div>
                     </td>
                 </tr>
@@ -2213,6 +2602,18 @@ if (typeof bindUserMenuEvents === 'function') {
 
             document.getElementById('entriesInfo').textContent =
                 `Showing ${start + 1} to ${end} of ${bookings.length} entries`;
+        }
+
+        function updateRescheduleColumnVisibility(bookings) {
+            const header = document.getElementById('rescheduleColumnHeader');
+            const hasRescheduleActions = bookings.some(booking =>
+                String(booking.statusClass || '').toLowerCase() === 'pending' ||
+                ['pending', 'admin_pending'].includes(String(booking.reschedule_status || '').toLowerCase())
+            );
+            header?.classList.toggle('reschedule-column-hidden', !hasRescheduleActions);
+            document.querySelectorAll('#bookingTable .reschedule-cell').forEach(cell => {
+                cell.classList.toggle('reschedule-column-hidden', !hasRescheduleActions);
+            });
         }
 
         async function processRescheduleRequest(bookingId, action) {
@@ -2224,6 +2625,54 @@ if (typeof bindUserMenuEvents === 'function') {
             if (!response.ok || !result.success) throw new Error(result.message || 'Unable to update reschedule request.');
             await fetchBookings();
             await loadNotificationCount();
+        }
+
+        function showRescheduleError(message) {
+            document.getElementById('rescheduleErrorMessage').textContent = message || 'Unable to update reschedule request.';
+            document.getElementById('rescheduleErrorModal').classList.add('active');
+            lockBodyScroll();
+        }
+
+        function openSuggestRescheduleModal(bookingId) {
+            const booking = allBookings.find(item => item.id === bookingId);
+            if (!booking) return;
+            currentSuggestRescheduleId = bookingId;
+            const dateInput = document.getElementById('suggestRescheduleDate');
+            dateInput.min = new Date().toISOString().split('T')[0];
+            dateInput.value = '';
+            document.getElementById('suggestRescheduleTime').value = '10:30 AM';
+            document.getElementById('suggestRescheduleModal').classList.add('active');
+            lockBodyScroll();
+        }
+
+        function closeSuggestRescheduleModal() {
+            document.getElementById('suggestRescheduleModal').classList.remove('active');
+            currentSuggestRescheduleId = null;
+            unlockBodyScroll();
+        }
+
+        async function submitSuggestReschedule() {
+            if (!currentSuggestRescheduleId) return;
+            const newDate = document.getElementById('suggestRescheduleDate').value;
+            const newTime = document.getElementById('suggestRescheduleTime').value;
+            if (!newDate) {
+                alert('Please select a new date.');
+                return;
+            }
+            try {
+                const response = await authFetch(`/api/admin/bookings/${encodeURIComponent(currentSuggestRescheduleId)}/reschedule-suggestion`, {
+                    method: 'POST',
+                    body: JSON.stringify({ new_date: newDate, new_time: newTime })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.message || 'Unable to send suggestion.');
+                closeSuggestRescheduleModal();
+                await fetchBookings();
+                document.getElementById('rescheduleSentModal').classList.add('active');
+                lockBodyScroll();
+            } catch (error) {
+                alert(error.message);
+            }
         }
 
         // ===== UPDATE PAGINATION =====
@@ -2646,6 +3095,33 @@ if (typeof bindUserMenuEvents === 'function') {
             if (e.target === this) closeEditModal();
         });
 
+        document.getElementById('closeSuggestRescheduleModal').addEventListener('click', closeSuggestRescheduleModal);
+        document.getElementById('cancelSuggestRescheduleBtn').addEventListener('click', closeSuggestRescheduleModal);
+        document.getElementById('submitSuggestRescheduleBtn').addEventListener('click', submitSuggestReschedule);
+        document.getElementById('suggestRescheduleModal').addEventListener('click', function(e) {
+            if (e.target === this) closeSuggestRescheduleModal();
+        });
+        document.getElementById('closeRescheduleSentBtn').addEventListener('click', function() {
+            document.getElementById('rescheduleSentModal').classList.remove('active');
+            unlockBodyScroll();
+        });
+        document.getElementById('rescheduleSentModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+                unlockBodyScroll();
+            }
+        });
+        document.getElementById('closeRescheduleErrorBtn').addEventListener('click', function() {
+            document.getElementById('rescheduleErrorModal').classList.remove('active');
+            unlockBodyScroll();
+        });
+        document.getElementById('rescheduleErrorModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+                unlockBodyScroll();
+            }
+        });
+
         // Success modal events
         document.getElementById('closeSuccessBtn').addEventListener('click', closeSuccessModal);
         document.getElementById('successModal').addEventListener('click', function(e) {
@@ -2674,7 +3150,12 @@ if (typeof bindUserMenuEvents === 'function') {
             const approvalButton = e.target.closest('.approve-reschedule-btn, .reject-reschedule-btn');
             if (approvalButton) {
                 processRescheduleRequest(approvalButton.dataset.id, approvalButton.classList.contains('approve-reschedule-btn') ? 'approve' : 'reject')
-                    .catch(error => alert(error.message));
+                    .catch(error => showRescheduleError(error.message));
+                return;
+            }
+            const suggestionButton = e.target.closest('.suggest-reschedule-btn');
+            if (suggestionButton) {
+                openSuggestRescheduleModal(suggestionButton.dataset.id);
                 return;
             }
             const icon = e.target.closest('.action-icons i');

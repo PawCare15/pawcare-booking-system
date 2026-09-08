@@ -15,6 +15,7 @@
   <!-- GOOGLE FONTS - POPPINS -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="user_modal.css">
+  <link rel="stylesheet" href="user_responsive.css">
   
   <style>
     /* RESET & BASE STYLES */
@@ -307,9 +308,9 @@
     /* PROFILE CONTENT STYLES */
     .profile-container {
       flex: 1;
-      max-width: 1200px;
-      margin: 30px auto;
-      padding: 0 20px;
+      max-width: 1160px;
+      margin: 26px auto 34px;
+      padding: 0 24px;
       display: flex;
       flex-direction: column;
       width: 100%;
@@ -343,17 +344,61 @@
       color: #D97706;
     }
 
+    .card.page-intro {
+      background: linear-gradient(135deg, #FDF5E6 0%, #F5E8D8 100%);
+      border: 1px solid #EFECE6;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .page-intro-icon {
+      color: #D97706;
+      font-size: 32px;
+      flex: 0 0 auto;
+    }
+
+    .page-intro-content {
+      min-width: 0;
+    }
+
+    .page-intro .page-title {
+      margin-bottom: 2px;
+    }
+
+    .page-intro p {
+      color: #7A7A7A;
+      font-size: 14px;
+      margin: 0;
+    }
+
     .profile-grid {
       display: grid;
-      grid-template-columns: 1fr 1.2fr;
-      gap: 24px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 28px;
+      align-items: start;
       margin-bottom: 25px;
+    }
+
+    .profile-grid > div:first-child {
+      display: contents;
+    }
+
+    .profile-grid .summary-card {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .profile-grid > .card:not(.summary-card):not(.account-card) {
+      grid-column: 2;
+      grid-row: 1;
     }
 
     .card {
       background: #FFFFFF;
-      border-radius: 14px;
-      padding: 24px 28px;
+      border-radius: 12px;
+      padding: 26px 30px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.02);
       border: 1px solid #EFECE6;
       transition: border-color 0.2s;
@@ -498,7 +543,9 @@
     }
 
     .account-card {
-      margin-top: 24px;
+      grid-column: 1 / -1;
+      grid-row: 2;
+      margin-top: 0;
     }
 
     .account-menu-list {
@@ -823,6 +870,90 @@
       flex-wrap: wrap;
     }
 
+    #aboutModal .about-modal-box {
+      max-width: 520px;
+      padding: 36px 40px 30px;
+      border-radius: 18px;
+    }
+
+    #aboutModal .about-modal-icon {
+      width: 64px;
+      height: 64px;
+      margin-bottom: 18px;
+      background: #FDF5E6;
+      border: 2px solid #E8B36A;
+      color: #D97706;
+    }
+
+    #aboutModal .about-modal-icon i {
+      font-size: 27px;
+    }
+
+    #aboutModal .about-modal-title {
+      color: #4A3327;
+      font-size: 24px;
+      margin-bottom: 24px;
+    }
+
+    #aboutModal .about-modal-list {
+      background: #FBF9F5;
+      border: 1px solid #EDE5DA;
+      border-radius: 12px;
+      padding: 4px 20px;
+      margin-bottom: 26px;
+      text-align: left;
+    }
+
+    #aboutModal .about-modal-item {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      align-items: center;
+      gap: 14px;
+      padding: 16px 0;
+      border-bottom: 1px solid #EDE5DA;
+    }
+
+    #aboutModal .about-modal-item:last-child {
+      border-bottom: none;
+    }
+
+    #aboutModal .about-modal-item > i {
+      color: #D97706;
+      font-size: 18px;
+      text-align: center;
+    }
+
+    #aboutModal .about-modal-item span {
+      display: block;
+      margin-bottom: 3px;
+      color: #8A7B6D;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    #aboutModal .about-modal-item strong {
+      display: block;
+      color: #333333;
+      font-size: 14px;
+      line-height: 1.5;
+      font-weight: 600;
+    }
+
+    #aboutModal .about-modal-button {
+      min-width: 160px;
+      min-height: 46px;
+      padding: 10px 28px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
     /* CHANGE PASSWORD MODAL STYLES */
     .password-input-group {
       margin-bottom: 16px;
@@ -1007,6 +1138,13 @@
       .profile-grid {
         grid-template-columns: 1fr;
       }
+
+      .profile-grid .summary-card,
+      .profile-grid > .card:not(.summary-card):not(.account-card),
+      .profile-grid .account-card {
+        grid-column: 1;
+        grid-row: auto;
+      }
     }
 
     @media (max-width: 768px) {
@@ -1135,8 +1273,21 @@
       }
     }
   </style>
+  <style>
+    #logoutModal .modal-box { box-sizing: border-box !important; width: min(92vw, 460px) !important; max-width: calc(100vw - 24px) !important; padding: 30px 42px 26px !important; text-align: center !important; }
+    #logoutModal .modal-btn-group { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 12px !important; justify-content: center !important; width: 100% !important; }
+    #logoutModal .modal-btn-group .btn { flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; min-height: 46px !important; padding: 10px 14px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; white-space: nowrap !important; }
+    @media (max-width: 480px) {
+      #logoutModal .modal-box { width: min(92vw, 380px) !important; padding: 24px 20px 22px !important; }
+      #logoutModal .modal-icon-circle.warning i { font-size: 46px !important; }
+      #logoutModal .modal-title { font-size: 20px !important; }
+      #logoutModal .modal-subtitle { font-size: 14px !important; margin-bottom: 18px !important; }
+      #logoutModal .modal-btn-group { gap: 10px !important; }
+      #logoutModal .modal-btn-group .btn { min-height: 42px !important; padding: 9px 10px !important; font-size: 14px !important; }
+    }
+  </style>
 </head>
-<body>
+<body data-notification-context="profile">
   
   <!-- SIDEBAR OVERLAY -->
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -1206,8 +1357,12 @@
       <a href="dashboard.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
 
       <!-- PAGE TITLE -->
-      <div class="page-title">
-        <i class="fa-regular fa-user"></i> My Profile
+      <div class="card page-intro">
+        <i class="fa-regular fa-user page-intro-icon"></i>
+        <div class="page-intro-content">
+          <div class="page-title">My Profile</div>
+          <p>Manage your personal information and keep your PawCare account up to date.</p>
+        </div>
       </div>
 
       <!-- PROFILE GRID - TWO COLUMNS -->
@@ -1501,48 +1656,48 @@
 
       <!-- ABOUT MODAL -->
       <div class="modal-overlay" id="aboutModal">
-          <div class="modal-box" style="max-width: 460px; text-align: center;">
-              <div class="modal-icon-circle" style="background: #E3F2FD; border-color: #64B5F6; width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; border: 2px solid #64B5F6;">
-                  <i class="fa-solid fa-circle-info" style="color: #1A73E8; font-size: 30px;"></i>
+          <div class="modal-box about-modal-box">
+            <div class="modal-icon-circle about-modal-icon">
+              <i class="fa-solid fa-circle-info"></i>
               </div>
-              <h2 class="modal-title" style="color: #5A361A;">🐾 About PawCare</h2>
-              <div style="background: #FAF7F2; border-radius: 12px; padding: 20px 22px; margin-bottom: 24px; border: 1px solid #EFECE6; text-align: left;">
-                  <div style="display: flex; align-items: center; gap: 14px; padding-bottom: 14px; border-bottom: 1px dashed #EFECE6;">
-                      <span style="font-size: 22px;">📌</span>
-                      <div><span style="font-size: 12px; color: #7A7A7A; display: block;">Version</span><strong style="color: #333; font-size: 15px;">1.0.0</strong></div>
+            <h2 class="modal-title about-modal-title">About PawCare</h2>
+            <div class="about-modal-list">
+              <div class="about-modal-item">
+                <i class="fa-solid fa-thumbtack"></i>
+                <div><span>Version</span><strong>1.0.0</strong></div>
                   </div>
-                  <div style="display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px dashed #EFECE6;">
-                      <span style="font-size: 22px;">🏠</span>
-                      <div><span style="font-size: 12px; color: #7A7A7A; display: block;">System</span><strong style="color: #333; font-size: 15px;">PawCare Booking System</strong></div>
+              <div class="about-modal-item">
+                <i class="fa-solid fa-house"></i>
+                <div><span>System</span><strong>PawCare Booking System</strong></div>
                   </div>
-                  <div style="display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px dashed #EFECE6;">
-                      <span style="font-size: 22px;">✂️</span>
-                      <div><span style="font-size: 12px; color: #7A7A7A; display: block;">Provider</span><strong style="color: #333; font-size: 15px;">Paw Walker Grooming House</strong></div>
+              <div class="about-modal-item">
+                <i class="fa-solid fa-scissors"></i>
+                <div><span>Provider</span><strong>Paw Walker Grooming House</strong></div>
                   </div>
-                  <div style="display: flex; align-items: flex-start; gap: 14px; padding: 14px 0; border-bottom: none;">
-                      <span style="font-size: 22px;">💚</span>
-                      <div><span style="font-size: 12px; color: #7A7A7A; display: block;">Mission</span><strong style="color: #333; font-size: 15px;">Providing top quality grooming and walking services for your furry pets!</strong></div>
+              <div class="about-modal-item">
+                <i class="fa-solid fa-heart"></i>
+                <div><span>Mission</span><strong>Providing top quality grooming and walking services for your furry pets!</strong></div>
                   </div>
               </div>
-              <div class="modal-btn-group" style="margin-top: 0; display: flex; justify-content: center;">
-                  <button class="btn btn-primary" id="aboutModalOkBtn" style="padding: 12px 48px; font-size: 14px; border-radius: 10px; min-width: 140px; display: inline-flex; align-items: center; justify-content: center;">OK</button>
+            <div class="modal-btn-group">
+              <button class="btn btn-primary about-modal-button" id="aboutModalOkBtn">OK</button>
               </div>
           </div>
       </div>
 
       <!-- LOGOUT CONFIRM MODAL -->
       <div class="modal-overlay" id="logoutModal">
-          <div class="modal-box" style="max-width: 420px; text-align: center; padding: 36px 40px 32px;">
-              <div class="modal-icon-circle warning" style="margin: 0 auto 16px; background: #FEF7E0; border-color: #FDE68A; width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #FDE68A;">
-                  <i class="fa-solid fa-sign-out-alt" style="color: #D97706; font-size: 30px;"></i>
+            <div class="modal-box" style="box-sizing: border-box !important; width: min(92vw, 460px) !important; max-width: calc(100vw - 20px) !important; text-align: center; padding: 30px 42px 26px !important; border-radius: 16px !important;">
+              <div class="modal-icon-circle warning" style="margin: 0 auto 12px !important; background: transparent !important; width: auto !important; height: auto !important; border-radius: 0 !important; display: flex; align-items: center; justify-content: center; border: none !important;">
+                <i class="fa-solid fa-sign-out-alt" style="color: #E57C00 !important; font-size: 56px !important;"></i>
               </div>
               <h2 class="modal-title" style="margin-bottom: 8px;">Confirm Logout</h2>
               <p class="modal-subtitle" style="margin-bottom: 24px;">
                   Are you sure you want to logout?
               </p>
-              <div class="modal-btn-group" style="display: flex; gap: 12px; justify-content: center;">
-                  <button class="btn btn-secondary" onclick="closeLogoutModal()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px;">Cancel</button>
-                  <button class="btn btn-danger" onclick="confirmLogout()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px;">Logout</button>
+                <div class="modal-btn-group" style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 12px; justify-content: center; width: 100%;">
+                  <button class="btn btn-secondary" onclick="closeLogoutModal()" style="flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; min-height: 44px; padding: 9px 14px; font-size: 15px; border-radius: 9px;">Cancel</button>
+                  <button class="btn btn-danger" onclick="confirmLogout()" style="flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; min-height: 44px; padding: 9px 14px; font-size: 15px; border-radius: 9px;">Logout</button>
               </div>
           </div>
       </div>

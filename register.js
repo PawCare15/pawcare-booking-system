@@ -1,6 +1,10 @@
 // WAIT FOR DOM TO BE FULLY LOADED
 document.addEventListener('DOMContentLoaded', function() {
 
+    const isLocalFrontend = window.location.protocol === 'file:' ||
+        ['localhost', '127.0.0.1'].includes(window.location.hostname) && window.location.port !== '5000';
+    const API_BASE_URL = isLocalFrontend ? 'http://localhost:5000' : '';
+
     // CUSTOM POPUP FUNCTION
     function showPopup(icon, title, message, btnText = 'Got it!') {
         const overlay = document.getElementById('customPopup');
@@ -324,7 +328,7 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
 
                 // SEND REGISTRATION REQUEST TO BACKEND API
-                const response = await fetch('/api/register', {
+                const response = await fetch(`${API_BASE_URL}/api/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

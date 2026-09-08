@@ -10,6 +10,7 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="user_modal.css">
+  <link rel="stylesheet" href="user_responsive.css">
   <style>
     * {
       margin: 0;
@@ -338,8 +339,50 @@
       gap: 14px;
     }
 
+    .page-title {
+      font-size: 26px;
+      font-weight: 700;
+      color: #333333;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
     .page-title i {
       color: #D97706;
+    }
+
+    .card.page-intro {
+      background: linear-gradient(135deg, #FDF5E6 0%, #F5E8D8 100%);
+      border: 1px solid #EFECE6;
+      border-radius: 14px;
+      padding: 24px 28px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .page-intro-icon {
+      color: #D97706;
+      font-size: 32px;
+      flex: 0 0 auto;
+    }
+
+    .page-intro-content {
+      min-width: 0;
+    }
+
+    .page-intro .page-title {
+      margin-bottom: 2px;
+    }
+
+    .page-intro p {
+      color: #7A7A7A;
+      font-size: 14px;
+      margin: 0;
     }
 
     .page-header-left .page-subtitle {
@@ -350,22 +393,24 @@
 
     .filter-tabs {
       display: flex;
-      gap: 6px;
+      gap: 4px;
       align-items: center;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       background: #FFFFFF;
       border-radius: 14px;
       padding: 12px 20px;
       border: 1px solid #EFECE6;
       margin-bottom: 24px;
       box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+      overflow-x: auto;
     }
 
     .filter-tabs .filter-label {
       font-size: 13px;
       font-weight: 500;
       color: #7A7A7A;
-      margin-right: 6px;
+      margin-right: 4px;
+      white-space: nowrap;
     }
 
     .filter-tabs .filter-label i {
@@ -373,7 +418,7 @@
     }
 
     .filter-tab {
-      padding: 6px 18px;
+      padding: 6px 14px;
       border: none;
       border-radius: 20px;
       background: transparent;
@@ -383,6 +428,7 @@
       color: #7A7A7A;
       transition: all 0.25s;
       font-family: 'Poppins', sans-serif;
+      white-space: nowrap;
     }
 
     .filter-tab:hover {
@@ -398,6 +444,7 @@
 
     .filter-spacer {
       flex: 1;
+      min-width: 8px;
     }
 
     .sort-selector {
@@ -417,7 +464,7 @@
     }
 
     .sort-selector select {
-      padding: 6px 14px 6px 12px;
+      padding: 6px 10px 6px 10px;
       border: 1.5px solid #EFECE6;
       border-radius: 8px;
       background: #FAFAFA;
@@ -426,6 +473,7 @@
       font-family: 'Poppins', sans-serif;
       cursor: pointer;
       transition: border-color 0.2s;
+      white-space: nowrap;
     }
 
     .sort-selector select:focus {
@@ -448,7 +496,7 @@
       border-collapse: collapse;
       font-size: 13px;
       table-layout: fixed;
-      min-width: 820px;
+      min-width: 1200px;
     }
 
     .booking-table thead {
@@ -458,13 +506,14 @@
 
     .booking-table thead th {
       padding: 16px 14px;
-      text-align: left;
+      text-align: center;
       font-weight: 600;
       color: #5A361A;
       font-size: 12px;
       text-transform: uppercase;
       letter-spacing: 0.8px;
       position: relative;
+      white-space: nowrap;
     }
 
     .booking-table thead th:not(:last-child)::after {
@@ -493,20 +542,29 @@
     .booking-table tbody td {
       padding: 14px 14px;
       vertical-align: middle;
+      text-align: center;
     }
 
-    /* 列宽调整 - 给 Action 更多空间 */
-    .booking-table .col-pet { width: 14%; }
-    .booking-table .col-service { width: 16%; }
-    .booking-table .col-date { width: 13%; }
-    .booking-table .col-price { width: 11%; }
-    .booking-table .col-status { width: 16%; }
-    .booking-table .col-action { width: 34%; }
+    .booking-table .col-pet { width: 12%; }
+    .booking-table .col-service { width: 12%; }
+    .booking-table .col-date { width: 12%; }
+    .booking-table .col-price { width: 10%; }
+    .booking-table .col-status { width: 17%; }
+    .booking-table .col-action { width: 21%; }
+    .booking-table .col-reschedule { width: 16%; }
+
+    .booking-table.hide-reschedule .col-reschedule,
+    .booking-table.hide-reschedule th:nth-child(7),
+    .booking-table.hide-reschedule td:nth-child(7) {
+      display: none;
+    }
 
     .pet-cell {
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: center;
+      flex-direction: row;
+      gap: 10px;
     }
 
     .pet-avatar {
@@ -543,10 +601,39 @@
       color: #7A7A7A;
     }
 
+    .pet-info,
+    .service-cell,
+    .date-cell {
+      text-align: center;
+    }
+
+    .service-cell {
+      text-align: left;
+    }
+
+    .pet-info {
+      min-width: 0;
+    }
+
     .service-cell .service-name {
       font-weight: 500;
       font-size: 14px;
       color: #333333;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      gap: 5px;
+    }
+
+    .service-cell .service-name span {
+      display: inline-flex;
+      align-items: center;
+      padding: 3px 8px;
+      border: 1px solid #EFECE6;
+      border-radius: 5px;
+      background: #FAF7F2;
+      line-height: 1.35;
+      white-space: nowrap;
     }
 
     .service-cell .service-name i {
@@ -556,9 +643,7 @@
     }
 
     .service-cell .service-desc {
-      font-size: 11px;
-      color: #7A7A7A;
-      display: block;
+      display: none;
     }
 
     .date-cell .date {
@@ -570,6 +655,7 @@
     .date-cell .time {
       font-size: 12px;
       color: #7A7A7A;
+      white-space: nowrap;
     }
 
     .date-cell .time i {
@@ -582,6 +668,7 @@
       font-size: 14px;
       color: #5A361A;
       white-space: nowrap;
+      padding-right: 24px !important;
     }
 
     .status-badge {
@@ -589,22 +676,39 @@
         border-radius: 20px;
         font-size: 11px;          /* 稍小字号 */
         font-weight: 600;
-        display: inline-block;
+      display: block;
+      width: max-content;
+      max-width: 100%;
         text-align: center;
         min-width: 70px;
+      margin: 2px auto;
         letter-spacing: 0.2px;
-        white-space: normal;      /* 允许换行 */
-        word-break: break-word;
+        white-space: nowrap;
         line-height: 1.3;
     }
+
+      .booking-table tbody td:nth-child(5) > span {
+        margin-left: auto;
+        margin-right: auto;
+      }
+
+      .booking-table tbody td:nth-child(5) {
+        padding-left: 24px;
+      }
+
+      .booking-table thead th:nth-child(2),
+      .booking-table tbody td:nth-child(2) {
+        padding-right: 24px;
+      }
+
+      .booking-table thead th:nth-child(3),
+      .booking-table tbody td:nth-child(3) {
+        padding-left: 24px;
+      }
 
     .status-badge.completed {
       background: #E6F4EA;
       color: #137333;
-    }
-
-    .status-badge.completed i {
-      margin-right: 4px;
     }
 
     .status-badge.pending {
@@ -617,17 +721,9 @@
       color: #0D47A1;
     }
 
-    .status-badge.pending i {
-      margin-right: 4px;
-    }
-
     .status-badge.upcoming {
       background: #FFF3E0;
       color: #D97706;
-    }
-
-    .status-badge.upcoming i {
-      margin-right: 4px;
     }
 
     .status-badge.cancelled {
@@ -635,18 +731,14 @@
       color: #C5221F;
     }
 
-    .status-badge.cancelled i {
-      margin-right: 4px;
-    }
-
     .status-badge.warning {
-        background: linear-gradient(135deg, #FEF7E0 0%, #FDE68A 100%);
-        color: #92400e;
-        border: 1px solid #fcd34d;
+      background: #FEF7E0;
+      color: #B06000;
+      border: none;
         font-weight: 600;
-        padding: 4px 16px;
+        padding: 4px 10px;
         border-radius: 20px;
-        box-shadow: 0 2px 4px rgba(251, 191, 36, 0.2);
+      box-shadow: none;
     }
 
     /* ============================================
@@ -654,9 +746,46 @@
     ============================================ */
     .action-cell {
       display: flex;
-      gap: 4px;
-      flex-wrap: nowrap;
+      gap: 6px;
+      flex-wrap: wrap;
       align-items: center;
+      justify-content: center;
+    }
+
+    .booking-table thead th:nth-child(6),
+    .booking-table tbody td:nth-child(6) {
+      padding-left: 6px;
+      padding-right: 6px;
+    }
+
+    .action-cell .btn-action {
+      flex: 0 0 78px;
+      width: 78px;
+      justify-content: center;
+      min-width: 78px;
+      padding-left: 6px;
+      padding-right: 6px;
+    }
+
+    .action-cell .btn-view,
+    .action-cell .btn-cancel {
+      min-width: 78px;
+    }
+
+    .action-cell .btn-cancel {
+      flex: 0 0 auto;
+      width: auto;
+    }
+
+    .action-cell .btn-reschedule {
+      flex-basis: 105px;
+      width: 105px;
+      min-width: 105px;
+    }
+
+    .action-unavailable {
+      color: #7A7A7A;
+      font-size: 13px;
     }
 
     .btn-action {
@@ -1201,7 +1330,6 @@
 
       .filter-tabs {
         padding: 10px 14px;
-        flex-wrap: wrap;
       }
 
       .filter-tab {
@@ -1291,8 +1419,21 @@
       }
     }
   </style>
+  <style>
+    #logoutModal .modal-box { box-sizing: border-box !important; width: min(92vw, 460px) !important; max-width: calc(100vw - 24px) !important; padding: 30px 42px 26px !important; text-align: center !important; }
+    #logoutModal .modal-btn-group { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 12px !important; justify-content: center !important; width: 100% !important; }
+    #logoutModal .modal-btn-group .btn { flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; min-height: 46px !important; padding: 10px 14px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; white-space: nowrap !important; }
+    @media (max-width: 480px) {
+      #logoutModal .modal-box { width: min(92vw, 380px) !important; padding: 24px 20px 22px !important; }
+      #logoutModal .modal-icon-circle.warning i { font-size: 46px !important; }
+      #logoutModal .modal-title { font-size: 20px !important; }
+      #logoutModal .modal-subtitle { font-size: 14px !important; margin-bottom: 18px !important; }
+      #logoutModal .modal-btn-group { gap: 10px !important; }
+      #logoutModal .modal-btn-group .btn { min-height: 42px !important; padding: 9px 10px !important; font-size: 14px !important; }
+    }
+  </style>
 </head>
-<body>
+  <body data-notification-context="history">
 
   <div class="dashboard-container">
     
@@ -1357,18 +1498,18 @@
 
         <a href="dashboard.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
 
-        <div class="page-header">
-          <div class="page-header-left">
-            <h1 class="page-title">
-              <i class="fa-regular fa-newspaper"></i> My Booking History
-            </h1>
-            <p class="page-subtitle">View all your past, completed, pending, or cancelled bookings.</p>
+        <div class="card page-intro">
+          <i class="fa-regular fa-newspaper page-intro-icon"></i>
+          <div class="page-intro-content">
+            <div class="page-title">My Booking History</div>
+            <p>View all your past, completed, pending, or cancelled bookings.</p>
           </div>
         </div>
 
         <div class="filter-tabs">
           <span class="filter-label"><i class="fa-regular fa-circle"></i> Status:</span>
           <button class="filter-tab active" data-filter="all">All Bookings</button>
+          <button class="filter-tab" data-filter="upcoming">Upcoming</button>
           <button class="filter-tab" data-filter="completed">Completed</button>
           <button class="filter-tab" data-filter="pending">Pending</button>
           <button class="filter-tab" data-filter="cancelled">Cancelled</button>
@@ -1376,10 +1517,9 @@
           <div class="sort-selector">
             <label><i class="fa-solid fa-arrow-up-wide-short"></i> Sort by:</label>
             <select id="sortSelect">
-              <option value="latest">Latest ▼</option>
-              <option value="oldest">Oldest ▲</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="price-low">Price: Low to High</option>
+              <option value="latest">Latest Booking</option>
+              <option value="oldest">Earliest Booking</option>
+              <option value="nearest-date">Nearest Appointment Date</option>
             </select>
           </div>
         </div>
@@ -1391,15 +1531,16 @@
         </div>
 
         <div class="booking-table-wrapper">
-          <table class="booking-table">
+          <table class="booking-table" id="bookingTable">
             <thead>
               <tr>
                 <th class="col-pet"><i class="fa-solid fa-paw"></i> Pet</th>
                 <th class="col-service"><i class="fa-solid fa-scissors"></i> Service</th>
-                <th class="col-date"><i class="fa-regular fa-calendar"></i> Date</th>
+                <th class="col-date"><i class="fa-regular fa-calendar"></i> Date &amp; Time</th>
                 <th class="col-price"><i class="fa-solid fa-tag"></i> Price</th>
                 <th class="col-status"><i class="fa-regular fa-flag"></i> Status</th>
                 <th class="col-action"><i class="fa-solid fa-bolt"></i> Action</th>
+                <th class="col-reschedule"><i class="fa-regular fa-calendar-plus"></i> Reschedule</th>
               </tr>
             </thead>
             <tbody id="bookingTableBody">
@@ -1516,17 +1657,17 @@
       LOGOUT CONFIRM MODAL
       ================================================================ -->
       <div class="modal-overlay" id="logoutModal">
-          <div class="modal-box" style="max-width: 420px; text-align: center; padding: 36px 40px 32px;">
-              <div class="modal-icon-circle warning" style="margin: 0 auto 16px; background: #FEF7E0; border-color: #FDE68A; width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #FDE68A;">
-                  <i class="fa-solid fa-sign-out-alt" style="color: #D97706; font-size: 30px;"></i>
+            <div class="modal-box" style="box-sizing: border-box !important; width: min(92vw, 460px) !important; max-width: calc(100vw - 20px) !important; text-align: center; padding: 30px 42px 26px !important; border-radius: 16px !important;">
+              <div class="modal-icon-circle warning" style="margin: 0 auto 12px !important; background: transparent !important; width: auto !important; height: auto !important; border-radius: 0 !important; display: flex; align-items: center; justify-content: center; border: none !important;">
+                <i class="fa-solid fa-sign-out-alt" style="color: #E57C00 !important; font-size: 56px !important;"></i>
               </div>
               <h2 class="modal-title" style="margin-bottom: 8px;">Confirm Logout</h2>
               <p class="modal-subtitle" style="margin-bottom: 24px;">
                   Are you sure you want to logout?
               </p>
-              <div class="modal-btn-group" style="display: flex; gap: 12px; justify-content: center;">
-                  <button class="btn btn-secondary" onclick="closeLogoutModal()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px;">Cancel</button>
-                  <button class="btn btn-danger" onclick="confirmLogout()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px;">Logout</button>
+                <div class="modal-btn-group" style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 12px; justify-content: center; width: 100%;">
+                  <button class="btn btn-secondary" onclick="closeLogoutModal()" style="flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; min-height: 44px; padding: 9px 14px; font-size: 15px; border-radius: 9px;">Cancel</button>
+                  <button class="btn btn-danger" onclick="confirmLogout()" style="flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; min-height: 44px; padding: 9px 14px; font-size: 15px; border-radius: 9px;">Logout</button>
               </div>
           </div>
       </div>
@@ -1930,15 +2071,18 @@ async function fetchNotificationsData() {
                             petName: b.pet ? b.pet.name : 'Unknown',
                             petBreed: b.pet ? b.pet.breed : 'Unknown',
                             petInitials: b.pet ? b.pet.name.substring(0, 2).toUpperCase() : 'UN',
+                            petPhoto: b.pet?.photo_url || null,
                             service: serviceNames || 'Unknown',
                             serviceDesc: serviceNames || 'Unknown',
-                            date: new Date(b.reschedule_status === 'pending' && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date).toLocaleDateString('en-GB', { day:'2-digit', month:'2-digit', year:'numeric' }),
+                            bookingDate: b.reschedule_status === 'pending' && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date,
+                            date: new Date(b.reschedule_status === 'pending' && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }),
                             time: b.reschedule_status === 'pending' && b.reschedule_requested_time ? b.reschedule_requested_time : (b.booking_time || 'N/A'),
-                            price: b.total_price || 0,
+                            price: b.service_price_total ?? 0,
                             isFixed: false,
                             status: b.status === 'upcoming' ? 'confirmed' : (b.status || 'pending'),
                             statusClass: b.status === 'upcoming' ? 'confirmed' : (b.status || 'pending'),
                             booking_id: b.booking_id,
+                            createdAt: b.created_at || null,
                             services: services,
                             reschedule_status: b.reschedule_status || null,
                             reschedule_requested_date: b.reschedule_requested_date || null,
@@ -2160,33 +2304,73 @@ async function fetchNotificationsData() {
         // ================================================================
         // RENDER BOOKINGS
         // ================================================================
+        function formatBookingTime(time) {
+          if (!time || time === 'N/A') return 'N/A';
+
+          const value = String(time).trim();
+          const normalized = value.match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*(AM|PM)?$/i);
+          if (!normalized) return value;
+
+          let hour = Number(normalized[1]);
+          const minute = normalized[2];
+          const meridiem = normalized[3]?.toUpperCase();
+
+          if (meridiem) {
+            hour = hour % 12 + (meridiem === 'PM' ? 12 : 0);
+          }
+
+          return new Date(2000, 0, 1, hour, Number(minute)).toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit'
+          });
+        }
+
+        function canRescheduleBooking(booking) {
+            const bookingDateTime = new Date(`${booking.bookingDate}T${booking.time}`);
+            const diffHours = (bookingDateTime - new Date()) / (1000 * 60 * 60);
+            return (booking.status === 'pending' || booking.status === 'upcoming' || booking.status === 'confirmed')
+                && diffHours >= 24
+                && !['pending', 'approved'].includes(booking.reschedule_status);
+        }
+
         function renderBookings() {
             let filtered = [...bookings];
 
-            if (currentFilter !== 'all') {
+          if (currentFilter === 'upcoming') {
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            filtered = filtered.filter(b => {
+              const bookingDate = new Date(`${b.bookingDate}T00:00:00`);
+              return bookingDate >= today && b.status !== 'cancelled' && b.status !== 'completed';
+            });
+          } else if (currentFilter !== 'all') {
                 filtered = filtered.filter(b => b.status.toLowerCase() === currentFilter);
             }
 
             switch (currentSort) {
                 case 'oldest':
                     filtered.sort((a, b) => {
-                        const dateA = a.date.split('/').reverse().join('-');
-                        const dateB = b.date.split('/').reverse().join('-');
-                        return new Date(dateA) - new Date(dateB);
+                return new Date(a.createdAt || 0) - new Date(b.createdAt || 0);
                     });
                     break;
-                case 'price-high':
-                    filtered.sort((a, b) => b.price - a.price);
+              case 'nearest-date': {
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                filtered.sort((a, b) => {
+                  const dateA = new Date(`${a.bookingDate}T00:00:00`);
+                  const dateB = new Date(`${b.bookingDate}T00:00:00`);
+                  const aIsUpcoming = dateA >= today;
+                  const bIsUpcoming = dateB >= today;
+
+                  if (aIsUpcoming !== bIsUpcoming) return aIsUpcoming ? -1 : 1;
+                  return dateA - dateB;
+                });
                     break;
-                case 'price-low':
-                    filtered.sort((a, b) => a.price - b.price);
-                    break;
+              }
                 case 'latest':
                 default:
                     filtered.sort((a, b) => {
-                        const dateA = a.date.split('/').reverse().join('-');
-                        const dateB = b.date.split('/').reverse().join('-');
-                        return new Date(dateB) - new Date(dateA);
+                  return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
                     });
             }
 
@@ -2195,12 +2379,16 @@ async function fetchNotificationsData() {
             const start = (currentPage - 1) * itemsPerPage;
             const end = start + itemsPerPage;
             const pageItems = filtered.slice(start, end);
+            const hasRescheduleContent = pageItems.some(booking =>
+              booking.reschedule_status === 'pending' || canRescheduleBooking(booking)
+            );
+            document.getElementById('bookingTable').classList.toggle('hide-reschedule', !hasRescheduleContent);
 
             const tbody = document.getElementById('bookingTableBody');
             if (pageItems.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="6">
+                        <td colspan="7">
                             <div class="empty-state">
                                 <i class="fa-solid fa-inbox"></i>
                                 <p>No bookings found</p>
@@ -2212,12 +2400,10 @@ async function fetchNotificationsData() {
             } else {
                 tbody.innerHTML = pageItems.map(booking => {
                     // ---- 添加计算 ----
-                    const bookingDateTime = new Date(booking.date.split('/').reverse().join('-') + 'T' + booking.time);
+                    const bookingDateTime = new Date(`${booking.bookingDate}T${booking.time}`);
                     const diffHours = (bookingDateTime - new Date()) / (1000 * 60 * 60);
                     // 可改期条件：状态 pending/upcoming，且距离预约时间 >= 24小时，且没有正在进行的改期请求（pending 或 approved）
-                    const canReschedule = (booking.status === 'pending' || booking.status === 'upcoming' || booking.status === 'confirmed')
-                                          && diffHours >= 24
-                                          && (booking.reschedule_status !== 'pending' && booking.reschedule_status !== 'approved');
+                    const canReschedule = canRescheduleBooking(booking);
 
                     let priceDisplay;
                     if (booking.isFixed || booking.service === 'Nail Cut') {
@@ -2230,25 +2416,21 @@ async function fetchNotificationsData() {
                         ? 'Pending Approval' 
                         : booking.status;
 
-                    const statusIcons = {
-                        'completed': 'fa-regular fa-circle-check',
-                        'pending': 'fa-regular fa-clock',
-                        'upcoming': 'fa-regular fa-calendar',
-                        'cancelled': 'fa-regular fa-circle-xmark',
-                        'Pending Approval': 'fa-regular fa-hourglass-half'
-                    };
-                    const statusIcon = statusIcons[displayStatus] || 'fa-regular fa-circle';
-
-                    const serviceNames = booking.services && booking.services.length > 0 
-                        ? booking.services.map(s => s.service_name).join(', ') 
-                        : booking.service;
-                    const serviceIcon = 'fa-solid fa-paw';
+                    const serviceNames = booking.services && booking.services.length > 0
+                      ? booking.services.map(s => `<span>${s.service_name}</span>`).join('')
+                      : `<span>${booking.service}</span>`;
+                    const formattedTime = formatBookingTime(booking.time);
+                    const formattedStatus = displayStatus.replace(/\b\w/g, letter => letter.toUpperCase());
 
                     return `
                         <tr>
                             <td>
                                 <div class="pet-cell">
-                                    <div class="pet-avatar">${booking.petInitials}</div>
+                                    <div class="pet-avatar">
+                                      ${booking.petPhoto
+                                        ? `<img src="${booking.petPhoto}" alt="${booking.petName}" onerror="this.replaceWith(document.createTextNode('${booking.petInitials}'))">`
+                                        : booking.petInitials}
+                                    </div>
                                     <div class="pet-info">
                                         <div class="pet-name">${booking.petName}</div>
                                         <div class="pet-breed">${booking.petBreed}</div>
@@ -2257,32 +2439,36 @@ async function fetchNotificationsData() {
                             </td>
                             <td>
                                 <div class="service-cell">
-                                    <span class="service-name"><i class="${serviceIcon}"></i> ${serviceNames}</span>
-                                    <span class="service-desc">${booking.serviceDesc}</span>
+                                    <span class="service-name">${serviceNames}</span>
                                 </div>
                             </td>
                             <td>
                                 <div class="date-cell">
                                     <div class="date">${booking.date}</div>
-                                    <div class="time"><i class="fa-regular fa-clock"></i> ${booking.time}</div>
+                                    <div class="time">${formattedTime}</div>
                                 </div>
                             </td>
                             <td class="price-cell">${priceDisplay}</td>
                             <td>
                                 <span class="status-badge ${booking.reschedule_status === 'pending' && booking.status !== 'cancelled' ? 'warning' : booking.statusClass}">
-                                    <i class="${statusIcon}"></i> ${displayStatus}
+                                    ${formattedStatus}
                                 </span>
-                                ${booking.reschedule_status === 'approved' ? '<span style="display:inline-block; background:#E6F4EA; color:#137333; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">✅ Reschedule Approved</span>' : ''}
-                                ${booking.reschedule_status === 'rejected' ? '<span style="display:inline-block; background:#FCE8E6; color:#C5221F; font-size:10px; padding:0 8px; border-radius:10px; margin-left:4px;">❌ Reschedule Rejected</span>' : ''}
                             </td>
                             <td>
                                 <div class="action-cell">
                                     <button class="btn-action btn-view" onclick="viewDetails(${booking.id})"><i class="fa-regular fa-eye"></i> View</button>
-                                    ${canReschedule ? `<button class="btn-action btn-reschedule" onclick="reschedule(${booking.id})" title="Only allowed if appointment is at least 24 hours away"><i class="fa-regular fa-calendar-plus"></i> Reschedule</button>` : ''}
-                                    ${booking.reschedule_status === 'pending' ? `<button class="btn-action btn-cancel" onclick="cancelRescheduleRequest(${booking.id})"><i class="fa-regular fa-circle-xmark"></i> Cancel Request</button>` : ''}
                                     ${booking.status === 'pending' && booking.reschedule_status !== 'pending' ? `<button class="btn-action btn-cancel" onclick="cancelBooking(${booking.id})"><i class="fa-regular fa-circle-xmark"></i> Cancel</button>` : ''}
                                 </div>
                             </td>
+                                <td>
+                                  <div class="action-cell">
+                                    ${booking.reschedule_status === 'pending'
+                                        ? `<button class="btn-action btn-cancel" onclick="cancelRescheduleRequest(${booking.id})"><i class="fa-regular fa-circle-xmark"></i> Cancel Request</button>`
+                                        : canReschedule
+                                            ? `<button class="btn-action btn-reschedule" onclick="reschedule(${booking.id})" title="Only allowed if appointment is at least 24 hours away"><i class="fa-regular fa-calendar-plus"></i> Reschedule</button>`
+                                            : '<span class="action-unavailable">-</span>'}
+                                  </div>
+                                </td>
                         </tr>
                     `;
                 }).join('');
@@ -2338,7 +2524,17 @@ async function fetchNotificationsData() {
         }
 
         window.goToPage = function(page) {
-            const filtered = currentFilter === 'all' ? bookings : bookings.filter(b => b.status.toLowerCase() === currentFilter);
+            let filtered = bookings;
+            if (currentFilter === 'upcoming') {
+              const today = new Date();
+              today.setHours(0, 0, 0, 0);
+              filtered = bookings.filter(b => {
+                const bookingDate = new Date(`${b.bookingDate}T00:00:00`);
+                return bookingDate >= today && b.status !== 'cancelled' && b.status !== 'completed';
+              });
+            } else if (currentFilter !== 'all') {
+              filtered = bookings.filter(b => b.status.toLowerCase() === currentFilter);
+            }
             const totalPages = Math.ceil(filtered.length / itemsPerPage);
             if (page < 1 || page > totalPages) return;
             currentPage = page;
@@ -2461,6 +2657,13 @@ async function fetchNotificationsData() {
         // INIT
         // ================================================================
         loadBookings();
+
+        window.addEventListener('pageshow', function(event) {
+          if (event.persisted) {
+            currentPage = 1;
+            loadBookings();
+          }
+        });
 
         console.log('PawCare Booking History loaded successfully!');
 

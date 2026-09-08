@@ -1,5 +1,9 @@
 document.addEventListener('DOMContentLoaded', function() {
 
+    const isLocalFrontend = window.location.protocol === 'file:' ||
+        ['localhost', '127.0.0.1'].includes(window.location.hostname) && window.location.port !== '5000';
+    const API_BASE_URL = isLocalFrontend ? 'http://localhost:5000' : '';
+
     // ===== 自定义弹窗 =====
     function showPopup(icon, title, message, btnText = 'Got it!') {
         const overlay = document.getElementById('customPopup');
@@ -205,7 +209,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const email = localStorage.getItem('resetEmail') || 'user@example.com';
 
-        fetch('/api/reset-password', {
+        fetch(`${API_BASE_URL}/api/reset-password`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

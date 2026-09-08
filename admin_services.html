@@ -359,6 +359,13 @@
             margin-left: auto;
             flex: 0 0 auto;
         }
+        @media (max-width: 1100px) {
+            .page-header-profile .header-actions {
+                flex-basis: 100%;
+                justify-content: flex-start;
+                margin-left: 0;
+            }
+        }
         @media (max-width: 480px) {
             .header-actions {
                 width: 100%;
@@ -635,6 +642,16 @@
         }
         .data-table tbody tr:hover {
             background: #FAF7F2;
+        }
+
+        #serviceTable thead th,
+        #serviceTable thead th {
+            text-align: center !important;
+            vertical-align: middle;
+        }
+        #serviceTable tbody td {
+            text-align: left !important;
+            vertical-align: middle;
         }
 
         /* Pet Type Badge */
@@ -1320,12 +1337,12 @@
         }
 
         #logoutModal .modal-box { width: min(92vw, 460px) !important; max-width: 460px !important; padding: 30px 42px 26px !important; border-radius: 16px !important; text-align: center !important; }
-        #logoutModal .modal-icon-circle.warning { width: auto !important; height: auto !important; margin: 0 auto 12px !important; background: transparent !important; border: none !important; border-radius: 0 !important; }
+        #logoutModal .modal-icon-circle.warning { width: fit-content !important; height: auto !important; display: inline-flex !important; margin: 0 auto 12px !important; background: transparent !important; border: none !important; border-radius: 0 !important; }
         #logoutModal .modal-icon-circle.warning i { color: #E57C00 !important; font-size: 56px !important; }
         #logoutModal .modal-title { font-size: 22px !important; color: #4A3327 !important; margin-bottom: 6px !important; }
         #logoutModal .modal-subtitle { font-size: 15px !important; margin-bottom: 18px !important; }
-        #logoutModal .modal-btn-group { display: flex !important; flex-wrap: wrap !important; gap: 12px !important; }
-        #logoutModal .modal-btn-group .btn { flex: 1 1 0 !important; width: 0 !important; min-width: 0 !important; min-height: 44px !important; padding: 9px 14px !important; border-radius: 9px !important; font-size: 15px !important; justify-content: center !important; align-items: center !important; }
+        #logoutModal .modal-btn-group { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 12px !important; justify-content: center !important; width: 100% !important; }
+        #logoutModal .modal-btn-group .btn { flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; min-height: 44px !important; padding: 9px 14px !important; border-radius: 9px !important; font-size: 15px !important; justify-content: center !important; align-items: center !important; }
         #logoutModal .modal-btn-group .btn-secondary { background: #F3F0EC !important; color: #70675F !important; border: 1px solid #E6DED5 !important; }
         #logoutModal .modal-btn-group .btn:last-child { background: #DE2D32 !important; color: #FFFFFF !important; }
         #notificationsModal .modal-box { width: min(92vw, 600px) !important; max-width: 600px !important; max-height: min(88vh, 680px) !important; padding: 34px 38px 30px !important; border-radius: 20px !important; overflow: hidden !important; }
@@ -1334,12 +1351,12 @@
         #notificationsModal #notificationsModalContent > div { border-radius: 11px; }
         .notification-badge { width:38px !important; height:38px !important; display:inline-flex !important; align-items:center !important; justify-content:center !important; border-radius:12px !important; background:#FDF3E7 !important; color:#5A361A !important; position:relative !important; }
         .notification-badge .count { min-width:18px !important; width:auto !important; height:18px !important; padding:0 5px !important; border:2px solid #fff !important; border-radius:50% !important; background:#DC2626 !important; color:#fff !important; align-items:center !important; justify-content:center !important; position:absolute !important; top:-6px !important; right:-8px !important; font-size:10px !important; }
-        #logoutModal .modal-box { width: min(92vw, 420px) !important; max-width: 420px !important; padding: 36px 40px 32px !important; border-radius: 18px !important; }
-        #logoutModal .modal-icon-circle.warning { width: 72px !important; height: 72px !important; margin: 0 auto 16px !important; background: #FEF7E0 !important; border: 2px solid #FDE68A !important; border-radius: 50% !important; }
-        #logoutModal .modal-icon-circle.warning i { color: #D97706 !important; font-size: 30px !important; }
+        #logoutModal .modal-box { box-sizing: border-box !important; width: min(92vw, 460px) !important; max-width: calc(100vw - 20px) !important; padding: 30px 42px 26px !important; border-radius: 16px !important; text-align: center !important; }
+        #logoutModal .modal-icon-circle.warning { width: fit-content !important; height: auto !important; display: inline-flex !important; margin: 0 auto 12px !important; background: transparent !important; border: none !important; border-radius: 0 !important; }
+        #logoutModal .modal-icon-circle.warning i { color: #E57C00 !important; font-size: 56px !important; }
         @media (max-width: 480px) {
             #logoutModal .modal-box { width: min(92vw, 420px) !important; padding: 28px 20px 24px !important; }
-            #logoutModal .modal-icon-circle.warning { width: auto !important; height: auto !important; }
+            #logoutModal .modal-icon-circle.warning { width: fit-content !important; height: auto !important; display: inline-flex !important; }
             #logoutModal .modal-icon-circle.warning i { font-size: 50px !important; }
             #logoutModal .modal-title { font-size: 21px !important; }
             #logoutModal .modal-subtitle { font-size: 14px !important; }
@@ -1422,7 +1439,7 @@
             }
             .data-table {
                 font-size: 12px;
-                min-width: 700px;
+                min-width: 620px;
             }
             .data-table thead th,
             .data-table tbody td {
@@ -1633,7 +1650,7 @@
 
             .data-table {
                 font-size: 11px;
-                min-width: 580px;
+                min-width: 540px;
             }
             .data-table thead th,
             .data-table tbody td {
@@ -1864,6 +1881,75 @@
                 padding: 6px 10px;
             }
         }
+
+        @media (max-width: 480px) {
+            #logoutModal .modal-btn-group {
+                display: flex !important;
+                flex-direction: row !important;
+                flex-wrap: nowrap !important;
+                width: 100% !important;
+            }
+            #logoutModal .modal-btn-group .btn {
+                flex: 1 1 0 !important;
+                width: auto !important;
+                min-width: 0 !important;
+            }
+        }
+        @media (max-width: 768px) {
+            .main-content,
+            .dashboard-container,
+            .card,
+            .table-responsive {
+                min-width: 0;
+                max-width: 100%;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .data-table {
+                min-width: 800px;
+            }
+
+            .page-header-profile,
+            .filter-bar,
+            .header-actions {
+                flex-wrap: wrap;
+            }
+
+            .booking-stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 480px) {
+            .main-content {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+
+            .page-header-profile,
+            .card {
+                padding: 16px !important;
+            }
+
+            .data-table {
+                min-width: 760px;
+            }
+
+            .booking-stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-box,
+            .modal-box-base {
+                width: calc(100vw - 20px) !important;
+                max-width: calc(100vw - 20px) !important;
+                box-sizing: border-box;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2026,7 +2112,7 @@
                         <option value="all">All Categories</option>
                     </select>
                     <select id="petTypeFilter">
-                        <option value="all">All Pet Types</option>
+                        <option value="all">All Species</option>
                         <option value="cat">🐱 Cat</option>
                         <option value="dog">🐶 Dog</option>
                     </select>
@@ -2043,7 +2129,7 @@
                             <tr>
                                 <th>Service</th>
                                 <th>Category</th>
-                                <th>Pet Type</th>
+                                <th>Species</th>
                                 <th>Price (RM)</th>
                                 <th>Duration</th>
                                 <th>Created At</th>
@@ -2092,9 +2178,9 @@
                         <input type="text" id="newServiceName" placeholder="e.g. Pet Grooming">
                     </div>
                     <div class="form-group">
-                        <label>Pet Type <span class="required">*</span></label>
+                        <label>Species <span class="required">*</span></label>
                         <select id="newServicePet">
-                            <option value="" selected disabled>-- Select Pet Type --</option>
+                            <option value="" selected disabled>-- Select Species --</option>
                             <option value="cat">🐱 Cat</option>
                             <option value="dog">🐶 Dog</option>
                         </select>
@@ -3099,7 +3185,7 @@ async function loadServices() {
                 if (category !== 'all' && category !== 'all categories') {
                     if (normalizeCategory(service.category) !== normalizeCategory(category)) match = false;
                 }
-                if (petType !== 'all' && petType !== 'all pet types') {
+                if (petType !== 'all' && petType !== 'all species' && petType !== 'all pet types') {
                     if ((service.pet_type || '').toLowerCase() !== petType) match = false;
                 }
                 return match;
@@ -3167,7 +3253,7 @@ async function loadServices() {
                 return;
             }
             if (!pet) {
-                showSuccessModal('Error', 'Please select a pet type.', [{ label: 'Issue', value: 'Pet type is required' }]);
+                showSuccessModal('Error', 'Please select a species.', [{ label: 'Issue', value: 'Species is required' }]);
                 return;
             }
             if (!price || isNaN(price) || parseFloat(price) < 0) {
@@ -3213,7 +3299,7 @@ async function loadServices() {
                 closeAddServiceModal();
                 showSuccessModal('Service Created!', `"${name}" has been added successfully.`, [
                     { label: 'Category', value: category },
-                    { label: 'Pet Type', value: pet === 'cat' ? '🐱 Cat' : '🐶 Dog' },
+                    { label: 'Species', value: pet === 'cat' ? '🐱 Cat' : '🐶 Dog' },
                     { label: 'Price (RM)', value: `RM ${parseFloat(price).toFixed(2)}` },
                     { label: 'Duration', value: duration }
                 ]);

@@ -15,8 +15,21 @@ const app = express();
 
 // ===== 配置 =====
 const isProduction = process.env.NODE_ENV === 'production';
+const localOrigins = new Set([
+  'http://localhost:3000',
+  'http://localhost:5000',
+  'http://localhost:5500',
+  'http://localhost:5501',
+  'http://127.0.0.1:5500',
+  'http://127.0.0.1:5501'
+]);
 const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    if (!origin || origin === 'null' || localOrigins.has(origin) || origin === process.env.CLIENT_URL) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origin is not allowed by CORS'));
+  },
   methods: ['GET','POST','PUT','DELETE'],
   allowedHeaders: ['Content-Type','Authorization']
 };
@@ -24,8 +37,8 @@ app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// 安全托管静态文件
-app.use(express.static(__dirname));
+// 安全托管项目静态文件
+app.use(express.static(path.join(__dirname, '..')));
 
 function parseUserAgent(userAgent) {
     const parser = new UAParser(userAgent);
@@ -74,6 +87,31 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
+async function createCustomerNotification(customerId, title, message, type = 'system') {
+  if (!customerId) return;
+  const { error } = await supabaseAdmin
+    .from('customer_notifications')
+    .insert({ customer_id: customerId, title, message, type });
+  if (error) console.warn('Unable to create customer notification:', error.message);
+}
+
+async function autoCancelExpiredPendingBookings() {
+  const today = new Date().toISOString().split('T')[0];
+  const { data, error } = await supabaseAdmin
+    .from('booking')
+    .update({ status: 'cancelled' })
+    .eq('status', 'pending')
+    .lt('booking_date', today)
+    .select('booking_id');
+
+  if (error) {
+    console.error('Auto-cancel expired pending bookings failed:', error.message);
+    return 0;
+  }
+
+  return data?.length || 0;
+}
+
 // ========== 确保存储桶存在 ==========   <-- 从这里开始粘贴
 async function ensureBucketExists(bucketName) {
     try {
@@ -118,7 +156,7 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
       await sendEmailJsTemplate({
         to_email: customerEmail,
         email: customerEmail,
-        otp_code: deleteLink,
+        otp_code: 'CONFIRM ACCOUNT DELETION',
         delete_link: deleteLink,
         title: 'Account Deletion Request - PawCare',
         subject: 'Account Deletion Request - PawCare',
@@ -189,7 +227,7 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
                             <span style="word-break: break-all; font-size: 12px; color: #999;">${deleteLink}</span>
                         </p>
                         
-                        <p class="link-expiry">⏳ This link will expire in <strong>7 days</strong>.</p>
+                        <p class="link-expiry">⏳ This link will expire in <strong>24 hours</strong>.</p>
                         
                         <p style="margin-top: 16px; color: #7a7a7a; font-size: 13px;">
                             If you did not request this deletion, please <a href="mailto:${emailUser}" style="color: #a75e31;">contact us</a> immediately.
@@ -228,7 +266,8 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
           {
             to_email: customerEmail,
             email: customerEmail,
-            otp_code: deleteLink,
+            otp_code: 'CONFIRM ACCOUNT DELETION',
+            delete_link: deleteLink,
             title: 'Account Deletion Request - PawCare',
             subject: 'Account Deletion Request - PawCare',
             description: `Dear ${customerName}, open this link to confirm account deletion: ${deleteLink}`,
@@ -1223,7 +1262,7 @@ app.post('/api/admin/services', isAdmin, async (req, res) => {
     if (!service_name?.trim()) missingFields.push('Service Name');
     if (!category?.trim()) missingFields.push('Category');
     if (!duration?.trim()) missingFields.push('Duration');
-    if (!pet_type) missingFields.push('Pet Type');
+    if (!pet_type) missingFields.push('Species');
     if (!Number.isFinite(numericPrice) || numericPrice < 0) missingFields.push('Price');
     if (missingFields.length > 0) {
       return res.status(400).json({ success: false, message: `Required fields are missing: ${missingFields.join(', ')}.` });
@@ -1311,6 +1350,7 @@ app.delete('/api/admin/services/:id', isAdmin, async (req, res) => {
 // 1. 总览统计
 app.get('/api/admin/stats', isAdmin, async (req, res) => {
   try {
+    await autoCancelExpiredPendingBookings();
     const { data: bookings, error: bookingError } = await supabaseAdmin
       .from('booking')
       .select('status');
@@ -1565,13 +1605,16 @@ app.get('/api/admin/monthly-trend', async (req, res) => {
       months.push(`${year}-${month}`);
       labels.push(`${year}-${month}`);
     }
+    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
+      .toISOString()
+      .split('T')[0];
 
     // 查询 booking 按月份分组计数
     const { data, error } = await supabaseAdmin
       .from('booking')
       .select('booking_date')
       .gte('booking_date', months[0] + '-01')
-      .lte('booking_date', months[months.length - 1] + '-31');
+      .lt('booking_date', nextMonth);
 
     if (error) throw error;
 
@@ -1595,7 +1638,7 @@ app.get('/api/admin/monthly-trend', async (req, res) => {
       .select('booking_date')
       .eq('status', 'completed')
       .gte('booking_date', months[0] + '-01')
-      .lte('booking_date', months[months.length - 1] + '-31');
+      .lt('booking_date', nextMonth);
 
     if (!completedError) {
       const completedMap = {};
@@ -1656,11 +1699,25 @@ app.get('/api/bookings', async (req, res) => {
     const { data, error } = await query;
     if (error) throw error;
 
+    const { data: servicePrices, error: servicePriceError } = await supabaseAdmin
+      .from('service_price')
+      .select('service_id, species, starting_price');
+    if (servicePriceError) throw servicePriceError;
+
     // 映射数据（与原来相同）
     const bookings = data.map(b => {
       const services = b.booking_service || [];
+      const petSpecies = b.pet?.species?.toLowerCase();
+      const servicePriceTotal = services.reduce((sum, service) => {
+        const price = servicePrices.find(item =>
+          item.service_id === service.service_id &&
+          item.species?.toLowerCase() === petSpecies
+        )?.starting_price;
+        return sum + (Number(price) || 0);
+      }, 0);
       return {
         booking_id: b.booking_id,
+        created_at: b.updated_at || null,
         booking_date: b.booking_date,
         booking_time: b.booking_time,
         updated_at: b.updated_at || null,
@@ -1671,6 +1728,7 @@ app.get('/api/bookings', async (req, res) => {
         reschedule_requested_date: b.reschedule_requested_date || null,
         reschedule_requested_time: b.reschedule_requested_time || null,
         total_price: (b.booking_service || []).reduce((sum, s) => sum + (s.estimated_price || 0), 0),
+        service_price_total: servicePriceTotal,
         special_notes: b.special_notes,
         pet: b.pet ? {
           name: b.pet.pet_name,
@@ -1682,7 +1740,11 @@ app.get('/api/bookings', async (req, res) => {
           service_id: s.service_id,
           service_name: s.service?.service_name,
           category: s.service?.category,
-          estimated_price: s.estimated_price
+          estimated_price: s.estimated_price,
+          service_price: servicePrices.find(price =>
+            price.service_id === s.service_id &&
+            price.species?.toLowerCase() === petSpecies
+          )?.starting_price ?? null
         }))
       };
     });
@@ -1693,6 +1755,58 @@ app.get('/api/bookings', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Unauthorized' });
     }
     res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
+  }
+});
+
+const MAX_BOOKINGS_PER_SLOT = 2;
+
+function normalizeBookingTime(value) {
+  const match = String(value || '').trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp][Mm])?$/);
+  if (!match) return String(value || '').trim();
+
+  let hour = Number(match[1]);
+  const minute = match[2];
+  const suffix = match[3] ? match[3].toUpperCase() : hour >= 12 ? 'PM' : 'AM';
+  if (!match[3]) {
+    hour %= 12;
+  }
+  if (hour === 0) hour = 12;
+  return `${String(hour).padStart(2, '0')}:${minute} ${suffix}`;
+}
+
+app.get('/api/bookings/availability', async (req, res) => {
+  try {
+    await getUserInfo(req);
+    const { date } = req.query;
+    if (!date) return res.status(400).json({ success: false, message: 'Date is required.' });
+
+    const { data, error } = await supabaseAdmin
+      .from('booking')
+      .select('booking_time')
+      .eq('booking_date', date)
+      .in('status', ['pending', 'confirmed', 'upcoming']);
+    if (error) throw error;
+
+    const counts = (data || []).reduce((result, booking) => {
+      const time = normalizeBookingTime(booking.booking_time);
+      if (time) result[time] = (result[time] || 0) + 1;
+      return result;
+    }, {});
+
+    res.json({
+      success: true,
+      data: {
+        capacity: MAX_BOOKINGS_PER_SLOT,
+        counts,
+        fullSlots: Object.keys(counts).filter(time => counts[time] >= MAX_BOOKINGS_PER_SLOT)
+      }
+    });
+  } catch (err) {
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    console.error('Error checking booking availability:', err);
+    res.status(500).json({ success: false, message: 'Failed to check booking availability.' });
   }
 });
 
@@ -1722,6 +1836,47 @@ app.post('/api/bookings', async (req, res) => {
         }
         if (!booking_time) {
             return res.status(400).json({ success: false, message: 'Booking time is required.' });
+        }
+
+        const now = new Date();
+        const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+        if (booking_date < today) {
+          return res.status(400).json({
+            success: false,
+            message: 'Booking date cannot be earlier than today.'
+          });
+        }
+        if (booking_date === today) {
+          const timeMatch = String(booking_time).trim().match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+          if (timeMatch) {
+            let bookingHour = Number(timeMatch[1]);
+            const bookingMinute = Number(timeMatch[2]);
+            const meridiem = timeMatch[3].toUpperCase();
+            if (meridiem === 'PM' && bookingHour < 12) bookingHour += 12;
+            if (meridiem === 'AM' && bookingHour === 12) bookingHour = 0;
+            const bookingDateTime = new Date(now);
+            bookingDateTime.setHours(bookingHour, bookingMinute, 0, 0);
+            if (bookingDateTime <= now) {
+              return res.status(400).json({
+                success: false,
+                message: 'For today, booking time must be later than the current time.'
+              });
+            }
+          }
+        }
+
+        const { count: activeSlotBookings, error: slotError } = await supabaseAdmin
+          .from('booking')
+          .select('booking_id', { count: 'exact', head: true })
+          .eq('booking_date', booking_date)
+          .eq('booking_time', booking_time)
+          .in('status', ['pending', 'confirmed', 'upcoming']);
+        if (slotError) throw slotError;
+        if (activeSlotBookings >= MAX_BOOKINGS_PER_SLOT) {
+          return res.status(409).json({
+            success: false,
+            message: 'This time slot is fully booked. Please choose another time.'
+          });
         }
 
         // ===== 2. 检查周四闭店 =====
@@ -1777,7 +1932,7 @@ app.post('/api/bookings', async (req, res) => {
             .from('service_price')
             .select('service_id, starting_price')
             .in('service_id', service_ids)
-            .eq('species', species);
+            .ilike('species', species);
         if (priceError) throw priceError;
 
         const priceMap = {};
@@ -1854,7 +2009,7 @@ app.post('/api/bookings/:booking_id/reschedule-request', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Only pending or upcoming bookings can be rescheduled.' });
     }
 
-    if (booking.reschedule_status === 'pending' || booking.reschedule_status === 'approved') {
+    if (booking.reschedule_status && booking.reschedule_status !== 'none' && booking.reschedule_status !== 'rejected') {
       return res.status(400).json({ success: false, message: 'This booking already has a reschedule request.' });
     }
 
@@ -1896,7 +2051,7 @@ app.post('/api/bookings/:booking_id/reschedule-request', async (req, res) => {
 
 app.put('/api/bookings/:booking_id/reschedule-approve', async (req, res) => {
   try {
-    // 此处应该验证当前用户是否为 Admin，暂略
+    const customer_id = getCustomerId(req);
     const { booking_id } = req.params;
     const { action } = req.body; // 'approve' 或 'reject'
 
@@ -1907,23 +2062,33 @@ app.put('/api/bookings/:booking_id/reschedule-approve', async (req, res) => {
     // 查询当前预约的请求状态
     const { data: booking, error: fetchError } = await supabaseAdmin
       .from('booking')
-      .select('reschedule_status, reschedule_requested_date, reschedule_requested_time, booking_date, booking_time, status')
+      .select('customer_id, reschedule_status, reschedule_requested_date, reschedule_requested_time, booking_date, booking_time, status')
       .eq('booking_id', booking_id)
+      .eq('customer_id', customer_id)
       .single();
 
     if (fetchError || !booking) {
       return res.status(404).json({ success: false, message: 'Booking not found.' });
     }
 
-    if (booking.reschedule_status !== 'pending') {
+    if (!['pending', 'admin_pending'].includes(booking.reschedule_status)) {
       return res.status(400).json({ success: false, message: 'No pending reschedule request for this booking.' });
     }
 
     if (action === 'approve') {
-      // 更新实际预约日期和时间，并将 status 改为 'rescheduled'（或保持 'upcoming'）
       const newDate = booking.reschedule_requested_date;
       const newTime = booking.reschedule_requested_time;
-      // 可选：保留原日期在备注中，或者记录变更历史
+      const { count, error: countError } = await supabaseAdmin
+        .from('booking')
+        .select('booking_id', { count: 'exact', head: true })
+        .eq('booking_date', newDate)
+        .eq('booking_time', newTime)
+        .in('status', ['pending', 'confirmed', 'upcoming'])
+        .neq('booking_id', booking_id);
+      if (countError) throw countError;
+      if ((count || 0) >= MAX_BOOKINGS_PER_SLOT) {
+        return res.status(409).json({ success: false, message: 'This time slot is now fully booked. Please reject the suggestion and contact the admin.' });
+      }
 
       const { error: updateError } = await supabaseAdmin
         .from('booking')
@@ -1937,14 +2102,31 @@ app.put('/api/bookings/:booking_id/reschedule-approve', async (req, res) => {
         .eq('booking_id', booking_id);
 
       if (updateError) throw updateError;
+      await createCustomerNotification(
+        booking.customer_id,
+        'Reschedule approved',
+        `Your appointment has been rescheduled to ${newDate} at ${newTime}.`,
+        'reschedule'
+      );
       res.json({ success: true, message: 'Reschedule request approved. Booking updated.' });
-    } else { // reject
+    } else {
       const { error: updateError } = await supabaseAdmin
         .from('booking')
-        .update({ reschedule_status: 'rejected', updated_at: new Date().toISOString() })
+        .update({
+          reschedule_status: 'rejected',
+          reschedule_requested_date: null,
+          reschedule_requested_time: null,
+          updated_at: new Date().toISOString()
+        })
         .eq('booking_id', booking_id);
 
       if (updateError) throw updateError;
+      await createCustomerNotification(
+        booking.customer_id,
+        'Reschedule rejected',
+        'Your reschedule request was rejected. Please contact PawCare if you need assistance.',
+        'reschedule'
+      );
       res.json({ success: true, message: 'Reschedule request rejected.' });
     }
   } catch (err) {
@@ -2781,7 +2963,7 @@ app.post('/api/customers/:customerId/delete-request', async (req, res) => {
         // Generate a new token so a resend invalidates any older email link.
         const deleteToken = crypto.randomBytes(32).toString('hex');
         const tokenExpiry = new Date();
-        tokenExpiry.setDate(tokenExpiry.getDate() + 7);
+        tokenExpiry.setHours(tokenExpiry.getHours() + 24);
 
         // Update customer with deletion token
         const { error: updateError } = await supabaseAdmin
@@ -2881,6 +3063,11 @@ app.all('/api/delete-account', async (req, res) => {
         // Check token expiry
         const expiryDate = new Date(customer.delete_token_expiry);
         if (new Date() > expiryDate) {
+          await supabaseAdmin
+            .from('customer')
+            .update({ status: 'Active', delete_token: null, delete_token_expiry: null })
+            .eq('customer_id', customer.customer_id);
+
             return res.status(400).send(`
                 <!DOCTYPE html>
                 <html>
@@ -2938,25 +3125,16 @@ app.all('/api/delete-account', async (req, res) => {
         // DELETE ALL CUSTOMER DATA
         // ============================================================
 
-        // 1. Delete bookings
-        await supabaseAdmin
-            .from('booking')
-            .delete()
-            .eq('customer_id', customerId);
+        // Keep historical bookings and reviews. Their nullable customer/pet
+        // references are cleared by the database when the related record is removed.
 
-        // 2. Delete pets
+        // Delete pets belonging to the customer without deleting their bookings.
         await supabaseAdmin
             .from('pet')
             .delete()
             .eq('customer_id', customerId);
 
-        // 3. Delete reviews
-        await supabaseAdmin
-            .from('review')
-            .delete()
-            .eq('customer_id', customerId);
-
-        // 4. Delete customer
+        // Delete customer
         const { error: deleteError } = await supabaseAdmin
             .from('customer')
             .delete()
@@ -3025,12 +3203,19 @@ app.all('/api/delete-account', async (req, res) => {
 app.get('/api/admin/customers', isAdmin, async (req, res) => {
     try {
     const { new_today } = req.query;
+    const expiredAt = new Date().toISOString();
+    await supabaseAdmin
+      .from('customer')
+      .update({ status: 'Active', delete_token: null, delete_token_expiry: null })
+      .eq('status', 'pending_deletion')
+      .lt('delete_token_expiry', expiredAt);
+
     const startOfToday = new Date();
     startOfToday.setHours(0, 0, 0, 0);
     let customerQuery = supabaseAdmin
             .from('customer')
             .select('*')
-            .order('created_at', { ascending: false });
+            .order('customer_id', { ascending: true });
     if (new_today === 'true') customerQuery = customerQuery.gte('created_at', startOfToday.toISOString());
     const { data, error } = await customerQuery;
 
@@ -3160,9 +3345,7 @@ app.delete('/api/admin/customers/:id', isAdmin, async (req, res) => {
             return res.status(404).json({ success: false, message: 'Customer not found' });
         }
         
-        await supabaseAdmin.from('booking').delete().eq('customer_id', id);
         await supabaseAdmin.from('pet').delete().eq('customer_id', id);
-        await supabaseAdmin.from('review').delete().eq('customer_id', id);
         
         const { error } = await supabaseAdmin
             .from('customer')
@@ -3210,6 +3393,7 @@ app.get('/api/admin/customers/:id/bookings', isAdmin, async (req, res) => {
 // 🆕 TAMBAHAN: ========== ADMIN BOOKING MANAGEMENT ==========
 app.get('/api/admin/bookings', isAdmin, async (req, res) => {
     try {
+    await autoCancelExpiredPendingBookings();
         const { status, start_date, end_date, search, reschedule_status, date, upcoming } = req.query;
         
         let query = supabaseAdmin
@@ -3226,7 +3410,7 @@ app.get('/api/admin/bookings', isAdmin, async (req, res) => {
                 reschedule_status,
                 reschedule_requested_date,
                 reschedule_requested_time,
-                customer:customer_id(full_name, email, phone_number),
+                customer:customer_id(full_name, email, phone_number, profile_photo),
                 pet:pet_id(pet_name, breed, species, pet_photo),
                 booking_service(
                     service_id,
@@ -3296,7 +3480,8 @@ app.get('/api/admin/bookings', isAdmin, async (req, res) => {
             customer: b.customer ? {
                 full_name: b.customer.full_name,
                 email: b.customer.email,
-                phone_number: b.customer.phone_number
+              phone_number: b.customer.phone_number,
+              profile_photo: b.customer.profile_photo
             } : null,
             pet: b.pet ? {
                 name: b.pet.pet_name,
@@ -3399,6 +3584,72 @@ app.get('/api/admin/bookings/stats', isAdmin, async (req, res) => {
     }
 });
 
+app.post('/api/admin/bookings/:id/reschedule-suggestion', isAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { new_date, new_time } = req.body;
+
+    if (!new_date || !new_time) {
+      return res.status(400).json({ success: false, message: 'New date and time are required.' });
+    }
+    if (isThursday(new_date)) {
+      return res.status(400).json({ success: false, message: 'We are closed on Thursdays. Please choose another date.' });
+    }
+
+    const { data: booking, error: bookingError } = await supabaseAdmin
+      .from('booking')
+      .select('booking_id, customer_id, status, reschedule_status')
+      .eq('booking_id', id)
+      .single();
+
+    if (bookingError || !booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found.' });
+    }
+    if (!['pending', 'confirmed', 'upcoming'].includes(booking.status)) {
+      return res.status(400).json({ success: false, message: 'Only active bookings can be rescheduled.' });
+    }
+    if (booking.reschedule_status && !['none', 'rejected'].includes(booking.reschedule_status)) {
+      return res.status(400).json({ success: false, message: 'This booking already has a reschedule request.' });
+    }
+
+    const { count, error: countError } = await supabaseAdmin
+      .from('booking')
+      .select('booking_id', { count: 'exact', head: true })
+      .eq('booking_date', new_date)
+      .eq('booking_time', new_time)
+      .in('status', ['pending', 'confirmed', 'upcoming'])
+      .neq('booking_id', id);
+
+    if (countError) throw countError;
+    if ((count || 0) >= MAX_BOOKINGS_PER_SLOT) {
+      return res.status(409).json({ success: false, message: 'This time slot is fully booked. Please choose another time.' });
+    }
+
+    const { error: updateError } = await supabaseAdmin
+      .from('booking')
+      .update({
+        reschedule_requested_date: new_date,
+        reschedule_requested_time: new_time,
+        reschedule_status: 'admin_pending',
+        updated_at: new Date().toISOString()
+      })
+      .eq('booking_id', id);
+    if (updateError) throw updateError;
+
+    await createCustomerNotification(
+      booking.customer_id,
+      'Reschedule suggestion from PawCare',
+      `Admin suggested a new appointment on ${new_date} at ${new_time}. Please review it in your dashboard.`,
+      'reschedule'
+    );
+
+    res.json({ success: true, message: 'Reschedule suggestion sent to the customer.' });
+  } catch (err) {
+    console.error('Error creating admin reschedule suggestion:', err);
+    res.status(500).json({ success: false, message: isProduction ? 'Internal server error' : err.message });
+  }
+});
+
 app.put('/api/admin/bookings/:id/reschedule', isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
@@ -3410,7 +3661,7 @@ app.put('/api/admin/bookings/:id/reschedule', isAdmin, async (req, res) => {
 
         const { data: booking, error: fetchError } = await supabaseAdmin
             .from('booking')
-            .select('reschedule_status, reschedule_requested_date, reschedule_requested_time')
+            .select('customer_id, reschedule_status, reschedule_requested_date, reschedule_requested_time')
             .eq('booking_id', id)
             .single();
 
@@ -3441,6 +3692,14 @@ app.put('/api/admin/bookings/:id/reschedule', isAdmin, async (req, res) => {
             .eq('booking_id', id);
 
         if (updateError) throw updateError;
+        await createCustomerNotification(
+          booking.customer_id,
+          action === 'approve' ? 'Reschedule approved' : 'Reschedule rejected',
+          action === 'approve'
+            ? `Your reschedule request was approved for ${booking.reschedule_requested_date} at ${booking.reschedule_requested_time}.`
+            : 'Your reschedule request was rejected by the admin.',
+          'reschedule'
+        );
         res.json({ success: true, message: `Reschedule ${action === 'approve' ? 'approved' : 'rejected'}` });
     } catch (err) {
         console.error('Error processing reschedule:', err);
@@ -3593,25 +3852,6 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
   app.delete('/api/admin/pets/:id', isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
-      const { data: bookings, error: bookingError } = await supabaseAdmin
-        .from('booking')
-        .select('booking_id')
-        .eq('pet_id', id);
-      if (bookingError) throw bookingError;
-      const bookingIds = (bookings || []).map(booking => booking.booking_id);
-      if (bookingIds.length > 0) {
-        const { error: bookingServiceError } = await supabaseAdmin
-          .from('booking_service')
-          .delete()
-          .in('booking_id', bookingIds);
-        if (bookingServiceError) throw bookingServiceError;
-
-        const { error: deleteBookingsError } = await supabaseAdmin
-          .from('booking')
-          .delete()
-          .in('booking_id', bookingIds);
-        if (deleteBookingsError) throw deleteBookingsError;
-      }
 
       const { data, error } = await supabaseAdmin
         .from('pet')
@@ -3723,6 +3963,8 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+  autoCancelExpiredPendingBookings();
+  setInterval(autoCancelExpiredPendingBookings, 60 * 60 * 1000);
 });
 
 app.get('/api/notifications', async (req, res) => {

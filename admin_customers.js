@@ -942,7 +942,12 @@ async function loadCustomersFromSupabase() {
             cancelled: Number(customer.cancelled_booking_count) || 0,
             recentBookings: [],
             status: customer.status || 'Active'
-        }));
+        })).sort((firstCustomer, secondCustomer) => {
+            const firstId = Number.parseInt(String(firstCustomer.customer_id || '').replace(/\D/g, ''), 10);
+            const secondId = Number.parseInt(String(secondCustomer.customer_id || '').replace(/\D/g, ''), 10);
+            return (Number.isNaN(firstId) ? Number.MAX_SAFE_INTEGER : firstId) -
+                (Number.isNaN(secondId) ? Number.MAX_SAFE_INTEGER : secondId);
+        });
 
         await loadCustomerBookingStats();
 
@@ -1525,7 +1530,7 @@ function openDeleteModal(id) {
                 </p>
             </div>
             <p style="font-size: 12px; color: #7A7A7A; margin-top: 8px;">
-                <i class="fa-regular fa-clock"></i> Link expires in <strong>7 days</strong>
+                <i class="fa-regular fa-clock"></i> Link expires in <strong>24 hours</strong>
             </p>
         </div>
     `;
@@ -1604,7 +1609,7 @@ async function confirmDeleteCustomerWithEmail() {
                 `A deletion confirmation email has been sent to <strong>${customer.email}</strong>.<br><br>
                 The customer just needs to <strong>click the link</strong> in the email to delete their account.<br><br>
                 <span style="font-size: 13px; color: #7A7A7A;">
-                    ⏳ The link will expire in 7 days.
+                    ⏳ The link will expire in 24 hours.
                 </span>`
             );
         } else {
@@ -1857,6 +1862,11 @@ document.addEventListener('DOMContentLoaded', function() {
     // THEN LOAD CUSTOMER DATA
     // ================================================================
     loadCustomersFromSupabase();
+    setInterval(() => {
+        if (document.visibilityState === 'visible') {
+            loadCustomersFromSupabase();
+        }
+    }, 60 * 1000);
 
     console.log('PAWCARE ADMIN CUSTOMERS LOADED SUCCESSFULLY!');
     console.log('Connected to Supabase customer table.');

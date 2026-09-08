@@ -539,7 +539,10 @@
                     const email = localStorage.getItem('2faEmail') || '';
                     const password = localStorage.getItem('2faPassword') || '';
 
-                    const response = await fetch('/api/login', {
+                    const apiBaseUrl = window.location.protocol === 'file:' ||
+                        ['localhost', '127.0.0.1'].includes(window.location.hostname) && window.location.port !== '5000'
+                        ? 'http://localhost:5000' : '';
+                    const response = await fetch(`${apiBaseUrl}/api/login`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
@@ -622,7 +625,9 @@
                 resendLink.style.pointerEvents = 'none';
 
                 // 调用登录接口触发重新发送 2FA 邮件
-                fetch('/api/login', {
+                fetch(`${window.location.protocol === 'file:' ||
+                    ['localhost', '127.0.0.1'].includes(window.location.hostname) && window.location.port !== '5000'
+                    ? 'http://localhost:5000' : ''}/api/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: email, password: localStorage.getItem('2faPassword') || '' })

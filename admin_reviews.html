@@ -415,7 +415,28 @@
         }
         @media (max-width: 768px) {
             .stats-mini-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 10px;
+            }
+            .stat-mini-card {
+                min-width: 0;
+                padding: 14px 12px;
+                gap: 10px;
+            }
+            .stat-mini-card .icon {
+                width: 42px;
+                height: 42px;
+                font-size: 19px;
+            }
+            .stat-mini-card .info {
+                min-width: 0;
+            }
+            .stat-mini-card .info h3 {
+                font-size: 20px;
+            }
+            .stat-mini-card .info p {
+                font-size: 11px;
+                white-space: nowrap;
             }
             .rating-overview {
                 flex-direction: column;
@@ -533,19 +554,15 @@
         <!-- ===== REVIEWS CONTENT ===== -->
         <div class="reviews-container">
 
-            <div class="admin-page-banner review-page-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; gap:10px;">
-                <div>
-                    <h1 style="font-size:24px; font-weight:700; color:#333; display:flex; align-items:center; gap:10px; margin:0; line-height:1.2;">
-                        <i class="fa-regular fa-star" style="color:#D97706;"></i> Review Management
-                    </h1>
-                    <p style="font-size:14px; color:#7A7A7A; margin:2px 0 0; line-height:1.25;">Manage customer reviews and ratings, reply to feedback, and monitor review trends.</p>
+            <div class="page-header-profile review-page-header">
+                <div class="page-header-profile-left">
+                    <i class="fa-regular fa-star page-header-profile-icon"></i>
+                    <div>
+                        <h1 class="page-header-profile-title">Review Management</h1>
+                        <p class="page-header-profile-subtitle">Manage customer reviews and ratings, reply to feedback, and monitor review trends.</p>
+                    </div>
                 </div>
-                <div style="display:flex; align-items:center; justify-content:flex-end; gap:14px; margin-left:auto; flex-wrap:nowrap; white-space:nowrap;">
-                    <span class="admin-page-date"><i class="fa-regular fa-calendar"></i> <span id="adminPageDate">Loading...</span></span>
-                    <span style="background:#E8F5E9; color:#2E7D32; border:2px solid #66BB6A; padding:4px 16px; border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap; box-shadow:0 1px 3px rgba(46,125,50,0.12);">
-                        <i class="fa-solid fa-circle" style="font-size:8px; margin-right:6px;"></i> All Reviews
-                    </span>
-                </div>
+                <span class="admin-page-date"><i class="fa-regular fa-calendar"></i> <span id="adminPageDate">Loading...</span></span>
             </div>
 
             <!-- 统计卡片 -->
@@ -1222,7 +1239,7 @@ if (notifModal) {
 
         let html = '';
         reviews.forEach(review => {
-            const customerName = review.customer ? review.customer.full_name : 'Anonymous';
+            const customerName = review.customer ? review.customer.full_name : 'Deleted Customer';
             const dateStr = review.created_at ? new Date(review.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
             const serviceName = review.service_name || 'General';
             const photoHtml = review.review_photo ?

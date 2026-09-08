@@ -67,7 +67,11 @@ async function authFetch(url, options = {}) {
         'Authorization': `Bearer ${token}`,
         ...options.headers
     };
-    const response = await fetch(url, { ...options, headers });
+    const response = await fetch(url, {
+        cache: 'no-store',
+        ...options,
+        headers
+    });
     if (response.status === 401) {
         localStorage.clear();
         window.location.replace('login.html');
@@ -396,6 +400,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.addEventListener('visibilitychange', function() {
             if (!document.hidden) {
                 loadAdminHeaderProfile();
+                loadRecentReviews();
             }
         });
     }
@@ -861,6 +866,33 @@ if (typeof bindUserMenuEvents === 'function') {
         }
     }
 
+    function formatRecentBookingDateTime(dateValue, timeValue) {
+        if (!dateValue) return 'N/A';
+
+        const date = new Date(`${dateValue}T00:00:00`);
+        if (Number.isNaN(date.getTime())) return `${dateValue} ${timeValue || ''}`.trim();
+
+        const formattedDate = date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric'
+        });
+
+        if (!timeValue) return formattedDate;
+
+        const rawTime = String(timeValue).trim();
+        const meridiem = rawTime.match(/\s*(AM|PM)$/i)?.[1]?.toUpperCase();
+        const timeOnly = rawTime.replace(/\s*(AM|PM)$/i, '');
+        const parts = timeOnly.split(':');
+        const hour = Number.parseInt(parts[0], 10);
+        const minute = parts[1] || '00';
+        const formattedTime = meridiem
+            ? `${timeOnly} ${meridiem}`
+            : `${String(hour % 12 || 12).padStart(2, '0')}:${minute} ${hour >= 12 ? 'PM' : 'AM'}`;
+
+        return `${formattedDate}, ${formattedTime}`;
+    }
+
     // LOAD RECENT BOOKINGS - FROM SUPABASE
     async function loadRecentBookings() {
         try {
@@ -877,13 +909,14 @@ if (typeof bindUserMenuEvents === 'function') {
             
             tbody.innerHTML = bookings.map(booking => {
                 const statusClass = booking.status ? booking.status.toLowerCase() : 'pending';
-                const statusDisplay = booking.status || 'Pending';
+                const rawStatus = booking.status || 'pending';
+                const statusDisplay = rawStatus.charAt(0).toUpperCase() + rawStatus.slice(1).toLowerCase();
                 return `<tr>
                     <td><strong>#${booking.booking_id || 'N/A'}</strong></td>
                     <td>${booking.customer?.full_name || 'Unknown'}</td>
                     <td>${booking.pet?.name || 'N/A'}</td>
                     <td>${booking.services?.[0]?.service_name || 'N/A'}</td>
-                    <td>${booking.booking_date || ''} ${booking.booking_time || ''}</td>
+                    <td>${formatRecentBookingDateTime(booking.booking_date, booking.booking_time)}</td>
                     <td><span class="status-pill ${statusClass}">${statusDisplay}</span></td>
                 </tr>`;
             }).join('');
@@ -898,7 +931,7 @@ if (typeof bindUserMenuEvents === 'function') {
     // LOAD RECENT REVIEWS - FROM SUPABASE
     async function loadRecentReviews() {
         try {
-            const response = await authFetch('/api/reviews');
+            const response = await authFetch(`/api/reviews?latest=${Date.now()}`);
             if (!response || !response.ok) throw new Error('Failed to load recent reviews');
             const reviewResult = await response.json();
             const reviews = (reviewResult.data || []).slice(0, 4);
@@ -911,10 +944,13 @@ if (typeof bindUserMenuEvents === 'function') {
             
             container.innerHTML = reviews.map(review => {
                 const stars = '★'.repeat(review.rating || 0) + '☆'.repeat(5 - (review.rating || 0));
-                const name = review.customer_name || 'Anonymous';
+                const name = review.customer?.full_name || 'Anonymous';
                 const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+                const avatar = review.customer?.profile_photo
+                    ? `<img src="${review.customer.profile_photo}" alt="${name}" loading="lazy">`
+                    : initials;
                 return `<div class="review-item">
-                    <div class="review-avatar">${initials}</div>
+                    <div class="review-avatar">${avatar}</div>
                     <div class="review-content">
                         <div class="review-name">${name}</div>
                         <div class="review-stars">${stars}</div>
@@ -930,6 +966,10 @@ if (typeof bindUserMenuEvents === 'function') {
                 `<div style="text-align:center; color:#7A7A7A; padding:20px;">Failed to load reviews</div>`;
         }
     }
+
+    setInterval(() => {
+        if (!document.hidden) loadRecentReviews();
+    }, 30000);
 
     // UPDATE NOTIFICATION COUNT - FROM SUPABASE
     async function updateNotificationCount() {

@@ -14,6 +14,7 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="user_modal.css">
+  <link rel="stylesheet" href="user_responsive.css">
   
   <style>
     /* ===== RESET & BASE ===== */
@@ -333,7 +334,13 @@
 
     .grid-2-col {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .dashboard-stack {
+      display: grid;
       gap: 24px;
       margin-bottom: 24px;
     }
@@ -348,6 +355,14 @@
       display: flex;
       flex-direction: column;
       gap: 24px;
+      grid-column: 1 / -1;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .right-column > .card {
+      width: 100%;
+      min-width: 0;
     }
 
     .card {
@@ -401,17 +416,36 @@
     }
 
     .appointment-card {
-      display: flex;
-      gap: 20px;
+      display: grid;
+      grid-template-columns: 128px minmax(0, 1fr);
+      gap: 24px;
       align-items: flex-start;
+      padding: 20px;
+      background: #FFFCF8;
+      border: 1px solid #EFE3D7;
+      border-radius: 16px;
+      box-shadow: 0 3px 12px rgba(90, 54, 26, 0.05);
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    }
+
+    .appointment-card:hover {
+      border-color: #DDBB99;
+      box-shadow: 0 8px 20px rgba(90, 54, 26, 0.09);
+      transform: translateY(-1px);
+    }
+
+    #upcomingAppointmentContainer {
+      display: grid;
+      gap: 14px;
     }
 
     .appointment-img {
-      width: 100px;
-      height: 100px;
-      border-radius: 12px;
+      width: 128px;
+      height: 128px;
+      border-radius: 16px;
       overflow: hidden;
       flex-shrink: 0;
+      box-shadow: inset 0 0 0 1px rgba(90, 54, 26, 0.06);
     }
 
     .appointment-img img {
@@ -422,59 +456,80 @@
 
     .appointment-info {
       flex: 1;
+      min-width: 0;
     }
 
     .pet-title-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      gap: 16px;
+      margin-bottom: 14px;
     }
 
     .pet-title-bar h4 {
-      font-size: 16px;
+      font-size: 18px;
       font-weight: 600;
       color: #333333;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .pet-title-bar h4 span {
       font-weight: 400;
       color: #7A7A7A;
-      font-size: 13px;
+      font-size: 14px;
+    }
+
+    .pet-title-bar .badge {
+      flex-shrink: 0;
+      padding: 0;
     }
 
     .badge {
-      padding: 2px 14px;
-      border-radius: 12px;
-      font-size: 11px;
-      font-weight: 600;
+      padding: 0;
+      background: transparent;
+      border: 0;
+      font-size: 13px;
+      font-weight: 700;
+      line-height: 1.35;
     }
 
     .badge.confirmed {
-      background: #E8F5E9;
-      color: #137333;
-      border: 1px solid #B7DFBE;
+      color: #146C36;
     }
 
-    .badge.confirmed {
-      background: #E6F4EA;
-      color: #137333;
+    .badge.warning {
+      color: #9A5A00;
+    }
+
+    .badge.danger {
+      color: #B42318;
+    }
+
+    .badge.success {
+      color: #146C36;
     }
 
     .details-list {
       list-style: none;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4px 16px;
-      margin-bottom: 12px;
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      gap: 10px 28px;
+      margin-bottom: 18px;
     }
 
     .details-list li {
       font-size: 13px;
       color: #7A7A7A;
-      display: flex;
-      align-items: center;
-      gap: 6px;
+      display: grid;
+      grid-template-columns: 14px auto minmax(0, 1fr);
+      align-items: start;
+      gap: 7px;
+      min-width: 0;
+      line-height: 1.45;
     }
 
     .details-list li i {
@@ -484,15 +539,63 @@
       font-size: 12px;
     }
 
+    .details-list li > span {
+      white-space: nowrap;
+    }
+
     .details-list li strong {
       color: #333333;
       font-weight: 500;
+      min-width: 0;
+      line-height: 1.45;
+      overflow-wrap: break-word;
+      word-break: normal;
     }
 
     .action-btns {
       display: flex;
+      flex-wrap: wrap;
+      align-items: center;
       gap: 10px;
-      margin-top: 8px;
+      margin-top: 4px;
+      padding-top: 14px;
+      border-top: 1px solid #F0E5DA;
+    }
+
+    .action-btns .btn {
+      flex: 1 1 150px;
+      min-width: 140px;
+      min-height: 44px;
+      border-radius: 9px;
+      justify-content: center;
+      text-align: center;
+      line-height: 1.3;
+    }
+
+    .action-btns .badge {
+      flex: 0 1 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 0;
+      padding: 0;
+      white-space: nowrap;
+    }
+
+    .action-btns .action-status {
+      flex: 1 1 150px;
+      min-width: 140px;
+      min-height: 44px;
+      padding: 8px 20px;
+      border-radius: 9px;
+      text-align: center;
+      line-height: 1.3;
+      font-size: 12px;
+    }
+
+    .action-btns .action-status.confirmed {
+      background: #E6F4EA;
+      border: 1px solid #B7DFBE;
     }
 
     .btn {
@@ -530,6 +633,17 @@
       background: #E0D9D0;
     }
 
+    .action-btns .btn-secondary {
+      background: #D97706;
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(217, 119, 6, 0.2);
+    }
+
+    .action-btns .btn-secondary:hover {
+      background: #B45309;
+      box-shadow: 0 6px 16px rgba(180, 83, 9, 0.25);
+    }
+
     .btn-danger {
       background: #DC2626;
       color: #fff;
@@ -549,15 +663,21 @@
 
     .quick-actions-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 10px;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
     }
 
     .qa-item {
       background: #FAF7F2;
       border: 1px solid #EFECE6;
       border-radius: 10px;
-      padding: 16px 12px;
+      padding: 18px 8px;
+      min-width: 0;
+      min-height: 104px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
       text-align: center;
       cursor: pointer;
       transition: all 0.2s;
@@ -565,10 +685,59 @@
       color: #333333;
     }
 
+    .qa-item:nth-child(1) {
+      background: #FFF4DE;
+      border-color: #F4D49A;
+    }
+
+    .qa-item:nth-child(2) {
+      background: #EAF7F0;
+      border-color: #BFE3CD;
+    }
+
+    .qa-item:nth-child(3) {
+      background: #EAF3FA;
+      border-color: #C3DDEC;
+    }
+
+    .qa-item:nth-child(4) {
+      background: #FCEFE8;
+      border-color: #EBCFC0;
+    }
+
+    .qa-item:nth-child(5) {
+      background: #FFF0D2;
+      border-color: #F0CF8B;
+    }
+
     .qa-item:hover {
-      background: #FDF5E6;
-      border-color: #D3C4B8;
       transform: translateY(-2px);
+      box-shadow: 0 7px 16px rgba(90, 54, 26, 0.12);
+    }
+
+    .qa-item:nth-child(1):hover {
+      background: #FFE8B5;
+      border-color: #E8B85F;
+    }
+
+    .qa-item:nth-child(2):hover {
+      background: #D8F0E2;
+      border-color: #86C89D;
+    }
+
+    .qa-item:nth-child(3):hover {
+      background: #D9EAF5;
+      border-color: #87B8D4;
+    }
+
+    .qa-item:nth-child(4):hover {
+      background: #F6DDD0;
+      border-color: #D99B7B;
+    }
+
+    .qa-item:nth-child(5):hover {
+      background: #FFE2A5;
+      border-color: #DFAE4F;
     }
 
     .qa-item i {
@@ -578,37 +747,64 @@
       margin-bottom: 6px;
     }
 
+    .qa-item:nth-child(2) i {
+      color: #2F8B57;
+    }
+
+    .qa-item:nth-child(3) i {
+      color: #347BA8;
+    }
+
+    .qa-item:nth-child(4) i {
+      color: #C66B3D;
+    }
+
     .qa-item span {
       font-size: 12px;
       font-weight: 500;
+      line-height: 1.35;
     }
 
     .pets-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 14px;
+      gap: 12px;
     }
 
     .pet-card {
-      background: #FAF7F2;
-      border-radius: 12px;
-      padding: 16px;
+      background: #FFFFFF;
+      border-radius: 10px;
+      padding: 18px 20px;
       display: flex;
-      gap: 14px;
+      gap: 16px;
       align-items: center;
-      border: 1px solid #EFECE6;
-      transition: border-color 0.2s;
+      min-height: 188px;
+      border: 1px solid #E8E1DA;
+      transition: background 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.2s;
     }
 
     .pet-card:hover {
-      border-color: #D3C4B8;
+      background: #FFFCF8;
+      border-color: #D5A66F;
+      box-shadow: 0 8px 18px rgba(90, 54, 26, 0.1);
+      transform: translateY(-3px);
+    }
+
+    .pet-card:hover .pet-avatar {
+      background: #FFF1D9;
+      border-color: #D5A66F;
+    }
+
+    .pet-card:hover .pet-details h4 {
+      color: #5A361A;
     }
 
     .pet-card .pet-avatar {
-      width: 48px;
-      height: 48px;
+      width: 68px;
+      height: 68px;
       border-radius: 50%;
-      background: #FDF3E7;
+      background: #FAF3E9;
+      border: 1px solid #EADBCB;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -623,41 +819,63 @@
     }
 
     .pet-card .pet-avatar .no-photo {
-      font-size: 18px;
+      font-size: 21px;
       font-weight: 600;
       color: #5A361A;
     }
 
     .pet-card .pet-details {
       flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
     }
 
     .pet-card .pet-details h4 {
-      font-size: 14px;
+      font-size: 17px;
       font-weight: 600;
       color: #333333;
+      line-height: 1.2;
+      margin: 0;
     }
 
     .pet-card .pet-details .breed {
-      font-size: 12px;
+      font-size: 13px;
       color: #7A7A7A;
-      margin: 2px 0 4px;
+      margin: 3px 0 7px;
+      min-height: 19px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
     }
 
     .pet-card .pet-details .pet-meta {
       display: flex;
       gap: 12px;
-      font-size: 11px;
+      font-size: 12px;
       color: #7A7A7A;
+      flex-wrap: wrap;
+      min-height: 18px;
     }
 
     .pet-card .pet-details .pet-meta .label {
-      color: #B0A090;
+      color: #9A8D83;
     }
 
     .pet-card .pet-details .pet-meta .value {
-      color: #333333;
+      color: #4A4039;
       font-weight: 500;
+    }
+
+    .pet-card .btn-sm {
+      margin-top: 10px;
+      min-height: 36px;
+      padding: 8px 16px;
+      border-radius: 7px;
+      font-size: 12px;
+      box-shadow: none;
     }
 
     .empty-pets {
@@ -697,22 +915,50 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
+      table-layout: fixed;
     }
 
     .booking-table thead th {
-      padding: 10px 12px;
-      text-align: left;
+      padding: 11px 10px;
+      text-align: center !important;
       font-weight: 600;
       color: #7A7A7A;
       font-size: 11px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      border-bottom: 2px solid #EFECE6;
+      border-bottom: 1px solid #E4D9CE;
     }
 
     .booking-table tbody td {
-      padding: 10px 12px;
-      border-bottom: 1px solid #EFECE6;
+      padding: 13px 10px;
+      border-bottom: 1px solid #F0E8DF;
+      color: #3F3934;
+      text-align: center;
+      vertical-align: middle;
+      overflow-wrap: break-word;
+    }
+
+    .booking-table th:nth-child(1),
+    .booking-table td:nth-child(1) { width: 16%; }
+
+    .booking-table th:nth-child(2),
+    .booking-table td:nth-child(2) { width: 27%; }
+
+    .booking-table th:nth-child(3),
+    .booking-table td:nth-child(3) { width: 16%; }
+
+    .booking-table th:nth-child(4),
+    .booking-table td:nth-child(4) { width: 18%; }
+
+    .booking-table th:nth-child(5),
+    .booking-table td:nth-child(5) { width: 23%; }
+
+    .booking-table tbody tr {
+      transition: background 0.2s;
+    }
+
+    .booking-table tbody tr:hover {
+      background: #FFFBF6;
     }
 
     .booking-table tbody tr:last-child td {
@@ -722,6 +968,7 @@
     .table-pet {
       display: flex;
       align-items: center;
+      justify-content: center;
       gap: 10px;
     }
 
@@ -733,14 +980,20 @@
     }
 
     .status-pill {
-      padding: 2px 12px;
-      border-radius: 12px;
+      padding: 5px 10px;
+      border-radius: 8px;
       font-size: 11px;
       font-weight: 600;
       display: inline-block;
+      line-height: 1.25;
     }
 
     .status-pill.success {
+      background: #E6F4EA;
+      color: #137333;
+    }
+
+    .status-pill.confirmed {
       background: #E6F4EA;
       color: #137333;
     }
@@ -759,34 +1012,47 @@
       height: 100%;
     }
 
+    .right-column .full-height {
+      height: fit-content;
+      align-self: start;
+    }
+
     .notification-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
     }
 
     .notification-item {
       display: flex;
       align-items: flex-start;
       gap: 12px;
-      padding: 10px 0;
-      border-bottom: 1px solid #EFECE6;
+      padding: 13px 14px;
+      border: 1px solid #EFE3D7;
+      border-radius: 12px;
+      background: #FFFCF8;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
 
     .notification-item:last-child {
-      border-bottom: none;
+      border-bottom: 1px solid #EFE3D7;
+    }
+
+    .notification-item:hover {
+      border-color: #DDBB99;
+      box-shadow: 0 4px 12px rgba(90, 54, 26, 0.06);
     }
 
     .notification-item .notif-icon {
-      width: 32px;
-      height: 32px;
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       background: #FDF5E6;
       display: flex;
       align-items: center;
       justify-content: center;
       color: #D97706;
-      font-size: 14px;
+      font-size: 15px;
       flex-shrink: 0;
     }
 
@@ -798,6 +1064,7 @@
       font-size: 13px;
       color: #333333;
       line-height: 1.5;
+      margin: 0;
     }
 
     .notification-item .time {
@@ -805,6 +1072,57 @@
       color: #B0A090;
       white-space: nowrap;
       margin-top: 2px;
+    }
+
+    .notification-item.reminder-urgent {
+      background: #FFF1F0;
+      border-color: #F3B3AE;
+    }
+
+    .notification-item.reminder-urgent .notif-icon {
+      background: #FDE2E0;
+      color: #C5221F;
+    }
+
+    .notification-item.reminder-urgent .time {
+      color: #C5221F;
+      font-weight: 600;
+    }
+
+    .notification-item.reminder-week {
+      background: #FEF7E0;
+      border-color: #FDE68A;
+    }
+
+    .notification-item.reminder-week .notif-icon {
+      background: #FDE68A;
+      color: #D97706;
+    }
+
+    .notification-item.reminder-week .time {
+      color: #B06000;
+      font-weight: 600;
+    }
+
+    .notification-item.reminder-later {
+      background: #EFF8F1;
+      border-color: #B9DEC2;
+    }
+
+    .notification-item.reminder-later .notif-icon {
+      background: #DDF1E1;
+      color: #2F8B57;
+    }
+
+    .notification-item.reminder-later .time {
+      color: #2F8B57;
+      font-weight: 600;
+    }
+
+    .notification-item .reminder-date {
+      margin-top: 3px;
+      font-size: 11px;
+      color: #7A7A7A;
     }
 
     .dashed-info-box {
@@ -860,8 +1178,8 @@
       background: #FFFFFF;
       border-radius: 20px;
       width: 100%;
-      max-width: 420px;
-      padding: 32px 36px;
+      max-width: 460px;
+      padding: 30px 28px 26px;
       box-shadow: 0 20px 60px rgba(0,0,0,0.15);
       position: relative;
       animation: slideUp 0.3s ease;
@@ -958,12 +1276,25 @@
       font-size: 30px;
     }
 
+    .modal-icon-circle.info {
+      width: 58px;
+      height: 58px;
+      margin-bottom: 14px;
+      background: #FAF7F2;
+      border-color: #D3C4B8;
+    }
+
+    .modal-icon-circle.info i {
+      color: #333333;
+      font-size: 30px;
+    }
+
     .modal-title {
-      font-size: 20px;
+      font-size: 22px;
       font-weight: 700;
       color: #333333;
       text-align: center;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .modal-subtitle {
@@ -1016,18 +1347,18 @@
     .modal-detail-card {
       text-align: left;
       background: #FAF7F2;
-      border-radius: 12px;
-      padding: 14px 18px;
-      margin-bottom: 20px;
+      border-radius: 16px;
+      padding: 14px 20px;
+      margin: 4px 0 24px;
       border: 1px solid #EFECE6;
     }
 
     .modal-detail-row {
       display: flex;
       align-items: center;
-      padding: 6px 0;
+      padding: 10px 0;
       border-bottom: 1px dashed #EFECE6;
-      gap: 12px;
+      gap: 14px;
     }
 
     .modal-detail-row:last-child {
@@ -1036,23 +1367,142 @@
     }
 
     .modal-detail-row .detail-icon {
-      width: 24px;
+      width: 26px;
       color: #D97706;
-      font-size: 14px;
+      font-size: 17px;
       text-align: center;
+      flex: 0 0 26px;
     }
 
     .modal-detail-row .detail-label {
       font-size: 12px;
       color: #7A7A7A;
       font-weight: 500;
-      min-width: 60px;
+      min-width: 68px;
     }
 
     .modal-detail-row .detail-value {
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 600;
       color: #333333;
+      line-height: 1.45;
+    }
+
+    .modal-detail-row .detail-value .detail-meta {
+      display: inline;
+      color: #8A817A;
+      font-size: 12px;
+      font-weight: 400;
+      margin-left: 10px;
+    }
+
+    .reschedule-modal-box {
+      max-width: 500px;
+      padding: 28px 30px 24px;
+    }
+
+    .reschedule-heading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .reschedule-heading h2 {
+      font-size: 22px;
+      color: #333333;
+      margin: 0;
+    }
+
+    .reschedule-icon {
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: #FEF3C7;
+      color: #D97706;
+      font-size: 23px;
+    }
+
+    .reschedule-subtitle {
+      text-align: center;
+      color: #7A7A7A;
+      font-size: 14px;
+      margin: 0 0 24px;
+    }
+
+    .reschedule-field {
+      margin-bottom: 18px;
+      text-align: left;
+    }
+
+    .reschedule-field label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #5A361A;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 7px;
+    }
+
+    .reschedule-field label i {
+      color: #D97706;
+      width: 16px;
+      text-align: center;
+    }
+
+    .reschedule-input {
+      width: 100%;
+      min-height: 48px;
+      padding: 10px 14px;
+      border: 1px solid #E5DDD4;
+      border-radius: 12px;
+      background: #FFFFFF;
+      color: #333333;
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .reschedule-input:focus {
+      border-color: #D97706;
+      box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+    }
+
+    .reschedule-note {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #FEF3C7;
+      border-left: 4px solid #D97706;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin: 4px 0 24px;
+      color: #92400E;
+      font-size: 13px;
+      font-weight: 500;
+      line-height: 1.45;
+      text-align: left;
+    }
+
+    .reschedule-note i {
+      color: #D97706;
+      font-size: 17px;
+      flex: 0 0 auto;
+    }
+
+    .reschedule-actions {
+      gap: 12px;
+    }
+
+    .reschedule-actions .modal-btn {
+      min-width: 130px;
+      min-height: 44px;
     }
 
     /* ================================================================
@@ -1093,7 +1543,7 @@
       }
 
       .quick-actions-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
       }
     }
 
@@ -1128,13 +1578,36 @@
         padding: 18px 16px;
       }
 
+      .upcoming-card .card-header {
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .upcoming-card .view-all {
+        text-align: right;
+        line-height: 1.35;
+      }
+
       .appointment-card {
-        flex-direction: column;
+        grid-template-columns: 72px minmax(0, 1fr);
+        gap: 14px;
+        padding: 16px;
       }
 
       .appointment-img {
-        width: 100%;
-        height: 140px;
+        width: 72px;
+        height: 72px;
+        border-radius: 14px;
+      }
+
+      .pet-title-bar {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .pet-title-bar h4 {
+        white-space: normal;
       }
 
       .details-list {
@@ -1146,16 +1619,31 @@
       }
 
       .action-btns .btn {
-        flex: 1;
+        flex: 1 1 100%;
         justify-content: center;
+      }
+
+      .action-btns .badge {
+        flex: 1 1 100%;
+        min-height: 0;
       }
 
       .pets-grid {
         grid-template-columns: 1fr;
       }
 
+      .pet-card {
+        gap: 14px;
+        padding: 16px;
+      }
+
+      .pet-card .pet-avatar {
+        width: 62px;
+        height: 62px;
+      }
+
       .quick-actions-grid {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
       }
 
       .modal-box {
@@ -1199,7 +1687,33 @@
       }
 
       .quick-actions-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 5px;
+      }
+
+      .quick-actions-card {
+        padding: 14px 8px;
+      }
+
+      .quick-actions-card .card-header {
+        margin-bottom: 12px;
+      }
+
+      .qa-item {
+        min-height: 76px;
+        padding: 8px 2px;
+        border-radius: 8px;
+      }
+
+      .qa-item i {
+        font-size: 18px;
+        margin-bottom: 4px;
+      }
+
+      .qa-item span {
+        font-size: 9px;
+        line-height: 1.15;
+        overflow-wrap: anywhere;
       }
 
       .modal-box {
@@ -1208,8 +1722,21 @@
       }
     }
   </style>
+  <style>
+    #logoutModal .modal-box { box-sizing: border-box !important; width: min(92vw, 460px) !important; max-width: calc(100vw - 24px) !important; padding: 30px 42px 26px !important; text-align: center !important; }
+    #logoutModal .modal-btn-group { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 12px !important; justify-content: center !important; width: 100% !important; }
+    #logoutModal .modal-btn-group .btn { flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; min-height: 46px !important; padding: 10px 14px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; white-space: nowrap !important; }
+    @media (max-width: 480px) {
+      #logoutModal .modal-box { width: min(92vw, 380px) !important; padding: 24px 20px 22px !important; }
+      #logoutModal .modal-icon-circle.warning i { font-size: 46px !important; }
+      #logoutModal .modal-title { font-size: 20px !important; }
+      #logoutModal .modal-subtitle { font-size: 14px !important; margin-bottom: 18px !important; }
+      #logoutModal .modal-btn-group { gap: 10px !important; }
+      #logoutModal .modal-btn-group .btn { min-height: 42px !important; padding: 9px 10px !important; font-size: 14px !important; }
+    }
+  </style>
 </head>
-<body>
+<body data-notification-context="dashboard">
 
   <!-- ================================================================
   SIDEBAR
@@ -1283,18 +1810,8 @@
       </div>
     </section>
 
-    <div class="grid-2-col">
-      
-      <div class="card">
-          <div class="card-header">
-            <h3><i class="fa-regular fa-calendar card-title-icon"></i> Upcoming Appointment</h3>
-          </div>
-          <div id="upcomingAppointmentContainer">
-              <!-- 由 JavaScript 动态渲染 -->
-          </div>
-        </div>   <!-- 这行是新增的闭合标签 -->
-
-        <div class="card">
+    <div class="dashboard-stack">
+      <div class="card quick-actions-card">
           <div class="card-header">
             <h3><i class="fa-solid fa-bolt card-title-icon"></i> Quick Actions</h3>
           </div>
@@ -1321,6 +1838,16 @@
           </button>
         </div>
       </div>
+
+      <div class="card upcoming-card">
+          <div class="card-header flex-between">
+            <h3><i class="fa-regular fa-calendar card-title-icon"></i> Upcoming Appointment</h3>
+            <a href="history.html?view=upcoming" class="view-all">View All Upcoming</a>
+          </div>
+          <div id="upcomingAppointmentContainer">
+              <!-- 由 JavaScript 动态渲染 -->
+          </div>
+        </div>
     </div>
 
     <div class="grid-2-col">
@@ -1406,19 +1933,20 @@
     <!-- ================================================================
       RESCHEDULE REQUEST MODAL
       ================================================================ -->
-      <div class="modal-overlay" id="rescheduleRequestModal">
-    <div class="modal-box">
-        <h2 class="modal-title" style="display:flex; align-items:center; gap:10px; justify-content:center;">
-            <i class="fa-regular fa-calendar-plus" style="color:#D97706;"></i> Request Reschedule
-        </h2>
-        <p class="modal-subtitle">Select your preferred new date and time.</p>
-        <div style="margin-bottom:16px; text-align:left;">
-            <label style="font-size:13px; font-weight:500; color:#333333; display:block; margin-bottom:4px;">📅 New Date</label>
-            <input type="date" id="newDateInput" class="form-control" style="width:100%; padding:10px 14px; border:1.5px solid #EFECE6; border-radius:10px; font-family:'Poppins',sans-serif;">
+        <div class="modal-overlay" id="rescheduleRequestModal">
+      <div class="modal-box reschedule-modal-box">
+        <div class="reschedule-heading">
+          <div class="reschedule-icon"><i class="fa-regular fa-calendar-plus"></i></div>
+          <h2>Request Reschedule</h2>
         </div>
-        <div style="margin-bottom:20px; text-align:left;">
-            <label style="font-size:13px; font-weight:500; color:#333333; display:block; margin-bottom:4px;">🕐 New Time</label>
-            <select id="newTimeSelect" class="form-control" style="width:100%; padding:10px 14px; border:1.5px solid #EFECE6; border-radius:10px; font-family:'Poppins',sans-serif;">
+        <p class="reschedule-subtitle">Select your preferred new date and time.</p>
+        <div class="reschedule-field">
+          <label for="newDateInput"><i class="fa-regular fa-calendar"></i> New Date</label>
+          <input type="date" id="newDateInput" class="reschedule-input">
+        </div>
+        <div class="reschedule-field">
+          <label for="newTimeSelect"><i class="fa-regular fa-clock"></i> New Time</label>
+          <select id="newTimeSelect" class="reschedule-input">
                 <option value="10:00 AM">10:00 AM</option>
                 <option value="10:30 AM">10:30 AM</option>
                 <option value="11:30 AM">11:30 AM</option>
@@ -1430,12 +1958,12 @@
                 <option value="06:00 PM">06:00 PM</option>
             </select>
         </div>
-        <!-- 注释区块 -->
-        <div style="background:#FEF3C7; border-radius:8px; padding:8px 14px; margin-bottom:20px; border-left:4px solid #D97706; display:flex; align-items:center; gap:10px;">
-            <i class="fa-regular fa-clock" style="color:#D97706; font-size:14px;"></i>
-            <span style="font-size:13px; color:#92400E; font-weight:500;">Reschedule requests must be made at least <strong>24 hours</strong> before the original appointment time.</span>
+        <!-- Reschedule timing note -->
+        <div class="reschedule-note">
+          <i class="fa-regular fa-clock"></i>
+          <span>Reschedule requests must be made at least <strong>24 hours</strong> before the original appointment time.</span>
         </div>
-        <div class="modal-btn-group">
+        <div class="modal-btn-group reschedule-actions">
             <button class="modal-btn modal-btn-secondary" id="rescheduleRequestCancelBtn">Cancel</button>
             <button class="modal-btn modal-btn-primary" id="rescheduleRequestSubmitBtn">Submit Request</button>
         </div>
@@ -1446,17 +1974,17 @@
     LOGOUT CONFIRM MODAL
     ================================================================ -->
     <div class="modal-overlay" id="logoutModal">
-        <div class="modal-box" style="width: min(92vw, 420px); max-width: 420px; text-align: center; padding: 30px 28px 28px; border-radius: 18px;">
-            <div class="modal-icon-circle warning" style="margin: 0 auto 16px; background: #FEF7E0; border-color: #FDE68A; width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #FDE68A;">
-                <i class="fa-solid fa-sign-out-alt" style="color: #D97706; font-size: 30px;"></i>
+        <div class="modal-box" style="box-sizing: border-box !important; width: min(92vw, 460px) !important; max-width: calc(100vw - 20px) !important; text-align: center; padding: 30px 42px 26px !important; border-radius: 16px !important;">
+          <div class="modal-icon-circle warning" style="margin: 0 auto 12px !important; background: transparent !important; width: auto !important; height: auto !important; border-radius: 0 !important; display: flex; align-items: center; justify-content: center; border: none !important;">
+            <i class="fa-solid fa-sign-out-alt" style="color: #E57C00 !important; font-size: 56px !important;"></i>
             </div>
             <h2 class="modal-title" style="margin-bottom: 8px;">Confirm Logout</h2>
             <p class="modal-subtitle" style="margin-bottom: 24px;">
                 Are you sure you want to logout?
             </p>
-            <div class="modal-btn-group" style="display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;">
-                <button class="btn btn-secondary" onclick="closeLogoutModal()" style="flex:1 1 120px; padding: 12px 18px; font-size: 14px; border-radius: 10px;">Cancel</button>
-                <button class="btn btn-danger" onclick="confirmLogout()" style="flex:1 1 120px; padding: 12px 18px; font-size: 14px; border-radius: 10px;">Logout</button>
+            <div class="modal-btn-group" style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 12px; justify-content: center; width: 100%;">
+              <button class="btn btn-secondary" onclick="closeLogoutModal()" style="flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; min-height: 44px; padding: 9px 14px; font-size: 15px; border-radius: 9px;">Cancel</button>
+              <button class="btn btn-danger" onclick="confirmLogout()" style="flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; min-height: 44px; padding: 9px 14px; font-size: 15px; border-radius: 9px;">Logout</button>
             </div>
         </div>
     </div>
@@ -1467,7 +1995,7 @@
     <div class="modal-overlay" id="confirmActionModal">
         <div class="modal-box" style="max-width: 420px; text-align: center; padding: 36px 40px 32px;">
             <div class="modal-icon-circle danger" style="margin: 0 auto 16px;">
-                <i class="fa-solid fa-trash"></i>
+                <i class="fa-solid fa-trash" id="confirmActionIcon"></i>
             </div>
             <h2 class="modal-title" id="confirmActionTitle">Confirm Action</h2>
             <p id="confirmActionMessage" class="modal-subtitle" style="margin-bottom: 24px;">
@@ -1477,7 +2005,7 @@
             </div>
             <div class="modal-btn-group" style="display: flex; gap: 12px; justify-content: center;">
                 <button class="modal-btn modal-btn-secondary" id="confirmActionNoBtn" style="padding: 12px 32px;">No, Keep It</button>
-                <button class="modal-btn modal-btn-danger" id="confirmActionYesBtn" style="padding: 12px 32px; background-color: #DC2626 !important; color: #FFFFFF !important;">Yes, Cancel</button>
+                <button class="modal-btn modal-btn-danger" id="confirmActionYesBtn" style="padding: 12px 32px; color: #FFFFFF !important;">Yes, Cancel</button>
             </div>
         </div>
     </div>
@@ -1556,6 +2084,19 @@
         }
         return response;
     }
+
+      function formatTime12Hour(value) {
+        if (!value || value === 'N/A') return 'N/A';
+        const match = String(value).trim().match(/^(\d{1,2}):(\d{2})(?::\d{2})?\s*([AaPp][Mm])?$/);
+        if (!match) return value;
+
+        let hour = Number(match[1]);
+        const minutes = match[2];
+        const suffix = match[3] ? match[3].toUpperCase() : hour >= 12 ? 'PM' : 'AM';
+        if (!match[3]) hour %= 12;
+        if (hour === 0) hour = 12;
+        return `${hour}:${minutes} ${suffix}`;
+      }
 
     // ===== 日期工具函数：判断是否为周四 =====
     function isThursday(dateString) {
@@ -1753,7 +2294,9 @@
                     month: 'short',
                     year: 'numeric'
                 });
-                const daysUntil = Math.ceil((new Date(b.booking_date) - today) / (1000 * 60 * 60 * 24));
+                const bookingDay = new Date(b.booking_date);
+                bookingDay.setHours(0, 0, 0, 0);
+                const daysUntil = Math.round((bookingDay - today) / (1000 * 60 * 60 * 24));
                 let timeDisplay = daysUntil === 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : `In ${daysUntil} days`;
                 html += `
                     <div style="background: #E3F2FD; border-radius: 6px; padding: 8px 12px; margin-bottom: 4px; border-left: 3px solid #0D47A1;">
@@ -1860,7 +2403,7 @@
             if (tomorrowBookings.length > 0) {
                 tomorrowBookings.forEach(b => {
                     const petName = b.pet ? b.pet.name : 'Unknown';
-                    const time = b.booking_time || 'N/A';
+                    const time = formatTime12Hour(b.booking_time);
                     html += `
                         <div style="background: #FEF7E0; border-radius: 8px; padding: 10px 14px; border: 1px solid #FDE68A; margin-bottom: 10px;">
                             <div style="display:flex; align-items:center; gap:8px;">
@@ -1879,7 +2422,8 @@
                     const petName = b.pet ? b.pet.name : 'Unknown';
                     const date = new Date(b.booking_date);
                     const dateDisplay = date.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short' });
-                    const daysUntil = Math.ceil((date - today) / (1000 * 60 * 60 * 24));
+                    date.setHours(0, 0, 0, 0);
+                    const daysUntil = Math.round((date - today) / (1000 * 60 * 60 * 24));
                     let timeDisplay = '';
                     if (daysUntil === 0) timeDisplay = 'Today';
                     else if (daysUntil === 1) timeDisplay = 'Tomorrow';
@@ -2093,14 +2637,16 @@
                 let displayStatus = b.status || 'pending';
                 let statusClass = 'warning';
 
-                if (b.reschedule_status === 'pending' && b.status !== 'cancelled') {
-                    displayStatus = 'Pending Approval';
+                if (['pending', 'admin_pending'].includes(b.reschedule_status) && b.status !== 'cancelled') {
+                  displayStatus = b.reschedule_status === 'admin_pending' ? 'Admin Suggestion' : 'Pending Approval';
                     statusClass = 'warning';
-                } else if (b.status === 'completed') {
+                } else if (['confirmed', 'upcoming', 'completed'].includes(b.status)) {
                     statusClass = 'success';
                 } else if (b.status === 'cancelled') {
                     statusClass = 'danger';
                 }
+
+                displayStatus = displayStatus.charAt(0).toUpperCase() + displayStatus.slice(1);
 
                 const petName = b.pet ? b.pet.name : 'Unknown';
                 let serviceName = 'N/A';
@@ -2125,7 +2671,7 @@
                         </td>
                         <td>${serviceName}</td>
                         <td>${formattedDate}</td>
-                        <td>${b.booking_time || 'N/A'}</td>
+                        <td>${formatTime12Hour(b.booking_time)}</td>
                         <td><span class="status-pill ${statusClass}">${displayStatus}</span></td>
                     </tr>
                 `;
@@ -2166,69 +2712,42 @@
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             
-            const tomorrow = new Date(today);
-            tomorrow.setDate(tomorrow.getDate() + 1);
-            const tomorrowStr = tomorrow.toISOString().split('T')[0];
-
-            const tomorrowBookings = bookings.filter(b => {
-                const bookingDate = new Date(b.booking_date);
-                bookingDate.setHours(0, 0, 0, 0);
-                return bookingDate.getTime() === tomorrow.getTime() && b.status !== 'cancelled';
-            });
-
-            const threeDaysLater = new Date(today);
-            threeDaysLater.setDate(threeDaysLater.getDate() + 3);
+            const reminderLimit = new Date(today);
+            reminderLimit.setDate(reminderLimit.getDate() + 7);
             
             const upcomingBookings = bookings.filter(b => {
                 const bookingDate = new Date(b.booking_date);
                 bookingDate.setHours(0, 0, 0, 0);
                 return bookingDate >= today && 
-                       bookingDate <= threeDaysLater && 
-                       b.status !== 'cancelled' &&
-                       bookingDate.getTime() !== tomorrow.getTime();
+                   bookingDate <= reminderLimit && 
+                   b.status !== 'cancelled';
             });
+            upcomingBookings.sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date));
 
             let html = '';
 
-            if (tomorrowBookings.length > 0) {
-                tomorrowBookings.forEach(b => {
-                    const petName = b.pet ? b.pet.name : 'Unknown';
-                    const time = b.booking_time || 'N/A';
-                    html += `
-                        <div class="notification-item" style="background: #FEF7E0; border-radius: 8px; padding: 10px 14px; border: 1px solid #FDE68A;">
-                            <div class="notif-icon" style="background: #FDE68A;"><i class="fa-solid fa-clock" style="color: #D97706;"></i></div>
-                            <div class="notif-content">
-                                <p><strong>⏰ Tomorrow!</strong> Your appointment for <strong>${petName}</strong> is at <strong>${time}</strong>.</p>
-                                <div style="font-size: 11px; color: #B06000; margin-top: 2px;">
-                                    <i class="fa-regular fa-calendar"></i> ${tomorrow.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' })}
-                                </div>
-                            </div>
-                            <span class="time" style="font-weight: 600; color: #D97706;">Tomorrow</span>
-                        </div>
-                    `;
-                });
-            }
-
             if (upcomingBookings.length > 0) {
-                upcomingBookings.slice(0, 3).forEach(b => {
+                upcomingBookings.slice(0, 5).forEach(b => {
                     const petName = b.pet ? b.pet.name : 'Unknown';
                     const date = new Date(b.booking_date);
                     const dateDisplay = date.toLocaleDateString('en-GB', { 
                         weekday: 'long', 
-                        day: '2-digit', 
-                        month: 'short' 
+                      day: '2-digit',
+                      month: 'short',
+                      year: 'numeric'
                     });
-                    const daysUntil = Math.ceil((date - today) / (1000 * 60 * 60 * 24));
-                    let timeDisplay = '';
-                    if (daysUntil === 0) timeDisplay = 'Today';
-                    else if (daysUntil === 1) timeDisplay = 'Tomorrow';
-                    else timeDisplay = `In ${daysUntil} days`;
+                    date.setHours(0, 0, 0, 0);
+                    const daysUntil = Math.round((date - today) / (1000 * 60 * 60 * 24));
+                    const timeDisplay = daysUntil === 0 ? 'Today' : daysUntil === 1 ? 'Tomorrow' : `In ${daysUntil} days`;
+                    const tone = daysUntil <= 1 ? 'reminder-urgent' : daysUntil <= 7 ? 'reminder-week' : 'reminder-later';
+                    const icon = daysUntil <= 1 ? 'fa-clock' : 'fa-calendar';
                     
                     html += `
-                        <div class="notification-item">
-                            <div class="notif-icon"><i class="fa-regular fa-calendar"></i></div>
+                      <div class="notification-item ${tone}">
+                        <div class="notif-icon"><i class="fa-regular ${icon}"></i></div>
                             <div class="notif-content">
-                                <p>Upcoming appointment for <strong>${petName}</strong> on <strong>${dateDisplay}</strong>.</p>
+                          <p><strong>${timeDisplay}!</strong> Appointment reminder for <strong>${petName}</strong> at <strong>${formatTime12Hour(b.booking_time)}</strong>.</p>
+                          <div class="reminder-date"><i class="fa-regular fa-calendar"></i> ${dateDisplay}</div>
                             </div>
                             <span class="time">${timeDisplay}</span>
                         </div>
@@ -2287,16 +2806,17 @@
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const upcoming = bookings
+        const upcomingAppointments = bookings
             .filter(b => {
                 if (!['pending', 'upcoming', 'confirmed'].includes(b.status)) return false;
                 const bookingDate = new Date(b.booking_date);
                 bookingDate.setHours(0, 0, 0, 0);
                 return bookingDate >= today;
             })
-            .sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date))[0];
+            .sort((a, b) => new Date(a.booking_date) - new Date(b.booking_date))
+            .slice(0, 3);
 
-        if (!upcoming) {
+          if (upcomingAppointments.length === 0) {
             container.innerHTML = `
                 <div style="text-align:center; padding:20px; color:#7A7A7A;">
                     <i class="fa-regular fa-calendar" style="font-size:32px; display:block; margin-bottom:10px;"></i>
@@ -2306,24 +2826,31 @@
             return;
         }
 
+          const renderAppointmentCard = (upcoming) => {
+
         const petName = upcoming.pet ? upcoming.pet.name : 'Unknown Pet';
         const breed = upcoming.pet ? upcoming.pet.breed : '';
         const serviceName = upcoming.services && upcoming.services.length > 0 
             ? upcoming.services.map(s => s.service_name).join(', ') 
             : 'Service';
-        const displayDate = upcoming.reschedule_status === 'pending' && upcoming.reschedule_requested_date ? upcoming.reschedule_requested_date : upcoming.booking_date;
-        const displayTime = upcoming.reschedule_status === 'pending' && upcoming.reschedule_requested_time ? upcoming.reschedule_requested_time : upcoming.booking_time;
+        const hasRescheduleProposal = ['pending', 'admin_pending'].includes(upcoming.reschedule_status);
+        const displayDate = hasRescheduleProposal && upcoming.reschedule_requested_date ? upcoming.reschedule_requested_date : upcoming.booking_date;
+        const displayTime = hasRescheduleProposal && upcoming.reschedule_requested_time ? upcoming.reschedule_requested_time : upcoming.booking_time;
         const date = new Date(displayDate).toLocaleDateString('en-GB', {
             day: '2-digit', month: 'short', year: 'numeric'
         });
-        const time = displayTime || 'N/A';
+        const time = formatTime12Hour(displayTime);
         const baseStatus = upcoming.status === 'upcoming' ? 'confirmed' : upcoming.status;
         let statusClass = baseStatus === 'pending' ? 'warning' : baseStatus === 'completed' ? 'success' : 'confirmed';
         let statusLabel = baseStatus.charAt(0).toUpperCase() + baseStatus.slice(1);
 
         if (upcoming.reschedule_status === 'pending') {
-            statusLabel = 'Pending Approval';
+          statusLabel = 'Pending Admin Approval';
             statusClass = 'warning';
+        }
+        if (upcoming.reschedule_status === 'admin_pending') {
+          statusLabel = 'Admin Suggestion';
+          statusClass = 'warning';
         }
         if (upcoming.reschedule_status === 'approved') statusLabel = 'Confirmed';
 
@@ -2331,9 +2858,9 @@
         const diffHours = (bookingDateTime - new Date()) / (1000 * 60 * 60);
         const canReschedule = (upcoming.status === 'pending' || upcoming.status === 'upcoming' || upcoming.status === 'confirmed') 
                               && diffHours >= 24
-                              && (upcoming.reschedule_status !== 'pending' && upcoming.reschedule_status !== 'approved');
+                              && !['pending', 'admin_pending', 'approved'].includes(upcoming.reschedule_status);
 
-        container.innerHTML = `
+        return `
             <div class="appointment-card">
                 <div class="appointment-img" style="display:flex; align-items:center; justify-content:center; background:#FDF3E7; color:#5A361A; font-weight:600; font-size:24px; text-transform:uppercase; overflow:hidden;">
                     ${upcoming.pet && upcoming.pet.photo_url 
@@ -2354,15 +2881,19 @@
                     </ul>
                     <div class="action-btns">
                         <button class="btn btn-primary" onclick="showAppointmentModal('${upcoming.booking_id}')">View Details</button>
-                        ${upcoming.reschedule_status === 'approved' ? '<span class="badge confirmed">Reschedule Approved</span>' : ''}
-                        ${upcoming.reschedule_status === 'rejected' ? '<span class="badge danger">Reschedule Rejected</span>' : ''}
-                        ${canReschedule ? `<button class="btn btn-secondary" onclick="showRescheduleModal()">Reschedule</button>` : ''}
+                        ${upcoming.reschedule_status === 'approved' ? '<span class="badge confirmed action-status">Reschedule Approved</span>' : ''}
+                        ${upcoming.reschedule_status === 'rejected' ? '<span class="badge danger action-status">Reschedule Rejected</span>' : ''}
+                        ${canReschedule ? `<button class="btn btn-secondary" onclick="showRescheduleModal('${upcoming.booking_id}')">Reschedule</button>` : ''}
+                        ${upcoming.reschedule_status === 'admin_pending' ? `<button class="btn btn-primary" onclick="respondToAdminReschedule('${upcoming.booking_id}', 'approve')">Accept New Time</button><button class="btn btn-danger" onclick="respondToAdminReschedule('${upcoming.booking_id}', 'reject')">Keep Current Time</button>` : ''}
                         ${upcoming.reschedule_status === 'pending' ? `<button class="btn btn-danger" onclick="cancelRescheduleRequestFromDashboard('${upcoming.booking_id}')">Cancel Request</button>` : ''}
-                        ${(upcoming.status === 'pending' && upcoming.reschedule_status !== 'pending') ? `<button class="btn btn-danger" onclick="cancelBookingFromDashboard('${upcoming.booking_id}')">Cancel</button>` : ''}
+                        ${(upcoming.status === 'pending' && !['pending', 'admin_pending'].includes(upcoming.reschedule_status)) ? `<button class="btn btn-danger" onclick="cancelBookingFromDashboard('${upcoming.booking_id}')">Cancel</button>` : ''}
                     </div>
                 </div>
             </div>
         `;
+        };
+
+        container.innerHTML = upcomingAppointments.map(renderAppointmentCard).join('');
     }
 
     // ================================================================
@@ -2465,54 +2996,34 @@
     // ================================================================
     // APPOINTMENT MODAL CONTROLS
     // ================================================================
-    function showAppointmentModal(bookingId) {
+    async function showAppointmentModal(bookingId) {
         const modal = document.getElementById('appointmentModal');
         const content = document.getElementById('appointmentDetailsContent');
         if (!modal || !content) return;
 
-        const bookings = window.dashboardBookings || [];
-        const booking = bookings.find(b => b.booking_id === bookingId);
+      let bookings = window.dashboardBookings || [];
+      let booking = bookings.find(b => String(b.booking_id) === String(bookingId));
         if (!booking) {
-            content.innerHTML = `
-                <div class="modal-detail-row">
-                    <div class="detail-icon"><i class="fa-solid fa-paw"></i></div>
-                    <div class="detail-label">Pet</div>
-                    <div class="detail-value"><strong>Buddy</strong> <span style="color:#7A7A7A; font-weight:400; font-size:12px;">Golden Retriever</span></div>
-                </div>
-                <div class="modal-detail-row">
-                    <div class="detail-icon"><i class="fa-solid fa-scissors"></i></div>
-                    <div class="detail-label">Services</div>
-                    <div class="detail-value">Grooming</div>
-                </div>
-                <div class="modal-detail-row">
-                    <div class="detail-icon"><i class="fa-regular fa-calendar"></i></div>
-                    <div class="detail-label">Date</div>
-                    <div class="detail-value">15 August 2026</div>
-                </div>
-                <div class="modal-detail-row">
-                    <div class="detail-icon"><i class="fa-regular fa-clock"></i></div>
-                    <div class="detail-label">Time</div>
-                    <div class="detail-value">2:00 PM</div>
-                </div>
-                <div class="modal-detail-row" style="border-bottom: none; padding-bottom: 0;">
-                    <div class="detail-icon"><i class="fa-regular fa-flag"></i></div>
-                    <div class="detail-label">Status</div>
-                    <div class="detail-value"><span class="status-tag warning">Confirmed</span></div>
-                </div>
-                <div class="modal-detail-row">
-                    <div class="detail-icon"><i class="fa-solid fa-location-dot"></i></div>
-                    <div class="detail-label">Location</div>
-                    <div class="detail-value">PAW WALKER GROOMING HOUSE</div>
-                </div>
-            `;
-        } else {
+        try {
+          const response = await authFetch('/api/bookings');
+          const data = await response.json();
+          bookings = data.success ? data.data || [] : [];
+          booking = bookings.find(b => String(b.booking_id) === String(bookingId));
+        } catch (error) {
+          console.error('Unable to load booking details:', error);
+        }
+      }
+
+      if (!booking) {
+        content.innerHTML = '<div class="empty-state"><p>Booking details are unavailable.</p></div>';
+      } else {
             const petName = booking.pet ? booking.pet.name : 'Unknown';
             const breed = booking.pet ? booking.pet.breed : '';
             const services = booking.services && booking.services.length > 0 
-                ? booking.services.map(s => `<span style="display:block; font-size:13px;">${s.service_name} - RM ${s.estimated_price}</span>`).join('')
+                ? booking.services.map(s => `<span style="display:block; font-size:13px;">${s.service_name} - From RM ${Number(s.service_price ?? 0).toFixed(0)}</span>`).join('')
                 : '—';
             const date = new Date(booking.booking_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-            const time = booking.booking_time || 'N/A';
+            const time = formatTime12Hour(booking.booking_time);
             const status = booking.status || 'pending';
             const statusClass = status === 'pending' ? 'warning' : status === 'completed' ? 'success' : 'danger';
             const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
@@ -2521,7 +3032,7 @@
                 <div class="modal-detail-row">
                     <div class="detail-icon"><i class="fa-solid fa-paw"></i></div>
                     <div class="detail-label">Pet</div>
-                    <div class="detail-value"><strong>${petName}</strong> ${breed ? `<span style="color:#7A7A7A; font-weight:400; font-size:12px;">${breed}</span>` : ''}</div>
+                    <div class="detail-value"><strong>${petName}</strong>${breed ? ` <span class="detail-meta">${breed}</span>` : ''}</div>
                 </div>
                 <div class="modal-detail-row">
                     <div class="detail-icon"><i class="fa-solid fa-scissors"></i></div>
@@ -2569,15 +3080,17 @@
     // ================================================================
     let dashboardRescheduleBookingId = null;
 
-    function showRescheduleModal() {
+    function showRescheduleModal(bookingId = null) {
         if (window.dashboardBookings && window.dashboardBookings.length > 0) {
-            const upcoming = window.dashboardBookings.find(b => ['pending', 'upcoming', 'confirmed'].includes(b.status));
+        const upcoming = bookingId
+          ? window.dashboardBookings.find(b => b.booking_id === bookingId)
+          : window.dashboardBookings.find(b => ['pending', 'upcoming', 'confirmed'].includes(b.status));
             if (!upcoming) {
                 showDashboardMessage('❌ No upcoming bookings to reschedule.', false);
                 return;
             }
 
-            if (upcoming.reschedule_status === 'pending' || upcoming.reschedule_status === 'approved') {
+            if (['pending', 'admin_pending', 'approved'].includes(upcoming.reschedule_status)) {
                 showDashboardMessage('❌ You already have a pending reschedule request for this booking.', false);
                 return;
             }
@@ -2602,11 +3115,54 @@
             const today = new Date().toISOString().split('T')[0];
             dateInput.setAttribute('min', today);
             dateInput.value = '';
-            document.getElementById('newTimeSelect').value = '10:30 AM';
+            resetRescheduleTimeOptions();
             lockBodyScroll();
             modal.classList.add('active');
         }
     }
+
+        function resetRescheduleTimeOptions() {
+          const timeSelect = document.getElementById('newTimeSelect');
+          if (!timeSelect) return;
+          timeSelect.querySelectorAll('option').forEach(option => {
+            option.hidden = false;
+            option.disabled = false;
+          });
+          timeSelect.value = '10:30 AM';
+        }
+
+        async function updateRescheduleTimeAvailability(date) {
+          const timeSelect = document.getElementById('newTimeSelect');
+          if (!timeSelect) return;
+
+          if (!date) {
+            resetRescheduleTimeOptions();
+            return;
+          }
+
+          try {
+            const response = await authFetch(`/api/bookings/availability?date=${encodeURIComponent(date)}`);
+            const result = await response.json();
+            if (!result.success) throw new Error(result.message || 'Unable to check availability.');
+
+            const fullSlots = new Set(result.data?.fullSlots || []);
+            timeSelect.querySelectorAll('option').forEach(option => {
+              const isFull = fullSlots.has(option.value);
+              option.hidden = isFull;
+              option.disabled = isFull;
+            });
+
+            const availableOption = [...timeSelect.options].find(option => !option.disabled);
+            timeSelect.value = availableOption ? availableOption.value : '';
+          } catch (error) {
+            console.error('Failed to load reschedule availability:', error);
+            resetRescheduleTimeOptions();
+          }
+        }
+
+        document.getElementById('newDateInput').addEventListener('change', function() {
+          updateRescheduleTimeAvailability(this.value);
+        });
 
     document.getElementById('rescheduleRequestCancelBtn').addEventListener('click', function() {
         document.getElementById('rescheduleRequestModal').classList.remove('active');
@@ -2686,24 +3242,77 @@
         });
     }
 
+    async function respondToAdminReschedule(bookingId, action) {
+      const isApproval = action === 'approve';
+      const message = isApproval
+        ? 'Accept the new appointment date and time?'
+        : 'Reject the suggestion and keep the current appointment?';
+      showConfirmActionModal(
+        isApproval ? 'Accept New Appointment Time' : 'Keep Current Appointment',
+        message,
+        async function() {
+          try {
+        const res = await authFetch(`/api/bookings/${bookingId}/reschedule-approve`, {
+          method: 'PUT',
+          body: JSON.stringify({ action })
+        });
+        const data = await res.json();
+        if (!data.success) {
+          showDashboardMessage('❌ ' + (data.message || 'Unable to respond to suggestion.'), false);
+          return;
+        }
+        const booking = window.dashboardBookings.find(item => item.booking_id === bookingId);
+        if (booking) {
+          if (action === 'approve') {
+            booking.booking_date = booking.reschedule_requested_date;
+            booking.booking_time = booking.reschedule_requested_time;
+            booking.status = 'confirmed';
+            booking.reschedule_status = 'approved';
+          } else {
+            booking.reschedule_status = 'rejected';
+            booking.reschedule_requested_date = null;
+            booking.reschedule_requested_time = null;
+          }
+        }
+        renderUpcomingAppointment();
+        renderRecentBookings();
+        renderNotifications();
+        showDashboardMessage('✅ ' + data.message, true);
+      } catch (err) {
+        console.error(err);
+        showDashboardMessage('❌ Unable to connect to server.', false);
+          }
+        },
+        '',
+        { variant: isApproval ? 'approve' : 'reject', yesLabel: isApproval ? 'Accept New Time' : 'Keep Current Time', noLabel: 'Go Back' }
+      );
+    }
+
     async function cancelBookingFromDashboard(bookingId) {
-        if (!confirm('Are you sure you want to cancel this booking?')) return;
-        try {
+      showConfirmActionModal(
+        'Cancel Booking',
+        'Are you sure you want to cancel this booking?',
+        async function() {
+          try {
             const res = await authFetch(`/api/bookings/${bookingId}/cancel`, { method: 'PUT' });
             const data = await res.json();
             if (data.success) {
-                const booking = window.dashboardBookings.find(b => b.booking_id === bookingId);
-                if (booking) booking.status = 'cancelled';
-                renderUpcomingAppointment();
-                renderRecentBookings();
-                showDashboardMessage('✅ Booking cancelled successfully.', true);
+              const booking = window.dashboardBookings.find(b => b.booking_id === bookingId);
+              if (booking) booking.status = 'cancelled';
+              renderUpcomingAppointment();
+              renderRecentBookings();
+              showDashboardMessage('✅ Booking cancelled successfully.', true);
             } else {
-                showDashboardMessage('❌ ' + (data.message || 'Failed to cancel.'), false);
+              showDashboardMessage('❌ ' + (data.message || 'Failed to cancel.'), false);
             }
-        } catch (err) {
+          } catch (err) {
             console.error(err);
             showDashboardMessage('❌ Unable to connect to server.', false);
-        }
+          }
+        },
+        '',
+        { yesLabel: 'Cancel Booking', noLabel: 'Keep Booking' }
+      );
     }
 
     // ================================================================
@@ -2762,17 +3371,26 @@
     // ================================================================
     let confirmActionCallback = null;
 
-    function showConfirmActionModal(title, message, onConfirm, note = '') {
+    function showConfirmActionModal(title, message, onConfirm, note = '', options = {}) {
         const modal = document.getElementById('confirmActionModal');
         const titleEl = document.getElementById('confirmActionTitle');
         const msgEl = document.getElementById('confirmActionMessage');
         const noteEl = document.getElementById('confirmActionNote');
+      const iconEl = document.getElementById('confirmActionIcon');
+      const noBtn = document.getElementById('confirmActionNoBtn');
+      const yesBtn = document.getElementById('confirmActionYesBtn');
         if (!modal) return;
 
         titleEl.textContent = title || 'Confirm Action';
         msgEl.textContent = message || 'Are you sure you want to proceed?';
         noteEl.textContent = note;
         noteEl.style.display = note ? 'block' : 'none';
+        noBtn.textContent = options.noLabel || 'No, Keep It';
+        yesBtn.textContent = options.yesLabel || 'Yes, Cancel';
+        yesBtn.style.backgroundColor = options.variant === 'approve' ? '#5A361A' : '#DC2626';
+        iconEl.className = options.variant === 'approve'
+          ? 'fa-solid fa-calendar-check'
+          : 'fa-solid fa-trash';
 
         confirmActionCallback = onConfirm || null;
         lockBodyScroll();

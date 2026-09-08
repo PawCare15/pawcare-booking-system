@@ -438,7 +438,7 @@
         /* ===== RESPONSIVE ===== */
         @media (max-width: 1200px) {
             .stats-grid-reports {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 14px;
             }
             .insights-row {
@@ -448,7 +448,7 @@
 
         @media (max-width: 992px) {
             .stats-grid-reports {
-                grid-template-columns: repeat(3, 1fr);
+                grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 12px;
             }
         }
@@ -457,6 +457,11 @@
             .stats-grid-reports {
                 grid-template-columns: repeat(2, 1fr);
                 gap: 12px;
+            }
+            .stats-grid-reports .stat-report-card:last-child {
+                grid-column: 1 / -1;
+                width: calc(50% - 6px);
+                justify-self: center;
             }
             .stat-report-card {
                 min-height: 80px;
@@ -1489,7 +1494,6 @@ async function showNotificationDetails() {
             loadNotificationCount();
             loadPopularServices();
             loadTopCustomers();
-            loadMonthlyComparison(); 
 
             // ================================================================
             // SET DATE
@@ -1594,6 +1598,8 @@ async function showNotificationDetails() {
                     }
                 }
             });
+
+            loadMonthlyComparison();
 
             console.log('PawCare Reports & Analytics page loaded.');
         });

@@ -14,6 +14,7 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="user_modal.css">
+  <link rel="stylesheet" href="user_responsive.css">
   
   <style>
     /* ===== RESET & BASE ===== */
@@ -346,6 +347,35 @@
     }
     .page-title i {
       color: #D97706;
+    }
+
+    .card.page-intro {
+      background: linear-gradient(135deg, #FDF5E6 0%, #F5E8D8 100%);
+      border: 1px solid #EFECE6;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .page-intro-icon {
+      color: #D97706;
+      font-size: 32px;
+      flex: 0 0 auto;
+    }
+
+    .page-intro-content {
+      min-width: 0;
+    }
+
+    .page-intro .page-title {
+      margin-bottom: 2px;
+    }
+
+    .page-intro p {
+      color: #7A7A7A;
+      font-size: 14px;
+      margin: 0;
     }
 
     .page-subtitle {
@@ -1330,8 +1360,21 @@
       }
     }
   </style>
+  <style>
+    #logoutModal .modal-box { box-sizing: border-box !important; width: min(92vw, 460px) !important; max-width: calc(100vw - 24px) !important; padding: 30px 42px 26px !important; text-align: center !important; }
+    #logoutModal .modal-btn-group { display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 12px !important; justify-content: center !important; width: 100% !important; }
+    #logoutModal .modal-btn-group .btn { flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; min-height: 46px !important; padding: 10px 14px !important; display: inline-flex !important; align-items: center !important; justify-content: center !important; text-align: center !important; white-space: nowrap !important; }
+    @media (max-width: 480px) {
+      #logoutModal .modal-box { width: min(92vw, 380px) !important; padding: 24px 20px 22px !important; }
+      #logoutModal .modal-icon-circle.warning i { font-size: 46px !important; }
+      #logoutModal .modal-title { font-size: 20px !important; }
+      #logoutModal .modal-subtitle { font-size: 14px !important; margin-bottom: 18px !important; }
+      #logoutModal .modal-btn-group { gap: 10px !important; }
+      #logoutModal .modal-btn-group .btn { min-height: 42px !important; padding: 9px 10px !important; font-size: 14px !important; }
+    }
+  </style>
 </head>
-<body>
+<body data-notification-context="review">
 
   <!-- ================================================================
   SIDEBAR
@@ -1406,10 +1449,13 @@
       <a href="dashboard.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to Dashboard</a>
 
       <!-- Page Title -->
-      <div class="page-title">
-        <i class="fa-solid fa-star"></i> Reviews &amp; Feedback
+      <div class="card page-intro">
+        <i class="fa-solid fa-star page-intro-icon"></i>
+        <div class="page-intro-content">
+          <div class="page-title">Reviews &amp; Feedback</div>
+          <p>Share your experience and discover what other pet parents say about our services.</p>
+        </div>
       </div>
-      <p class="page-subtitle">See what other pet parents say about our services and share your experience.</p>
 
       <!-- ============================================================
       OVERALL RATING
@@ -1624,17 +1670,17 @@
 
       <!-- LOGOUT CONFIRM MODAL -->
       <div class="modal-overlay" id="logoutModal">
-        <div class="modal-box" style="max-width: 420px; text-align: center; padding: 36px 40px 32px;">
-          <div class="modal-icon-circle warning" style="margin: 0 auto 16px; background: #FEF7E0; border-color: #FDE68A; width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid #FDE68A;">
-            <i class="fa-solid fa-sign-out-alt" style="color: #D97706; font-size: 30px;"></i>
+        <div class="modal-box" style="box-sizing: border-box !important; width: min(92vw, 460px) !important; max-width: calc(100vw - 20px) !important; text-align: center; padding: 30px 42px 26px !important; border-radius: 16px !important;">
+          <div class="modal-icon-circle warning" style="margin: 0 auto 12px !important; background: transparent !important; width: auto !important; height: auto !important; border-radius: 0 !important; display: flex; align-items: center; justify-content: center; border: none !important;">
+            <i class="fa-solid fa-sign-out-alt" style="color: #E57C00 !important; font-size: 56px !important;"></i>
           </div>
           <h2 class="modal-title" style="margin-bottom: 8px;">Confirm Logout</h2>
           <p class="modal-subtitle" style="margin-bottom: 24px;">
             Are you sure you want to logout?
           </p>
-          <div class="modal-btn-group" style="display: flex; gap: 12px; justify-content: center;">
-            <button class="btn btn-secondary" onclick="closeLogoutModal()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px;">Cancel</button>
-            <button class="btn btn-danger" onclick="confirmLogout()" style="padding: 12px 32px; font-size: 14px; border-radius: 10px; min-width: 120px;">Logout</button>
+          <div class="modal-btn-group" style="display: flex !important; flex-direction: row !important; flex-wrap: nowrap !important; gap: 12px; justify-content: center; width: 100%;">
+            <button class="btn btn-secondary" onclick="closeLogoutModal()" style="flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; min-height: 44px; padding: 9px 14px; font-size: 15px; border-radius: 9px;">Cancel</button>
+            <button class="btn btn-danger" onclick="confirmLogout()" style="flex: 1 1 0 !important; width: auto !important; min-width: 0 !important; min-height: 44px; padding: 9px 14px; font-size: 15px; border-radius: 9px;">Logout</button>
           </div>
         </div>
       </div>

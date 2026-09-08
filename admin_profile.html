@@ -252,11 +252,42 @@
         }
 
         /* Profile Overview */
+        .profile-overview .card-header {
+            justify-content: flex-start;
+            min-height: 48px;
+            padding: 14px 24px 12px;
+        }
+        .profile-overview .card-header i {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #FFF3E0;
+            font-size: 14px;
+        }
+
+        .profile-container .card-header {
+            justify-content: flex-start;
+            min-height: 48px;
+            padding: 14px 24px 12px;
+        }
+        .profile-container .card-header i {
+            width: 30px;
+            height: 30px;
+            border-radius: 9px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #FFF3E0;
+            font-size: 14px;
+        }
         .profile-overview .overview-inner {
             display: flex;
             flex-direction: column;
-            gap: 20px;
-            padding: 4px 0 8px;
+            gap: 18px;
+            padding: 4px 0 6px;
         }
         .profile-top-row {
             display: flex;
@@ -265,12 +296,12 @@
             flex-wrap: wrap;
         }
         .profile-avatar-wrapper {
-            width: 88px;
-            height: 88px;
+            width: 96px;
+            height: 96px;
             border-radius: 50%;
             overflow: hidden;
             background: #FDF3E7;
-            border: 3px solid #EFECE6;
+            border: 4px solid #F4ECE3;
             display: grid;
             place-items: center;
             flex-shrink: 0;
@@ -287,7 +318,7 @@
             flex: 1;
         }
         .profile-name-title .name {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 700;
             color: #333;
         }
@@ -346,14 +377,15 @@
         .info-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 6px 32px;
-            padding-top: 4px;
+            gap: 8px 28px;
+            padding: 12px 0 0;
+            border-top: 1px solid #F5F0EA;
         }
         .info-item {
             display: flex;
             align-items: baseline;
             gap: 8px;
-            padding: 4px 0;
+            padding: 7px 0;
             border-bottom: 1px solid #F5F0EA;
         }
         .info-item .label {
@@ -376,7 +408,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px solid #F5F0EA;
             gap: 12px;
         }
@@ -386,7 +418,7 @@
         .security-item .left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
             flex: 1;
             min-width: 0;
         }
@@ -413,6 +445,7 @@
             flex-shrink: 0;
             flex-wrap: wrap;
             justify-content: flex-end;
+            min-width: 150px;
         }
         .security-item .right .badge {
             font-size: 11px;
@@ -516,7 +549,7 @@
         .activity-card .activity-row {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
+            padding: 9px 0;
             border-bottom: 1px solid #F5F0EA;
             font-size: 14px;
         }
@@ -539,7 +572,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 18px;
+            padding: 16px 18px;
             gap: 16px;
         }
         .danger-card .danger-item + .danger-item {
@@ -553,10 +586,15 @@
         .danger-card .danger-item .desc {
             font-size: 12px;
             color: #7A7A7A;
+            margin-top: 2px;
         }
         .danger-card .danger-item .btn-danger {
             font-size: 12px;
             padding: 6px 18px;
+            width: 160px;
+            flex: 0 0 160px;
+            min-height: 38px;
+            justify-content: center;
             border-radius: 8px;
             background: #D32F2F;
             color: #fff;
@@ -818,7 +856,13 @@
             .left-stack,
             .right-stack { gap: 24px; }
             .right-stack { justify-content: flex-start; }
-            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .profile-container .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+            .profile-container .stats-grid .stat-card {
+                grid-column: auto !important;
+                grid-row: auto !important;
+            }
         }
         @media (max-width: 992px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -834,7 +878,16 @@
             .security-item { flex-direction: column; align-items: flex-start; gap: 6px; }
             .security-item .right { align-self: flex-end; }
             .danger-item { flex-direction: column; align-items: flex-start; gap: 10px; }
-            .danger-item .btn-danger { align-self: flex-end; }
+            .danger-card .danger-item .btn-danger {
+                align-self: stretch;
+                width: 100%;
+                flex: 0 0 auto;
+                height: 40px;
+                min-height: 40px;
+                padding: 6px 8px;
+                font-size: 11px;
+                white-space: nowrap;
+            }
             .modal-box { padding: 24px 20px; }
             .dashboard-container { padding: 0 16px 18px; }
             .page-heading { flex-direction: column; align-items: flex-start; }
@@ -847,6 +900,63 @@
             .right-stack { justify-content: flex-start; }
         }
         @media (max-width: 480px) {
+            .main-content {
+                padding: 0 10px 18px !important;
+            }
+            .main-content .dashboard-container {
+                width: 100%;
+                padding: 0 !important;
+            }
+            .profile-grid,
+            .left-stack,
+            .right-stack {
+                width: 100%;
+            }
+            .profile-container .card-body {
+                padding: 14px 16px 18px;
+            }
+            .profile-container .card-header {
+                padding: 12px 16px 10px;
+            }
+            .edit-card .form-control {
+                padding: 9px 12px;
+                font-size: 13px;
+            }
+            .activity-card .activity-row {
+                align-items: flex-start;
+                gap: 10px;
+            }
+            .activity-card .activity-row .v {
+                max-width: 58%;
+                text-align: right;
+                word-break: normal;
+            }
+            .profile-container .security-card .security-item {
+                display: grid;
+                grid-template-columns: 24px minmax(0, 1fr);
+                align-items: start;
+                column-gap: 10px;
+                row-gap: 8px;
+            }
+            .profile-container .security-card .security-item .left {
+                grid-column: 1 / -1;
+                display: grid;
+                grid-template-columns: 24px minmax(0, 1fr);
+                align-items: start;
+                gap: 10px;
+                width: 100%;
+            }
+            .profile-container .security-card .security-item .left > i {
+                width: 24px;
+                margin-top: 2px;
+            }
+            .profile-container .security-card .security-item .right {
+                grid-column: 2;
+                justify-self: end;
+                align-self: start;
+                min-width: 0;
+                width: auto;
+            }
             .stats-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
             .stats-grid .stat-card {
                 grid-column: auto !important;
@@ -977,13 +1087,15 @@
             <div class="profile-container">
 
                 <!-- ===== 页面标题 ===== -->
-                <div class="page-heading admin-page-banner">
-                    <div>
-                        <h1><i class="fa-regular fa-id-card"></i> Admin Profile</h1>
-                        <p style="font-size:14px; color:#7A7A7A; margin-top:4px;">View and manage your admin profile, security settings, and account activity.</p>
+                <div class="page-header-profile page-heading admin-page-banner">
+                    <div class="page-header-profile-left">
+                        <i class="fa-regular fa-id-card page-header-profile-icon"></i>
+                        <div>
+                            <h1 class="page-header-profile-title">Admin Profile</h1>
+                            <p class="page-header-profile-subtitle">View and manage your admin profile, security settings, and account activity.</p>
+                        </div>
                     </div>
                     <span class="admin-page-date"><i class="fa-regular fa-calendar"></i> <span id="adminPageDate">Loading...</span></span>
-                    <span class="status-badge"><i class="fa-solid fa-circle"></i> Active</span>
                 </div>
 
                 <!-- ===== 统计卡片 ===== -->

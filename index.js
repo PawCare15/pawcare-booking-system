@@ -71,8 +71,16 @@ if (document.querySelector(".header__content")) {
 // INITIALIZE MAIN SWIPER (EXCLUDING SERVICE SWIPER)
 if (document.querySelector(".swiper:not(.serviceSwiper)")) {
     const mainSwiper = new Swiper(".swiper:not(.serviceSwiper)", {
-        slidesPerView: 3,
+        slidesPerView: 1,
         spaceBetween: 20,
         loop: true,
+        breakpoints: {
+            600: {
+                slidesPerView: 2,
+            },
+            1024: {
+                slidesPerView: 3,
+            },
+        },
     });
 }
