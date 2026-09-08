@@ -1946,18 +1946,25 @@ document.querySelectorAll('[data-close]').forEach(btn => {
         // 每个页面不同的 NOTIFICATIONS 逻辑
         // ================================================================
 
+        const notificationPageKey = 'admin_profile';
+        function getAdminReadState() { try { return JSON.parse(localStorage.getItem('pawcare_admin_read_state') || '{}'); } catch { return {}; } }
+        function saveAdminReadState(nextState) { localStorage.setItem('pawcare_admin_read_state', JSON.stringify(nextState)); }
+        function isItemRead(category, key) { const state = getAdminReadState(); return (state[notificationPageKey]?.[category] || []).includes(key); }
+        function markItemRead(category, key) { const state = getAdminReadState(); state[notificationPageKey] = state[notificationPageKey] || {}; state[notificationPageKey][category] = state[notificationPageKey][category] || []; if (!state[notificationPageKey][category].includes(key)) state[notificationPageKey][category].push(key); saveAdminReadState(state); loadNotificationCount(); }
         async function loadNotificationCount() {
             try {
                 const response = await authFetch('/api/admin/profile/activity');
                 const result = await response.json();
                 const data = result.success ? result.data : {};
+                const state = getAdminReadState()[notificationPageKey] || {};
+                const count = (data.lastLogin && !(state.security || []).includes('security-alert')) ? 1 : 0;
                 window.notificationData = data;
                 const notifCount = document.getElementById('notifCount');
                 if (notifCount) {
-                    notifCount.textContent = data.lastLogin ? '1' : '';
-                    notifCount.style.display = data.lastLogin ? 'flex' : 'none';
+                    notifCount.textContent = count > 0 ? '1' : '';
+                    notifCount.style.display = count > 0 ? 'flex' : 'none';
                 }
-                return data.lastLogin ? 1 : 0;
+                return count;
             } catch (err) {
                 console.error('Error loading profile notifications:', err);
                 return 0;
@@ -1969,17 +1976,33 @@ document.querySelectorAll('[data-close]').forEach(btn => {
             const activity = window.notificationData || {};
             const formatDate = iso => iso ? new Date(iso).toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never';
             const securityColor = activity.two_factor_enabled ? '#2E7D32' : '#DC2626';
+            const securityKey = 'security-alert';
             const html = `
-                <div style="display:flex; gap:12px; padding:16px; margin-bottom:10px; border-radius:12px; background:#FFFFFF; border-left:4px solid ${securityColor}; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-                    <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; background:${activity.two_factor_enabled ? '#E8F5E9' : '#FCE8E6'}; color:${securityColor};"><i class="fa-solid fa-shield-halved"></i></div>
-                    <div style="flex:1; min-width:0;"><div style="font-weight:600; font-size:14px; color:#333;">${activity.two_factor_enabled ? 'Security Protected' : 'Security Attention Required'}</div><div style="font-size:12px; color:#7A7A7A;">${activity.two_factor_enabled ? '2FA is enabled and your account is secure.' : '2FA is disabled. Enable it to protect your account.'}</div><div style="font-size:11px; color:#7A7A7A; margin-top:8px;">Last login: ${formatDate(activity.lastLogin)} · Logins: ${activity.totalLogins || 0}</div></div>
-                    <span style="background:${activity.two_factor_enabled ? '#E8F5E9' : '#FCE8E6'}; color:${securityColor}; padding:3px 12px; height:max-content; border-radius:20px; font-size:11px; font-weight:700;">${activity.two_factor_enabled ? 'Secure' : 'Action'}</span>
+                <div style="background:${activity.two_factor_enabled ? '#E8F5E9' : '#FCE8E6'}; border-radius:12px; padding:12px 12px 10px; margin-bottom:10px; border-left:4px solid ${securityColor}; ${isItemRead('security', securityKey) ? 'opacity:0.72;' : ''}">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                            <span style="display:inline-flex; width:32px; height:32px; border-radius:50%; background:#fff; align-items:center; justify-content:center; font-size:16px;"><i class="fa-solid fa-shield-halved"></i></span>
+                            <div style="min-width:0; flex:1;">
+                                <div style="font-size:15px; font-weight:700; color:#2d241f;">${activity.two_factor_enabled ? 'Security Protected' : 'Security Attention Required'}</div>
+                                <div style="font-size:12px; color:#5f5248; margin-top:4px; line-height:1.45;">${activity.two_factor_enabled ? '2FA is enabled and your account is secure.' : '2FA is disabled. Enable it to protect your account.'}</div>
+                                <div style="font-size:11px; color:#7A7A7A; margin-top:8px;">Last login: ${formatDate(activity.lastLogin)} · Logins: ${activity.totalLogins || 0}</div>
+                            </div>
+                        </div>
+                        <span style="background:${activity.two_factor_enabled ? '#E8F5E9' : '#FCE8E6'}; color:${securityColor}; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">${activity.two_factor_enabled ? 'Secure' : 'Action'}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px;">
+                        <a href="admin_profile.html" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">Manage 2FA</a>
+                        <button type="button" class="mark-notification-read" data-category="security" data-item-key="${securityKey}" style="background:transparent; border:1px solid rgba(90,54,26,0.3); color:#5A361A; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:600; cursor:pointer;">${isItemRead('security', securityKey) ? 'Read' : 'Mark read'}</button>
+                    </div>
                 </div>
             `;
 
             document.getElementById('notificationsModalContent').innerHTML = html;
             document.getElementById('notificationsModal').classList.add('active');
             lockBodyScroll();
+            document.querySelectorAll('.mark-notification-read').forEach(button => {
+                button.addEventListener('click', function() { const category = this.dataset.category; const itemKey = this.dataset.itemKey; markItemRead(category, itemKey); this.textContent = 'Read'; this.disabled = true; });
+            });
         }
 
         // 加载 header 头像

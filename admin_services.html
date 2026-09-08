@@ -2744,13 +2744,22 @@ function listenForAvatarUpdates() {
 // 每个页面不同的 NOTIFICATIONS 逻辑
 // ================================================================
 
+const notificationPageKey = 'admin_services';
+function getAdminReadState() { try { return JSON.parse(localStorage.getItem('pawcare_admin_read_state') || '{}'); } catch { return {}; } }
+function saveAdminReadState(nextState) { localStorage.setItem('pawcare_admin_read_state', JSON.stringify(nextState)); }
+function isItemRead(category, key) { const state = getAdminReadState(); return (state[notificationPageKey]?.[category] || []).includes(key); }
+function markItemRead(category, key) { const state = getAdminReadState(); state[notificationPageKey] = state[notificationPageKey] || {}; state[notificationPageKey][category] = state[notificationPageKey][category] || []; if (!state[notificationPageKey][category].includes(key)) state[notificationPageKey][category].push(key); saveAdminReadState(state); loadNotificationCount(); }
 async function loadNotificationCount() {
     try {
         const response = await authFetch('/api/admin/notifications/summary');
         const result = await response.json();
         const data = result.success ? result.data : {};
+        const state = getAdminReadState()[notificationPageKey] || {};
+        const noBookings = (data.servicesWithoutBookings || 0);
+        const priceChanges = (data.servicesNeedingPriceReview || 0);
+        const mostBooked = (data.mostBookedServices || 0);
+        const total = Math.max(0, noBookings + priceChanges + mostBooked - ((state.noBookings || []).length + (state.priceChanges || []).length + (state.mostBooked || []).length));
         window.notificationData = data;
-        const total = (data.servicesWithoutBookings || 0) + (data.servicesNeedingPriceReview || 0) + (data.mostBookedServices || 0);
         const notifCount = document.getElementById('notifCount');
         if (notifCount) {
             notifCount.textContent = total || '';
@@ -2766,32 +2775,48 @@ async function loadNotificationCount() {
 async function showNotificationDetails() {
     await loadNotificationCount();
     const data = window.notificationData || {};
-    const noBookingsCount = data.servicesWithoutBookings || 0;
-    const priceChangesCount = data.servicesNeedingPriceReview || 0;
-    const mostBookedCount = data.mostBookedServices || 0;
-
-    const notifCount = document.getElementById('notifCount');
-    if (notifCount) notifCount.style.display = (noBookingsCount + priceChangesCount + mostBookedCount) > 0 ? 'flex' : 'none';
-
-    function notifCard(icon, iconBg, iconColor, title, desc, count, badgeBg, badgeColor, link) {
-        return `<div style="display:flex; gap:12px; padding:16px; margin-bottom:10px; border-radius:12px; background:#FFFFFF; border-left:4px solid ${badgeColor}; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-            <div style="width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; background:${iconBg}; color:${iconColor};">${icon}</div>
-            <div style="flex:1; min-width:0;"><div style="font-weight:600; font-size:14px; color:#333;">${title}</div><div style="font-size:12px; color:#7A7A7A;">${desc}</div></div>
-            <div style="flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; justify-content:space-between;">
-                <span style="background:${badgeBg}; color:${badgeColor}; padding:3px 12px; border-radius:20px; font-size:11px; font-weight:700; margin-bottom:8px;">${count}</span>
-                <a href="${link}" style="font-size:11px; color:#5A361A; font-weight:600; text-decoration:none;">View →</a>
-            </div></div>`;
-    }
-
+    const noBookingsCount = Math.max(0, Number(data.servicesWithoutBookings || 0));
+    const priceChangesCount = Math.max(0, Number(data.servicesNeedingPriceReview || 0));
+    const mostBookedCount = Math.max(0, Number(data.mostBookedServices || 0));
+    const renderCard = (category, key, title, detail, href, icon, bg, border) => `
+        <div style="background:${bg}; border-radius:12px; padding:12px 12px 10px; margin-bottom:10px; border-left:4px solid ${border}; ${isItemRead(category, key) ? 'opacity:0.72;' : ''}">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                    <span style="display:inline-flex; width:32px; height:32px; border-radius:50%; background:#fff; align-items:center; justify-content:center; font-size:16px;">${icon}</span>
+                    <div style="min-width:0; flex:1;">
+                        <div style="font-size:15px; font-weight:700; color:#2d241f;">${title}</div>
+                        <div style="font-size:12px; color:#5f5248; margin-top:4px; line-height:1.45;">${detail}</div>
+                    </div>
+                </div>
+                <span style="background:${border}; color:#fff; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">${countValue}</span>
+            </div>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px;">
+                <a href="${href}" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">View →</a>
+                <button type="button" class="mark-notification-read" data-category="${category}" data-item-key="${key}" style="background:transparent; border:1px solid rgba(90,54,26,0.3); color:#5A361A; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:600; cursor:pointer;">${isItemRead(category, key) ? 'Read' : 'Mark read'}</button>
+            </div>
+        </div>
+    `;
     let html = '';
-    if (noBookingsCount > 0) html += notifCard("📉", "#E3F2FD", "#0D47A1", "Services with No Bookings", "Service yang tak pernah booking > 1 bulan", noBookingsCount, "#E3F2FD", "#0D47A1", "admin_services.html");
-    if (priceChangesCount > 0) html += notifCard("💰", "#E3F2FD", "#0D47A1", "Price Changes Needed", "Service yang pricing outdated", priceChangesCount, "#E3F2FD", "#0D47A1", "admin_services.html");
-    if (mostBookedCount > 0) html += notifCard("🏆", "#E8F5E9", "#2E7D32", "Most Booked Services", "Services currently used in bookings", mostBookedCount, "#E8F5E9", "#2E7D32", "admin_reports.html");
-
-    if (!html) { html = '<div style="text-align:center; padding:40px 20px;">No service notifications.</div>'; }
+    let countValue = 1;
+    if (noBookingsCount > 0) {
+        const key = 'noBookings';
+        html += renderCard('noBookings', key, 'Services with No Bookings', `${noBookingsCount} service(s) have not had a booking for over 1 month.`, 'admin_services.html', '📉', '#E3F2FD', '#0D47A1');
+    }
+    if (priceChangesCount > 0) {
+        const key = 'priceChanges';
+        html += renderCard('priceChanges', key, 'Price Changes Needed', `${priceChangesCount} service(s) need pricing review.`, 'admin_services.html', '💰', '#FFF3E0', '#E65100');
+    }
+    if (mostBookedCount > 0) {
+        const key = 'mostBooked';
+        html += renderCard('mostBooked', key, 'Most Booked Services', `${mostBookedCount} service(s) are currently used in bookings.`, 'admin_services.html', '🏆', '#E8F5E9', '#2E7D32');
+    }
+    if (!html) html = '<div style="text-align:center; padding:40px 20px; color:#7A7A7A;">No service notifications.</div>';
     document.getElementById('notificationsModalContent').innerHTML = html;
     document.getElementById('notificationsModal').classList.add('active');
     lockBodyScroll();
+    document.querySelectorAll('.mark-notification-read').forEach(button => {
+        button.addEventListener('click', function() { const category = this.dataset.category; const itemKey = this.dataset.itemKey; markItemRead(category, itemKey); this.textContent = 'Read'; this.disabled = true; });
+    });
 }
 
 // ================================================================

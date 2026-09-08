@@ -1254,6 +1254,11 @@ function listenForAvatarUpdates() {
 // 每个页面不同的 NOTIFICATIONS 逻辑
 // ================================================================
 
+const notificationPageKey = 'admin_reports';
+function getAdminReadState() { try { return JSON.parse(localStorage.getItem('pawcare_admin_read_state') || '{}'); } catch { return {}; } }
+function saveAdminReadState(nextState) { localStorage.setItem('pawcare_admin_read_state', JSON.stringify(nextState)); }
+function isItemRead(category, key) { const state = getAdminReadState(); return (state[notificationPageKey]?.[category] || []).includes(key); }
+function markItemRead(category, key) { const state = getAdminReadState(); state[notificationPageKey] = state[notificationPageKey] || {}; state[notificationPageKey][category] = state[notificationPageKey][category] || []; if (!state[notificationPageKey][category].includes(key)) state[notificationPageKey][category].push(key); saveAdminReadState(state); loadNotificationCount(); }
 async function loadNotificationCount() {
     try {
         const [statsResponse, trendResponse] = await Promise.all([
@@ -1265,20 +1270,16 @@ async function loadNotificationCount() {
         const trend = trendResult.success ? (trendResult.data.trend || []) : [];
         const current = trend[trend.length - 1]?.count || 0;
         const previous = trend[trend.length - 2]?.count || 0;
-        const data = { monthlyReady: current > 0, bookingDecline: previous > 0 && current < previous * 0.8, current, previous, stats: statsResult.data || {} };
-        const count = Number(data.monthlyReady) + Number(data.bookingDecline);
-
+        const state = getAdminReadState()[notificationPageKey] || {};
+        const monthlyReady = current > 0 && !(state.monthlyReady || []).includes('monthly-ready');
+        const bookingDecline = previous > 0 && current < previous * 0.8 && !(state.bookingDecline || []).includes('booking-decline');
+        const count = Number(monthlyReady) + Number(bookingDecline);
         const notifCount = document.getElementById('notifCount');
         if (notifCount) {
-            if (count > 0) {
-                notifCount.textContent = count;
-                notifCount.style.display = 'flex';
-            } else {
-                notifCount.style.display = 'none';
-            }
+            notifCount.textContent = count > 0 ? count : '';
+            notifCount.style.display = count > 0 ? 'flex' : 'none';
         }
-
-        window.notificationData = data;
+        window.notificationData = { monthlyReady, bookingDecline, current, previous, stats: statsResult.data || {} };
         return count;
     } catch (err) {
         console.error('Error loading report notifications:', err);
@@ -1289,44 +1290,34 @@ async function loadNotificationCount() {
 async function showNotificationDetails() {
     await loadNotificationCount();
     const data = window.notificationData || {};
-
-    let html = '';
-    let hasNotifications = false;
-
-    if (data.monthlyReady) {
-        hasNotifications = true;
-        html += `
-            <div style="background:#FEF7E0; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #D97706;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span><strong>📊 Monthly Report Ready</strong></span>
-                    <span style="background:#D97706; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.current}</span>
+    const renderCard = (category, key, title, detail, href, icon, bg, border) => `
+        <div style="background:${bg}; border-radius:12px; padding:12px 12px 10px; margin-bottom:10px; border-left:4px solid ${border}; ${isItemRead(category, key) ? 'opacity:0.72;' : ''}">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                    <span style="display:inline-flex; width:32px; height:32px; border-radius:50%; background:#fff; align-items:center; justify-content:center; font-size:16px;">${icon}</span>
+                    <div style="min-width:0; flex:1;">
+                        <div style="font-size:15px; font-weight:700; color:#2d241f;">${title}</div>
+                        <div style="font-size:12px; color:#5f5248; margin-top:4px; line-height:1.45;">${detail}</div>
+                    </div>
                 </div>
-                <div style="font-size:12px; color:#7A7A7A;">${data.current} bookings recorded this month</div>
-                <a href="admin_reports.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View report →</a>
+                <span style="background:${border}; color:#fff; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">${data.current || 1}</span>
             </div>
-        `;
-    }
-
-    if (data.bookingDecline) {
-        hasNotifications = true;
-        html += `<div style="background:#FCE8E6; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #DC2626;"><strong>📉 Booking Decline Alert</strong><div style="font-size:12px;color:#7A7A7A;">Bookings dropped more than 20% versus last month</div><a href="admin_reports.html" style="font-size:11px;color:#5A361A;font-weight:600;text-decoration:none;">Investigate →</a></div>`;
-    }
-
-    // 可以添加更多报告通知...
-
-    if (!hasNotifications) {
-        html = `
-            <div style="text-align:center; padding:30px 20px; color:#7A7A7A;">
-                <i class="fa-solid fa-chart-bar" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i>
-                <h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">No Report Notifications</h3>
-                <p style="font-size:13px;">All reports are up to date.</p>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px;">
+                <a href="${href}" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">View →</a>
+                <button type="button" class="mark-notification-read" data-category="${category}" data-item-key="${key}" style="background:transparent; border:1px solid rgba(90,54,26,0.3); color:#5A361A; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:600; cursor:pointer;">${isItemRead(category, key) ? 'Read' : 'Mark read'}</button>
             </div>
-        `;
-    }
-
+        </div>
+    `;
+    let html = '';
+    if (data.monthlyReady) html += renderCard('monthlyReady', 'monthly-ready', 'Monthly Report Ready', `${data.current || 0} booking(s) recorded this month.`, 'admin_reports.html', '📊', '#FEF7E0', '#D97706');
+    if (data.bookingDecline) html += renderCard('bookingDecline', 'booking-decline', 'Booking Decline Alert', `Bookings dropped ${(Math.max(0, (1 - (data.current / (data.previous || 1))) * 100)).toFixed(0)}% versus last month.`, 'admin_reports.html', '📉', '#FCE8E6', '#DC2626');
+    if (!html) html = `<div style="text-align:center; padding:30px 20px; color:#7A7A7A;"><i class="fa-solid fa-chart-bar" style="font-size:42px; display:block; margin-bottom:10px; color:#D3C4B8;"></i><h3 style="font-size:16px; font-weight:700; color:#333; margin-bottom:6px;">No Report Notifications</h3><p style="font-size:13px;">All reports are up to date.</p></div>`;
     document.getElementById('notificationsModalContent').innerHTML = html;
     document.getElementById('notificationsModal').classList.add('active');
     lockBodyScroll();
+    document.querySelectorAll('.mark-notification-read').forEach(button => {
+        button.addEventListener('click', function() { const category = this.dataset.category; const itemKey = this.dataset.itemKey; markItemRead(category, itemKey); this.textContent = 'Read'; this.disabled = true; });
+    });
 }
 
     // 加载 header 头像

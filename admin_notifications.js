@@ -4,6 +4,10 @@
         const badge = document.getElementById('notifCount');
         if (!button || !badge) return;
 
+        if (window.pageNotificationBadgeMode === true) {
+            return;
+        }
+
         const token = localStorage.getItem('token');
         if (!token) return;
 
@@ -11,6 +15,23 @@
             const normalizedCount = Number(count) || 0;
             badge.textContent = normalizedCount > 99 ? '99+' : String(normalizedCount);
             badge.style.display = normalizedCount > 0 ? 'flex' : 'none';
+        }
+
+        function readLocalState() {
+            try {
+                const raw = localStorage.getItem('pawcare_admin_notifications');
+                return raw ? JSON.parse(raw) : {};
+            } catch {
+                return {};
+            }
+        }
+
+        const pageKey = document.body.dataset.notificationPage || window.location.pathname.split('/').pop().replace('.html', '');
+        const state = readLocalState();
+        const localCount = Number(state[pageKey]?.count || 0);
+        if (localCount > 0) {
+            setBadge(localCount);
+            return;
         }
 
         const summaryRequest = fetch('/api/admin/notifications/summary', {

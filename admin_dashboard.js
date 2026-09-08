@@ -409,9 +409,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // 每个页面不同的 NOTIFICATIONS 逻辑
     // ================================================================
 
+    const notificationPageKey = 'admin_dashboard';
+    function getAdminReadState() {
+        try {
+            return JSON.parse(localStorage.getItem('pawcare_admin_read_state') || '{}');
+        } catch {
+            return {};
+        }
+    }
+    function saveAdminReadState(nextState) {
+        localStorage.setItem('pawcare_admin_read_state', JSON.stringify(nextState));
+    }
+    function isItemRead(category, itemKey) {
+        const state = getAdminReadState();
+        const list = state[notificationPageKey]?.[category] || [];
+        return list.includes(itemKey);
+    }
+    function markItemRead(category, itemKey) {
+        const state = getAdminReadState();
+        if (!state[notificationPageKey]) state[notificationPageKey] = {};
+        if (!state[notificationPageKey][category]) state[notificationPageKey][category] = [];
+        if (!state[notificationPageKey][category].includes(itemKey)) {
+            state[notificationPageKey][category].push(itemKey);
+        }
+        saveAdminReadState(state);
+        loadNotificationCount();
+    }
     async function loadNotificationCount() {
         try {
-            // 获取各种通知数据
             const [pendingRes, rescheduleRes, newCustomersRes, upcomingRes] = await Promise.all([
                 authFetch('/api/admin/bookings?status=pending'),
                 authFetch('/api/admin/bookings?reschedule_status=pending'),
@@ -419,25 +444,31 @@ document.addEventListener('DOMContentLoaded', function() {
                 authFetch('/api/admin/bookings?upcoming=true')
             ]);
 
-            const pending = ((await pendingRes.json()).data || []).length;
-            const reschedule = ((await rescheduleRes.json()).data || []).length;
-            const newCustomers = ((await newCustomersRes.json()).data || []).length;
-            const upcoming = ((await upcomingRes.json()).data || []).length;
+            const pending = ((await pendingRes.json()).data || []);
+            const reschedule = ((await rescheduleRes.json()).data || []);
+            const newCustomers = ((await newCustomersRes.json()).data || []);
+            const upcoming = ((await upcomingRes.json()).data || []);
 
-            const total = pending + reschedule + newCustomers + upcoming;
+            const readState = getAdminReadState()[notificationPageKey] || {};
+            const unreadPending = pending.filter(item => !(readState.pending || []).includes(String(item.booking_id || item.id || 'pending-' + Math.random())));
+            const unreadReschedule = reschedule.filter(item => !(readState.reschedule || []).includes(String(item.booking_id || item.id || 'reschedule-' + Math.random())));
+            const unreadCustomers = newCustomers.filter(item => !(readState.newCustomers || []).includes(String(item.customer_id || item.id || 'new-customer-' + Math.random())));
+            const unreadUpcoming = upcoming.filter(item => !(readState.upcoming || []).includes(String(item.booking_id || item.id || 'upcoming-' + Math.random())));
 
+            const total = unreadPending.length + unreadReschedule.length + unreadCustomers.length + unreadUpcoming.length;
             const notifCount = document.getElementById('notifCount');
             if (notifCount) {
-                if (total > 0) {
-                    notifCount.textContent = total;
-                    notifCount.style.display = 'flex';
-                } else {
-                    notifCount.style.display = 'none';
-                }
+                notifCount.textContent = total > 0 ? total : '';
+                notifCount.style.display = total > 0 ? 'flex' : 'none';
             }
 
-            // 保存数据供 modal 使用
-            window.notificationData = { pending, reschedule, newCustomers, upcoming, total };
+            window.notificationData = {
+                pending: unreadPending,
+                reschedule: unreadReschedule,
+                newCustomers: unreadCustomers,
+                upcoming: unreadUpcoming,
+                total
+            };
             return total;
         } catch (err) {
             console.error('Error loading notifications:', err);
@@ -448,87 +479,78 @@ document.addEventListener('DOMContentLoaded', function() {
     async function showNotificationDetails() {
         const modal = document.getElementById('notificationsModal');
         const content = document.getElementById('notificationsModalContent');
-
-        // 加载数据
         await loadNotificationCount();
-        const data = window.notificationData || { pending: 0, reschedule: 0, newCustomers: 0, upcoming: 0 };
+        const data = window.notificationData || { pending: [], reschedule: [], newCustomers: [], upcoming: [] };
+        const buildCard = (title, category, item, detail, actionText, actionHref, color, badgeBg, icon) => {
+            const itemKey = String(item.booking_id || item.customer_id || item.pet_id || item.id || `${category}-${Math.random()}`);
+            const read = isItemRead(category, itemKey);
+            return `
+                <div style="background:${color}; border-radius:12px; padding:12px 12px 10px; margin-bottom:10px; border-left:4px solid ${badgeBg}; ${read ? 'opacity: 0.72;' : ''}">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:6px;">
+                        <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                            <span style="display:inline-flex; width:32px; height:32px; border-radius:50%; background:#fff; align-items:center; justify-content:center; font-size:16px;">${icon}</span>
+                            <div style="min-width:0; flex:1;">
+                                <div style="font-size:15px; font-weight:700; color:#2d241f; white-space:normal; word-break:break-word;">${title}</div>
+                                <div style="font-size:12px; color:#5f5248; margin-top:4px; line-height:1.45;">${detail}</div>
+                            </div>
+                        </div>
+                        <span style="background:${badgeBg}; color:#fff; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">${Array.isArray(item) ? item.length : 1}</span>
+                    </div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px;">
+                        <a href="${actionHref}" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">${actionText}</a>
+                        <button type="button" data-category="${category}" data-item-key="${itemKey}" class="mark-notification-read" style="background:transparent; border:1px solid rgba(90,54,26,0.3); color:#5A361A; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:600; cursor:pointer;">${read ? 'Read' : 'Mark read'}</button>
+                    </div>
+                </div>
+            `;
+        };
 
         let html = '';
-        let hasNotifications = false;
-
-        // Pending Bookings (High)
-        if (data.pending > 0) {
-            hasNotifications = true;
-            html += `
-                <div style="background:#FEF7E0; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #D97706;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span><strong>📋 Pending Bookings</strong></span>
-                        <span style="background:#D97706; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.pending}</span>
-                    </div>
-                    <div style="font-size:12px; color:#7A7A7A;">${data.pending} booking(s) need approval</div>
-                    <a href="admin_bookings.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
-                </div>
-            `;
+        if (data.pending.length > 0) {
+            html += data.pending.map(item => {
+                const customerName = item.customer?.full_name || item.customer_name || item.customer_id || 'Customer';
+                const date = item.booking_date ? new Date(item.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+                const time = item.booking_time || '';
+                const itemKey = String(item.booking_id || item.id || 'pending-' + Math.random());
+                return buildCard(`${customerName}`, 'pending', { booking_id: itemKey }, `${customerName} • Booking ID: ${item.booking_id || 'N/A'} • ${date} ${time}`.trim(), 'View & Approve', 'admin_bookings.html', '#FEF7E0', '#D97706', '📋');
+            }).join('');
         }
-
-        // Reschedule Requests (High)
-        if (data.reschedule > 0) {
-            hasNotifications = true;
-            html += `
-                <div style="background:#FFF3E0; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #E65100;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span><strong>🔄 Reschedule Requests</strong></span>
-                        <span style="background:#E65100; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.reschedule}</span>
-                    </div>
-                    <div style="font-size:12px; color:#7A7A7A;">${data.reschedule} customer(s) requested reschedule</div>
-                    <a href="admin_bookings.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
-                </div>
-            `;
+        if (data.reschedule.length > 0) {
+            html += data.reschedule.map(item => {
+                const customerName = item.customer?.full_name || item.customer_name || item.customer_id || 'Customer';
+                const date = item.reschedule_requested_date || item.booking_date || 'N/A';
+                const itemKey = String(item.booking_id || item.id || 'reschedule-' + Math.random());
+                return buildCard(`${customerName}`, 'reschedule', { booking_id: itemKey }, `Reschedule requested • Booking ID: ${item.booking_id || 'N/A'} • ${new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` , 'View request', 'admin_bookings.html', '#FFF3E0', '#E65100', '🔄');
+            }).join('');
         }
-
-        // New Customers Today (Medium)
-        if (data.newCustomers > 0) {
-            hasNotifications = true;
-            html += `
-                <div style="background:#E8F5E9; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #2E7D32;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span><strong>👤 New Customers Today</strong></span>
-                        <span style="background:#2E7D32; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.newCustomers}</span>
-                    </div>
-                    <div style="font-size:12px; color:#7A7A7A;">${data.newCustomers} new customer(s) registered</div>
-                    <a href="admin_customers.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
-                </div>
-            `;
+        if (data.newCustomers.length > 0) {
+            html += data.newCustomers.map(item => {
+                const customerName = item.full_name || item.customer_name || item.email || 'Customer';
+                const itemKey = String(item.customer_id || item.id || 'customer-' + Math.random());
+                return buildCard(`${customerName}`, 'newCustomers', { customer_id: itemKey }, `New customer joined today • ${item.email || 'No email provided'}` , 'View customer', 'admin_customers.html', '#E8F5E9', '#2E7D32', '👤');
+            }).join('');
         }
-
-        // Upcoming Appointments (Low)
-        if (data.upcoming > 0) {
-            hasNotifications = true;
-            html += `
-                <div style="background:#E3F2FD; border-radius:8px; padding:10px 14px; margin-bottom:8px; border-left:3px solid #0D47A1;">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <span><strong>📅 Upcoming Appointments</strong></span>
-                        <span style="background:#0D47A1; color:#fff; padding:2px 10px; border-radius:12px; font-size:11px;">${data.upcoming}</span>
-                    </div>
-                    <div style="font-size:12px; color:#7A7A7A;">${data.upcoming} booking(s) in next 3 days</div>
-                    <a href="admin_bookings.html" style="font-size:11px; color:#5A361A; text-decoration:none; font-weight:600;">View →</a>
-                </div>
-            `;
+        if (data.upcoming.length > 0) {
+            html += data.upcoming.map(item => {
+                const petName = item.pet_name || item.pet_id || 'Pet';
+                const itemKey = String(item.booking_id || item.id || 'upcoming-' + Math.random());
+                return buildCard(`${petName}`, 'upcoming', { booking_id: itemKey }, `Upcoming booking • ${item.pet_id || 'Pet ID'} • ${new Date(item.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${item.booking_time || ''}`.trim(), 'View booking', 'admin_bookings.html', '#E3F2FD', '#0D47A1', '📅');
+            }).join('');
         }
-
-        if (!hasNotifications) {
-            html = `
-                <div style="text-align:center; padding:30px 20px; color:#7A7A7A;">
-                    <i class="fa-regular fa-bell" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i>
-                    <h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">All Clear!</h3>
-                    <p style="font-size:13px;">No notifications at the moment.</p>
-                </div>
-            `;
+        if (!html) {
+            html = `<div style="text-align:center; padding:30px 18px; color:#7A7A7A;"><i class="fa-regular fa-bell" style="font-size:42px; display:block; margin-bottom:10px; color:#D3C4B8;"></i><h3 style="font-size:16px; font-weight:700; color:#333; margin-bottom:6px;">All Clear!</h3><p style="font-size:13px;">No notifications at the moment.</p></div>`;
         }
-
         content.innerHTML = html;
         modal.classList.add('active');
         lockBodyScroll();
+        content.querySelectorAll('.mark-notification-read').forEach(button => {
+            button.addEventListener('click', function() {
+                const category = this.dataset.category;
+                const itemKey = this.dataset.itemKey;
+                markItemRead(category, itemKey);
+                this.textContent = 'Read';
+                this.disabled = true;
+            });
+        });
     }
 
     // 加载 header 头像
