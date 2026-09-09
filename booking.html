@@ -314,6 +314,10 @@
             width: 100%;
         }
 
+        .main-content {
+            background: radial-gradient(circle at 12% 8%, rgba(253, 245, 230, 0.9), transparent 28%), #FBF8F4;
+        }
+
         .back-link {
             display: inline-block;
             margin-bottom: 18px;
@@ -349,6 +353,7 @@
             align-items: center;
             gap: 16px;
             margin-bottom: 24px;
+            box-shadow: 0 10px 28px rgba(90, 54, 26, 0.08);
         }
 
         .page-intro-icon {
@@ -376,7 +381,7 @@
             border-radius: 14px;
             padding: 24px 28px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+            box-shadow: 0 8px 22px rgba(90, 54, 26, 0.055);
             border: 1px solid #EFECE6;
             transition: border-color 0.2s;
         }
@@ -392,6 +397,17 @@
             display: block;
             margin-bottom: 14px;
             letter-spacing: 0.3px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #F1E9E1;
+        }
+
+        .form-control:focus,
+        input:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #C46B2D;
+            box-shadow: 0 0 0 3px rgba(196, 107, 45, 0.12);
         }
         .step-label i {
             margin-right: 8px;
@@ -1782,13 +1798,16 @@ async function fetchNotificationsData() {
                 if (!response.ok) return;
                 const result = await response.json();
                 const fullSlots = new Set(result.data?.fullSlots || []);
+                const slotCounts = result.data?.counts || {};
+                const slotRemaining = result.data?.remaining || {};
                 const selectedValue = bookingTime.value;
 
                 bookingTime.querySelectorAll('option').forEach(option => {
                     const isFull = fullSlots.has(option.value);
                     option.disabled = isFull;
-                    option.hidden = isFull;
-                    option.textContent = option.textContent.replace(/ \(Full\)$/, '') + (isFull ? ' (Full)' : '');
+                    option.hidden = false;
+                    const remaining = slotRemaining[option.value] ?? Math.max(0, 2 - (slotCounts[option.value] || 0));
+                    option.textContent = option.textContent.replace(/ \((?:Full|Fully booked|\d+ slot(?:s)? left)\)$/, '') + (isFull ? ' (Fully booked)' : ` (${remaining} slot${remaining === 1 ? '' : 's'} left)`);
                 });
 
                 if (fullSlots.has(selectedValue)) {
