@@ -1295,7 +1295,7 @@ async function loadNotificationCount() {
 async function showNotificationDetails() {
     await loadNotificationCount();
     const data = window.notificationData || {};
-    const renderCard = (category, key, title, detail, href, icon, bg, border) => `
+    const renderCard = (category, key, title, detail, href, icon, bg, border, extraContent = '') => `
         <div style="background:${bg}; border-radius:12px; padding:12px 12px 10px; margin-bottom:10px; border-left:4px solid ${border}; ${isItemRead(category, key) ? 'opacity:0.72;' : ''}">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
                 <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
@@ -1307,6 +1307,7 @@ async function showNotificationDetails() {
                 </div>
                 <span style="background:${border}; color:#fff; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">1</span>
             </div>
+            ${extraContent}
             <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px;">
                 <a href="${href}" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">View →</a>
                 <button type="button" class="mark-notification-read" data-category="${category}" data-item-key="${key}" style="background:transparent; border:1px solid rgba(90,54,26,0.3); color:#5A361A; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:600; cursor:pointer;">${isItemRead(category, key) ? 'Read' : 'Mark read'}</button>
@@ -1314,11 +1315,23 @@ async function showNotificationDetails() {
         </div>
     `;
     let html = '';
-    (data.currentBookings || []).forEach(booking => {
-        const key = String(booking.booking_id);
-        const customer = booking.customer?.full_name || booking.customer_name || 'Customer';
-        html += renderCard('monthlyReady', key, 'Monthly Report Ready', `${customer} · Booking ID: ${booking.booking_id} · ${booking.booking_date} ${booking.booking_time || ''}`, 'admin_reports.html', '📊', '#FEF7E0', '#D97706');
-    });
+    if (data.monthlyReady) {
+        const bookingDetails = (data.currentBookings || []).map(booking => {
+            const customer = booking.customer?.full_name || booking.customer_name || 'Customer';
+            return `<div style="padding:7px 0;border-top:1px solid rgba(217,119,6,0.2);font-size:12px;color:#5f5248;line-height:1.45;"><strong>${customer}</strong> · Booking ID: ${booking.booking_id || 'N/A'} · ${booking.booking_date || 'N/A'} ${booking.booking_time || ''}</div>`;
+        }).join('');
+        html += renderCard(
+            'monthlyReady',
+            'monthly-ready',
+            'Monthly Report Ready',
+            `${data.currentBookings?.length || data.current || 0} booking(s) recorded this month.`,
+            'admin_reports.html',
+            '📊',
+            '#FEF7E0',
+            '#D97706',
+            `<div style="margin-top:8px;max-height:190px;overflow-y:auto;">${bookingDetails || '<div style="font-size:12px;color:#7A7A7A;">No booking details available.</div>'}</div>`
+        );
+    }
     if (data.bookingDecline) html += renderCard('bookingDecline', 'booking-decline', 'Booking Decline Alert', `Bookings ${data.current < data.previous ? 'dropped' : 'changed'} ${Math.abs(((data.current - data.previous) / (data.previous || 1)) * 100).toFixed(0)}% versus last month (${data.previous} → ${data.current}).`, 'admin_reports.html', '📉', '#FCE8E6', '#DC2626');
     if (!html) html = `<div style="text-align:center; padding:30px 20px; color:#7A7A7A;"><i class="fa-solid fa-chart-bar" style="font-size:42px; display:block; margin-bottom:10px; color:#D3C4B8;"></i><h3 style="font-size:16px; font-weight:700; color:#333; margin-bottom:6px;">No Report Notifications</h3><p style="font-size:13px;">All reports are up to date.</p></div>`;
     document.getElementById('notificationsModalContent').innerHTML = html;
