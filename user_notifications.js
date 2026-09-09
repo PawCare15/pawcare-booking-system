@@ -69,6 +69,18 @@
         return getPageLink();
     }
 
+    function getNotificationTone(type) {
+        return {
+            booking: ['#FFF1DE', '#B56616'],
+            reschedule: ['#F1EAFE', '#7654B8'],
+            payment: ['#EAF4FF', '#3173B8'],
+            pet: ['#FFF1DE', '#B56616'],
+            profile: ['#EAF5EE', '#247A4A'],
+            security: ['#FDECEC', '#B33A3A'],
+            review: ['#FCECF1', '#B33F68']
+        }[type] || ['#F2F0ED', '#6B625B'];
+    }
+
     function getNotificationIcon(type) {
         return {
             booking: 'fa-calendar-check',
@@ -98,14 +110,15 @@
         if (!content || !modal) return;
 
         const relevant = relevantNotifications(notifications).slice(0, 20);
-        const includeBookingReminder = ['dashboard', 'booking', 'history'].includes(context);
+        const includeBookingReminder = ['dashboard', 'booking', 'history', 'pets'].includes(context);
         const upcoming = includeBookingReminder ? getUpcomingBookings(bookings, null) : [];
         let html = `<div style="padding:4px 0 14px; color:#5A361A; font-weight:700; font-size:15px;">${getContextLabel()}<span style="display:block; color:#A08F80; font-size:11px; font-weight:400; margin-top:3px;">Updates chosen for this page</span></div>`;
 
         relevant.forEach(item => {
+            const tone = getNotificationTone(item.type);
             html += `<a href="${getItemLink(item)}" style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; text-decoration:none;">
                 <div style="display:flex; gap:10px; align-items:flex-start;">
-                    <span style="display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:9px; background:#FFF1DE; color:#B56616;"><i class="fa-solid ${getNotificationIcon(item.type)}"></i></span>
+                    <span style="display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:9px; background:${tone[0]}; color:${tone[1]};"><i class="fa-solid ${getNotificationIcon(item.type)}"></i></span>
                     <span style="min-width:0; flex:1;"><strong style="display:block; color:#333; font-size:13px;">${escapeHtml(item.title)}</strong>
                     <small style="display:block; color:#A08F80; margin-top:4px;">${formatNotificationDate(item.created_at)}</small>
                     <span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(item.message)}</span></span>
@@ -114,8 +127,11 @@
         });
 
         upcoming.forEach(booking => {
+            const petName = booking.pet?.name ? ` for ${booking.pet.name}` : '';
+            const serviceName = booking.services?.[0]?.service_name ? ` · ${booking.services[0].service_name}` : '';
+            const time = String(booking.booking_time || 'the scheduled time').replace(/:00$/, '');
             html += `<a href="history.html" style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; text-decoration:none;">
-                <div style="display:flex; gap:10px; align-items:flex-start;"><span style="display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:9px; background:#EAF5EE; color:#247A4A;"><i class="fa-solid fa-clock"></i></span><span><strong style="display:block; color:#333; font-size:13px;">Upcoming appointment</strong><span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(booking.booking_date)} at ${escapeHtml(booking.booking_time || 'the scheduled time')}</span></span></div>
+                <div style="display:flex; gap:10px; align-items:flex-start;"><span style="display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:9px; background:#EAF5EE; color:#247A4A;"><i class="fa-solid fa-clock"></i></span><span><strong style="display:block; color:#333; font-size:13px;">Upcoming appointment${escapeHtml(petName)}</strong><span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(booking.booking_date)} at ${escapeHtml(time)}${escapeHtml(serviceName)}</span></span></div>
             </a>`;
         });
 

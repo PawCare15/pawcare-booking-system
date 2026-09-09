@@ -2729,9 +2729,23 @@ app.post('/api/replies/:reply_id/like', async (req, res) => {
       if (deleteError) throw deleteError;
       action = 'unliked';
     } else {
-      // 未点赞 → 添加点赞
+      // 已点赞 → 添加点赞
       const { error: insertError } = await supabaseAdmin.from('review_reply_likes').insert([{ reply_id, customer_id }]);
       if (insertError) throw insertError;
+
+      const { data: replyOwner } = await supabaseAdmin
+        .from('review_replies')
+        .select('customer_id, reply_text')
+        .eq('reply_id', reply_id)
+        .maybeSingle();
+      if (replyOwner?.customer_id && replyOwner.customer_id !== customer_id) {
+        await createCustomerNotification(
+          replyOwner.customer_id,
+          'Someone liked your reply',
+          `Your reply received a new like: "${replyOwner.reply_text.slice(0, 80)}${replyOwner.reply_text.length > 80 ? '...' : ''}"`,
+          'review'
+        );
+      }
     }
 
     // 获取最新点赞数
@@ -2771,6 +2785,20 @@ app.post('/api/replies/:reply_id/reply', async (req, res) => {
 
     const { data, error } = await supabaseAdmin.from('review_replies').insert([insertData]).select('*');
     if (error) throw error;
+
+    const { data: reviewOwner } = await supabaseAdmin
+      .from('review')
+      .select('customer_id')
+      .eq('review_id', targetReply.review_id)
+      .maybeSingle();
+    if (reviewOwner?.customer_id && reviewOwner.customer_id !== userId) {
+      await createCustomerNotification(
+        reviewOwner.customer_id,
+        role === 'admin' ? 'Admin replied to your review' : 'Someone replied to your review',
+        `${role === 'admin' ? 'Admin' : 'A customer'} replied: "${reply_text.trim().slice(0, 100)}${reply_text.trim().length > 100 ? '...' : ''}"`,
+        'review'
+      );
+    }
 
     res.status(201).json({ success: true, data: data[0] });
   } catch (err) {
