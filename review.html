@@ -2467,12 +2467,9 @@
               const res = await authFetch('/api/services');
               const data = await res.json();
               if (data.success) {
-                    const services = data.data || [];
-                    const uniqueServices = services.filter((service, index, list) =>
-                      index === list.findIndex(item => item.service_name?.trim().toLowerCase() === service.service_name?.trim().toLowerCase())
-                    );
+                  const services = data.data || [];
                   select.innerHTML = '<option value="">Select a service (optional)</option>';
-                    uniqueServices.forEach(svc => {
+                  services.forEach(svc => {
                       const option = document.createElement('option');
                       option.value = svc.service_id;
                       option.textContent = svc.service_name;

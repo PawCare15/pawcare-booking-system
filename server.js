@@ -785,10 +785,6 @@ app.put('/api/profile', async (req, res) => {
         }
     }
 
-    if (role === 'customer') {
-      await createCustomerNotification(userId, 'Profile updated', 'Your profile details were updated successfully.', 'profile');
-    }
-
     res.json({ success: true, message: 'Profile updated.' });
   } catch (err) {
     console.error(err);
@@ -852,10 +848,6 @@ app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
       .eq(idField, userId);
     if (updateError) throw updateError;
 
-    if (role === 'customer') {
-      await createCustomerNotification(userId, 'Avatar updated', 'Your profile picture was updated successfully.', 'profile');
-    }
-
     res.json({ success: true, avatar_url: avatarUrl });
   } catch (err) {
     console.error(err);
@@ -918,9 +910,6 @@ app.put('/api/profile/password', async (req, res) => {
             .from('admin')
             .update({ password_updated_at: new Date().toISOString() })
             .eq(idField, userId);
-    }
-    if (role === 'customer') {
-      await createCustomerNotification(userId, 'Password updated', 'Your password was changed successfully.', 'security');
     }
     res.json({ success: true, message: 'Password updated successfully.' });
   } catch (err) {
@@ -1790,7 +1779,7 @@ app.get('/api/bookings/availability', async (req, res) => {
       .from('booking')
       .select('booking_time')
       .eq('booking_date', date)
-      .in('status', ['pending', 'approved', 'confirmed', 'upcoming']);
+      .in('status', ['pending', 'confirmed', 'upcoming']);
     if (error) throw error;
 
     const counts = (data || []).reduce((result, booking) => {
@@ -1804,7 +1793,6 @@ app.get('/api/bookings/availability', async (req, res) => {
       data: {
         capacity: MAX_BOOKINGS_PER_SLOT,
         counts,
-        remaining: Object.fromEntries(Object.entries(counts).map(([time, count]) => [time, Math.max(0, MAX_BOOKINGS_PER_SLOT - count)])),
         fullSlots: Object.keys(counts).filter(time => counts[time] >= MAX_BOOKINGS_PER_SLOT)
       }
     });
@@ -1877,7 +1865,7 @@ app.post('/api/bookings', async (req, res) => {
           .select('booking_id', { count: 'exact', head: true })
           .eq('booking_date', booking_date)
           .eq('booking_time', booking_time)
-          .in('status', ['pending', 'approved', 'confirmed', 'upcoming']);
+          .in('status', ['pending', 'confirmed', 'upcoming']);
         if (slotError) throw slotError;
         if (activeSlotBookings >= MAX_BOOKINGS_PER_SLOT) {
           return res.status(409).json({
@@ -1968,13 +1956,6 @@ app.post('/api/bookings', async (req, res) => {
 
         const totalPrice = bookingServices.reduce((sum, bs) => sum + bs.estimated_price, 0);
 
-        await createCustomerNotification(
-          customer_id,
-          'Booking submitted',
-          `Your booking for ${booking_date} at ${booking_time} was submitted and is waiting for confirmation.`,
-          'booking'
-        );
-
         res.status(201).json({
             success: true,
             message: 'Booking created successfully.',
@@ -2037,18 +2018,6 @@ app.post('/api/bookings/:booking_id/reschedule-request', async (req, res) => {
       return res.status(400).json({ success: false, message: 'We are closed on Thursdays. Please choose another date.' });
     }
 
-    const { count: targetSlotBookings, error: targetSlotError } = await supabaseAdmin
-      .from('booking')
-      .select('booking_id', { count: 'exact', head: true })
-      .eq('booking_date', new_date)
-      .eq('booking_time', new_time)
-      .in('status', ['pending', 'approved', 'confirmed', 'upcoming'])
-      .neq('booking_id', booking_id);
-    if (targetSlotError) throw targetSlotError;
-    if ((targetSlotBookings || 0) >= MAX_BOOKINGS_PER_SLOT) {
-      return res.status(409).json({ success: false, message: 'The target time slot is full. Please choose another time.' });
-    }
-
     // 更新 booking 表，记录请求
     const { data: updatedData, error: updateError } = await supabaseAdmin
       .from('booking')
@@ -2062,13 +2031,6 @@ app.post('/api/bookings/:booking_id/reschedule-request', async (req, res) => {
       .select('reschedule_status');
 
     if (updateError) throw updateError;
-
-    await createCustomerNotification(
-      customer_id,
-      'Reschedule request submitted',
-      `Your request to move the appointment to ${new_date} at ${new_time} is waiting for admin approval.`,
-      'reschedule'
-    );
     console.log('✅ Reschedule status updated to:', updatedData[0]?.reschedule_status);
 
     // （可选）发送通知给 Admin（例如通过邮件或系统通知，此处略）
@@ -2116,7 +2078,7 @@ app.put('/api/bookings/:booking_id/reschedule-approve', async (req, res) => {
         .select('booking_id', { count: 'exact', head: true })
         .eq('booking_date', newDate)
         .eq('booking_time', newTime)
-        .in('status', ['pending', 'approved', 'confirmed', 'upcoming'])
+        .in('status', ['pending', 'confirmed', 'upcoming'])
         .neq('booking_id', booking_id);
       if (countError) throw countError;
       if ((count || 0) >= MAX_BOOKINGS_PER_SLOT) {
@@ -2222,7 +2184,7 @@ app.put('/api/bookings/:booking_id/cancel', async (req, res) => {
     // 验证预约是否存在且属于当前用户
     const { data: booking, error: fetchError } = await supabaseAdmin
       .from('booking')
-      .select('status, booking_date, booking_time')
+      .select('status')
       .eq('booking_id', booking_id)
       .eq('customer_id', customer_id)
       .single();
@@ -2242,13 +2204,6 @@ app.put('/api/bookings/:booking_id/cancel', async (req, res) => {
       .eq('booking_id', booking_id);
 
     if (updateError) throw updateError;
-
-    await createCustomerNotification(
-      customer_id,
-      'Booking cancelled',
-      `Your booking on ${booking.booking_date} at ${booking.booking_time} was cancelled.`,
-      'booking'
-    );
 
     res.json({ success: true, message: 'Booking cancelled successfully.' });
   } catch (err) {
@@ -2444,22 +2399,6 @@ app.post('/api/reviews/:review_id/like', async (req, res) => {
             .select('review_id', { count: 'exact', head: true })
             .eq('review_id', review_id);
         if (countError) throw countError;
-
-        if (action === 'liked') {
-          const { data: reviewOwner } = await supabaseAdmin
-            .from('review')
-            .select('customer_id, comment')
-            .eq('review_id', review_id)
-            .maybeSingle();
-          if (reviewOwner?.customer_id && reviewOwner.customer_id !== customer_id) {
-            await createCustomerNotification(
-              reviewOwner.customer_id,
-              'Someone liked your review',
-              `Your review received a new like: ${(reviewOwner.comment || '').slice(0, 100)}`,
-              'review'
-            );
-          }
-        }
 
         res.json({
             success: true,
@@ -2704,20 +2643,6 @@ app.post('/api/reviews/:review_id/reply', async (req, res) => {
       .select('reply_id, reply_text, created_at, customer_id, admin_id');
 
     if (error) throw error;
-
-    const { data: reviewOwner } = await supabaseAdmin
-      .from('review')
-      .select('customer_id')
-      .eq('review_id', review_id)
-      .maybeSingle();
-    if (reviewOwner?.customer_id && reviewOwner.customer_id !== userId) {
-      await createCustomerNotification(
-        reviewOwner.customer_id,
-        role === 'admin' ? 'Admin replied to your review' : 'New reply to your review',
-        reply_text.trim().slice(0, 120),
-        'review'
-      );
-    }
 
     // 为了前端展示，需要把 customer 或 admin 的信息附上
     const reply = data[0];
@@ -3578,11 +3503,6 @@ app.put('/api/admin/bookings/:id', isAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const { status, payment_status, reschedule_status } = req.body;
-        const { data: previousBooking } = await supabaseAdmin
-          .from('booking')
-          .select('customer_id, booking_date, booking_time, status')
-          .eq('booking_id', id)
-          .maybeSingle();
 
         const updateData = { updated_at: new Date().toISOString() };
         if (status) updateData.status = status;
@@ -3610,23 +3530,6 @@ app.put('/api/admin/bookings/:id', isAdmin, async (req, res) => {
             .single();
 
         if (error) throw error;
-        if (previousBooking && status && status !== previousBooking.status) {
-          const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
-          await createCustomerNotification(
-            previousBooking.customer_id,
-            `Booking ${statusLabel}`,
-            `Your booking on ${previousBooking.booking_date} at ${previousBooking.booking_time} is now ${status}.`,
-            'booking'
-          );
-        }
-        if (previousBooking && reschedule_status === 'approved') {
-          await createCustomerNotification(
-            previousBooking.customer_id,
-            'Booking rescheduled',
-            'Your appointment was updated by the admin. Check Booking History for the new time.',
-            'reschedule'
-          );
-        }
         res.json({ success: true, data });
     } catch (err) {
         console.error('Error updating booking:', err);
@@ -3709,7 +3612,7 @@ app.post('/api/admin/bookings/:id/reschedule-suggestion', isAdmin, async (req, r
       .select('booking_id', { count: 'exact', head: true })
       .eq('booking_date', new_date)
       .eq('booking_time', new_time)
-      .in('status', ['pending', 'approved', 'confirmed', 'upcoming'])
+      .in('status', ['pending', 'confirmed', 'upcoming'])
       .neq('booking_id', id);
 
     if (countError) throw countError;
@@ -4062,15 +3965,6 @@ app.listen(PORT, () => {
 app.get('/api/notifications', async (req, res) => {
   try {
     const customerId = getCustomerId(req);
-    const contextTypes = {
-      dashboard: ['booking', 'reschedule', 'review', 'security', 'profile', 'account'],
-      booking: ['booking', 'payment', 'reschedule'],
-      history: ['booking', 'reschedule', 'payment'],
-      pets: ['pet', 'booking'],
-      profile: ['profile', 'security', 'account'],
-      review: ['review']
-    };
-    const requestedTypes = req.query.type ? String(req.query.type).split(',').filter(Boolean) : contextTypes[req.query.context];
     const { data, error } = await supabaseAdmin
       .from('customer_notifications')
       .select('notification_id, title, message, type, is_read, created_at')
@@ -4078,8 +3972,7 @@ app.get('/api/notifications', async (req, res) => {
       .order('created_at', { ascending: false })
       .limit(50);
     if (error) throw error;
-    const filtered = requestedTypes ? (data || []).filter(item => requestedTypes.includes(item.type)) : (data || []);
-    res.json({ success: true, data: filtered });
+    res.json({ success: true, data: data || [] });
   } catch (err) {
     console.error('Error fetching customer notifications:', err);
     res.status(500).json({ success: false, message: err.message });
@@ -4098,22 +3991,6 @@ app.put('/api/notifications/read', async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('Error marking customer notifications as read:', err);
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-app.put('/api/notifications/:notification_id/read', async (req, res) => {
-  try {
-    const customerId = getCustomerId(req);
-    const { error } = await supabaseAdmin
-      .from('customer_notifications')
-      .update({ is_read: true })
-      .eq('notification_id', req.params.notification_id)
-      .eq('customer_id', customerId);
-    if (error) throw error;
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Error marking customer notification as read:', err);
     res.status(500).json({ success: false, message: err.message });
   }
 });
