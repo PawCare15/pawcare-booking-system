@@ -1957,7 +1957,8 @@ document.querySelectorAll('[data-close]').forEach(btn => {
                 const result = await response.json();
                 const data = result.success ? result.data : {};
                 const state = getAdminReadState()[notificationPageKey] || {};
-                const count = (data.lastLogin && !(state.security || []).includes('security-alert')) ? 1 : 0;
+                const count = (data.lastLogin && !(state.security || []).includes('security-alert') ? 1 : 0)
+                    + (data.totalLogins !== undefined && !(state.activity || []).includes('activity-summary') ? 1 : 0);
                 window.notificationData = data;
                 const notifCount = document.getElementById('notifCount');
                 if (notifCount) {
@@ -1977,7 +1978,7 @@ document.querySelectorAll('[data-close]').forEach(btn => {
             const formatDate = iso => iso ? new Date(iso).toLocaleString('en-US', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never';
             const securityColor = activity.two_factor_enabled ? '#2E7D32' : '#DC2626';
             const securityKey = 'security-alert';
-            const html = `
+            const securityCard = `
                 <div style="background:${activity.two_factor_enabled ? '#E8F5E9' : '#FCE8E6'}; border-radius:12px; padding:12px 12px 10px; margin-bottom:10px; border-left:4px solid ${securityColor}; ${isItemRead('security', securityKey) ? 'opacity:0.72;' : ''}">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
                         <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
@@ -1996,6 +1997,26 @@ document.querySelectorAll('[data-close]').forEach(btn => {
                     </div>
                 </div>
             `;
+            const activityKey = 'activity-summary';
+            const activityCard = `
+                <div style="background:#E3F2FD; border-radius:12px; padding:12px 12px 10px; margin-bottom:10px; border-left:4px solid #0D47A1; ${isItemRead('activity', activityKey) ? 'opacity:0.72;' : ''}">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
+                        <div style="display:flex; align-items:center; gap:10px; flex:1; min-width:0;">
+                            <span style="display:inline-flex; width:32px; height:32px; border-radius:50%; background:#fff; align-items:center; justify-content:center; font-size:16px;">📈</span>
+                            <div style="min-width:0; flex:1;">
+                                <div style="font-size:15px; font-weight:700; color:#2d241f;">Activity Summary</div>
+                                <div style="font-size:12px; color:#5f5248; margin-top:4px; line-height:1.45;">${activity.totalLogins || 0} total login(s) recorded. Last login: ${formatDate(activity.lastLogin)}</div>
+                            </div>
+                        </div>
+                        <span style="background:#0D47A1; color:#fff; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">1</span>
+                    </div>
+                    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px;">
+                        <a href="admin_profile.html" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">View activity summary</a>
+                        <button type="button" class="mark-notification-read" data-category="activity" data-item-key="${activityKey}" style="background:transparent; border:1px solid rgba(90,54,26,0.3); color:#5A361A; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:600; cursor:pointer;">${isItemRead('activity', activityKey) ? 'Read' : 'Mark read'}</button>
+                    </div>
+                </div>
+            `;
+            const html = securityCard + activityCard;
 
             document.getElementById('notificationsModalContent').innerHTML = html;
             document.getElementById('notificationsModal').classList.add('active');

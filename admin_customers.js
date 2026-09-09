@@ -601,6 +601,18 @@ async function getTopCustomers(limit = 3) {
 // ================================================================
 // LOAD NOTIFICATION COUNT - CUSTOMER PAGE
 // ================================================================
+const customerNotificationPageKey = 'admin_customers';
+function getCustomerNotificationReadState() {
+    try { return JSON.parse(localStorage.getItem('pawcare_admin_read_state') || '{}')[customerNotificationPageKey] || {}; } catch { return {}; }
+}
+function markCustomerNotificationRead(category, key) {
+    const state = JSON.parse(localStorage.getItem('pawcare_admin_read_state') || '{}');
+    state[customerNotificationPageKey] = state[customerNotificationPageKey] || {};
+    state[customerNotificationPageKey][category] = state[customerNotificationPageKey][category] || [];
+    if (!state[customerNotificationPageKey][category].includes(String(key))) state[customerNotificationPageKey][category].push(String(key));
+    localStorage.setItem('pawcare_admin_read_state', JSON.stringify(state));
+    loadNotificationCount();
+}
 async function loadNotificationCount() {
     try {
         const newCustomers = await getNewCustomersToday();
@@ -611,7 +623,10 @@ async function loadNotificationCount() {
             if (b.customer_id) uniqueCustomersWithPending.add(b.customer_id);
         });
         
-        const totalNotifications = newCustomers.length + uniqueCustomersWithPending.size;
+        const readState = getCustomerNotificationReadState();
+        const unreadNewCustomers = newCustomers.filter(customer => !(readState.newCustomers || []).includes(String(customer.customer_id)));
+        const pendingCustomerIds = [...uniqueCustomersWithPending].filter(id => !(readState.pendingBookings || []).includes(String(id)));
+        const totalNotifications = unreadNewCustomers.length + pendingCustomerIds.length;
         
         const notifCount = document.getElementById('notifCount');
         if (notifCount) {
@@ -627,7 +642,7 @@ async function loadNotificationCount() {
         }
 
         window.notificationData = {
-            newCustomers: newCustomers,
+            newCustomers: unreadNewCustomers,
             pendingBookings: pendingBookings,
             total: totalNotifications
         };
@@ -701,7 +716,7 @@ async function showNotificationDetails() {
                     minute: '2-digit'
                 });
                 html += `
-                    <div style="background: #E8F5E9; border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; border-left: 3px solid #2E7D32; display: flex; justify-content: space-between; align-items: center;">
+                    <div data-notification-category="newCustomers" data-notification-key="${customer.customer_id}" style="background: #E8F5E9; border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; border-left: 3px solid #2E7D32; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <strong style="font-size: 14px;">${customer.full_name || 'Unknown'}</strong>
                             <div style="font-size: 12px; color: #7A7A7A;">${customer.email || 'No email'}</div>
@@ -744,7 +759,7 @@ async function showNotificationDetails() {
                 const customerName = customer ? customer.name : booking.customer_id || 'N/A';
                 
                 html += `
-                    <div style="background: #FEF7E0; border-radius: 8px; padding: 8px 14px; margin-bottom: 6px; border-left: 3px solid #D97706;">
+                    <div data-notification-category="pendingBookings" data-notification-key="${booking.customer_id}" style="background: #FEF7E0; border-radius: 8px; padding: 8px 14px; margin-bottom: 6px; border-left: 3px solid #D97706;">
                         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
                             <span><strong>${customerName}</strong></span>
                             <span style="color: #7A7A7A; font-size: 12px;">${date} ${booking.booking_time || ''}</span>
@@ -873,6 +888,16 @@ async function showNotificationDetails() {
         // Update modal content
         if (content) {
             content.innerHTML = html;
+            content.querySelectorAll('[data-notification-category]').forEach(card => {
+                const category = card.dataset.notificationCategory;
+                const key = card.dataset.notificationKey;
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = (getCustomerNotificationReadState()[category] || []).includes(key) ? 'Read' : 'Mark read';
+                button.style.cssText = 'background:transparent;border:1px solid rgba(90,54,26,0.3);color:#5A361A;border-radius:8px;padding:5px 9px;font-size:11px;font-weight:600;cursor:pointer;margin-top:6px;';
+                button.addEventListener('click', () => { markCustomerNotificationRead(category, key); button.textContent = 'Read'; button.disabled = true; });
+                card.appendChild(button);
+            });
         }
 
     } catch (err) {

@@ -588,6 +588,18 @@ async function getInactivePets() {
 // ================================================================
 // LOAD NOTIFICATION COUNT - PET PAGE
 // ================================================================
+const petNotificationPageKey = 'admin_pets';
+function getPetNotificationReadState() {
+    try { return JSON.parse(localStorage.getItem('pawcare_admin_read_state') || '{}')[petNotificationPageKey] || {}; } catch { return {}; }
+}
+function markPetNotificationRead(category, key) {
+    const state = JSON.parse(localStorage.getItem('pawcare_admin_read_state') || '{}');
+    state[petNotificationPageKey] = state[petNotificationPageKey] || {};
+    state[petNotificationPageKey][category] = state[petNotificationPageKey][category] || [];
+    if (!state[petNotificationPageKey][category].includes(String(key))) state[petNotificationPageKey][category].push(String(key));
+    localStorage.setItem('pawcare_admin_read_state', JSON.stringify(state));
+    loadNotificationCount();
+}
 async function loadNotificationCount() {
     try {
         const newPets = await getNewPetsToday();
@@ -598,7 +610,10 @@ async function loadNotificationCount() {
             if (b.pet_id) uniquePetsWithUpcoming.add(b.pet_id);
         });
         
-        const totalNotifications = newPets.length + uniquePetsWithUpcoming.size;
+        const readState = getPetNotificationReadState();
+        const unreadNewPets = newPets.filter(pet => !(readState.newPets || []).includes(String(pet.pet_id)));
+        const upcomingPetIds = [...uniquePetsWithUpcoming].filter(id => !(readState.upcomingBookings || []).includes(String(id)));
+        const totalNotifications = unreadNewPets.length + upcomingPetIds.length;
         
         const notifCount = document.getElementById('notifCount');
         if (notifCount) {
@@ -614,7 +629,7 @@ async function loadNotificationCount() {
         }
 
         window.notificationData = {
-            newPets: newPets,
+            newPets: unreadNewPets,
             upcomingBookings: upcomingBookings,
             total: totalNotifications
         };
@@ -685,7 +700,7 @@ async function showNotificationDetails() {
                     minute: '2-digit'
                 });
                 html += `
-                    <div style="background: #E8F5E9; border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; border-left: 3px solid #2E7D32; display: flex; justify-content: space-between; align-items: center;">
+                    <div data-notification-category="newPets" data-notification-key="${pet.pet_id}" style="background: #E8F5E9; border-radius: 8px; padding: 10px 14px; margin-bottom: 6px; border-left: 3px solid #2E7D32; display: flex; justify-content: space-between; align-items: center;">
                         <div>
                             <strong style="font-size: 14px;">${speciesIcon} ${pet.pet_name}</strong>
                             <div style="font-size: 12px; color: #7A7A7A;">${pet.breed || 'Unknown breed'}</div>
@@ -723,7 +738,7 @@ async function showNotificationDetails() {
                     year: 'numeric'
                 });
                 html += `
-                    <div style="background: #FEF7E0; border-radius: 8px; padding: 8px 14px; margin-bottom: 6px; border-left: 3px solid #D97706;">
+                    <div data-notification-category="upcomingBookings" data-notification-key="${booking.pet_id}" style="background: #FEF7E0; border-radius: 8px; padding: 8px 14px; margin-bottom: 6px; border-left: 3px solid #D97706;">
                         <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
                             <span><strong>Pet ID: ${booking.pet_id || 'N/A'}</strong></span>
                             <span style="color: #7A7A7A; font-size: 12px;">${date} ${booking.booking_time || ''}</span>
@@ -855,6 +870,16 @@ async function showNotificationDetails() {
 
         if (content) {
             content.innerHTML = html;
+            content.querySelectorAll('[data-notification-category]').forEach(card => {
+                const category = card.dataset.notificationCategory;
+                const key = card.dataset.notificationKey;
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = (getPetNotificationReadState()[category] || []).includes(key) ? 'Read' : 'Mark read';
+                button.style.cssText = 'background:transparent;border:1px solid rgba(90,54,26,0.3);color:#5A361A;border-radius:8px;padding:5px 9px;font-size:11px;font-weight:600;cursor:pointer;margin-top:6px;';
+                button.addEventListener('click', () => { markPetNotificationRead(category, key); button.textContent = 'Read'; button.disabled = true; });
+                card.appendChild(button);
+            });
         }
 
     } catch (err) {

@@ -1066,20 +1066,23 @@ function isItemRead(category, key) { const state = getAdminReadState(); return (
 function markItemRead(category, key) { const state = getAdminReadState(); state[notificationPageKey] = state[notificationPageKey] || {}; state[notificationPageKey][category] = state[notificationPageKey][category] || []; if (!state[notificationPageKey][category].includes(key)) state[notificationPageKey][category].push(key); saveAdminReadState(state); loadNotificationCount(); }
 async function loadNotificationCount() {
     try {
-        const response = await authFetch('/api/admin/notifications/summary');
+        const response = await authFetch('/api/reviews');
         const result = await response.json();
-        const summary = result.success ? result.data : {};
-        const newReviews = Number(summary.newReviews || 0);
-        const lowRating = Number(summary.lowRatingReviews || 0);
-        const noReply = Number(summary.reviewsWithoutReply || 0);
+        const reviews = result.success ? (result.data || []) : [];
+        const today = new Date().toISOString().slice(0, 10);
+        const newReviews = reviews.filter(review => String(review.created_at || '').slice(0, 10) === today);
+        const lowRating = reviews.filter(review => Number(review.rating) <= 2);
+        const noReply = reviews.filter(review => !(review.replies || []).length);
+        const mostLiked = reviews.length ? [reviews.slice().sort((a, b) => Number(b.like_count || 0) - Number(a.like_count || 0))[0]] : [];
         const state = getAdminReadState()[notificationPageKey] || {};
-        const total = Math.max(0, newReviews + lowRating + noReply - ((state.newReviews || []).length + (state.lowRating || []).length + (state.noReply || []).length));
+        const unread = (items, category) => items.filter(item => !(state[category] || []).includes(String(item.review_id))).length;
+        const total = unread(newReviews, 'newReviews') + unread(lowRating, 'lowRating') + unread(noReply, 'noReply') + unread(mostLiked, 'mostLiked');
         const notifCount = document.getElementById('notifCount');
         if (notifCount) {
             notifCount.textContent = total > 0 ? total : '';
             notifCount.style.display = total > 0 ? 'flex' : 'none';
         }
-        window.notificationData = { newReviews, lowRating, noReply, total };
+        window.notificationData = { newReviews, lowRating, noReply, mostLiked, total };
         return total;
     } catch (err) {
         console.error('Error loading review notifications:', err);
@@ -1089,7 +1092,7 @@ async function loadNotificationCount() {
 
 async function showNotificationDetails() {
     await loadNotificationCount();
-    const data = window.notificationData || { newReviews: 0, lowRating: 0, noReply: 0 };
+    const data = window.notificationData || { newReviews: [], lowRating: [], noReply: [], mostLiked: [] };
     const renderCard = (category, key, title, detail, href, icon, bg, border) => `
         <div style="background:${bg}; border-radius:12px; padding:12px 12px 10px; margin-bottom:10px; border-left:4px solid ${border}; ${isItemRead(category, key) ? 'opacity:0.72;' : ''}">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
@@ -1100,7 +1103,7 @@ async function showNotificationDetails() {
                         <div style="font-size:12px; color:#5f5248; margin-top:4px; line-height:1.45;">${detail}</div>
                     </div>
                 </div>
-                <span style="background:${border}; color:#fff; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">${Math.max(1, Number(data[category] || 1))}</span>
+                <span style="background:${border}; color:#fff; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">1</span>
             </div>
             <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px;">
                 <a href="${href}" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">View →</a>
@@ -1109,9 +1112,11 @@ async function showNotificationDetails() {
         </div>
     `;
     let html = '';
-    if (data.lowRating > 0) html += renderCard('lowRating', 'low-rating', 'Low Rating Reviews', `${data.lowRating} review(s) with 1-2 stars need attention.`, 'admin_reviews.html?filter=low', '⚠️', '#FCE8E6', '#DC2626');
-    if (data.newReviews > 0) html += renderCard('newReviews', 'new-reviews', 'New Reviews', `${data.newReviews} new review(s) to read.`, 'admin_reviews.html?filter=new', '📝', '#E3F2FD', '#0D47A1');
-    if (data.noReply > 0) html += renderCard('noReply', 'no-reply', 'Reviews Without Reply', `${data.noReply} review(s) need a response.`, 'admin_reviews.html?filter=no_reply', '💬', '#FFF3E0', '#E65100');
+    const reviewDetail = review => `${review.customer?.full_name || 'Customer'} · ${review.rating || 0} star(s) · ${review.comment || 'No comment'}`;
+    data.newReviews.forEach(review => { html += renderCard('newReviews', review.review_id, 'New Reviews', reviewDetail(review), 'admin_reviews.html?filter=new', '📝', '#E3F2FD', '#0D47A1'); });
+    data.lowRating.forEach(review => { html += renderCard('lowRating', review.review_id, 'Low Rating Reviews', reviewDetail(review), 'admin_reviews.html?filter=low', '⚠️', '#FCE8E6', '#DC2626'); });
+    data.noReply.forEach(review => { html += renderCard('noReply', review.review_id, 'Reviews Without Reply', reviewDetail(review), 'admin_reviews.html?filter=no_reply', '💬', '#FFF3E0', '#E65100'); });
+    data.mostLiked.forEach(review => { html += renderCard('mostLiked', review.review_id, 'Most Liked Reviews', `${reviewDetail(review)} · ${review.like_count || 0} like(s)`, 'admin_reviews.html', '👍', '#E8F5E9', '#2E7D32'); });
     if (!html) html = `<div style="text-align:center; padding:30px 20px; color:#7A7A7A;"><i class="fa-regular fa-star" style="font-size:42px; display:block; margin-bottom:10px; color:#D3C4B8;"></i><h3 style="font-size:16px; font-weight:700; color:#333; margin-bottom:6px;">No Review Notifications</h3><p style="font-size:13px;">All reviews are up to date.</p></div>`;
     document.getElementById('notificationsModalContent').innerHTML = html;
     document.getElementById('notificationsModal').classList.add('active');

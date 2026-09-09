@@ -1261,15 +1261,20 @@ function isItemRead(category, key) { const state = getAdminReadState(); return (
 function markItemRead(category, key) { const state = getAdminReadState(); state[notificationPageKey] = state[notificationPageKey] || {}; state[notificationPageKey][category] = state[notificationPageKey][category] || []; if (!state[notificationPageKey][category].includes(key)) state[notificationPageKey][category].push(key); saveAdminReadState(state); loadNotificationCount(); }
 async function loadNotificationCount() {
     try {
-        const [statsResponse, trendResponse] = await Promise.all([
+        const [statsResponse, trendResponse, bookingsResponse] = await Promise.all([
             authFetch('/api/admin/stats'),
-            authFetch('/api/admin/monthly-trend')
+            authFetch('/api/admin/monthly-trend'),
+            authFetch('/api/admin/bookings')
         ]);
         const statsResult = await statsResponse.json();
         const trendResult = await trendResponse.json();
         const trend = trendResult.success ? (trendResult.data.trend || []) : [];
         const current = trend[trend.length - 1]?.count || 0;
         const previous = trend[trend.length - 2]?.count || 0;
+        const bookingsResult = await bookingsResponse.json();
+        const allBookings = bookingsResult.success ? (bookingsResult.data || []) : [];
+        const monthPrefix = new Date().toISOString().slice(0, 7);
+        const currentBookings = allBookings.filter(booking => String(booking.booking_date || '').slice(0, 7) === monthPrefix);
         const state = getAdminReadState()[notificationPageKey] || {};
         const monthlyReady = current > 0 && !(state.monthlyReady || []).includes('monthly-ready');
         const bookingDecline = previous > 0 && current < previous * 0.8 && !(state.bookingDecline || []).includes('booking-decline');
@@ -1279,7 +1284,7 @@ async function loadNotificationCount() {
             notifCount.textContent = count > 0 ? count : '';
             notifCount.style.display = count > 0 ? 'flex' : 'none';
         }
-        window.notificationData = { monthlyReady, bookingDecline, current, previous, stats: statsResult.data || {} };
+        window.notificationData = { monthlyReady, bookingDecline, current, previous, currentBookings, stats: statsResult.data || {} };
         return count;
     } catch (err) {
         console.error('Error loading report notifications:', err);
@@ -1300,7 +1305,7 @@ async function showNotificationDetails() {
                         <div style="font-size:12px; color:#5f5248; margin-top:4px; line-height:1.45;">${detail}</div>
                     </div>
                 </div>
-                <span style="background:${border}; color:#fff; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">${data.current || 1}</span>
+                <span style="background:${border}; color:#fff; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">1</span>
             </div>
             <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px;">
                 <a href="${href}" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">View →</a>
@@ -1309,8 +1314,12 @@ async function showNotificationDetails() {
         </div>
     `;
     let html = '';
-    if (data.monthlyReady) html += renderCard('monthlyReady', 'monthly-ready', 'Monthly Report Ready', `${data.current || 0} booking(s) recorded this month.`, 'admin_reports.html', '📊', '#FEF7E0', '#D97706');
-    if (data.bookingDecline) html += renderCard('bookingDecline', 'booking-decline', 'Booking Decline Alert', `Bookings dropped ${(Math.max(0, (1 - (data.current / (data.previous || 1))) * 100)).toFixed(0)}% versus last month.`, 'admin_reports.html', '📉', '#FCE8E6', '#DC2626');
+    (data.currentBookings || []).forEach(booking => {
+        const key = String(booking.booking_id);
+        const customer = booking.customer?.full_name || booking.customer_name || 'Customer';
+        html += renderCard('monthlyReady', key, 'Monthly Report Ready', `${customer} · Booking ID: ${booking.booking_id} · ${booking.booking_date} ${booking.booking_time || ''}`, 'admin_reports.html', '📊', '#FEF7E0', '#D97706');
+    });
+    if (data.bookingDecline) html += renderCard('bookingDecline', 'booking-decline', 'Booking Decline Alert', `Bookings ${data.current < data.previous ? 'dropped' : 'changed'} ${Math.abs(((data.current - data.previous) / (data.previous || 1)) * 100).toFixed(0)}% versus last month (${data.previous} → ${data.current}).`, 'admin_reports.html', '📉', '#FCE8E6', '#DC2626');
     if (!html) html = `<div style="text-align:center; padding:30px 20px; color:#7A7A7A;"><i class="fa-solid fa-chart-bar" style="font-size:42px; display:block; margin-bottom:10px; color:#D3C4B8;"></i><h3 style="font-size:16px; font-weight:700; color:#333; margin-bottom:6px;">No Report Notifications</h3><p style="font-size:13px;">All reports are up to date.</p></div>`;
     document.getElementById('notificationsModalContent').innerHTML = html;
     document.getElementById('notificationsModal').classList.add('active');

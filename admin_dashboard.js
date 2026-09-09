@@ -511,7 +511,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const date = item.booking_date ? new Date(item.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
                 const time = item.booking_time || '';
                 const itemKey = String(item.booking_id || item.id || 'pending-' + Math.random());
-                return buildCard(`${customerName}`, 'pending', { booking_id: itemKey }, `${customerName} • Booking ID: ${item.booking_id || 'N/A'} • ${date} ${time}`.trim(), 'View & Approve', 'admin_bookings.html', '#FEF7E0', '#D97706', '📋');
+                return buildCard(`Pending Booking · ${customerName}`, 'pending', { booking_id: itemKey }, `${customerName} • Booking ID: ${item.booking_id || 'N/A'} • ${date} ${time}`.trim(), 'View & Approve', 'admin_bookings.html', '#FEF7E0', '#D97706', '📋');
             }).join('');
         }
         if (data.reschedule.length > 0) {
@@ -519,21 +519,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 const customerName = item.customer?.full_name || item.customer_name || item.customer_id || 'Customer';
                 const date = item.reschedule_requested_date || item.booking_date || 'N/A';
                 const itemKey = String(item.booking_id || item.id || 'reschedule-' + Math.random());
-                return buildCard(`${customerName}`, 'reschedule', { booking_id: itemKey }, `Reschedule requested • Booking ID: ${item.booking_id || 'N/A'} • ${new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` , 'View request', 'admin_bookings.html', '#FFF3E0', '#E65100', '🔄');
+                return buildCard(`Reschedule Request · ${customerName}`, 'reschedule', { booking_id: itemKey }, `Booking ID: ${item.booking_id || 'N/A'} • ${new Date(date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}` , 'View request', 'admin_bookings.html', '#FFF3E0', '#E65100', '🔄');
             }).join('');
         }
         if (data.newCustomers.length > 0) {
             html += data.newCustomers.map(item => {
                 const customerName = item.full_name || item.customer_name || item.email || 'Customer';
                 const itemKey = String(item.customer_id || item.id || 'customer-' + Math.random());
-                return buildCard(`${customerName}`, 'newCustomers', { customer_id: itemKey }, `New customer joined today • ${item.email || 'No email provided'}` , 'View customer', 'admin_customers.html', '#E8F5E9', '#2E7D32', '👤');
+                return buildCard(`New Customer · ${customerName}`, 'newCustomers', { customer_id: itemKey }, `${item.email || 'No email provided'} • Joined today` , 'View customer', 'admin_customers.html', '#E8F5E9', '#2E7D32', '👤');
             }).join('');
         }
         if (data.upcoming.length > 0) {
             html += data.upcoming.map(item => {
                 const petName = item.pet_name || item.pet_id || 'Pet';
                 const itemKey = String(item.booking_id || item.id || 'upcoming-' + Math.random());
-                return buildCard(`${petName}`, 'upcoming', { booking_id: itemKey }, `Upcoming booking • ${item.pet_id || 'Pet ID'} • ${new Date(item.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${item.booking_time || ''}`.trim(), 'View booking', 'admin_bookings.html', '#E3F2FD', '#0D47A1', '📅');
+                return buildCard(`Upcoming Appointment · ${petName}`, 'upcoming', { booking_id: itemKey }, `${item.pet_id || 'Pet ID'} • ${new Date(item.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${item.booking_time || ''}`.trim(), 'View booking', 'admin_bookings.html', '#E3F2FD', '#0D47A1', '📅');
             }).join('');
         }
         if (!html) {

@@ -2751,15 +2751,32 @@ function isItemRead(category, key) { const state = getAdminReadState(); return (
 function markItemRead(category, key) { const state = getAdminReadState(); state[notificationPageKey] = state[notificationPageKey] || {}; state[notificationPageKey][category] = state[notificationPageKey][category] || []; if (!state[notificationPageKey][category].includes(key)) state[notificationPageKey][category].push(key); saveAdminReadState(state); loadNotificationCount(); }
 async function loadNotificationCount() {
     try {
-        const response = await authFetch('/api/admin/notifications/summary');
-        const result = await response.json();
-        const data = result.success ? result.data : {};
+        const [serviceResponse, bookingResponse] = await Promise.all([
+            authFetch('/api/admin/services'),
+            authFetch('/api/admin/bookings')
+        ]);
+        const serviceResult = await serviceResponse.json();
+        const bookingResult = await bookingResponse.json();
+        const services = serviceResult.success ? (serviceResult.data || []) : [];
+        const bookings = bookingResult.success ? (bookingResult.data || []) : [];
+        const monthAgo = new Date();
+        monthAgo.setMonth(monthAgo.getMonth() - 1);
+        const bookingCounts = bookings.reduce((counts, booking) => {
+            (booking.booking_service || []).forEach(link => {
+                counts[link.service_id] = (counts[link.service_id] || 0) + 1;
+            });
+            return counts;
+        }, {});
+        const noBookingServices = services.filter(service => !bookings.some(booking =>
+            (booking.booking_service || []).some(link => link.service_id === service.service_id && new Date(booking.booking_date) >= monthAgo)
+        ));
+        const priceChanges = services.filter(service => Number(service.price || 0) < 50);
+        const mostBooked = services.filter(service => (bookingCounts[service.service_id] || 0) > 0)
+            .sort((a, b) => (bookingCounts[b.service_id] || 0) - (bookingCounts[a.service_id] || 0));
         const state = getAdminReadState()[notificationPageKey] || {};
-        const noBookings = (data.servicesWithoutBookings || 0);
-        const priceChanges = (data.servicesNeedingPriceReview || 0);
-        const mostBooked = (data.mostBookedServices || 0);
-        const total = Math.max(0, noBookings + priceChanges + mostBooked - ((state.noBookings || []).length + (state.priceChanges || []).length + (state.mostBooked || []).length));
-        window.notificationData = data;
+        const unread = (items, category) => items.filter(item => !(state[category] || []).includes(String(item.service_id))).length;
+        const total = unread(noBookingServices, 'noBookings') + unread(priceChanges, 'priceChanges') + unread(mostBooked, 'mostBooked');
+        window.notificationData = { noBookingServices, priceChanges, mostBooked, bookingCounts };
         const notifCount = document.getElementById('notifCount');
         if (notifCount) {
             notifCount.textContent = total || '';
@@ -2775,9 +2792,9 @@ async function loadNotificationCount() {
 async function showNotificationDetails() {
     await loadNotificationCount();
     const data = window.notificationData || {};
-    const noBookingsCount = Math.max(0, Number(data.servicesWithoutBookings || 0));
-    const priceChangesCount = Math.max(0, Number(data.servicesNeedingPriceReview || 0));
-    const mostBookedCount = Math.max(0, Number(data.mostBookedServices || 0));
+    const noBookingServices = data.noBookingServices || [];
+    const priceChanges = data.priceChanges || [];
+    const mostBooked = data.mostBooked || [];
     const renderCard = (category, key, title, detail, href, icon, bg, border) => `
         <div style="background:${bg}; border-radius:12px; padding:12px 12px 10px; margin-bottom:10px; border-left:4px solid ${border}; ${isItemRead(category, key) ? 'opacity:0.72;' : ''}">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px;">
@@ -2788,7 +2805,7 @@ async function showNotificationDetails() {
                         <div style="font-size:12px; color:#5f5248; margin-top:4px; line-height:1.45;">${detail}</div>
                     </div>
                 </div>
-                <span style="background:${border}; color:#fff; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">${countValue}</span>
+                <span style="background:${border}; color:#fff; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">1</span>
             </div>
             <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px;">
                 <a href="${href}" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">View →</a>
@@ -2797,19 +2814,9 @@ async function showNotificationDetails() {
         </div>
     `;
     let html = '';
-    let countValue = 1;
-    if (noBookingsCount > 0) {
-        const key = 'noBookings';
-        html += renderCard('noBookings', key, 'Services with No Bookings', `${noBookingsCount} service(s) have not had a booking for over 1 month.`, 'admin_services.html', '📉', '#E3F2FD', '#0D47A1');
-    }
-    if (priceChangesCount > 0) {
-        const key = 'priceChanges';
-        html += renderCard('priceChanges', key, 'Price Changes Needed', `${priceChangesCount} service(s) need pricing review.`, 'admin_services.html', '💰', '#FFF3E0', '#E65100');
-    }
-    if (mostBookedCount > 0) {
-        const key = 'mostBooked';
-        html += renderCard('mostBooked', key, 'Most Booked Services', `${mostBookedCount} service(s) are currently used in bookings.`, 'admin_services.html', '🏆', '#E8F5E9', '#2E7D32');
-    }
+    noBookingServices.forEach(service => { html += renderCard('noBookings', service.service_id, 'Services with No Bookings', `${service.service_name} has had no bookings for over 1 month.`, 'admin_services.html', '📉', '#E3F2FD', '#0D47A1'); });
+    priceChanges.forEach(service => { html += renderCard('priceChanges', service.service_id, 'Price Changes Needed', `${service.service_name} needs pricing review. Current price: ${service.price || 0}.`, 'admin_services.html', '💰', '#FFF3E0', '#E65100'); });
+    mostBooked.forEach(service => { html += renderCard('mostBooked', service.service_id, 'Most Booked Services', `${service.service_name} has ${data.bookingCounts?.[service.service_id] || 0} booking(s).`, 'admin_services.html', '🏆', '#E8F5E9', '#2E7D32'); });
     if (!html) html = '<div style="text-align:center; padding:40px 20px; color:#7A7A7A;">No service notifications.</div>';
     document.getElementById('notificationsModalContent').innerHTML = html;
     document.getElementById('notificationsModal').classList.add('active');

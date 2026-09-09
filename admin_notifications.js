@@ -4,7 +4,9 @@
         const badge = document.getElementById('notifCount');
         if (!button || !badge) return;
 
-        if (window.pageNotificationBadgeMode === true) {
+        const pageName = window.location.pathname.split('/').pop();
+        const hasPageNotificationLoader = /^admin_(dashboard|bookings|customers|pets|services|reports|reviews|profile)\.html$/.test(pageName);
+        if (window.pageNotificationBadgeMode === true || typeof window.loadNotificationCount === 'function' || hasPageNotificationLoader) {
             return;
         }
 
