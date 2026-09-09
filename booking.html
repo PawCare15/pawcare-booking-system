@@ -680,6 +680,60 @@
             font-weight: 600 !important;
         }
 
+        /* Refined booking surface: keep the existing controls, improve hierarchy. */
+        .booking-container {
+            max-width: 980px;
+            padding: 0 28px 32px;
+        }
+
+        .card {
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(74, 51, 39, 0.045);
+        }
+
+        .card.page-intro {
+            border-color: #E8D5BF;
+            box-shadow: 0 10px 28px rgba(217, 119, 6, 0.08);
+        }
+
+        .step-label {
+            letter-spacing: 0.1px;
+            font-size: 13px;
+        }
+
+        .form-control {
+            min-height: 44px;
+            border-color: #E3D9CE;
+            background: #FFFEFC;
+        }
+
+        .service-checkbox-item {
+            min-height: 62px;
+            border-color: #E7DED5;
+            background: #FFFEFC;
+        }
+
+        .service-checkbox-item:hover,
+        .service-checkbox-item:focus-within {
+            border-color: #D97706;
+            box-shadow: 0 5px 16px rgba(217, 119, 6, 0.08);
+        }
+
+        .service-checkbox-item.selected {
+            border-color: #B56616;
+            box-shadow: inset 3px 0 0 #D97706;
+        }
+
+        .card-summary {
+            box-shadow: 0 10px 24px rgba(90, 54, 26, 0.08);
+        }
+
+        @media (max-width: 640px) {
+            .booking-container { padding: 0 14px 24px; margin-top: 20px; }
+            .card { padding: 18px 16px; }
+            .page-title { font-size: 22px; }
+        }
+
         /* ===== BUTTONS ===== */
         .actions {
             display: flex;
@@ -1791,7 +1845,7 @@ async function fetchNotificationsData() {
                     const remaining = Math.max(0, capacity - count);
                     const isFull = remaining === 0;
                     option.disabled = isFull;
-                    option.textContent = option.textContent.replace(/ \((?:Full|已约满|剩余 \d+ 个名额)\)$/, '') + (isFull ? ' (已约满)' : ` (剩余 ${remaining} 个名额)`);
+                    option.textContent = option.textContent.replace(/ \((?:Full|已约满|剩余 \d+ 个名额|Fully booked|\d+ slot(?:s)? remaining)\)$/, '') + (isFull ? ' (Fully booked)' : ` (${remaining} slot${remaining === 1 ? '' : 's'} remaining)`);
                 });
 
                 if (Number(counts[selectedValue] || 0) >= capacity) {

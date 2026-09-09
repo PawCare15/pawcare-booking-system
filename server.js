@@ -768,6 +768,10 @@ app.put('/api/profile', async (req, res) => {
         }
     }
 
+    if (role === 'customer') {
+      await createCustomerNotification(userId, 'Profile updated', 'Your personal profile has been updated successfully.', 'profile');
+    }
+
     res.json({ success: true, message: 'Profile updated.' });
   } catch (err) {
     console.error(err);
@@ -831,6 +835,10 @@ app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
       .eq(idField, userId);
     if (updateError) throw updateError;
 
+    if (role === 'customer') {
+      await createCustomerNotification(userId, 'Profile photo updated', 'Your profile photo has been updated successfully.', 'profile');
+    }
+
     res.json({ success: true, avatar_url: avatarUrl });
   } catch (err) {
     console.error(err);
@@ -893,6 +901,9 @@ app.put('/api/profile/password', async (req, res) => {
             .from('admin')
             .update({ password_updated_at: new Date().toISOString() })
             .eq(idField, userId);
+    }
+    if (role === 'customer') {
+      await createCustomerNotification(userId, 'Password updated', 'Your password was changed successfully.', 'security');
     }
     res.json({ success: true, message: 'Password updated successfully.' });
   } catch (err) {
@@ -2384,6 +2395,20 @@ app.post('/api/reviews/:review_id/like', async (req, res) => {
                 .insert([{ review_id, customer_id }]);
             if (insertError) throw insertError;
             action = 'liked';
+
+            const { data: reviewOwner } = await supabaseAdmin
+                .from('review')
+                .select('customer_id, service:service_id(service_name)')
+                .eq('review_id', review_id)
+                .maybeSingle();
+            if (reviewOwner?.customer_id && reviewOwner.customer_id !== customer_id) {
+              await createCustomerNotification(
+                reviewOwner.customer_id,
+                'Someone liked your review',
+                `Your review for ${reviewOwner.service?.service_name || 'a service'} received a new like.`,
+                'review'
+              );
+            }
         }
 
         // 获取最新点赞数
@@ -2655,6 +2680,20 @@ app.post('/api/reviews/:review_id/reply', async (req, res) => {
         .single();
       replyWithUser.customer = adm; // 前端统一用 customer 字段，但实际是 admin
       replyWithUser.isAdmin = true; // 可以加标记
+    }
+
+    const { data: reviewOwner } = await supabaseAdmin
+      .from('review')
+      .select('customer_id')
+      .eq('review_id', review_id)
+      .maybeSingle();
+    if (reviewOwner?.customer_id && reviewOwner.customer_id !== userId) {
+      await createCustomerNotification(
+        reviewOwner.customer_id,
+        role === 'admin' ? 'Admin replied to your review' : 'Someone replied to your review',
+        `${role === 'admin' ? 'Admin' : 'A customer'} replied: "${reply_text.trim().slice(0, 100)}${reply_text.trim().length > 100 ? '...' : ''}"`,
+        'review'
+      );
     }
 
     res.status(201).json({ success: true, data: replyWithUser });

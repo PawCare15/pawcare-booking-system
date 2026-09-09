@@ -61,6 +61,14 @@
         }[context] || '#';
     }
 
+    function getItemLink(item) {
+        if (item.type === 'review') return 'review.html';
+        if (item.type === 'pet') return 'mypet.html';
+        if (item.type === 'profile' || item.type === 'security') return 'profile.html';
+        if (item.type === 'reschedule' || item.type === 'booking') return context === 'booking' ? 'booking.html' : 'history.html';
+        return getPageLink();
+    }
+
     function getNotificationIcon(type) {
         return {
             booking: 'fa-calendar-check',
@@ -95,7 +103,7 @@
         let html = `<div style="padding:4px 0 14px; color:#5A361A; font-weight:700; font-size:15px;">${getContextLabel()}<span style="display:block; color:#A08F80; font-size:11px; font-weight:400; margin-top:3px;">Updates chosen for this page</span></div>`;
 
         relevant.forEach(item => {
-            html += `<a href="${getPageLink()}" style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; text-decoration:none;">
+            html += `<a href="${getItemLink(item)}" style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; text-decoration:none;">
                 <div style="display:flex; gap:10px; align-items:flex-start;">
                     <span style="display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:9px; background:#FFF1DE; color:#B56616;"><i class="fa-solid ${getNotificationIcon(item.type)}"></i></span>
                     <span style="min-width:0; flex:1;"><strong style="display:block; color:#333; font-size:13px;">${escapeHtml(item.title)}</strong>
@@ -134,13 +142,50 @@
         });
     }
 
+    async function getPageReminders() {
+        const reminders = [];
+        const needsPets = ['dashboard', 'pets'].includes(context);
+        const needsProfile = ['dashboard', 'profile'].includes(context);
+        const requests = [];
+        if (needsPets) requests.push(request('/api/pets').then(result => ({ kind: 'pets', result })));
+        if (needsProfile) requests.push(request('/api/profile').then(result => ({ kind: 'profile', result })));
+
+        const results = await Promise.allSettled(requests);
+        results.forEach(entry => {
+            if (entry.status !== 'fulfilled') return;
+            const { kind, result } = entry.value;
+            if (kind === 'pets') {
+                (result.data || []).filter(pet => !pet.name || !pet.breed || !pet.gender || !pet.dob || !pet.weight || !pet.photo_url).forEach(pet => {
+                    reminders.push({
+                        title: `${pet.name || 'Pet'} profile needs attention`,
+                        message: 'Add the missing photo, birthday, weight, or basic details to keep this profile complete.',
+                        type: 'pet',
+                        created_at: new Date().toISOString(),
+                        is_read: false
+                    });
+                });
+            }
+            if (kind === 'profile' && (!result.data?.phone_number || !result.data?.address)) {
+                reminders.push({
+                    title: 'Complete your profile',
+                    message: 'Add your phone number and address so PawCare can keep your account and bookings up to date.',
+                    type: 'profile',
+                    created_at: new Date().toISOString(),
+                    is_read: false
+                });
+            }
+        });
+        return reminders;
+    }
+
     async function refreshBadge() {
         try {
-            const [notificationResult, bookingResult] = await Promise.all([
+            const [notificationResult, bookingResult, reminders] = await Promise.all([
                 request(`/api/notifications?context=${encodeURIComponent(context)}`),
-                request('/api/bookings')
+                request('/api/bookings'),
+                getPageReminders()
             ]);
-            const unreadNotifications = relevantNotifications(notificationResult.data || []).filter(item => !item.is_read).length;
+            const unreadNotifications = relevantNotifications(notificationResult.data || []).filter(item => !item.is_read).length + reminders.length;
             const seenAtValue = localStorage.getItem('pawcareUserNotificationsSeenAt');
             const seenAt = seenAtValue ? new Date(seenAtValue) : null;
             const upcoming = getUpcomingBookings(bookingResult.data || [], seenAt);
@@ -155,11 +200,12 @@
         event.preventDefault();
         event.stopImmediatePropagation();
         try {
-            const [notificationResult, bookingResult] = await Promise.all([
+            const [notificationResult, bookingResult, reminders] = await Promise.all([
                 request(`/api/notifications?context=${encodeURIComponent(context)}`),
-                request('/api/bookings')
+                request('/api/bookings'),
+                getPageReminders()
             ]);
-            renderNotificationPanel(notificationResult.data || [], bookingResult.data || []);
+            renderNotificationPanel([...(notificationResult.data || []), ...reminders], bookingResult.data || []);
             localStorage.setItem('pawcareUserNotificationsSeenAt', new Date().toISOString());
             setBadge(0);
             await request('/api/notifications/read', { method: 'PUT' });
