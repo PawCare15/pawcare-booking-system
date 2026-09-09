@@ -605,15 +605,10 @@ async function loadNotificationCount() {
         const newPets = await getNewPetsToday();
         const upcomingBookings = await getPetsWithUpcomingBookings();
         
-        const uniquePetsWithUpcoming = new Set();
-        upcomingBookings.forEach(b => {
-            if (b.pet_id) uniquePetsWithUpcoming.add(b.pet_id);
-        });
-        
         const readState = getPetNotificationReadState();
         const unreadNewPets = newPets.filter(pet => !(readState.newPets || []).includes(String(pet.pet_id)));
-        const upcomingPetIds = [...uniquePetsWithUpcoming].filter(id => !(readState.upcomingBookings || []).includes(String(id)));
-        const totalNotifications = unreadNewPets.length + upcomingPetIds.length;
+        const unreadUpcomingBookings = upcomingBookings.filter(booking => !(readState.upcomingBookings || []).includes(String(booking.booking_id)));
+        const totalNotifications = unreadNewPets.length + unreadUpcomingBookings.length;
         
         const notifCount = document.getElementById('notifCount');
         if (notifCount) {
@@ -630,11 +625,11 @@ async function loadNotificationCount() {
 
         window.notificationData = {
             newPets: unreadNewPets,
-            upcomingBookings: upcomingBookings,
+            upcomingBookings: unreadUpcomingBookings,
             total: totalNotifications
         };
 
-        console.log(`🔔 Pet Notifications: ${totalNotifications} (New: ${newPets.length}, Upcoming: ${uniquePetsWithUpcoming.size})`);
+        console.log(`🔔 Pet Notifications: ${totalNotifications} (New: ${unreadNewPets.length}, Upcoming: ${unreadUpcomingBookings.length})`);
         
         return totalNotifications;
 
@@ -689,7 +684,7 @@ async function showNotificationDetails() {
             petHtml += renderCard('newPets', pet.pet_id, `New Pet Added Today · ${pet.pet_name || pet.pet_id}`, `${pet.species || 'Pet'} · ${pet.breed || 'Unknown breed'} · Added ${formatDate(pet.created_at)}`, 'View pet', 'admin_pets.html', '#E8F5E9', '#2E7D32', '🐾');
         });
         petUpcomingBookings.forEach(booking => {
-            petHtml += renderCard('upcomingBookings', booking.pet_id, `Pet with Upcoming Booking · ${booking.pet_id || 'Pet'}`, `Booking on ${formatDate(booking.booking_date)} ${booking.booking_time || ''} · Status: ${booking.status || 'Pending'}`, 'View bookings', 'admin_bookings.html', '#FEF7E0', '#D97706', '📅');
+            petHtml += renderCard('upcomingBookings', booking.booking_id, `Pet with Upcoming Booking · ${booking.pet_id || 'Pet'}`, `Booking on ${formatDate(booking.booking_date)} ${booking.booking_time || ''} · Status: ${booking.status || 'Pending'}`, 'View bookings', 'admin_bookings.html', '#FEF7E0', '#D97706', '📅');
         });
         petSpecialNotesPets.forEach(pet => {
             petHtml += renderCard('specialNotesPets', pet.pet_id, `Pet with Special Notes · ${pet.pet_name || pet.pet_id}`, `${pet.breed || pet.species || 'Pet'} · ${pet.special_notes}`, 'View pet', 'admin_pets.html', '#EDE9FE', '#7C3AED', '📝');

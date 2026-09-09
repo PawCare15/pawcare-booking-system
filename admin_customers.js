@@ -618,15 +618,10 @@ async function loadNotificationCount() {
         const newCustomers = await getNewCustomersToday();
         const pendingBookings = await getCustomersWithPendingBookings();
         
-        const uniqueCustomersWithPending = new Set();
-        pendingBookings.forEach(b => {
-            if (b.customer_id) uniqueCustomersWithPending.add(b.customer_id);
-        });
-        
         const readState = getCustomerNotificationReadState();
         const unreadNewCustomers = newCustomers.filter(customer => !(readState.newCustomers || []).includes(String(customer.customer_id)));
-        const pendingCustomerIds = [...uniqueCustomersWithPending].filter(id => !(readState.pendingBookings || []).includes(String(id)));
-        const totalNotifications = unreadNewCustomers.length + pendingCustomerIds.length;
+        const unreadPendingBookings = pendingBookings.filter(booking => !(readState.pendingBookings || []).includes(String(booking.booking_id)));
+        const totalNotifications = unreadNewCustomers.length + unreadPendingBookings.length;
         
         const notifCount = document.getElementById('notifCount');
         if (notifCount) {
@@ -643,11 +638,11 @@ async function loadNotificationCount() {
 
         window.notificationData = {
             newCustomers: unreadNewCustomers,
-            pendingBookings: pendingBookings,
+            pendingBookings: unreadPendingBookings,
             total: totalNotifications
         };
 
-        console.log(`🔔 Customer Notifications: ${totalNotifications} (New: ${newCustomers.length}, Pending: ${uniqueCustomersWithPending.size})`);
+        console.log(`🔔 Customer Notifications: ${totalNotifications} (New: ${unreadNewCustomers.length}, Pending: ${unreadPendingBookings.length})`);
         
         return totalNotifications;
 
@@ -703,7 +698,7 @@ async function showNotificationDetails() {
         });
         customerPendingBookings.forEach(booking => {
             const customerName = booking.customer?.full_name || booking.customer_name || booking.customer_id || 'Customer';
-            customerHtml += renderCard('pendingBookings', booking.customer_id, `Pending Booking · ${customerName}`, `Booking ID: ${booking.booking_id || 'N/A'} · ${formatDate(booking.booking_date)} ${booking.booking_time || ''}`, 'View & Approve', 'admin_bookings.html?filter=pending', '#FEF7E0', '#D97706', '📋');
+            customerHtml += renderCard('pendingBookings', booking.booking_id, `Pending Booking · ${customerName}`, `Booking ID: ${booking.booking_id || 'N/A'} · ${formatDate(booking.booking_date)} ${booking.booking_time || ''}`, 'View & Approve', 'admin_bookings.html?filter=pending', '#FEF7E0', '#D97706', '📋');
         });
         customerInactiveCustomers.forEach(customer => {
             customerHtml += renderCard('inactiveCustomers', customer.customer_id, `Inactive Customer · ${customer.full_name || 'Unknown'}`, `No bookings in the last 3 months · Joined ${formatDate(customer.created_at)}`, 'View customer', 'admin_customers.html', '#FBE9E7', '#BF360C', '⏳');
