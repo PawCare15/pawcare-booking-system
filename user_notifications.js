@@ -47,7 +47,30 @@
 
     function formatNotificationDate(value) {
         if (!value) return '';
-        return new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
+        return new Date(value).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function getPageLink() {
+        return {
+            dashboard: 'dashboard.html',
+            booking: 'booking.html',
+            history: 'history.html',
+            pets: 'mypet.html',
+            profile: 'profile.html',
+            review: 'review.html'
+        }[context] || '#';
+    }
+
+    function getNotificationIcon(type) {
+        return {
+            booking: 'fa-calendar-check',
+            reschedule: 'fa-calendar-days',
+            payment: 'fa-receipt',
+            pet: 'fa-paw',
+            profile: 'fa-user-pen',
+            security: 'fa-shield-halved',
+            review: 'fa-heart'
+        }[type] || 'fa-bell';
     }
 
     function getContextLabel() {
@@ -69,23 +92,23 @@
         const relevant = relevantNotifications(notifications).slice(0, 20);
         const includeBookingReminder = ['dashboard', 'booking', 'history'].includes(context);
         const upcoming = includeBookingReminder ? getUpcomingBookings(bookings, null) : [];
-        let html = `<div style="padding:4px 2px 12px; color:#5A361A; font-weight:600;">${getContextLabel()}</div>`;
+        let html = `<div style="padding:4px 0 14px; color:#5A361A; font-weight:700; font-size:15px;">${getContextLabel()}<span style="display:block; color:#A08F80; font-size:11px; font-weight:400; margin-top:3px;">Updates chosen for this page</span></div>`;
 
         relevant.forEach(item => {
-            html += `<div style="padding:12px 0; border-bottom:1px solid #EFECE6; text-align:left;">
-                <div style="display:flex; justify-content:space-between; gap:12px; align-items:flex-start;">
-                    <strong style="color:#333; font-size:13px;">${escapeHtml(item.title)}</strong>
-                    <small style="color:#A08F80; white-space:nowrap;">${formatNotificationDate(item.created_at)}</small>
+            html += `<a href="${getPageLink()}" style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; text-decoration:none;">
+                <div style="display:flex; gap:10px; align-items:flex-start;">
+                    <span style="display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:9px; background:#FFF1DE; color:#B56616;"><i class="fa-solid ${getNotificationIcon(item.type)}"></i></span>
+                    <span style="min-width:0; flex:1;"><strong style="display:block; color:#333; font-size:13px;">${escapeHtml(item.title)}</strong>
+                    <small style="display:block; color:#A08F80; margin-top:4px;">${formatNotificationDate(item.created_at)}</small>
+                    <span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(item.message)}</span></span>
                 </div>
-                <div style="color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:4px;">${escapeHtml(item.message)}</div>
-            </div>`;
+            </a>`;
         });
 
         upcoming.forEach(booking => {
-            html += `<div style="padding:12px 0; border-bottom:1px solid #EFECE6; text-align:left;">
-                <strong style="color:#333; font-size:13px;">Upcoming appointment</strong>
-                <div style="color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:4px;">Your appointment is on ${escapeHtml(booking.booking_date)} at ${escapeHtml(booking.booking_time || 'the scheduled time')}.</div>
-            </div>`;
+            html += `<a href="history.html" style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; text-decoration:none;">
+                <div style="display:flex; gap:10px; align-items:flex-start;"><span style="display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:9px; background:#EAF5EE; color:#247A4A;"><i class="fa-solid fa-clock"></i></span><span><strong style="display:block; color:#333; font-size:13px;">Upcoming appointment</strong><span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(booking.booking_date)} at ${escapeHtml(booking.booking_time || 'the scheduled time')}</span></span></div>
+            </a>`;
         });
 
         if (!relevant.length && !upcoming.length) {
@@ -114,10 +137,10 @@
     async function refreshBadge() {
         try {
             const [notificationResult, bookingResult] = await Promise.all([
-                request('/api/notifications'),
+                request(`/api/notifications?context=${encodeURIComponent(context)}`),
                 request('/api/bookings')
             ]);
-            const unreadNotifications = (notificationResult.data || []).filter(item => !item.is_read).length;
+            const unreadNotifications = relevantNotifications(notificationResult.data || []).filter(item => !item.is_read).length;
             const seenAtValue = localStorage.getItem('pawcareUserNotificationsSeenAt');
             const seenAt = seenAtValue ? new Date(seenAtValue) : null;
             const upcoming = getUpcomingBookings(bookingResult.data || [], seenAt);
@@ -133,7 +156,7 @@
         event.stopImmediatePropagation();
         try {
             const [notificationResult, bookingResult] = await Promise.all([
-                request('/api/notifications'),
+                request(`/api/notifications?context=${encodeURIComponent(context)}`),
                 request('/api/bookings')
             ]);
             renderNotificationPanel(notificationResult.data || [], bookingResult.data || []);

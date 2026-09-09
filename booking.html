@@ -1781,17 +1781,20 @@ async function fetchNotificationsData() {
                 const response = await authFetch(`/api/bookings/availability?date=${encodeURIComponent(selectedDate)}`);
                 if (!response.ok) return;
                 const result = await response.json();
-                const fullSlots = new Set(result.data?.fullSlots || []);
+                const counts = result.data?.counts || {};
+                const capacity = Number(result.data?.capacity || 2);
                 const selectedValue = bookingTime.value;
 
                 bookingTime.querySelectorAll('option').forEach(option => {
-                    const isFull = fullSlots.has(option.value);
+                    if (!option.value) return;
+                    const count = Number(counts[option.value] || 0);
+                    const remaining = Math.max(0, capacity - count);
+                    const isFull = remaining === 0;
                     option.disabled = isFull;
-                    option.hidden = isFull;
-                    option.textContent = option.textContent.replace(/ \(Full\)$/, '') + (isFull ? ' (Full)' : '');
+                    option.textContent = option.textContent.replace(/ \((?:Full|已约满|剩余 \d+ 个名额)\)$/, '') + (isFull ? ' (已约满)' : ` (剩余 ${remaining} 个名额)`);
                 });
 
-                if (fullSlots.has(selectedValue)) {
+                if (Number(counts[selectedValue] || 0) >= capacity) {
                     const nextAvailable = [...bookingTime.options].find(option => !option.disabled);
                     if (nextAvailable) bookingTime.value = nextAvailable.value;
                 }
@@ -2538,6 +2541,7 @@ async function fetchNotificationsData() {
                     // 成功预约后清空表单
                     resetBookingForm();
                 } else {
+                    if (res.status === 409) await updateAvailableTimes();
                     showValidationModal(data.message || 'Failed to create booking. Please try again.');
                 }
             } catch (err) {
