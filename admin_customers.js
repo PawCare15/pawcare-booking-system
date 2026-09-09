@@ -668,6 +668,64 @@ async function loadNotificationCount() {
 // ================================================================
 async function showNotificationDetails() {
     try {
+        const customerModal = document.getElementById('notificationsModal');
+        const customerContent = document.getElementById('notificationsModalContent');
+        const [customerNewCustomers, customerPendingBookings, customerInactiveCustomers, customerTopCustomers] = await Promise.all([
+            getNewCustomersToday(),
+            getCustomersWithPendingBookings(),
+            getInactiveCustomers(),
+            getTopCustomers(3)
+        ]);
+        const formatDate = value => value ? new Date(value).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
+        const renderCard = (category, key, title, detail, actionText, href, background, border, icon) => {
+            const read = (getCustomerNotificationReadState()[category] || []).includes(String(key));
+            return `
+                <div style="background:${background};border-radius:12px;padding:12px 12px 10px;margin-bottom:10px;border-left:4px solid ${border};${read ? 'opacity:0.72;' : ''}">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:6px;">
+                        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:0;">
+                            <span style="display:inline-flex;width:32px;height:32px;border-radius:50%;background:#fff;align-items:center;justify-content:center;font-size:16px;">${icon}</span>
+                            <div style="min-width:0;flex:1;">
+                                <div style="font-size:15px;font-weight:700;color:#2d241f;word-break:break-word;">${title}</div>
+                                <div style="font-size:12px;color:#5f5248;margin-top:4px;line-height:1.45;">${detail}</div>
+                            </div>
+                        </div>
+                        <span style="background:${border};color:#fff;padding:4px 9px;border-radius:18px;font-size:11px;font-weight:700;min-width:22px;text-align:center;">1</span>
+                    </div>
+                    <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;">
+                        <a href="${href}" style="font-size:12px;color:#5A361A;font-weight:700;text-decoration:none;">${actionText}</a>
+                        <button type="button" class="customer-mark-notification-read" data-category="${category}" data-item-key="${key}" style="background:transparent;border:1px solid rgba(90,54,26,0.3);color:#5A361A;border-radius:8px;padding:6px 10px;font-size:11px;font-weight:600;cursor:pointer;">${read ? 'Read' : 'Mark read'}</button>
+                    </div>
+                </div>`;
+        };
+        let customerHtml = '';
+        customerNewCustomers.forEach(customer => {
+            customerHtml += renderCard('newCustomers', customer.customer_id, `New Customer · ${customer.full_name || 'Unknown'}`, `${customer.email || 'No email'} · Joined ${formatDate(customer.created_at)}`, 'View customer', 'admin_customers.html', '#E8F5E9', '#2E7D32', '👤');
+        });
+        customerPendingBookings.forEach(booking => {
+            const customerName = booking.customer?.full_name || booking.customer_name || booking.customer_id || 'Customer';
+            customerHtml += renderCard('pendingBookings', booking.customer_id, `Pending Booking · ${customerName}`, `Booking ID: ${booking.booking_id || 'N/A'} · ${formatDate(booking.booking_date)} ${booking.booking_time || ''}`, 'View & Approve', 'admin_bookings.html?filter=pending', '#FEF7E0', '#D97706', '📋');
+        });
+        customerInactiveCustomers.forEach(customer => {
+            customerHtml += renderCard('inactiveCustomers', customer.customer_id, `Inactive Customer · ${customer.full_name || 'Unknown'}`, `No bookings in the last 3 months · Joined ${formatDate(customer.created_at)}`, 'View customer', 'admin_customers.html', '#FBE9E7', '#BF360C', '⏳');
+        });
+        customerTopCustomers.forEach((customer, index) => {
+            customerHtml += renderCard('topCustomers', customer.customer_id, `Top Customer · ${customer.name || 'Customer'}`, `${customer.bookings || 0} booking(s) · ${customer.email || 'No email'}`, 'Highlight customer', 'admin_customers.html', '#E8F5E9', '#2E7D32', index === 0 ? '🏆' : '⭐');
+        });
+        if (!customerHtml) customerHtml = '<div style="text-align:center;padding:30px 18px;color:#7A7A7A;"><i class="fa-regular fa-bell" style="font-size:42px;display:block;margin-bottom:10px;color:#D3C4B8;"></i><h3 style="font-size:16px;font-weight:700;color:#333;margin-bottom:6px;">All Clear!</h3><p style="font-size:13px;">No customer notifications at the moment.</p></div>';
+        if (customerContent) customerContent.innerHTML = customerHtml;
+        if (customerModal) {
+            lockBodyScroll();
+            customerModal.classList.add('active');
+        }
+        customerContent?.querySelectorAll('.customer-mark-notification-read').forEach(button => {
+            button.addEventListener('click', function() {
+                markCustomerNotificationRead(this.dataset.category, this.dataset.itemKey);
+                this.textContent = 'Read';
+                this.disabled = true;
+            });
+        });
+        return;
+
         // Show loading state
         const modal = document.getElementById('notificationsModal');
         const content = document.getElementById('notificationsModalContent');
