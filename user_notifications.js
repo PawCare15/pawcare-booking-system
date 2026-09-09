@@ -93,6 +93,17 @@
         }[type] || 'fa-bell';
     }
 
+    function getEmptyState() {
+        return {
+            dashboard: ['All caught up', 'Your appointments, pet updates, and review activity will appear here.'],
+            pets: ['Pet care at a glance', 'Profile reminders and upcoming appointments for your pets will appear here.'],
+            booking: ['Booking updates are clear', 'Submission, confirmation, and availability changes will appear here.'],
+            history: ['Your booking history is up to date', 'Status changes and reschedule decisions will appear here.'],
+            profile: ['Your account is up to date', 'Profile, password, photo, and security updates will appear here.'],
+            review: ['No review activity yet', 'Likes and replies to your reviews will appear here.']
+        }[context] || ['No notifications yet', 'New updates will appear here.'];
+    }
+
     function getContextLabel() {
         return {
             dashboard: 'Latest updates',
@@ -118,7 +129,7 @@
             const tone = getNotificationTone(item.type);
             html += `<a href="${getItemLink(item)}" style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; text-decoration:none;">
                 <div style="display:flex; gap:10px; align-items:flex-start;">
-                    <span style="display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:9px; background:${tone[0]}; color:${tone[1]};"><i class="fa-solid ${getNotificationIcon(item.type)}"></i></span>
+                    <span style="display:grid; place-items:center; flex:0 0 32px; height:32px; border-radius:10px; background:${tone[0]}; color:${tone[1]}; box-shadow:inset 0 0 0 1px ${tone[1]}22;"><i class="fa-solid ${getNotificationIcon(item.type)}"></i></span>
                     <span style="min-width:0; flex:1;"><strong style="display:block; color:#333; font-size:13px;">${escapeHtml(item.title)}</strong>
                     <small style="display:block; color:#A08F80; margin-top:4px;">${formatNotificationDate(item.created_at)}</small>
                     <span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(item.message)}</span></span>
@@ -130,13 +141,15 @@
             const petName = booking.pet?.name ? ` for ${booking.pet.name}` : '';
             const serviceName = booking.services?.[0]?.service_name ? ` · ${booking.services[0].service_name}` : '';
             const time = String(booking.booking_time || 'the scheduled time').replace(/:00$/, '');
+            const updatedAt = booking.updated_at || booking.created_at;
             html += `<a href="history.html" style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; text-decoration:none;">
-                <div style="display:flex; gap:10px; align-items:flex-start;"><span style="display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:9px; background:#EAF5EE; color:#247A4A;"><i class="fa-solid fa-clock"></i></span><span><strong style="display:block; color:#333; font-size:13px;">Upcoming appointment${escapeHtml(petName)}</strong><span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(booking.booking_date)} at ${escapeHtml(time)}${escapeHtml(serviceName)}</span></span></div>
+                <div style="display:flex; gap:10px; align-items:flex-start;"><span style="display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:9px; background:#EAF5EE; color:#247A4A;"><i class="fa-solid fa-clock"></i></span><span><strong style="display:block; color:#333; font-size:13px;">Upcoming appointment${escapeHtml(petName)}</strong><small style="display:block; color:#A08F80; margin-top:4px;">Updated ${escapeHtml(formatNotificationDate(updatedAt))}</small><span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(booking.booking_date)} at ${escapeHtml(time)}${escapeHtml(serviceName)}</span></span></div>
             </a>`;
         });
 
         if (!relevant.length && !upcoming.length) {
-            html += '<div style="padding:28px 8px; color:#7A7A7A; text-align:center;">No notifications for this page.</div>';
+            const emptyState = getEmptyState();
+            html += `<div style="margin:18px 0 8px; padding:22px 16px; border:1px dashed #E6D8C9; border-radius:14px; background:linear-gradient(135deg,#FFFDF9,#FAF3EA); text-align:center;"><span style="display:grid; place-items:center; width:42px; height:42px; margin:0 auto 10px; border-radius:13px; background:#FFF1DE; color:#B56616;"><i class="fa-regular fa-bell"></i></span><strong style="display:block; color:#5A361A; font-size:14px;">${emptyState[0]}</strong><span style="display:block; margin-top:5px; color:#8F8175; font-size:12px; line-height:1.5;">${emptyState[1]}</span></div>`;
         }
 
         content.innerHTML = html;
@@ -181,7 +194,7 @@
                     });
                 });
             }
-            if (kind === 'profile' && (!result.data?.phone_number || !result.data?.address)) {
+            if (kind === 'profile' && (!result.data?.full_name || !result.data?.phone_number || !result.data?.address)) {
                 reminders.push({
                     title: 'Complete your profile',
                     message: 'Add your phone number and address so PawCare can keep your account and bookings up to date.',
