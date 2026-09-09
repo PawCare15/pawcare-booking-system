@@ -114,9 +114,6 @@ function hideNotificationsModal() {
     unlockBodyScroll();
 }
 
-if (notificationBtn) {
-    notificationBtn.addEventListener('click', showNotificationsModal);
-}
 if (closeNotificationsModal) {
     closeNotificationsModal.addEventListener('click', hideNotificationsModal);
 }

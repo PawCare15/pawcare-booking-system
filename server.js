@@ -4018,18 +4018,12 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
     }
 });
 
-// ========== 启动服务器 ==========
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
-
 app.get('/api/notifications', async (req, res) => {
   try {
     const customerId = getCustomerId(req);
     const contextTypes = {
       dashboard: null,
-      booking: ['booking', 'payment'],
+      booking: ['booking', 'payment', 'reschedule'],
       history: ['booking', 'reschedule', 'payment'],
       pets: ['pet'],
       profile: ['profile', 'security', 'account'],
@@ -4068,4 +4062,31 @@ app.put('/api/notifications/read', async (req, res) => {
     console.error('Error marking customer notifications as read:', err);
     res.status(500).json({ success: false, message: err.message });
   }
+});
+
+// ========== Mark a single customer notification as read ==========
+app.put('/api/notifications/:id/read', async (req, res) => {
+  try {
+    const customerId = getCustomerId(req);
+    const { id } = req.params;
+    const { error } = await supabaseAdmin
+      .from('customer_notifications')
+      .update({ is_read: true })
+      .eq('notification_id', id)
+      .eq('customer_id', customerId);
+    if (error) throw error;
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error marking notification as read:', err);
+    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
+      return res.status(401).json({ success: false, message: 'Unauthorized' });
+    }
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ========== 启动服务器 ==========
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });

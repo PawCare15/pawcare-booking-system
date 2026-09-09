@@ -2941,16 +2941,6 @@
         // ================================================================
         // NOTIFICATION BUTTON - UPDATE TO USE COMBINED MODAL
         // ================================================================
-        if (notificationBtn) {
-            // Remove existing listeners to prevent duplicates
-            notificationBtn.removeEventListener('click', showNotificationsModal);
-            notificationBtn.addEventListener('click', function(e) {
-                e.stopPropagation();
-                console.log('🔔 Notification button clicked');
-                showNotificationsModal();
-            });
-        }
-
         // Close notification modal
         if (closeNotificationsModal) {
             closeNotificationsModal.addEventListener('click', hideNotificationsModal);
@@ -2973,11 +2963,6 @@
 
         // 加载 header 头像和名字
         loadHeaderProfile();
-
-        // ================================================================
-        // LOAD CUSTOMER NOTIFICATIONS (PET DELETION)
-        // ================================================================
-        await loadCustomerNotifications();
 
         // 点击头像跳转到 Profile
         const profileBtn = document.getElementById('profileBtn');
