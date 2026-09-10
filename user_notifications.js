@@ -9,7 +9,7 @@
     const contextTypes = {
         dashboard: null,
         pets: ['pet'],
-        booking: ['booking', 'payment', 'reschedule'],
+        booking: ['booking', 'payment'],
         history: ['booking', 'reschedule', 'payment'],
         profile: ['profile', 'security', 'account'],
         review: ['review']
@@ -18,9 +18,13 @@
     async function request(url, options = {}) {
         const response = await fetch(url, {
             ...options,
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`, ...options.headers }
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+                ...options.headers
+            }
         });
-        if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+        if (!response.ok) throw new Error(`Notification request failed: ${response.status}`);
         return response.json();
     }
 
@@ -29,61 +33,131 @@
         badge.style.display = count > 0 ? 'flex' : 'none';
     }
 
+    function relevantNotifications(notifications) {
+        const types = contextTypes[context];
+        if (!types) return notifications;
+        return notifications.filter(item => types.includes(item.type));
+    }
+
     function escapeHtml(value) {
         return String(value || '').replace(/[&<>'"]/g, character => ({
             '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
         }[character]));
     }
 
-    function formatDate(value) {
+    function formatNotificationDate(value) {
         if (!value) return '';
         return new Date(value).toLocaleString('en-GB', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
     }
 
-    function tone(type) {
+    function getPageLink() {
         return {
-            booking: '#B56616', reschedule: '#7654B8', payment: '#3173B8',
-            pet: '#B56616', profile: '#247A4A', security: '#B33A3A', review: '#B33F68'
-        }[type] || '#6B625B';
+            dashboard: 'dashboard.html',
+            booking: 'booking.html',
+            history: 'history.html',
+            pets: 'mypet.html',
+            profile: 'profile.html',
+            review: 'review.html'
+        }[context] || '#';
     }
 
-    function icon(type) {
-        return {
-            booking: 'fa-calendar-check', reschedule: 'fa-calendar-days', payment: 'fa-receipt',
-            pet: 'fa-paw', profile: 'fa-user-pen', security: 'fa-shield-halved', review: 'fa-heart'
-        }[type] || 'fa-bell';
-    }
-
-    function itemLink(item) {
+    function getItemLink(item) {
         if (item.type === 'review') return 'review.html';
         if (item.type === 'pet') return 'mypet.html';
         if (item.type === 'profile' || item.type === 'security') return 'profile.html';
-        if (item.type === 'booking' || item.type === 'reschedule') return context === 'booking' ? 'booking.html' : 'history.html';
-        return '#';
+        if (item.type === 'reschedule' || item.type === 'booking') return context === 'booking' ? 'booking.html' : 'history.html';
+        return getPageLink();
     }
 
-    async function getPageReminders() {
-        const reminders = [];
-        const requests = [];
-        if (['dashboard', 'pets'].includes(context)) requests.push(request('/api/pets').then(result => ({ kind: 'pets', result })));
-        if (['dashboard', 'profile'].includes(context)) requests.push(request('/api/profile').then(result => ({ kind: 'profile', result })));
-        const results = await Promise.allSettled(requests);
-        results.forEach(entry => {
-            if (entry.status !== 'fulfilled') return;
-            const { kind, result } = entry.value;
-            if (kind === 'pets') (result.data || []).forEach(pet => {
-                if (!pet.name || !pet.breed || !pet.gender || !pet.dob || !pet.weight || !pet.photo_url) {
-                    reminders.push({ notification_id: `reminder-pet-${pet.pet_id}`, title: `${pet.name || 'Pet'} profile needs attention`, message: 'Add missing photo, birthday, weight, or basic details to complete this profile.', type: 'pet', created_at: new Date().toISOString(), is_read: false, dynamic: true });
-                }
-            });
-            if (kind === 'profile' && (!result.data?.full_name || !result.data?.phone_number || !result.data?.address)) {
-                reminders.push({ notification_id: 'reminder-profile', title: 'Complete your profile', message: 'Add your phone number and address so PawCare can keep your account up to date.', type: 'profile', created_at: new Date().toISOString(), is_read: false, dynamic: true });
-            }
+    function getNotificationTone(type) {
+        return {
+            booking: ['#FFF1DE', '#B56616'],
+            reschedule: ['#F1EAFE', '#7654B8'],
+            payment: ['#EAF4FF', '#3173B8'],
+            pet: ['#FFF1DE', '#B56616'],
+            profile: ['#EAF5EE', '#247A4A'],
+            security: ['#FDECEC', '#B33A3A'],
+            review: ['#FCECF1', '#B33F68']
+        }[type] || ['#F2F0ED', '#6B625B'];
+    }
+
+    function getNotificationIcon(type) {
+        return {
+            booking: 'fa-calendar-check',
+            reschedule: 'fa-calendar-days',
+            payment: 'fa-receipt',
+            pet: 'fa-paw',
+            profile: 'fa-user-pen',
+            security: 'fa-shield-halved',
+            review: 'fa-heart'
+        }[type] || 'fa-bell';
+    }
+
+    function getEmptyState() {
+        return {
+            dashboard: ['All caught up', 'Your appointments, pet updates, and review activity will appear here.'],
+            pets: ['Pet care at a glance', 'Profile reminders and upcoming appointments for your pets will appear here.'],
+            booking: ['Booking updates are clear', 'Submission, confirmation, and availability changes will appear here.'],
+            history: ['Your booking history is up to date', 'Status changes and reschedule decisions will appear here.'],
+            profile: ['Your account is up to date', 'Profile, password, photo, and security updates will appear here.'],
+            review: ['No review activity yet', 'Likes and replies to your reviews will appear here.']
+        }[context] || ['No notifications yet', 'New updates will appear here.'];
+    }
+
+    function getContextLabel() {
+        return {
+            dashboard: 'Latest updates',
+            pets: 'Pet updates',
+            booking: 'Booking updates',
+            history: 'Booking history updates',
+            profile: 'Profile updates',
+            review: 'Review updates'
+        }[context] || 'Notifications';
+    }
+
+    function renderNotificationPanel(notifications, bookings) {
+        const content = document.getElementById('notificationsModalContent');
+        const modal = document.getElementById('notificationsModal');
+        if (!content || !modal) return;
+
+        const relevant = relevantNotifications(notifications).slice(0, 20);
+        const includeBookingReminder = ['dashboard', 'booking', 'history', 'pets'].includes(context);
+        const upcoming = includeBookingReminder ? getUpcomingBookings(bookings, null) : [];
+        let html = `<div style="padding:4px 0 14px; color:#5A361A; font-weight:700; font-size:15px;">${getContextLabel()}<span style="display:block; color:#A08F80; font-size:11px; font-weight:400; margin-top:3px;">Updates chosen for this page</span></div>`;
+
+        relevant.forEach(item => {
+            const tone = getNotificationTone(item.type);
+            html += `<a href="${getItemLink(item)}" style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; text-decoration:none;">
+                <div style="display:flex; gap:10px; align-items:flex-start;">
+                    <span style="display:grid; place-items:center; flex:0 0 32px; height:32px; border-radius:10px; background:${tone[0]}; color:${tone[1]}; box-shadow:inset 0 0 0 1px ${tone[1]}22;"><i class="fa-solid ${getNotificationIcon(item.type)}"></i></span>
+                    <span style="min-width:0; flex:1;"><strong style="display:block; color:#333; font-size:13px;">${escapeHtml(item.title)}</strong>
+                    <small style="display:block; color:#A08F80; margin-top:4px;">${formatNotificationDate(item.created_at)}</small>
+                    <span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(item.message)}</span></span>
+                </div>
+            </a>`;
         });
-        return reminders;
+
+        upcoming.forEach(booking => {
+            const petName = booking.pet?.name ? ` for ${booking.pet.name}` : '';
+            const serviceName = booking.services?.[0]?.service_name ? ` · ${booking.services[0].service_name}` : '';
+            const time = String(booking.booking_time || 'the scheduled time').replace(/:00$/, '');
+            const updatedAt = booking.updated_at || booking.created_at;
+            html += `<a href="history.html" style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; text-decoration:none;">
+                <div style="display:flex; gap:10px; align-items:flex-start;"><span style="display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:9px; background:#EAF5EE; color:#247A4A;"><i class="fa-solid fa-clock"></i></span><span><strong style="display:block; color:#333; font-size:13px;">Upcoming appointment${escapeHtml(petName)}</strong><small style="display:block; color:#A08F80; margin-top:4px;">Updated ${escapeHtml(formatNotificationDate(updatedAt))}</small><span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(booking.booking_date)} at ${escapeHtml(time)}${escapeHtml(serviceName)}</span></span></div>
+            </a>`;
+        });
+
+        if (!relevant.length && !upcoming.length) {
+            const emptyState = getEmptyState();
+            html += `<div style="margin:18px 0 8px; padding:22px 16px; border:1px dashed #E6D8C9; border-radius:14px; background:linear-gradient(135deg,#FFFDF9,#FAF3EA); text-align:center;"><span style="display:grid; place-items:center; width:42px; height:42px; margin:0 auto 10px; border-radius:13px; background:#FFF1DE; color:#B56616;"><i class="fa-regular fa-bell"></i></span><strong style="display:block; color:#5A361A; font-size:14px;">${emptyState[0]}</strong><span style="display:block; margin-top:5px; color:#8F8175; font-size:12px; line-height:1.5;">${emptyState[1]}</span></div>`;
+        }
+
+        content.innerHTML = html;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
     }
 
-    function upcomingBookings(bookings) {
+    function getUpcomingBookings(bookings, seenAt) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const limit = new Date(today);
@@ -92,85 +166,82 @@
             if (booking.status === 'cancelled') return false;
             const date = new Date(booking.booking_date);
             date.setHours(0, 0, 0, 0);
-            return date >= today && date <= limit;
+            const isUpcoming = date >= today && date <= limit;
+            return isUpcoming && (!seenAt || (booking.updated_at && new Date(booking.updated_at) > seenAt));
         });
+    }
+
+    async function getPageReminders() {
+        const reminders = [];
+        const needsPets = ['dashboard', 'pets'].includes(context);
+        const needsProfile = ['dashboard', 'profile'].includes(context);
+        const requests = [];
+        if (needsPets) requests.push(request('/api/pets').then(result => ({ kind: 'pets', result })));
+        if (needsProfile) requests.push(request('/api/profile').then(result => ({ kind: 'profile', result })));
+
+        const results = await Promise.allSettled(requests);
+        results.forEach(entry => {
+            if (entry.status !== 'fulfilled') return;
+            const { kind, result } = entry.value;
+            if (kind === 'pets') {
+                (result.data || []).filter(pet => !pet.name || !pet.breed || !pet.gender || !pet.dob || !pet.weight || !pet.photo_url).forEach(pet => {
+                    reminders.push({
+                        title: `${pet.name || 'Pet'} profile needs attention`,
+                        message: 'Add the missing photo, birthday, weight, or basic details to keep this profile complete.',
+                        type: 'pet',
+                        created_at: new Date().toISOString(),
+                        is_read: false
+                    });
+                });
+            }
+            if (kind === 'profile' && (!result.data?.full_name || !result.data?.phone_number || !result.data?.address)) {
+                reminders.push({
+                    title: 'Complete your profile',
+                    message: 'Add your phone number and address so PawCare can keep your account and bookings up to date.',
+                    type: 'profile',
+                    created_at: new Date().toISOString(),
+                    is_read: false
+                });
+            }
+        });
+        return reminders;
     }
 
     async function refreshBadge() {
         try {
-            const result = await request(`/api/notifications?context=${encodeURIComponent(context)}`);
-            const types = contextTypes[context];
-            const notifications = (result.data || []).filter(item => !types || types.includes(item.type));
-            setBadge(notifications.filter(item => !item.is_read).length);
+            const [notificationResult, bookingResult, reminders] = await Promise.all([
+                request(`/api/notifications?context=${encodeURIComponent(context)}`),
+                request('/api/bookings'),
+                getPageReminders()
+            ]);
+            const unreadNotifications = relevantNotifications(notificationResult.data || []).filter(item => !item.is_read).length + reminders.length;
+            const seenAtValue = localStorage.getItem('pawcareUserNotificationsSeenAt');
+            const seenAt = seenAtValue ? new Date(seenAtValue) : null;
+            const upcoming = getUpcomingBookings(bookingResult.data || [], seenAt);
+            setBadge(unreadNotifications + upcoming.length);
         } catch (error) {
-            console.error('Unable to load notification count:', error);
-            setBadge(0);
+            console.error('Unable to load user notification count:', error);
         }
     }
 
-    async function markRead(id) {
-        if (!id || String(id).startsWith('reminder-')) return;
-        try {
-            await request(`/api/notifications/${encodeURIComponent(id)}/read`, { method: 'PUT' });
-            const card = Array.from(document.querySelectorAll('[data-notification-id]')).find(item => item.dataset.notificationId === id);
-            if (card) {
-                card.style.opacity = '0.58';
-                const button = card.querySelector('.mark-read-btn');
-                if (button) { button.textContent = 'Read'; button.disabled = true; }
-            }
-            await refreshBadge();
-        } catch (error) {
-            console.error('Error marking notification as read:', error);
-        }
-    }
-
-    async function renderPanel() {
-        const content = document.getElementById('notificationsModalContent');
-        const modal = document.getElementById('notificationsModal');
-        if (!content || !modal) return;
-        const [notificationResult, bookingResult, reminders] = await Promise.all([
-            request(`/api/notifications?context=${encodeURIComponent(context)}`),
-            request('/api/bookings'),
-            getPageReminders()
-        ]);
-        const types = contextTypes[context];
-        const notifications = [...(notificationResult.data || []), ...reminders]
-            .filter(item => !types || types.includes(item.type))
-            .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        const bookings = ['dashboard', 'booking', 'history', 'pets'].includes(context) ? upcomingBookings(bookingResult.data || []) : [];
-        let html = '<div style="margin-bottom:16px;"><h4 style="font-size:15px;font-weight:700;color:#5A361A;margin:0 0 12px;"><i class="fa-regular fa-bell" style="color:#D97706;"></i> Page notifications</h4>';
-        if (!notifications.length) {
-            html += '<div style="text-align:center;padding:24px 16px;border:1px dashed #E6D8C9;border-radius:14px;background:linear-gradient(135deg,#FFFDF9,#FAF3EA);color:#7A7A7A;"><i class="fa-regular fa-circle-check" style="font-size:25px;display:block;margin-bottom:8px;color:#2E7D32;"></i><strong style="display:block;color:#5A361A;">All caught up</strong><span style="display:block;margin-top:5px;font-size:12px;">New updates for this page will appear here.</span></div>';
-        } else notifications.forEach(notification => {
-            const color = tone(notification.type);
-            const read = notification.is_read;
-            html += `<div data-notification-id="${escapeHtml(notification.notification_id)}" style="background:#FFF;border-radius:12px;padding:14px 16px;margin-bottom:10px;border-left:4px solid ${color};box-shadow:0 3px 10px rgba(74,51,39,.06);${read ? 'opacity:.58;' : ''}"><div style="display:flex;align-items:flex-start;gap:12px;"><div style="flex:0 0 34px;height:34px;border-radius:11px;background:${color}18;display:grid;place-items:center;color:${color};"><i class="fa-solid ${icon(notification.type)}"></i></div><div style="flex:1;min-width:0;"><strong style="display:block;font-size:14px;color:#333;">${escapeHtml(notification.title)}</strong><span style="display:block;font-size:13px;color:#555;margin-top:4px;line-height:1.45;">${escapeHtml(notification.message)}</span><small style="display:block;font-size:11px;color:#A08F80;margin-top:6px;">${escapeHtml(formatDate(notification.created_at))}</small></div>${read ? '<span style="font-size:11px;color:#A08F80;">Read</span>' : `<button class="mark-read-btn" data-id="${escapeHtml(notification.notification_id)}" style="background:transparent;border:1px solid ${color};color:#5A361A;border-radius:20px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;">Mark read</button>`}</div></div>`;
-        });
-        html += '</div>';
-        if (bookings.length) {
-            html += '<div style="border-top:1px solid #EFECE6;padding-top:16px;"><h4 style="font-size:14px;font-weight:700;color:#5A361A;margin:0 0 10px;"><i class="fa-regular fa-calendar" style="color:#D97706;"></i> Upcoming appointments</h4>';
-            bookings.forEach(booking => {
-                const pet = booking.pet?.name || 'Unknown pet';
-                const service = booking.services?.[0]?.service_name || 'Scheduled service';
-                html += `<div style="background:#F9F6F0;border-radius:10px;padding:12px 16px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;gap:12px;"><div><strong style="font-size:14px;color:#333;">${escapeHtml(pet)}</strong><div style="font-size:12px;color:#7A7A7A;margin-top:3px;">${escapeHtml(booking.booking_date)} at ${escapeHtml(booking.booking_time || 'scheduled time')} · ${escapeHtml(service)}</div></div><a href="history.html" style="font-size:12px;color:#5A361A;font-weight:600;text-decoration:none;">View</a></div>`;
-            });
-            html += '</div>';
-        }
-        content.innerHTML = html;
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-        content.querySelectorAll('.mark-read-btn').forEach(button => button.addEventListener('click', event => { event.stopPropagation(); markRead(button.dataset.id); }));
-    }
-
-    document.addEventListener('click', async event => {
-        const target = event.target.closest('#notificationBtn');
-        if (!target) return;
+    document.addEventListener('click', async function(event) {
+        if (!event.target.closest('#notificationBtn')) return;
         event.preventDefault();
         event.stopImmediatePropagation();
-        try { await renderPanel(); } catch (error) {
+        try {
+            const [notificationResult, bookingResult, reminders] = await Promise.all([
+                request(`/api/notifications?context=${encodeURIComponent(context)}`),
+                request('/api/bookings'),
+                getPageReminders()
+            ]);
+            renderNotificationPanel([...(notificationResult.data || []), ...reminders], bookingResult.data || []);
+            localStorage.setItem('pawcareUserNotificationsSeenAt', new Date().toISOString());
+            setBadge(0);
+            await request('/api/notifications/read', { method: 'PUT' });
+        } catch (error) {
             console.error('Unable to load user notifications:', error);
             const content = document.getElementById('notificationsModalContent');
-            if (content) content.innerHTML = '<div style="padding:28px 8px;color:#C5221F;text-align:center;">Unable to load notifications.</div>';
+            if (content) content.innerHTML = '<div style="padding:28px 8px; color:#C5221F; text-align:center;">Unable to load notifications.</div>';
         }
     }, true);
 

@@ -1809,6 +1809,9 @@ function hideNotificationsModal() {
     unlockBodyScroll();
 }
 
+if (notificationBtn) {
+    notificationBtn.addEventListener('click', showNotificationsModal);
+}
 if (closeNotificationsModal) {
     closeNotificationsModal.addEventListener('click', hideNotificationsModal);
 }
@@ -2150,6 +2153,10 @@ async function fetchNotificationsData() {
         if (!newDate) {
             showConfirmationModal('❌ Please select a new date.', 'error');
             return;
+        }
+        if (!newTime) {
+          showConfirmationModal('❌ Please choose an available time slot.', 'error');
+          return;
         }
         
         // ✅ 星期四验证（弹出独立模态框）
@@ -2547,6 +2554,46 @@ async function fetchNotificationsData() {
 
         let rescheduleBookingId = null;
 
+        function resetRescheduleTimeOptions() {
+          const timeSelect = document.getElementById('newTimeSelect');
+          if (!timeSelect) return;
+          timeSelect.querySelectorAll('option').forEach(option => {
+            option.disabled = false;
+            option.textContent = option.textContent.replace(/ \((?:Fully booked|已约满|剩余 \d+ 个名额|\d+ slot(?:s)? remaining)\)$/, '');
+          });
+          timeSelect.value = '10:30 AM';
+        }
+
+        async function updateRescheduleTimeAvailability(date) {
+          const timeSelect = document.getElementById('newTimeSelect');
+          if (!timeSelect) return;
+          if (!date) {
+            resetRescheduleTimeOptions();
+            return;
+          }
+
+          try {
+            const response = await authFetch(`/api/bookings/availability?date=${encodeURIComponent(date)}`);
+            const result = await response.json();
+            if (!result.success) throw new Error(result.message || 'Unable to check availability.');
+            const counts = result.data?.counts || {};
+            const capacity = Number(result.data?.capacity || 2);
+            timeSelect.querySelectorAll('option').forEach(option => {
+              const count = Number(counts[option.value] || 0);
+              const remaining = Math.max(0, capacity - count);
+              const isFull = remaining === 0;
+              option.disabled = isFull;
+              option.textContent = option.textContent.replace(/ \((?:Fully booked|已约满|剩余 \d+ 个名额|\d+ slot(?:s)? remaining)\)$/, '')
+                + (isFull ? ' (Fully booked)' : ` (${remaining} slot${remaining === 1 ? '' : 's'} remaining)`);
+            });
+            const availableOption = [...timeSelect.options].find(option => !option.disabled);
+            timeSelect.value = availableOption ? availableOption.value : '';
+          } catch (error) {
+            console.error('Failed to load reschedule availability:', error);
+            resetRescheduleTimeOptions();
+          }
+        }
+
         window.reschedule = function(id) {
             const booking = bookings.find(b => b.id === id);
             if (!booking) return;
@@ -2568,11 +2615,15 @@ async function fetchNotificationsData() {
                 const today = new Date().toISOString().split('T')[0];
                 dateInput.setAttribute('min', today);
                 dateInput.value = '';
-                document.getElementById('newTimeSelect').value = '10:30 AM';
+                resetRescheduleTimeOptions();
                 lockBodyScroll();
                 modal.classList.add('active');
             }
         };
+
+            document.getElementById('newDateInput').addEventListener('change', function() {
+              updateRescheduleTimeAvailability(this.value);
+            });
 
         window.cancelBooking = function(id) {
             const booking = bookings.find(b => b.id === id);

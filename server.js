@@ -1767,14 +1767,19 @@ function normalizeBookingTime(value) {
 async function getActiveSlotBookingCount(date, time, excludeBookingId = null) {
   let query = supabaseAdmin
     .from('booking')
-    .select('booking_id, booking_time')
-    .eq('booking_date', date)
+    .select('booking_id, booking_time, booking_date, reschedule_status, reschedule_requested_date, reschedule_requested_time')
     .in('status', ACTIVE_BOOKING_STATUSES);
   if (excludeBookingId) query = query.neq('booking_id', excludeBookingId);
   const { data, error } = await query;
   if (error) throw error;
   const normalizedTime = normalizeBookingTime(time);
-  return (data || []).filter(booking => normalizeBookingTime(booking.booking_time) === normalizedTime).length;
+  return (data || []).filter(booking => {
+    const occupiesOriginalSlot = normalizeBookingTime(booking.booking_time) === normalizedTime;
+    const occupiesRequestedSlot = booking.reschedule_status === 'pending'
+      && booking.reschedule_requested_date === date
+      && normalizeBookingTime(booking.reschedule_requested_time) === normalizedTime;
+    return occupiesOriginalSlot || occupiesRequestedSlot;
+  }).length;
 }
 
 app.get('/api/bookings/availability', async (req, res) => {
@@ -1785,16 +1790,26 @@ app.get('/api/bookings/availability', async (req, res) => {
 
     const { data, error } = await supabaseAdmin
       .from('booking')
-      .select('booking_time')
-      .eq('booking_date', date)
+      .select('booking_id, booking_time, booking_date, status, reschedule_status, reschedule_requested_date, reschedule_requested_time')
       .in('status', ACTIVE_BOOKING_STATUSES);
     if (error) throw error;
 
-    const counts = (data || []).reduce((result, booking) => {
-      const time = normalizeBookingTime(booking.booking_time);
-      if (time) result[time] = (result[time] || 0) + 1;
-      return result;
-    }, {});
+    const counts = {};
+    (data || []).forEach(booking => {
+      const slots = [{ date: booking.booking_date, time: booking.booking_time }];
+      if (booking.reschedule_status === 'pending') {
+        slots.push({ date: booking.reschedule_requested_date, time: booking.reschedule_requested_time });
+      }
+      const countedTimes = new Set();
+      slots.forEach(slot => {
+        if (slot.date !== date) return;
+        const time = normalizeBookingTime(slot.time);
+        if (time && !countedTimes.has(time)) {
+          countedTimes.add(time);
+          counts[time] = (counts[time] || 0) + 1;
+        }
+      });
+    });
 
     res.json({
       success: true,
@@ -2027,6 +2042,11 @@ app.post('/api/bookings/:booking_id/reschedule-request', async (req, res) => {
     // 检查新日期是否为周四（闭店日）
     if (isThursday(new_date)) {
       return res.status(400).json({ success: false, message: 'We are closed on Thursdays. Please choose another date.' });
+    }
+
+    const targetSlotCount = await getActiveSlotBookingCount(new_date, new_time, booking_id);
+    if (targetSlotCount >= MAX_BOOKINGS_PER_SLOT) {
+      return res.status(409).json({ success: false, message: '目标时段已满，请选择其他时间。' });
     }
 
     // 更新 booking 表，记录请求
@@ -4018,12 +4038,18 @@ app.get('/api/admin/profile/activity', isAdmin, async (req, res) => {
     }
 });
 
+// ========== 启动服务器 ==========
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+
 app.get('/api/notifications', async (req, res) => {
   try {
     const customerId = getCustomerId(req);
     const contextTypes = {
       dashboard: null,
-      booking: ['booking', 'payment', 'reschedule'],
+      booking: ['booking', 'payment'],
       history: ['booking', 'reschedule', 'payment'],
       pets: ['pet'],
       profile: ['profile', 'security', 'account'],
@@ -4062,31 +4088,4 @@ app.put('/api/notifications/read', async (req, res) => {
     console.error('Error marking customer notifications as read:', err);
     res.status(500).json({ success: false, message: err.message });
   }
-});
-
-// ========== Mark a single customer notification as read ==========
-app.put('/api/notifications/:id/read', async (req, res) => {
-  try {
-    const customerId = getCustomerId(req);
-    const { id } = req.params;
-    const { error } = await supabaseAdmin
-      .from('customer_notifications')
-      .update({ is_read: true })
-      .eq('notification_id', id)
-      .eq('customer_id', customerId);
-    if (error) throw error;
-    res.json({ success: true });
-  } catch (err) {
-    console.error('Error marking notification as read:', err);
-    if (err.message === 'No token' || err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
-      return res.status(401).json({ success: false, message: 'Unauthorized' });
-    }
-    res.status(500).json({ success: false, message: err.message });
-  }
-});
-
-// ========== 启动服务器 ==========
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
 });

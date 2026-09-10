@@ -2941,6 +2941,16 @@
         // ================================================================
         // NOTIFICATION BUTTON - UPDATE TO USE COMBINED MODAL
         // ================================================================
+        if (notificationBtn) {
+            // Remove existing listeners to prevent duplicates
+            notificationBtn.removeEventListener('click', showNotificationsModal);
+            notificationBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                console.log('🔔 Notification button clicked');
+                showNotificationsModal();
+            });
+        }
+
         // Close notification modal
         if (closeNotificationsModal) {
             closeNotificationsModal.addEventListener('click', hideNotificationsModal);
@@ -2963,6 +2973,11 @@
 
         // 加载 header 头像和名字
         loadHeaderProfile();
+
+        // ================================================================
+        // LOAD CUSTOMER NOTIFICATIONS (PET DELETION)
+        // ================================================================
+        await loadCustomerNotifications();
 
         // 点击头像跳转到 Profile
         const profileBtn = document.getElementById('profileBtn');
@@ -3112,6 +3127,7 @@
           timeSelect.querySelectorAll('option').forEach(option => {
             option.hidden = false;
             option.disabled = false;
+            option.textContent = option.textContent.replace(/ \((?:Fully booked|已约满|剩余 \d+ 个名额|\d+ slot(?:s)? remaining)\)$/, '');
           });
           timeSelect.value = '10:30 AM';
         }
@@ -3130,11 +3146,16 @@
             const result = await response.json();
             if (!result.success) throw new Error(result.message || 'Unable to check availability.');
 
-            const fullSlots = new Set(result.data?.fullSlots || []);
+            const counts = result.data?.counts || {};
+            const capacity = Number(result.data?.capacity || 2);
             timeSelect.querySelectorAll('option').forEach(option => {
-              const isFull = fullSlots.has(option.value);
-              option.hidden = isFull;
+              const count = Number(counts[option.value] || 0);
+              const remaining = Math.max(0, capacity - count);
+              const isFull = remaining === 0;
+              option.hidden = false;
               option.disabled = isFull;
+              option.textContent = option.textContent.replace(/ \((?:Fully booked|已约满|剩余 \d+ 个名额|\d+ slot(?:s)? remaining)\)$/, '')
+                + (isFull ? ' (Fully booked)' : ` (${remaining} slot${remaining === 1 ? '' : 's'} remaining)`);
             });
 
             const availableOption = [...timeSelect.options].find(option => !option.disabled);
@@ -3160,6 +3181,10 @@
         if (!newDate) {
             showDashboardMessage('❌ Please select a new date.', false);
             return;
+        }
+        if (!newTime) {
+          showDashboardMessage('❌ Please choose an available time slot.', false);
+          return;
         }
         if (isThursday(newDate)) {
             showDashboardMessage('❌ We are closed on Thursdays. Please choose another date.', false);
