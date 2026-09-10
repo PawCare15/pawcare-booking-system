@@ -29,8 +29,10 @@
     }
 
     function setBadge(count) {
-        badge.textContent = count > 99 ? '99+' : String(count);
-        badge.style.display = count > 0 ? 'flex' : 'none';
+        const safeCount = Math.max(0, Number(count) || 0);
+        badge.dataset.unreadCount = String(safeCount);
+        badge.textContent = safeCount > 99 ? '99+' : String(safeCount);
+        badge.style.display = safeCount > 0 ? 'flex' : 'none';
     }
 
     function relevantNotifications(notifications) {
@@ -131,9 +133,10 @@
 
         relevant.forEach(item => {
             const tone = getNotificationTone(item.type);
-            html += `<div style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; ${item.is_read ? '' : 'background:#FFFCF5;'}">
+            const senderInitial = escapeHtml(String(item.title || 'N').trim().charAt(0).toUpperCase());
+            html += `<div style="display:block; padding:13px 12px; margin:8px 0; border:1px solid ${tone[1]}22; border-left:4px solid ${tone[1]}; border-radius:13px; box-shadow:0 5px 14px rgba(74,51,39,0.06); text-align:left; ${item.is_read ? 'background:#FFFFFF;' : 'background:#FFFCF5;'}">
                 <div style="display:flex; gap:10px; align-items:flex-start;">
-                    <span style="display:grid; place-items:center; flex:0 0 32px; height:32px; border-radius:10px; background:${tone[0]}; color:${tone[1]}; box-shadow:inset 0 0 0 1px ${tone[1]}22;"><i class="fa-solid ${getNotificationIcon(item.type)}"></i></span>
+                    <span title="${senderInitial}" style="display:grid; place-items:center; flex:0 0 34px; height:34px; border-radius:50%; background:${tone[0]}; color:${tone[1]}; box-shadow:inset 0 0 0 1px ${tone[1]}22;"><i class="fa-solid ${getNotificationIcon(item.type)}"></i></span>
                     <span style="min-width:0; flex:1;"><strong style="display:block; color:#333; font-size:13px;">${escapeHtml(item.title)}</strong>
                     <small style="display:block; color:#A08F80; margin-top:4px;">${formatNotificationDate(item.created_at)}</small>
                     <span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(item.message)}</span>
@@ -142,6 +145,7 @@
                       ${!item.is_read ? `<button type="button" data-notification-read="${escapeHtml(item.notification_id)}" style="border:0; background:none; padding:0; color:#7A7A7A; font:inherit; font-size:12px; cursor:pointer;">Mark read</button>` : ''}
                     </span></span>
                 </div>
+                ${!item.is_read ? `<span style="display:block; width:6px; height:6px; margin:7px 0 0 44px; border-radius:50%; background:#C5221F;"></span>` : ''}
             </div>`;
         });
 
@@ -217,15 +221,18 @@
 
     async function refreshBadge() {
         try {
-            const [notificationResult, bookingResult, reminders] = await Promise.all([
+            const [notificationEntry, bookingEntry, remindersEntry] = await Promise.allSettled([
                 request(`/api/notifications?context=${encodeURIComponent(context)}`),
                 request('/api/bookings'),
                 getPageReminders()
             ]);
-            const unreadNotifications = relevantNotifications(notificationResult.data || []).filter(item => !item.is_read).length + reminders.length;
+            const notificationData = notificationEntry.status === 'fulfilled' ? notificationEntry.value.data || [] : [];
+            const bookingData = bookingEntry.status === 'fulfilled' ? bookingEntry.value.data || [] : [];
+            const reminders = remindersEntry.status === 'fulfilled' ? remindersEntry.value : [];
+            const unreadNotifications = relevantNotifications(notificationData).filter(item => !item.is_read).length + reminders.length;
             const seenAtValue = localStorage.getItem('pawcareUserNotificationsSeenAt');
             const seenAt = seenAtValue ? new Date(seenAtValue) : null;
-            const upcoming = getUpcomingBookings(bookingResult.data || [], seenAt);
+            const upcoming = getUpcomingBookings(bookingData, seenAt);
             setBadge(unreadNotifications + upcoming.length);
         } catch (error) {
             console.error('Unable to load user notification count:', error);
@@ -243,7 +250,7 @@
                     body: JSON.stringify({ notification_id: markReadButton.dataset.notificationRead })
                 });
                 markReadButton.remove();
-                setBadge(Math.max(0, Number(badge.textContent.replace('+', '')) - 1));
+                setBadge(Math.max(0, Number(badge.dataset.unreadCount || 0) - 1));
             } catch (error) {
                 console.error('Unable to mark notification as read:', error);
             }

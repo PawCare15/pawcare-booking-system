@@ -1732,6 +1732,7 @@
                         <option value="05:00 PM">05:00 PM</option>
                         <option value="06:00 PM">06:00 PM</option>
                     </select>
+                    <small id="suggestRescheduleAvailability" style="display:block; margin-top:7px; color:#7A6252;"></small>
                 </div>
                 <div class="modal-actions">
                     <button class="btn btn-secondary" id="cancelSuggestRescheduleBtn">Cancel</button>
@@ -2609,9 +2610,55 @@ if (typeof bindUserMenuEvents === 'function') {
             const dateInput = document.getElementById('suggestRescheduleDate');
             dateInput.min = new Date().toISOString().split('T')[0];
             dateInput.value = '';
-            document.getElementById('suggestRescheduleTime').value = '10:30 AM';
+            resetSuggestRescheduleTimes();
             document.getElementById('suggestRescheduleModal').classList.add('active');
             lockBodyScroll();
+        }
+
+        function resetSuggestRescheduleTimes() {
+            const timeSelect = document.getElementById('suggestRescheduleTime');
+            const status = document.getElementById('suggestRescheduleAvailability');
+            if (!timeSelect) return;
+            timeSelect.querySelectorAll('option').forEach(option => {
+                option.disabled = false;
+                option.textContent = option.textContent.replace(/ \((?:Fully booked|\d+ slot(?:s)? remaining)\)$/, '');
+            });
+            timeSelect.value = '10:30 AM';
+            if (status) status.textContent = '';
+        }
+
+        async function updateSuggestRescheduleAvailability(date) {
+            const timeSelect = document.getElementById('suggestRescheduleTime');
+            const status = document.getElementById('suggestRescheduleAvailability');
+            if (!timeSelect) return;
+            if (!date) {
+                resetSuggestRescheduleTimes();
+                return;
+            }
+            try {
+                const response = await authFetch(`/api/bookings/availability?date=${encodeURIComponent(date)}`);
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.message || 'Unable to check availability.');
+                const counts = result.data?.counts || {};
+                const capacity = Number(result.data?.capacity || 2);
+                timeSelect.querySelectorAll('option').forEach(option => {
+                    const remaining = Math.max(0, capacity - Number(counts[option.value] || 0));
+                    const full = remaining === 0;
+                    option.disabled = full;
+                    option.textContent = option.textContent.replace(/ \((?:Fully booked|\d+ slot(?:s)? remaining)\)$/, '')
+                        + (full ? ' (Fully booked)' : ` (${remaining} slot${remaining === 1 ? '' : 's'} remaining)`);
+                });
+                const selected = timeSelect.options[timeSelect.selectedIndex];
+                if (!selected || selected.disabled) {
+                    const available = [...timeSelect.options].find(option => !option.disabled);
+                    timeSelect.value = available ? available.value : '';
+                }
+                if (status) status.textContent = timeSelect.value ? 'Availability is live and shared with customer booking.' : 'No available time slots for this date.';
+            } catch (error) {
+                console.error('Failed to load admin reschedule availability:', error);
+                resetSuggestRescheduleTimes();
+                if (status) status.textContent = 'Unable to load availability. Please try again.';
+            }
         }
 
         function closeSuggestRescheduleModal() {
@@ -2626,6 +2673,10 @@ if (typeof bindUserMenuEvents === 'function') {
             const newTime = document.getElementById('suggestRescheduleTime').value;
             if (!newDate) {
                 alert('Please select a new date.');
+                return;
+            }
+            if (!newTime) {
+                alert('Please choose an available time slot.');
                 return;
             }
             try {
@@ -2643,6 +2694,10 @@ if (typeof bindUserMenuEvents === 'function') {
                 alert(error.message);
             }
         }
+
+        document.getElementById('suggestRescheduleDate').addEventListener('change', function() {
+            updateSuggestRescheduleAvailability(this.value);
+        });
 
         // ===== UPDATE PAGINATION =====
         function updatePagination(bookings) {

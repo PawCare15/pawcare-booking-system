@@ -784,7 +784,7 @@ app.put('/api/profile', async (req, res) => {
     }
 
     if (role === 'customer') {
-      await createCustomerNotification(userId, 'Profile updated', 'Your personal profile has been updated successfully.', 'profile');
+      await createCustomerNotification(userId, 'Profile Updated Successfully', 'Your profile information has been updated.', 'profile');
     }
 
     res.json({ success: true, message: 'Profile updated.' });
@@ -851,7 +851,7 @@ app.post('/api/profile/avatar', upload.single('avatar'), async (req, res) => {
     if (updateError) throw updateError;
 
     if (role === 'customer') {
-      await createCustomerNotification(userId, 'Profile photo updated', 'Your profile photo has been updated successfully.', 'profile');
+      await createCustomerNotification(userId, 'Avatar Updated', 'Your profile photo has been updated successfully.', 'profile');
     }
 
     res.json({ success: true, avatar_url: avatarUrl });
@@ -918,7 +918,7 @@ app.put('/api/profile/password', async (req, res) => {
             .eq(idField, userId);
     }
     if (role === 'customer') {
-      await createCustomerNotification(userId, 'Password updated', 'Your password was changed successfully.', 'security');
+      await createCustomerNotification(userId, 'Password Updated Successfully', "Your password has been changed. If this wasn't you, please contact support immediately.", 'security');
     }
     res.json({ success: true, message: 'Password updated successfully.' });
   } catch (err) {
@@ -1789,8 +1789,9 @@ async function getActiveSlotBookingCount(date, time, excludeBookingId = null) {
   if (error) throw error;
   const normalizedTime = normalizeBookingTime(time);
   return (data || []).filter(booking => {
-    const occupiesOriginalSlot = normalizeBookingTime(booking.booking_time) === normalizedTime;
-    const occupiesRequestedSlot = booking.reschedule_status === 'pending'
+    const occupiesOriginalSlot = String(booking.booking_date || '').slice(0, 10) === String(date || '').slice(0, 10)
+      && normalizeBookingTime(booking.booking_time) === normalizedTime;
+    const occupiesRequestedSlot = ['pending', 'admin_pending'].includes(booking.reschedule_status)
       && String(booking.reschedule_requested_date || '').slice(0, 10) === String(date || '').slice(0, 10)
       && normalizeBookingTime(booking.reschedule_requested_time) === normalizedTime;
     return occupiesOriginalSlot || occupiesRequestedSlot;
@@ -1812,7 +1813,7 @@ app.get('/api/bookings/availability', async (req, res) => {
     const counts = {};
     (data || []).forEach(booking => {
       const slots = [{ date: booking.booking_date, time: booking.booking_time }];
-      if (booking.reschedule_status === 'pending') {
+      if (['pending', 'admin_pending'].includes(booking.reschedule_status)) {
         slots.push({ date: booking.reschedule_requested_date, time: booking.reschedule_requested_time });
       }
       const countedTimes = new Set();
@@ -2446,10 +2447,15 @@ app.post('/api/reviews/:review_id/like', async (req, res) => {
                 .eq('review_id', review_id)
                 .maybeSingle();
             if (reviewOwner?.customer_id && reviewOwner.customer_id !== customer_id) {
+              const { data: liker } = await supabaseAdmin
+                .from('customer')
+                .select('full_name')
+                .eq('customer_id', customer_id)
+                .maybeSingle();
               await createCustomerNotification(
                 reviewOwner.customer_id,
                 'Someone liked your review',
-                `Your review for ${reviewOwner.service?.service_name || 'a service'} received a new like.`,
+                `${liker?.full_name || 'Someone'} liked your review on ${reviewOwner.service?.service_name || 'a service'}.`,
                 'review'
               );
             }
@@ -2732,10 +2738,18 @@ app.post('/api/reviews/:review_id/reply', async (req, res) => {
       .eq('review_id', review_id)
       .maybeSingle();
     if (reviewOwner?.customer_id && reviewOwner.customer_id !== userId) {
+      const sourceTable = role === 'admin' ? 'admin' : 'customer';
+      const sourceIdField = role === 'admin' ? 'admin_id' : 'customer_id';
+      const { data: replier } = await supabaseAdmin
+        .from(sourceTable)
+        .select('full_name')
+        .eq(sourceIdField, userId)
+        .maybeSingle();
+      const replyPreview = reply_text.trim().slice(0, 100);
       await createCustomerNotification(
         reviewOwner.customer_id,
         role === 'admin' ? 'Admin replied to your review' : 'Someone replied to your review',
-        `${role === 'admin' ? 'Admin' : 'A customer'} replied: "${reply_text.trim().slice(0, 100)}${reply_text.trim().length > 100 ? '...' : ''}"`,
+        `${role === 'admin' ? 'Admin' : (replier?.full_name || 'Someone')} replied to your review: "${replyPreview}${reply_text.trim().length > 100 ? '...' : ''}"`,
         'review'
       );
     }
@@ -3609,7 +3623,7 @@ app.put('/api/admin/bookings/:id', isAdmin, async (req, res) => {
 
     const { data: existingBooking, error: existingError } = await supabaseAdmin
       .from('booking')
-      .select('customer_id, booking_date, booking_time, reschedule_requested_date, reschedule_requested_time')
+      .select('booking_id, customer_id, booking_date, booking_time, pet:pet_id(pet_name), booking_service(service:service_id(service_name)), reschedule_requested_date, reschedule_requested_time')
       .eq('booking_id', id)
       .single();
     if (existingError || !existingBooking) return res.status(404).json({ success: false, message: 'Booking not found' });
@@ -3635,8 +3649,16 @@ app.put('/api/admin/bookings/:id', isAdmin, async (req, res) => {
 
         if (error) throw error;
         if (status && status !== 'pending') {
-          const title = status === 'cancelled' ? 'Appointment cancelled' : 'Appointment status updated';
-          await createCustomerNotification(existingBooking.customer_id, title, `Your appointment on ${existingBooking.booking_date} at ${existingBooking.booking_time} is now ${status}.`, 'booking');
+          const statusLabel = status.charAt(0).toUpperCase() + status.slice(1);
+          const petName = existingBooking.pet?.pet_name || 'Unknown pet';
+          const serviceName = existingBooking.booking_service?.map(item => item.service?.service_name).filter(Boolean).join(', ') || 'your service';
+          await createCustomerNotification(
+            existingBooking.customer_id,
+            `Booking ${statusLabel}`,
+            `Booking ${existingBooking.booking_id} for ${petName} (${serviceName}) has been ${status.toLowerCase()}.`,
+            'booking',
+            existingBooking.booking_id
+          );
         }
         res.json({ success: true, data });
     } catch (err) {
