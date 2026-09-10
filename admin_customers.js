@@ -694,17 +694,17 @@ async function showNotificationDetails() {
         };
         let customerHtml = '';
         customerNewCustomers.forEach(customer => {
-            customerHtml += renderCard('newCustomers', customer.customer_id, `New Customer · ${customer.full_name || 'Unknown'}`, `${customer.email || 'No email'} · Joined ${formatDate(customer.created_at)}`, 'View customer', 'admin_customers.html', '#E8F5E9', '#2E7D32', '👤');
+            customerHtml += renderCard('newCustomers', customer.customer_id, `New Customer · ${customer.full_name || 'Unknown'}`, `${customer.email || 'No email'} · Joined ${formatDate(customer.created_at)}`, 'View customer', `admin_customers.html?highlight=${encodeURIComponent(customer.customer_id)}`, '#E8F5E9', '#2E7D32', '👤');
         });
         customerPendingBookings.forEach(booking => {
             const customerName = booking.customer?.full_name || booking.customer_name || booking.customer_id || 'Customer';
-            customerHtml += renderCard('pendingBookings', booking.booking_id, `Pending Booking · ${customerName}`, `Booking ID: ${booking.booking_id || 'N/A'} · ${formatDate(booking.booking_date)} ${booking.booking_time || ''}`, 'View & Approve', 'admin_bookings.html?filter=pending', '#FEF7E0', '#D97706', '📋');
+            customerHtml += renderCard('pendingBookings', booking.booking_id, `Pending Booking · ${customerName}`, `Booking ID: ${booking.booking_id || 'N/A'} · ${formatDate(booking.booking_date)} ${booking.booking_time || ''}`, 'View & Approve', `admin_bookings.html?highlight=${encodeURIComponent(booking.booking_id)}`, '#FEF7E0', '#D97706', '📋');
         });
         customerInactiveCustomers.forEach(customer => {
-            customerHtml += renderCard('inactiveCustomers', customer.customer_id, `Inactive Customer · ${customer.full_name || 'Unknown'}`, `No bookings in the last 3 months · Joined ${formatDate(customer.created_at)}`, 'View customer', 'admin_customers.html', '#FBE9E7', '#BF360C', '⏳');
+            customerHtml += renderCard('inactiveCustomers', customer.customer_id, `Inactive Customer · ${customer.full_name || 'Unknown'}`, `No bookings in the last 3 months · Joined ${formatDate(customer.created_at)}`, 'View customer', `admin_customers.html?highlight=${encodeURIComponent(customer.customer_id)}`, '#FBE9E7', '#BF360C', '⏳');
         });
         customerTopCustomers.forEach((customer, index) => {
-            customerHtml += renderCard('topCustomers', customer.customer_id, `Top Customer · ${customer.name || 'Customer'}`, `${customer.bookings || 0} booking(s) · ${customer.email || 'No email'}`, 'Highlight customer', 'admin_customers.html', '#E8F5E9', '#2E7D32', index === 0 ? '🏆' : '⭐');
+            customerHtml += renderCard('topCustomers', customer.customer_id, `Top Customer · ${customer.name || 'Customer'}`, `${customer.bookings || 0} booking(s) · ${customer.email || 'No email'}`, 'Highlight customer', `admin_customers.html?highlight=${encodeURIComponent(customer.customer_id)}`, '#E8F5E9', '#2E7D32', index === 0 ? '🏆' : '⭐');
         });
         if (!customerHtml) customerHtml = '<div style="text-align:center;padding:30px 18px;color:#7A7A7A;"><i class="fa-regular fa-bell" style="font-size:42px;display:block;margin-bottom:10px;color:#D3C4B8;"></i><h3 style="font-size:16px;font-weight:700;color:#333;margin-bottom:6px;">All Clear!</h3><p style="font-size:13px;">No customer notifications at the moment.</p></div>';
         if (customerContent) customerContent.innerHTML = customerHtml;
@@ -1230,7 +1230,7 @@ function renderCustomerTable(data) {
             `<img src="${customer.profile_photo}" alt="${customer.name}" style="width:28px; height:28px; border-radius:50%; object-fit:cover; flex-shrink:0;">` :
             `<div style="width:28px; height:28px; border-radius:50%; background:#FDF3E7; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:11px; color:#5A361A; flex-shrink:0;">${initials}</div>`;
         
-        return `<tr>
+        return `<tr data-customer-id="${customer.customer_id}">
             <td><strong>${customer.id || customer.customer_id || 'N/A'}</strong></td>
             <td>
                 <div style="display:flex; align-items:center; gap:8px;">

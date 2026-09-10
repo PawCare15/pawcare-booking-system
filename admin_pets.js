@@ -681,16 +681,16 @@ async function showNotificationDetails() {
         };
         let petHtml = '';
         petNewPets.forEach(pet => {
-            petHtml += renderCard('newPets', pet.pet_id, `New Pet Added Today · ${pet.pet_name || pet.pet_id}`, `${pet.species || 'Pet'} · ${pet.breed || 'Unknown breed'} · Added ${formatDate(pet.created_at)}`, 'View pet', 'admin_pets.html', '#E8F5E9', '#2E7D32', '🐾');
+            petHtml += renderCard('newPets', pet.pet_id, `New Pet Added Today · ${pet.pet_name || pet.pet_id}`, `${pet.species || 'Pet'} · ${pet.breed || 'Unknown breed'} · Added ${formatDate(pet.created_at)}`, 'View pet', `admin_pets.html?highlight=${encodeURIComponent(pet.pet_id)}`, '#E8F5E9', '#2E7D32', '🐾');
         });
         petUpcomingBookings.forEach(booking => {
-            petHtml += renderCard('upcomingBookings', booking.booking_id, `Pet with Upcoming Booking · ${booking.pet_id || 'Pet'}`, `Booking on ${formatDate(booking.booking_date)} ${booking.booking_time || ''} · Status: ${booking.status || 'Pending'}`, 'View bookings', 'admin_bookings.html', '#FEF7E0', '#D97706', '📅');
+            petHtml += renderCard('upcomingBookings', booking.booking_id, `Pet with Upcoming Booking · ${booking.pet_id || 'Pet'}`, `Booking on ${formatDate(booking.booking_date)} ${booking.booking_time || ''} · Status: ${booking.status || 'Pending'}`, 'View bookings', `admin_bookings.html?highlight=${encodeURIComponent(booking.booking_id)}`, '#FEF7E0', '#D97706', '📅');
         });
         petSpecialNotesPets.forEach(pet => {
-            petHtml += renderCard('specialNotesPets', pet.pet_id, `Pet with Special Notes · ${pet.pet_name || pet.pet_id}`, `${pet.breed || pet.species || 'Pet'} · ${pet.special_notes}`, 'View pet', 'admin_pets.html', '#EDE9FE', '#7C3AED', '📝');
+            petHtml += renderCard('specialNotesPets', pet.pet_id, `Pet with Special Notes · ${pet.pet_name || pet.pet_id}`, `${pet.breed || pet.species || 'Pet'} · ${pet.special_notes}`, 'View pet', `admin_pets.html?highlight=${encodeURIComponent(pet.pet_id)}`, '#EDE9FE', '#7C3AED', '📝');
         });
         petInactivePets.forEach(pet => {
-            petHtml += renderCard('inactivePets', pet.pet_id, `Inactive Pet · ${pet.pet_name || pet.pet_id}`, `No bookings in the last 6 months · Added ${formatDate(pet.created_at)}`, 'View pet', 'admin_pets.html', '#FBE9E7', '#BF360C', '⏳');
+            petHtml += renderCard('inactivePets', pet.pet_id, `Inactive Pet · ${pet.pet_name || pet.pet_id}`, `No bookings in the last 6 months · Added ${formatDate(pet.created_at)}`, 'View pet', `admin_pets.html?highlight=${encodeURIComponent(pet.pet_id)}`, '#FBE9E7', '#BF360C', '⏳');
         });
         if (!petHtml) petHtml = '<div style="text-align:center;padding:30px 18px;color:#7A7A7A;"><i class="fa-regular fa-bell" style="font-size:42px;display:block;margin-bottom:10px;color:#D3C4B8;"></i><h3 style="font-size:16px;font-weight:700;color:#333;margin-bottom:6px;">All Clear!</h3><p style="font-size:13px;">No pet notifications at the moment.</p></div>';
         if (petContent) petContent.innerHTML = petHtml;
@@ -1143,7 +1143,7 @@ function renderPetTable(data) {
             `<img src="${pet.image}" alt="${pet.name}" style="width:28px; height:28px; border-radius:50%; object-fit:cover; flex-shrink:0;">` :
             `<div style="width:28px; height:28px; border-radius:50%; background:#FDF3E7; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:11px; color:#5A361A; flex-shrink:0;">${pet.name.charAt(0).toUpperCase()}</div>`;
         
-        return `<tr>
+        return `<tr data-pet-id="${pet.pet_id}">
             <td><strong>${pet.id || pet.pet_id || 'N/A'}</strong></td>
             <td>
                 <div style="display:flex; align-items:center; gap:8px;">

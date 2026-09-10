@@ -24,6 +24,7 @@
             `#appointment-${escapedId}`,
             `[data-customer-id="${escapedId}"]`, `#customer-${escapedId}`,
             `[data-pet-id="${escapedId}"]`, `#pet-${escapedId}`,
+            `[data-actual-service-id="${escapedId}"]`,
             `[data-service-id="${escapedId}"]`, `#service-${escapedId}`,
             `[data-id="${escapedId}"]`, `#${escapedId}`
         ];

@@ -26,6 +26,13 @@
         }
         .review-page-header {
             flex-wrap: nowrap !important;
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+        }
+        .review-page-header > .admin-page-date {
+            margin-left: auto !important;
+            white-space: nowrap !important;
         }
         @media (max-width: 900px) {
             .review-page-header {
@@ -554,7 +561,7 @@
         <!-- ===== REVIEWS CONTENT ===== -->
         <div class="reviews-container">
 
-            <div class="page-header-profile review-page-header">
+            <div class="page-header-profile review-page-header" style="display:flex; justify-content:space-between; align-items:center;">
                 <div class="page-header-profile-left">
                     <i class="fa-regular fa-star page-header-profile-icon"></i>
                     <div>
@@ -1113,10 +1120,10 @@ async function showNotificationDetails() {
     `;
     let html = '';
     const reviewDetail = review => `${review.customer?.full_name || 'Customer'} · ${review.rating || 0} star(s) · ${review.comment || 'No comment'}`;
-    data.newReviews.forEach(review => { html += renderCard('newReviews', review.review_id, 'New Reviews', reviewDetail(review), 'admin_reviews.html?filter=new', '📝', '#E3F2FD', '#0D47A1'); });
-    data.lowRating.forEach(review => { html += renderCard('lowRating', review.review_id, 'Low Rating Reviews', reviewDetail(review), 'admin_reviews.html?filter=low', '⚠️', '#FCE8E6', '#DC2626'); });
-    data.noReply.forEach(review => { html += renderCard('noReply', review.review_id, 'Reviews Without Reply', reviewDetail(review), 'admin_reviews.html?filter=no_reply', '💬', '#FFF3E0', '#E65100'); });
-    data.mostLiked.forEach(review => { html += renderCard('mostLiked', review.review_id, 'Most Liked Reviews', `${reviewDetail(review)} · ${review.like_count || 0} like(s)`, 'admin_reviews.html', '👍', '#E8F5E9', '#2E7D32'); });
+    data.newReviews.forEach(review => { html += renderCard('newReviews', review.review_id, 'New Reviews', reviewDetail(review), `admin_reviews.html?highlight=${encodeURIComponent(review.review_id)}`, '📝', '#E3F2FD', '#0D47A1'); });
+    data.lowRating.forEach(review => { html += renderCard('lowRating', review.review_id, 'Low Rating Reviews', reviewDetail(review), `admin_reviews.html?highlight=${encodeURIComponent(review.review_id)}`, '⚠️', '#FCE8E6', '#DC2626'); });
+    data.noReply.forEach(review => { html += renderCard('noReply', review.review_id, 'Reviews Without Reply', reviewDetail(review), `admin_reviews.html?highlight=${encodeURIComponent(review.review_id)}`, '💬', '#FFF3E0', '#E65100'); });
+    data.mostLiked.forEach(review => { html += renderCard('mostLiked', review.review_id, 'Most Liked Reviews', `${reviewDetail(review)} · ${review.like_count || 0} like(s)`, `admin_reviews.html?highlight=${encodeURIComponent(review.review_id)}`, '👍', '#E8F5E9', '#2E7D32'); });
     if (!html) html = `<div style="text-align:center; padding:30px 20px; color:#7A7A7A;"><i class="fa-regular fa-star" style="font-size:42px; display:block; margin-bottom:10px; color:#D3C4B8;"></i><h3 style="font-size:16px; font-weight:700; color:#333; margin-bottom:6px;">No Review Notifications</h3><p style="font-size:13px;">All reviews are up to date.</p></div>`;
     document.getElementById('notificationsModalContent').innerHTML = html;
     document.getElementById('notificationsModal').classList.add('active');
