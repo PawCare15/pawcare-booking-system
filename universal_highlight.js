@@ -10,21 +10,22 @@
             element.style.boxShadow = '';
             element.style.transform = 'scale(1)';
             element.style.zIndex = '';
-        }, 2500);
+        }, 2800);
     }
 
     function findHighlightTarget(highlightId) {
+        if (!highlightId) return null;
         const escapedId = typeof CSS !== 'undefined' && CSS.escape
             ? CSS.escape(highlightId)
-            : highlightId.replace(/[^a-zA-Z0-9_-]/g, '\\$&');
+            : String(highlightId).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
         const selectors = [
-            `#review-${escapedId}`, `[data-review-id="${highlightId}"]`,
-            `#history-booking-${escapedId}`, `[data-booking-id="${highlightId}"]`,
+            `#review-${escapedId}`, `[data-review-id="${escapedId}"]`,
+            `#history-booking-${escapedId}`, `[data-booking-id="${escapedId}"]`,
             `#appointment-${escapedId}`,
-            `[data-customer-id="${highlightId}"]`, `#customer-${escapedId}`,
-            `[data-pet-id="${highlightId}"]`, `#pet-${escapedId}`,
-            `[data-service-id="${highlightId}"]`, `#service-${escapedId}`,
-            `[data-id="${highlightId}"]`, `#${escapedId}`
+            `[data-customer-id="${escapedId}"]`, `#customer-${escapedId}`,
+            `[data-pet-id="${escapedId}"]`, `#pet-${escapedId}`,
+            `[data-service-id="${escapedId}"]`, `#service-${escapedId}`,
+            `[data-id="${escapedId}"]`, `#${escapedId}`
         ];
         for (const selector of selectors) {
             try {
@@ -32,6 +33,21 @@
                 if (element) return element;
             } catch (error) {
                 // Ignore an invalid data selector and continue with the remaining targets.
+            }
+        }
+
+        // Fallback: match an exact ID string inside a table cell.
+        const tables = document.querySelectorAll('table');
+        for (const table of tables) {
+            const rows = table.querySelectorAll('tbody tr');
+            for (const row of rows) {
+                const cells = row.querySelectorAll('td');
+                for (const cell of cells) {
+                    const text = (cell.textContent || '').trim();
+                    if (text === highlightId || text === `#${highlightId}`) {
+                        return row;
+                    }
+                }
             }
         }
         return null;
@@ -53,6 +69,7 @@
         if (!highlightId) return;
 
         let attempts = 0;
+        const maxAttempts = 40;
         const findAndHighlight = () => {
             const element = findHighlightTarget(highlightId);
             if (element) {
@@ -60,7 +77,7 @@
                 highlightElement(element);
                 return;
             }
-            if (attempts < 10) {
+            if (attempts < maxAttempts) {
                 attempts += 1;
                 setTimeout(findAndHighlight, 250);
             }

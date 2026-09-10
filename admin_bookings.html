@@ -2179,35 +2179,35 @@
                 data.pending.forEach(item => {
                     const customerName = item.customer?.full_name || item.customer_name || item.customer_id || 'Customer';
                     const itemKey = String(item.booking_id || item.id || 'pending');
-                    html += renderItem('pending', `Pending Booking · ${customerName}`, `Booking ID: ${item.booking_id || 'N/A'} • ${item.booking_date ? new Date(item.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'} ${item.booking_time || ''}`.trim(), 'View & Approve', 'admin_bookings.html?filter=pending', '⏳', '#FEF7E0', '#D97706', itemKey);
+                    html += renderItem('pending', `Pending Booking · ${customerName}`, `Booking ID: ${item.booking_id || 'N/A'} • ${item.booking_date ? new Date(item.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'} ${item.booking_time || ''}`.trim(), 'View & Approve', `admin_bookings.html?highlight=${encodeURIComponent(itemKey)}`, '⏳', '#FEF7E0', '#D97706', itemKey);
                 });
             }
             if (data.reschedule.length > 0) {
                 data.reschedule.forEach(item => {
                     const customerName = item.customer?.full_name || item.customer_name || item.customer_id || 'Customer';
                     const itemKey = String(item.booking_id || item.id || 'reschedule');
-                    html += renderItem('reschedule', `Reschedule Request · ${customerName}`, `Booking ID: ${item.booking_id || 'N/A'} • ${item.reschedule_requested_date ? new Date(item.reschedule_requested_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}` , 'View request', 'admin_bookings.html?filter=reschedule', '🔄', '#FFF3E0', '#E65100', itemKey);
+                    html += renderItem('reschedule', `Reschedule Request · ${customerName}`, `Booking ID: ${item.booking_id || 'N/A'} • ${item.reschedule_requested_date ? new Date(item.reschedule_requested_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A'}` , 'View request', `admin_bookings.html?highlight=${encodeURIComponent(itemKey)}`, '🔄', '#FFF3E0', '#E65100', itemKey);
                 });
             }
             if (data.today.length > 0) {
                 data.today.forEach(item => {
                     const petName = item.pet_name || item.pet_id || 'Pet';
                     const itemKey = String(item.booking_id || item.id || 'today');
-                    html += renderItem('today', `Today's Booking · ${petName}`, `${new Date(item.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${item.booking_time || ''}` , 'View booking', 'admin_bookings.html?date=today', '📅', '#E3F2FD', '#0D47A1', itemKey);
+                    html += renderItem('today', `Today's Booking · ${petName}`, `${new Date(item.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${item.booking_time || ''}` , 'View booking', `admin_bookings.html?highlight=${encodeURIComponent(itemKey)}`, '📅', '#E3F2FD', '#0D47A1', itemKey);
                 });
             }
             if (data.tomorrow.length > 0) {
                 data.tomorrow.forEach(item => {
                     const petName = item.pet_name || item.pet_id || 'Pet';
                     const itemKey = String(item.booking_id || item.id || 'tomorrow');
-                    html += renderItem('tomorrow', `Tomorrow's Booking · ${petName}`, `${new Date(item.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${item.booking_time || ''}` , 'View booking', 'admin_bookings.html?date=tomorrow', '📅', '#F5F5F5', '#757575', itemKey);
+                    html += renderItem('tomorrow', `Tomorrow's Booking · ${petName}`, `${new Date(item.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${item.booking_time || ''}` , 'View booking', `admin_bookings.html?highlight=${encodeURIComponent(itemKey)}`, '📅', '#F5F5F5', '#757575', itemKey);
                 });
             }
             if (data.cancelled.length > 0) {
                 data.cancelled.forEach(item => {
                     const petName = item.pet_name || item.pet_id || 'Pet';
                     const itemKey = String(item.booking_id || item.id || 'cancelled');
-                    html += renderItem('cancelled', `Cancelled Booking · ${petName}`, `${new Date(item.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${item.booking_time || ''}` , 'View booking', 'admin_bookings.html?status=cancelled', '🚫', '#FCE8E6', '#DC2626', itemKey);
+                    html += renderItem('cancelled', `Cancelled Booking · ${petName}`, `${new Date(item.booking_date).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })} ${item.booking_time || ''}` , 'View booking', `admin_bookings.html?highlight=${encodeURIComponent(itemKey)}`, '🚫', '#FCE8E6', '#DC2626', itemKey);
                 });
             }
             if (!html) html = `<div style="text-align:center; padding:30px 20px; color:#7A7A7A;"><i class="fa-regular fa-calendar-check" style="font-size:48px; display:block; margin-bottom:12px; color:#D3C4B8;"></i><h3 style="font-size:16px; font-weight:600; color:#333; margin-bottom:4px;">No Booking Notifications</h3><p style="font-size:13px;">All bookings are up to date.</p></div>`;
@@ -2366,6 +2366,16 @@ if (typeof bindUserMenuEvents === 'function') {
                 await fetchServiceTypes();
 
                 filteredBookings = [...allBookings];
+
+                // Auto-navigate to the page containing the highlighted booking
+                const highlightId = new URLSearchParams(window.location.search).get('highlight');
+                if (highlightId) {
+                    const idx = filteredBookings.findIndex(b => String(b.id) === String(highlightId));
+                    if (idx >= 0) {
+                        currentPage = Math.floor(idx / rowsPerPage) + 1;
+                    }
+                }
+
                 renderStats(allBookings);
                 renderBookings(filteredBookings);
                 updatePagination(filteredBookings);
@@ -2525,7 +2535,7 @@ if (typeof bindUserMenuEvents === 'function') {
                     : b.petEmoji;
 
                 return `
-                <tr data-id="${b.id}">
+                <tr data-id="${b.id}" data-booking-id="${b.id}">
                     <td><strong>${b.id}</strong></td>
                     <td>
                         <div class="customer-cell">

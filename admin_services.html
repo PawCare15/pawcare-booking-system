@@ -2814,9 +2814,9 @@ async function showNotificationDetails() {
         </div>
     `;
     let html = '';
-    noBookingServices.forEach(service => { html += renderCard('noBookings', service.service_id, 'Services with No Bookings', `${service.service_name} has had no bookings for over 1 month.`, 'admin_services.html', '📉', '#E3F2FD', '#0D47A1'); });
-    priceChanges.forEach(service => { html += renderCard('priceChanges', service.service_id, 'Price Changes Needed', `${service.service_name} needs pricing review. Current price: ${service.price || 0}.`, 'admin_services.html', '💰', '#FFF3E0', '#E65100'); });
-    mostBooked.forEach(service => { html += renderCard('mostBooked', service.service_id, 'Most Booked Services', `${service.service_name} has ${data.bookingCounts?.[service.service_id] || 0} booking(s).`, 'admin_services.html', '🏆', '#E8F5E9', '#2E7D32'); });
+    noBookingServices.forEach(service => { html += renderCard('noBookings', service.service_id, 'Services with No Bookings', `${service.service_name} has had no bookings for over 1 month.`, `admin_services.html?highlight=${encodeURIComponent(service.service_id)}`, '📉', '#E3F2FD', '#0D47A1'); });
+    priceChanges.forEach(service => { html += renderCard('priceChanges', service.service_id, 'Price Changes Needed', `${service.service_name} needs pricing review. Current price: ${service.price || 0}.`, `admin_services.html?highlight=${encodeURIComponent(service.service_id)}`, '💰', '#FFF3E0', '#E65100'); });
+    mostBooked.forEach(service => { html += renderCard('mostBooked', service.service_id, 'Most Booked Services', `${service.service_name} has ${data.bookingCounts?.[service.service_id] || 0} booking(s).`, `admin_services.html?highlight=${encodeURIComponent(service.service_id)}`, '🏆', '#E8F5E9', '#2E7D32'); });
     if (!html) html = '<div style="text-align:center; padding:40px 20px; color:#7A7A7A;">No service notifications.</div>';
     document.getElementById('notificationsModalContent').innerHTML = html;
     document.getElementById('notificationsModal').classList.add('active');
