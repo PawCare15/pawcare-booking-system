@@ -18,31 +18,63 @@
     <!-- CUSTOM ADMIN CSS -->
     <link rel="stylesheet" href="admin_style.css">
         <style>
-            .pets-header-actions {
+            /* ===== HEADER ACTIONS (Date + Button on same row, right side) ===== */
+            .header-actions {
+                display: flex;
+                gap: 8px;
+                flex-wrap: nowrap;
+                margin-left: auto;
+                flex: 0 0 auto;
+            }
+            .page-header-profile .header-actions .header-date {
+                padding: 8px 16px;
+                border: 1px solid #EFECE6;
+                border-radius: 10px;
+                background: rgba(255,255,255,0.6);
+                color: #7A7A7A;
+                font-size: 14px;
                 display: flex;
                 align-items: center;
-                justify-content: flex-end;
-                gap: 12px;
-                flex-wrap: wrap;
+                gap: 8px;
+                white-space: nowrap;
+            }
+            .page-header-profile .header-actions .header-date i {
+                color: #D97706;
+            }
+            .btn-add {
+                background: #5A361A;
+                color: white;
+                border: none;
+                padding: 10px 18px;
+                border-radius: 10px;
+                font-weight: 600;
+                font-size: 13px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                cursor: pointer;
+                transition: background 0.2s;
+                font-family: 'Poppins', sans-serif;
+                white-space: nowrap;
+            }
+            .btn-add:hover {
+                background: #402410;
             }
             @media (max-width: 1100px) {
-                .pets-header-actions {
+                .page-header-profile .header-actions {
                     flex-basis: 100%;
                     justify-content: flex-start;
-                }
-                .pets-header-actions .admin-page-date {
                     margin-left: 0;
                 }
             }
             @media (max-width: 600px) {
-                .pets-header-actions {
+                .header-actions {
                     width: 100%;
-                    justify-content: flex-start;
+                    flex-wrap: wrap;
                 }
-                .pets-header-actions .btn-primary {
-                    width: fit-content !important;
-                    min-width: 0 !important;
-                    align-self: flex-start;
+                .header-actions .btn-add {
+                    width: fit-content;
+                    min-width: 0;
                     padding: 9px 16px;
                 }
             }
@@ -164,9 +196,12 @@
                         <p class="page-header-profile-subtitle">View and manage all pet profiles.</p>
                     </div>
                 </div>
-                <div class="pets-header-actions">
-                    <span class="admin-page-date"><i class="fa-regular fa-calendar"></i> <span id="adminPageDate">Loading...</span></span>
-                    <button class="btn btn-primary" onclick="openAddPetModal()">
+                <div class="header-actions">
+                    <div class="header-date">
+                        <i class="fa-regular fa-calendar"></i>
+                        <span id="adminPageDate">Loading...</span>
+                    </div>
+                    <button class="btn-add" onclick="openAddPetModal()">
                         <i class="fa-solid fa-plus"></i> Add New Pet
                     </button>
                 </div>

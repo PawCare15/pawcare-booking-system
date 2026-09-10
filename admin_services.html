@@ -3054,6 +3054,19 @@ async function loadServices() {
         console.log(`Merged ${mergedServices.length} service entries`);
         allServices = mergedServices;
         filteredServices = [...allServices];
+
+        // Auto-navigate to the page containing the highlighted service
+        const highlightId = new URLSearchParams(window.location.search).get('highlight');
+        if (highlightId) {
+            const idx = filteredServices.findIndex(s =>
+                String(s.actual_service_id) === String(highlightId) ||
+                String(s.service_id) === String(highlightId)
+            );
+            if (idx >= 0) {
+                currentPage = Math.floor(idx / rowsPerPage) + 1;
+            }
+        }
+
         renderServicesTable(filteredServices);
         updateTableCount(filteredServices.length);
         updatePagination(filteredServices.length);
@@ -3095,6 +3108,7 @@ async function loadServices() {
                 const row = document.createElement('tr');
                 row.dataset.serviceId = service.service_id;
                 row.dataset.actualServiceId = service.actual_service_id;
+                row.setAttribute('data-actual-service-id', service.actual_service_id || '');
                 row.dataset.category = service.category;
                 row.dataset.pet = service.pet_type || 'cat';
                 row.dataset.service = service.service_name;
