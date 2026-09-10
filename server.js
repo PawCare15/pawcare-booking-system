@@ -82,10 +82,11 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-async function createCustomerNotification(customerId, title, message, type = 'system', bookingId = null) {
+async function createCustomerNotification(customerId, title, message, type = 'system', bookingId = null, reviewId = null) {
   if (!customerId) return;
   const notification = { customer_id: customerId, title, message, type };
   if (bookingId) notification.booking_id = bookingId;
+  if (reviewId) notification.review_id = reviewId;
   const { error } = await supabaseAdmin
     .from('customer_notifications')
     .insert(notification);
@@ -2456,7 +2457,9 @@ app.post('/api/reviews/:review_id/like', async (req, res) => {
                 reviewOwner.customer_id,
                 'Someone liked your review',
                 `${liker?.full_name || 'Someone'} liked your review on ${reviewOwner.service?.service_name || 'a service'}.`,
-                'review'
+                'review',
+                null,
+                review_id
               );
             }
         }
@@ -2750,7 +2753,9 @@ app.post('/api/reviews/:review_id/reply', async (req, res) => {
         reviewOwner.customer_id,
         role === 'admin' ? 'Admin replied to your review' : 'Someone replied to your review',
         `${role === 'admin' ? 'Admin' : (replier?.full_name || 'Someone')} replied to your review: "${replyPreview}${reply_text.trim().length > 100 ? '...' : ''}"`,
-        'review'
+        'review',
+        null,
+        review_id
       );
     }
 
@@ -2854,7 +2859,9 @@ app.post('/api/replies/:reply_id/reply', async (req, res) => {
         reviewOwner.customer_id,
         role === 'admin' ? 'Admin replied to your review' : 'Someone replied to your review',
         `${role === 'admin' ? 'Admin' : 'A customer'} replied: "${reply_text.trim().slice(0, 100)}${reply_text.trim().length > 100 ? '...' : ''}"`,
-        'review'
+        'review',
+        null,
+        targetReply.review_id
       );
     }
 
@@ -4113,7 +4120,7 @@ app.get('/api/notifications', async (req, res) => {
     const types = requestedTypes || contextTypeList;
     let query = supabaseAdmin
       .from('customer_notifications')
-      .select('notification_id, booking_id, title, message, type, is_read, created_at')
+      .select('notification_id, booking_id, review_id, title, message, type, is_read, created_at')
       .eq('customer_id', customerId)
       .order('created_at', { ascending: false })
       .limit(50);

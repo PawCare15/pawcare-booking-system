@@ -64,7 +64,9 @@
     }
 
     function getItemLink(item) {
-        if (item.type === 'review') return 'review.html';
+        if (item.type === 'review') {
+            return item.review_id ? `review.html#review-${encodeURIComponent(item.review_id)}` : 'review.html';
+        }
         if (item.type === 'pet') return 'mypet.html';
         if (item.type === 'profile' || item.type === 'security') return 'profile.html';
         if (item.type === 'reschedule') {
@@ -128,7 +130,10 @@
 
         const relevant = relevantNotifications(notifications).slice(0, 20);
         const includeBookingReminder = ['dashboard', 'booking', 'history', 'pets'].includes(context);
-        const upcoming = includeBookingReminder ? getUpcomingBookings(bookings, null) : [];
+        const notifiedBookingIds = new Set(relevant.filter(item => item.booking_id).map(item => String(item.booking_id)));
+        const upcoming = includeBookingReminder
+            ? getUpcomingBookings(bookings, null).filter(booking => !notifiedBookingIds.has(String(booking.booking_id)))
+            : [];
         let html = `<div style="padding:4px 0 14px; color:#5A361A; font-weight:700; font-size:15px;">${getContextLabel()}<span style="display:block; color:#A08F80; font-size:11px; font-weight:400; margin-top:3px;">Updates chosen for this page</span></div>`;
 
         relevant.forEach(item => {
@@ -229,10 +234,12 @@
             const notificationData = notificationEntry.status === 'fulfilled' ? notificationEntry.value.data || [] : [];
             const bookingData = bookingEntry.status === 'fulfilled' ? bookingEntry.value.data || [] : [];
             const reminders = remindersEntry.status === 'fulfilled' ? remindersEntry.value : [];
-            const unreadNotifications = relevantNotifications(notificationData).filter(item => !item.is_read).length + reminders.length;
+            const relevant = relevantNotifications(notificationData);
+            const unreadNotifications = relevant.filter(item => !item.is_read).length + reminders.length;
             const seenAtValue = localStorage.getItem('pawcareUserNotificationsSeenAt');
             const seenAt = seenAtValue ? new Date(seenAtValue) : null;
-            const upcoming = getUpcomingBookings(bookingData, seenAt);
+            const notifiedBookingIds = new Set(relevant.filter(item => item.booking_id).map(item => String(item.booking_id)));
+            const upcoming = getUpcomingBookings(bookingData, seenAt).filter(booking => !notifiedBookingIds.has(String(booking.booking_id)));
             setBadge(unreadNotifications + upcoming.length);
         } catch (error) {
             console.error('Unable to load user notification count:', error);

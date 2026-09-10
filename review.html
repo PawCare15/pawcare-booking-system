@@ -2308,7 +2308,7 @@
 
               // 评论主体 — 无 Delete 按钮，点赞使用动态状态
               html += `
-                  <div class="review-item" data-review-id="${review.review_id}" data-service="${serviceName}" data-rating="${review.rating}" data-date="${review.created_at || ''}" data-likes="${review.like_count || 0}">
+                  <div class="review-item" id="review-${review.review_id}" data-review-id="${review.review_id}" data-service="${serviceName}" data-rating="${review.rating}" data-date="${review.created_at || ''}" data-likes="${review.like_count || 0}">
                       <div class="review-header">
                           <div class="reviewer">
                               <div class="avatar">${avatarContent}</div>
