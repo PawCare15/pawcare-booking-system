@@ -1700,7 +1700,7 @@
 
   </div>
 
-  <script src="user_notifications.js?v=20260910"></script>
+  <script src="user_notifications.js?v=20260911"></script>
   <script>
 
     // ================================================================
@@ -2427,7 +2427,7 @@ async function fetchNotificationsData() {
                     const formattedStatus = displayStatus.replace(/\b\w/g, letter => letter.toUpperCase());
 
                     return `
-                        <tr>
+                        <tr id="history-booking-${booking.booking_id}">
                             <td>
                                 <div class="pet-cell">
                                     <div class="pet-avatar">
@@ -2484,6 +2484,27 @@ async function fetchNotificationsData() {
                 totalItems === 0 ? 'No bookings found' : `<i class="fa-regular fa-file-lines"></i> Showing ${startNum} to ${endNum} of ${totalItems} bookings`;
 
             renderPagination(totalPages);
+
+            const highlightId = new URLSearchParams(window.location.search).get('highlight');
+            if (highlightId) {
+              const highlightIndex = filtered.findIndex(booking => String(booking.booking_id) === String(highlightId));
+              const highlightPage = highlightIndex >= 0 ? Math.floor(highlightIndex / itemsPerPage) + 1 : currentPage;
+              if (highlightIndex >= 0 && highlightPage !== currentPage) {
+                currentPage = highlightPage;
+                renderBookings();
+                return;
+              }
+              const highlightedRow = document.getElementById(`history-booking-${highlightId}`);
+              if (highlightedRow) {
+                highlightedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                highlightedRow.style.background = '#FFF3D6';
+                highlightedRow.style.boxShadow = 'inset 4px 0 0 #D97706';
+                setTimeout(() => {
+                  highlightedRow.style.background = '';
+                  highlightedRow.style.boxShadow = '';
+                }, 2000);
+              }
+            }
         }
 
         function renderPagination(totalPages) {

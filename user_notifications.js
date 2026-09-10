@@ -159,8 +159,21 @@
             const serviceName = booking.services?.[0]?.service_name ? ` · ${booking.services[0].service_name}` : '';
             const time = String(booking.booking_time || 'the scheduled time').replace(/:00$/, '');
             const updatedAt = booking.updated_at || booking.created_at;
-            html += `<a href="history.html" style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; text-decoration:none;">
-                <div style="display:flex; gap:10px; align-items:flex-start;"><span style="display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:9px; background:#EAF5EE; color:#247A4A;"><i class="fa-solid fa-clock"></i></span><span><strong style="display:block; color:#333; font-size:13px;">Upcoming appointment${escapeHtml(petName)}</strong><small style="display:block; color:#A08F80; margin-top:4px;">Updated ${escapeHtml(formatNotificationDate(updatedAt))}</small><span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(booking.booking_date)} at ${escapeHtml(time)}${escapeHtml(serviceName)}</span></span></div>
+            const statusMap = {
+                pending: '<span style="color:#B56616; font-weight:700;">Pending (待处理)</span>',
+                confirmed: '<span style="color:#146C36; font-weight:700;">Confirmed (已确认)</span>',
+                upcoming: '<span style="color:#146C36; font-weight:700;">Upcoming (即将到来)</span>',
+                completed: '<span style="color:#0D47A1; font-weight:700;">Completed (已完成)</span>',
+                cancelled: '<span style="color:#B33A3A; font-weight:700;">Cancelled (已取消)</span>'
+            };
+            const statusHtml = statusMap[String(booking.status || '').toLowerCase()]
+                || `<span style="color:#B56616; font-weight:700;">${escapeHtml(booking.status || 'Updated')}</span>`;
+            const bookingIdStr = booking.booking_id ? `#${escapeHtml(String(booking.booking_id).slice(0, 8))}` : '';
+            const bookingLink = booking.booking_id
+                ? `history.html?highlight=${encodeURIComponent(booking.booking_id)}`
+                : 'history.html';
+            html += `<a href="${bookingLink}" style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; text-decoration:none;">
+                <div style="display:flex; gap:10px; align-items:flex-start;"><span style="display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:9px; background:#EAF5EE; color:#247A4A;"><i class="fa-solid fa-clock"></i></span><span><strong style="display:block; color:#333; font-size:13px;">Booking ${bookingIdStr}${escapeHtml(petName)}</strong><div style="margin-top:4px; font-size:12px;">${statusHtml}</div><small style="display:block; color:#A08F80; margin-top:4px;">Updated ${escapeHtml(formatNotificationDate(updatedAt))}</small><span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(booking.booking_date)} at ${escapeHtml(time)}${escapeHtml(serviceName)}</span></span></div>
             </a>`;
         });
 
