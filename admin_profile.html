@@ -1239,7 +1239,7 @@
                         </div>
 
                         <!-- Activity Summary -->
-                        <div class="card activity-card">
+                        <div class="card activity-card" id="activity-summary">
                             <div class="card-header"><i class="fa-solid fa-chart-line"></i> Activity Summary</div>
                             <div class="card-body" style="padding-top:4px;">
                                 <div style="font-size:13px; color:#7A7A7A; margin-bottom:4px;">Your recent account activity.</div>
@@ -1992,7 +1992,7 @@ document.querySelectorAll('[data-close]').forEach(btn => {
                         <span style="background:${activity.two_factor_enabled ? '#E8F5E9' : '#FCE8E6'}; color:${securityColor}; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">${activity.two_factor_enabled ? 'Secure' : 'Action'}</span>
                     </div>
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px;">
-                        <a href="admin_profile.html" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">Manage 2FA</a>
+                        <a href="admin_profile.html?open=2fa" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">Manage 2FA</a>
                         <button type="button" class="mark-notification-read" data-category="security" data-item-key="${securityKey}" style="background:transparent; border:1px solid rgba(90,54,26,0.3); color:#5A361A; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:600; cursor:pointer;">${isItemRead('security', securityKey) ? 'Read' : 'Mark read'}</button>
                     </div>
                 </div>
@@ -2011,7 +2011,7 @@ document.querySelectorAll('[data-close]').forEach(btn => {
                         <span style="background:#0D47A1; color:#fff; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">1</span>
                     </div>
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px;">
-                        <a href="admin_profile.html" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">View activity summary</a>
+                        <a href="admin_profile.html?highlight=activity-summary" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">View activity summary</a>
                         <button type="button" class="mark-notification-read" data-category="activity" data-item-key="${activityKey}" style="background:transparent; border:1px solid rgba(90,54,26,0.3); color:#5A361A; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:600; cursor:pointer;">${isItemRead('activity', activityKey) ? 'Read' : 'Mark read'}</button>
                     </div>
                 </div>
@@ -2610,5 +2610,6 @@ if (typeof bindUserMenuEvents === 'function') {
         document.getElementById('adminPageDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
     </script>
     <script src="admin_notifications.js"></script>
+    <script src="universal_highlight.js"></script>
 </body>
 </html>

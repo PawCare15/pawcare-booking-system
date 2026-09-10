@@ -484,6 +484,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const buildCard = (title, category, item, detail, actionText, actionHref, color, badgeBg, icon) => {
             const itemKey = String(item.booking_id || item.customer_id || item.pet_id || item.id || `${category}-${Math.random()}`);
             const read = isItemRead(category, itemKey);
+            const resolvedActionHref = actionHref.startsWith('admin_')
+                ? `${actionHref}?highlight=${encodeURIComponent(itemKey)}`
+                : actionHref;
             return `
                 <div style="background:${color}; border-radius:12px; padding:12px 12px 10px; margin-bottom:10px; border-left:4px solid ${badgeBg}; ${read ? 'opacity: 0.72;' : ''}">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:6px;">
@@ -497,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         <span style="background:${badgeBg}; color:#fff; padding:4px 9px; border-radius:18px; font-size:11px; font-weight:700; min-width:22px; text-align:center;">${Array.isArray(item) ? item.length : 1}</span>
                     </div>
                     <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:10px;">
-                        <a href="${actionHref}" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">${actionText}</a>
+                        <a href="${resolvedActionHref}" style="font-size:12px; color:#5A361A; font-weight:700; text-decoration:none;">${actionText}</a>
                         <button type="button" data-category="${category}" data-item-key="${itemKey}" class="mark-notification-read" style="background:transparent; border:1px solid rgba(90,54,26,0.3); color:#5A361A; border-radius:8px; padding:6px 10px; font-size:11px; font-weight:600; cursor:pointer;">${read ? 'Read' : 'Mark read'}</button>
                     </div>
                 </div>

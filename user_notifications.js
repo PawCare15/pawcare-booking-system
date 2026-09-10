@@ -65,15 +65,15 @@
 
     function getItemLink(item) {
         if (item.type === 'review') {
-            return item.review_id ? `review.html#review-${encodeURIComponent(item.review_id)}` : 'review.html';
+            return item.review_id ? `review.html?highlight=${encodeURIComponent(item.review_id)}` : 'review.html';
         }
-        if (item.type === 'pet') return 'mypet.html';
-        if (item.type === 'profile' || item.type === 'security') return 'profile.html';
+        if (item.type === 'pet') return `mypet.html?highlight=${encodeURIComponent(item.pet_id || '')}`;
+        if (item.type === 'profile') return 'profile.html?highlight=profile-info';
+        if (item.type === 'security') return 'profile.html?highlight=security-section';
         if (item.type === 'reschedule') {
-            if (item.action_url) return item.action_url;
             return item.booking_id ? `dashboard.html?highlight=${encodeURIComponent(item.booking_id)}` : 'dashboard.html';
         }
-        if (item.type === 'booking') return context === 'booking' ? 'booking.html' : 'history.html';
+        if (item.type === 'booking') return `history.html?highlight=${encodeURIComponent(item.booking_id || '')}`;
         return getPageLink();
     }
 
@@ -160,11 +160,11 @@
             const time = String(booking.booking_time || 'the scheduled time').replace(/:00$/, '');
             const updatedAt = booking.updated_at || booking.created_at;
             const statusMap = {
-                pending: '<span style="color:#B56616; font-weight:700;">Pending (待处理)</span>',
-                confirmed: '<span style="color:#146C36; font-weight:700;">Confirmed (已确认)</span>',
-                upcoming: '<span style="color:#146C36; font-weight:700;">Upcoming (即将到来)</span>',
-                completed: '<span style="color:#0D47A1; font-weight:700;">Completed (已完成)</span>',
-                cancelled: '<span style="color:#B33A3A; font-weight:700;">Cancelled (已取消)</span>'
+                pending: '<span style="color:#B56616; font-weight:700;">Pending</span>',
+                confirmed: '<span style="color:#146C36; font-weight:700;">Confirmed</span>',
+                upcoming: '<span style="color:#146C36; font-weight:700;">Upcoming</span>',
+                completed: '<span style="color:#0D47A1; font-weight:700;">Completed</span>',
+                cancelled: '<span style="color:#B33A3A; font-weight:700;">Cancelled</span>'
             };
             const statusHtml = statusMap[String(booking.status || '').toLowerCase()]
                 || `<span style="color:#B56616; font-weight:700;">${escapeHtml(booking.status || 'Updated')}</span>`;
