@@ -238,8 +238,11 @@
             const unreadNotifications = relevant.filter(item => !item.is_read).length + reminders.length;
             const seenAtValue = localStorage.getItem('pawcareUserNotificationsSeenAt');
             const seenAt = seenAtValue ? new Date(seenAtValue) : null;
+            const includeBookingReminder = ['dashboard', 'booking', 'history', 'pets'].includes(context);
             const notifiedBookingIds = new Set(relevant.filter(item => item.booking_id).map(item => String(item.booking_id)));
-            const upcoming = getUpcomingBookings(bookingData, seenAt).filter(booking => !notifiedBookingIds.has(String(booking.booking_id)));
+            const upcoming = includeBookingReminder
+                ? getUpcomingBookings(bookingData, seenAt).filter(booking => !notifiedBookingIds.has(String(booking.booking_id)))
+                : [];
             setBadge(unreadNotifications + upcoming.length);
         } catch (error) {
             console.error('Unable to load user notification count:', error);

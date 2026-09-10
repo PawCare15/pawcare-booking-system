@@ -83,14 +83,22 @@ const supabaseAdmin = createClient(
 );
 
 async function createCustomerNotification(customerId, title, message, type = 'system', bookingId = null, reviewId = null) {
-  if (!customerId) return;
+  if (!customerId) {
+    console.log('❌ Notification write skipped: customerId is empty');
+    return;
+  }
   const notification = { customer_id: customerId, title, message, type };
   if (bookingId) notification.booking_id = bookingId;
   if (reviewId) notification.review_id = reviewId;
-  const { error } = await supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('customer_notifications')
-    .insert(notification);
-  if (error) console.warn('Unable to create customer notification:', error.message);
+    .insert(notification)
+    .select();
+  if (error) {
+    console.error('❌❌❌ Customer notification database write failed:', error.message, error.details, error.hint);
+  } else {
+    console.log('✅ Customer notification written:', data);
+  }
 }
 
 async function replaceUnreadRescheduleNotification(customerId, bookingId, title, message) {
