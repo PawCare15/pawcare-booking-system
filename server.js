@@ -65,10 +65,6 @@ const transporter = emailConfigured ? nodemailer.createTransport({
 
 if (!emailConfigured) {
   console.error('Email SMTP is disabled: EMAIL_USER and EMAIL_PASS are required.');
-} else if (transporter) {
-  transporter.verify()
-    .then(() => console.log(`Email SMTP connection verified (${emailHost}:${emailPort}).`))
-    .catch(error => console.error('Email SMTP verification failed:', error.code || error.message));
 }
 
 // ========== Supabase 初始化 ==========
@@ -1805,6 +1801,27 @@ async function getActiveSlotBookingCount(date, time, excludeBookingId = null) {
       && normalizeBookingTime(booking.reschedule_requested_time) === normalizedTime;
     return occupiesOriginalSlot || occupiesRequestedSlot;
   }).length;
+}
+
+// Automatically release pending bookings whose appointment date has passed.
+async function autoCancelExpiredPendingBookings() {
+  try {
+    const now = new Date();
+    const today = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+    const { data, error } = await supabaseAdmin
+      .from('booking')
+      .update({ status: 'cancelled', updated_at: now.toISOString() })
+      .eq('status', 'pending')
+      .lt('booking_date', today)
+      .select('booking_id');
+
+    if (error) throw error;
+    if (data?.length) {
+      console.log(`Auto-cancelled ${data.length} expired pending booking(s).`);
+    }
+  } catch (err) {
+    console.error('Failed to auto-cancel expired pending bookings:', err.message);
+  }
 }
 
 app.get('/api/bookings/availability', async (req, res) => {
