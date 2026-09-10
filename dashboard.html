@@ -2861,7 +2861,7 @@
                               && !['pending', 'admin_pending', 'approved'].includes(upcoming.reschedule_status);
 
         return `
-            <div class="appointment-card">
+            <div class="appointment-card" id="appointment-${upcoming.booking_id}">
                 <div class="appointment-img" style="display:flex; align-items:center; justify-content:center; background:#FDF3E7; color:#5A361A; font-weight:600; font-size:24px; text-transform:uppercase; overflow:hidden;">
                     ${upcoming.pet && upcoming.pet.photo_url 
                         ? `<img src="${upcoming.pet.photo_url}" alt="${petName}" style="width:100%; height:100%; object-fit:cover;">`
@@ -2894,6 +2894,15 @@
         };
 
         container.innerHTML = upcomingAppointments.map(renderAppointmentCard).join('');
+        const highlightId = new URLSearchParams(window.location.search).get('highlight');
+        if (highlightId) {
+          const highlightedCard = document.getElementById(`appointment-${highlightId}`);
+          if (highlightedCard) {
+            highlightedCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            highlightedCard.style.boxShadow = '0 0 0 3px #D97706, 0 12px 30px rgba(74,51,39,0.18)';
+            setTimeout(() => { highlightedCard.style.boxShadow = ''; }, 2000);
+          }
+        }
     }
 
     // ================================================================

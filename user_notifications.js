@@ -9,7 +9,7 @@
     const contextTypes = {
         dashboard: null,
         pets: ['pet'],
-        booking: ['booking', 'payment'],
+        booking: ['booking', 'payment', 'reschedule'],
         history: ['booking', 'reschedule', 'payment'],
         profile: ['profile', 'security', 'account'],
         review: ['review']
@@ -65,7 +65,11 @@
         if (item.type === 'review') return 'review.html';
         if (item.type === 'pet') return 'mypet.html';
         if (item.type === 'profile' || item.type === 'security') return 'profile.html';
-        if (item.type === 'reschedule' || item.type === 'booking') return context === 'booking' ? 'booking.html' : 'history.html';
+        if (item.type === 'reschedule') {
+            if (item.action_url) return item.action_url;
+            return item.booking_id ? `dashboard.html?highlight=${encodeURIComponent(item.booking_id)}` : 'dashboard.html';
+        }
+        if (item.type === 'booking') return context === 'booking' ? 'booking.html' : 'history.html';
         return getPageLink();
     }
 
@@ -127,14 +131,18 @@
 
         relevant.forEach(item => {
             const tone = getNotificationTone(item.type);
-            html += `<a href="${getItemLink(item)}" style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; text-decoration:none;">
+            html += `<div style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; ${item.is_read ? '' : 'background:#FFFCF5;'}">
                 <div style="display:flex; gap:10px; align-items:flex-start;">
                     <span style="display:grid; place-items:center; flex:0 0 32px; height:32px; border-radius:10px; background:${tone[0]}; color:${tone[1]}; box-shadow:inset 0 0 0 1px ${tone[1]}22;"><i class="fa-solid ${getNotificationIcon(item.type)}"></i></span>
                     <span style="min-width:0; flex:1;"><strong style="display:block; color:#333; font-size:13px;">${escapeHtml(item.title)}</strong>
                     <small style="display:block; color:#A08F80; margin-top:4px;">${formatNotificationDate(item.created_at)}</small>
-                    <span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(item.message)}</span></span>
+                    <span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(item.message)}</span>
+                    <span style="display:flex; gap:8px; margin-top:9px;">
+                      <a href="${getItemLink(item)}" style="color:#8A4F1D; font-size:12px; font-weight:600; text-decoration:none;">${item.type === 'reschedule' ? 'Review Reschedule' : 'View'}</a>
+                      ${!item.is_read ? `<button type="button" data-notification-read="${escapeHtml(item.notification_id)}" style="border:0; background:none; padding:0; color:#7A7A7A; font:inherit; font-size:12px; cursor:pointer;">Mark read</button>` : ''}
+                    </span></span>
                 </div>
-            </a>`;
+            </div>`;
         });
 
         upcoming.forEach(booking => {
@@ -225,6 +233,22 @@
     }
 
     document.addEventListener('click', async function(event) {
+        const markReadButton = event.target.closest('[data-notification-read]');
+        if (markReadButton) {
+            event.preventDefault();
+            event.stopPropagation();
+            try {
+                await request('/api/notifications/read', {
+                    method: 'PUT',
+                    body: JSON.stringify({ notification_id: markReadButton.dataset.notificationRead })
+                });
+                markReadButton.remove();
+                setBadge(Math.max(0, Number(badge.textContent.replace('+', '')) - 1));
+            } catch (error) {
+                console.error('Unable to mark notification as read:', error);
+            }
+            return;
+        }
         if (!event.target.closest('#notificationBtn')) return;
         event.preventDefault();
         event.stopImmediatePropagation();

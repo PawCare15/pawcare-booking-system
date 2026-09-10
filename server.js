@@ -82,12 +82,27 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-async function createCustomerNotification(customerId, title, message, type = 'system') {
+async function createCustomerNotification(customerId, title, message, type = 'system', bookingId = null) {
   if (!customerId) return;
+  const notification = { customer_id: customerId, title, message, type };
+  if (bookingId) notification.booking_id = bookingId;
   const { error } = await supabaseAdmin
     .from('customer_notifications')
-    .insert({ customer_id: customerId, title, message, type });
+    .insert(notification);
   if (error) console.warn('Unable to create customer notification:', error.message);
+}
+
+async function replaceUnreadRescheduleNotification(customerId, bookingId, title, message) {
+  if (!customerId || !bookingId) return;
+  const { error: updateError } = await supabaseAdmin
+    .from('customer_notifications')
+    .update({ is_read: true })
+    .eq('customer_id', customerId)
+    .eq('booking_id', bookingId)
+    .eq('type', 'reschedule')
+    .eq('is_read', false);
+  if (updateError) console.warn('Unable to clear previous reschedule notification:', updateError.message);
+  await createCustomerNotification(customerId, title, message, 'reschedule', bookingId);
 }
 
 // ========== 确保存储桶存在 ==========   <-- 从这里开始粘贴
@@ -1776,7 +1791,7 @@ async function getActiveSlotBookingCount(date, time, excludeBookingId = null) {
   return (data || []).filter(booking => {
     const occupiesOriginalSlot = normalizeBookingTime(booking.booking_time) === normalizedTime;
     const occupiesRequestedSlot = booking.reschedule_status === 'pending'
-      && booking.reschedule_requested_date === date
+      && String(booking.reschedule_requested_date || '').slice(0, 10) === String(date || '').slice(0, 10)
       && normalizeBookingTime(booking.reschedule_requested_time) === normalizedTime;
     return occupiesOriginalSlot || occupiesRequestedSlot;
   }).length;
@@ -1802,7 +1817,7 @@ app.get('/api/bookings/availability', async (req, res) => {
       }
       const countedTimes = new Set();
       slots.forEach(slot => {
-        if (slot.date !== date) return;
+        if (String(slot.date || '').slice(0, 10) !== String(date || '').slice(0, 10)) return;
         const time = normalizeBookingTime(slot.time);
         if (time && !countedTimes.has(time)) {
           countedTimes.add(time);
@@ -1889,7 +1904,7 @@ app.post('/api/bookings', async (req, res) => {
         if (activeSlotBookings >= MAX_BOOKINGS_PER_SLOT) {
           return res.status(409).json({
             success: false,
-            message: '该时段名额已被抢完，请选择其他时间。'
+            message: 'This time slot is fully booked. Please choose another time.'
           });
         }
 
@@ -2046,7 +2061,7 @@ app.post('/api/bookings/:booking_id/reschedule-request', async (req, res) => {
 
     const targetSlotCount = await getActiveSlotBookingCount(new_date, new_time, booking_id);
     if (targetSlotCount >= MAX_BOOKINGS_PER_SLOT) {
-      return res.status(409).json({ success: false, message: '目标时段已满，请选择其他时间。' });
+      return res.status(409).json({ success: false, message: 'The selected time slot is fully booked. Please choose another time.' });
     }
 
     // 更新 booking 表，记录请求
@@ -2106,7 +2121,7 @@ app.put('/api/bookings/:booking_id/reschedule-approve', async (req, res) => {
       const newTime = booking.reschedule_requested_time;
       const count = await getActiveSlotBookingCount(newDate, newTime, booking_id);
       if (count >= MAX_BOOKINGS_PER_SLOT) {
-        return res.status(409).json({ success: false, message: '目标时段已满，请选择其他时间。' });
+        return res.status(409).json({ success: false, message: 'The selected time slot is fully booked. Please choose another time.' });
       }
 
       const { error: updateError } = await supabaseAdmin
@@ -2121,11 +2136,11 @@ app.put('/api/bookings/:booking_id/reschedule-approve', async (req, res) => {
         .eq('booking_id', booking_id);
 
       if (updateError) throw updateError;
-      await createCustomerNotification(
+      await replaceUnreadRescheduleNotification(
         booking.customer_id,
+        booking_id,
         'Reschedule approved',
-        `Your appointment has been rescheduled to ${newDate} at ${newTime}.`,
-        'reschedule'
+        `Your appointment has been rescheduled to ${newDate} at ${newTime}.`
       );
       res.json({ success: true, message: 'Reschedule request approved. Booking updated.' });
     } else {
@@ -2140,11 +2155,11 @@ app.put('/api/bookings/:booking_id/reschedule-approve', async (req, res) => {
         .eq('booking_id', booking_id);
 
       if (updateError) throw updateError;
-      await createCustomerNotification(
+      await replaceUnreadRescheduleNotification(
         booking.customer_id,
+        booking_id,
         'Reschedule rejected',
-        'Your reschedule request was rejected. Please contact PawCare if you need assistance.',
-        'reschedule'
+        'Your reschedule request was rejected. Please contact PawCare if you need assistance.'
       );
       res.json({ success: true, message: 'Reschedule request rejected.' });
     }
@@ -2188,6 +2203,15 @@ app.put('/api/bookings/:booking_id/reschedule-cancel', async (req, res) => {
       .eq('booking_id', booking_id);
 
     if (updateError) throw updateError;
+
+    const { error: notificationError } = await supabaseAdmin
+      .from('customer_notifications')
+      .update({ is_read: true })
+      .eq('customer_id', customer_id)
+      .eq('booking_id', booking_id)
+      .eq('type', 'reschedule')
+      .eq('is_read', false);
+    if (notificationError) console.warn('Unable to clear cancelled reschedule notification:', notificationError.message);
 
     res.json({ success: true, message: 'Reschedule request cancelled.' });
   } catch (err) {
@@ -3597,7 +3621,7 @@ app.put('/api/admin/bookings/:id', isAdmin, async (req, res) => {
 
         if (reschedule_status === 'approved') {
           const count = await getActiveSlotBookingCount(existingBooking.reschedule_requested_date, existingBooking.reschedule_requested_time, id);
-          if (count >= MAX_BOOKINGS_PER_SLOT) return res.status(409).json({ success: false, message: '目标时段已满，请选择其他时间。' });
+          if (count >= MAX_BOOKINGS_PER_SLOT) return res.status(409).json({ success: false, message: 'The selected time slot is fully booked. Please choose another time.' });
           updateData.booking_date = existingBooking.reschedule_requested_date;
           updateData.booking_time = normalizeBookingTime(existingBooking.reschedule_requested_time);
         }
@@ -3677,7 +3701,7 @@ app.post('/api/admin/bookings/:id/reschedule-suggestion', isAdmin, async (req, r
 
     const { data: booking, error: bookingError } = await supabaseAdmin
       .from('booking')
-      .select('booking_id, customer_id, status, reschedule_status')
+      .select('booking_id, customer_id, status, booking_date, booking_time, pet:pet_id(pet_name), booking_service(service:service_id(service_name)), reschedule_status')
       .eq('booking_id', id)
       .single();
 
@@ -3707,11 +3731,13 @@ app.post('/api/admin/bookings/:id/reschedule-suggestion', isAdmin, async (req, r
       .eq('booking_id', id);
     if (updateError) throw updateError;
 
-    await createCustomerNotification(
+    const petName = booking.pet?.pet_name || 'Unknown pet';
+    const serviceName = booking.booking_service?.map(item => item.service?.service_name).filter(Boolean).join(', ') || 'your service';
+    await replaceUnreadRescheduleNotification(
       booking.customer_id,
-      'Reschedule suggestion from PawCare',
-      `Admin suggested a new appointment on ${new_date} at ${new_time}. Please review it in your dashboard.`,
-      'reschedule'
+      booking.booking_id,
+      'Admin Suggested a New Time',
+      `Admin suggested a new time for Booking ${booking.booking_id} (${petName} · ${serviceName}). Original: ${booking.booking_date} ${booking.booking_time}. Suggested: ${new_date} ${new_time}. Please review and accept or reject.`
     );
 
     res.json({ success: true, message: 'Reschedule suggestion sent to the customer.' });
@@ -3752,7 +3778,7 @@ app.put('/api/admin/bookings/:id/reschedule', isAdmin, async (req, res) => {
             id
           );
           if (count >= MAX_BOOKINGS_PER_SLOT) {
-            return res.status(409).json({ success: false, message: '目标时段已满，请选择其他时间。' });
+            return res.status(409).json({ success: false, message: 'The selected time slot is fully booked. Please choose another time.' });
           }
             updateData = {
                 booking_date: booking.reschedule_requested_date,
@@ -3762,7 +3788,12 @@ app.put('/api/admin/bookings/:id/reschedule', isAdmin, async (req, res) => {
                 updated_at: new Date().toISOString()
             };
         } else {
-            updateData = { reschedule_status: 'rejected', updated_at: new Date().toISOString() };
+            updateData = {
+              reschedule_status: 'rejected',
+              reschedule_requested_date: null,
+              reschedule_requested_time: null,
+              updated_at: new Date().toISOString()
+            };
         }
 
         const { error: updateError } = await supabaseAdmin
@@ -3771,13 +3802,13 @@ app.put('/api/admin/bookings/:id/reschedule', isAdmin, async (req, res) => {
             .eq('booking_id', id);
 
         if (updateError) throw updateError;
-        await createCustomerNotification(
+        await replaceUnreadRescheduleNotification(
           booking.customer_id,
+          id,
           action === 'approve' ? 'Reschedule approved' : 'Reschedule rejected',
           action === 'approve'
             ? `Your reschedule request was approved for ${booking.reschedule_requested_date} at ${booking.reschedule_requested_time}.`
-            : 'Your reschedule request was rejected by the admin.',
-          'reschedule'
+            : 'Your reschedule request was rejected by the admin.'
         );
         res.json({ success: true, message: `Reschedule ${action === 'approve' ? 'approved' : 'rejected'}` });
     } catch (err) {
@@ -4049,7 +4080,7 @@ app.get('/api/notifications', async (req, res) => {
     const customerId = getCustomerId(req);
     const contextTypes = {
       dashboard: null,
-      booking: ['booking', 'payment'],
+      booking: ['booking', 'payment', 'reschedule'],
       history: ['booking', 'reschedule', 'payment'],
       pets: ['pet'],
       profile: ['profile', 'security', 'account'],
@@ -4060,7 +4091,7 @@ app.get('/api/notifications', async (req, res) => {
     const types = requestedTypes || contextTypeList;
     let query = supabaseAdmin
       .from('customer_notifications')
-      .select('notification_id, title, message, type, is_read, created_at')
+      .select('notification_id, booking_id, title, message, type, is_read, created_at')
       .eq('customer_id', customerId)
       .order('created_at', { ascending: false })
       .limit(50);
@@ -4077,11 +4108,14 @@ app.get('/api/notifications', async (req, res) => {
 app.put('/api/notifications/read', async (req, res) => {
   try {
     const customerId = getCustomerId(req);
-    const { error } = await supabaseAdmin
+    const { notification_id } = req.body || {};
+    let query = supabaseAdmin
       .from('customer_notifications')
       .update({ is_read: true })
       .eq('customer_id', customerId)
       .eq('is_read', false);
+    if (notification_id) query = query.eq('notification_id', notification_id);
+    const { error } = await query;
     if (error) throw error;
     res.json({ success: true });
   } catch (err) {

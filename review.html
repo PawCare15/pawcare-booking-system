@@ -2469,7 +2469,7 @@
               if (data.success) {
                   const services = data.data || [];
                   select.innerHTML = '<option value="">Select a service (optional)</option>';
-                  const uniqueServices = services.filter((svc, index, list) => list.findIndex(item => item.service_id === svc.service_id || item.service_name.trim().toLowerCase() === svc.service_name.trim().toLowerCase()) === index);
+                  const uniqueServices = [...new Map(services.map(svc => [svc.service_name.trim().toLowerCase(), svc])).values()];
                   uniqueServices.forEach(svc => {
                       const option = document.createElement('option');
                       option.value = svc.service_id;
