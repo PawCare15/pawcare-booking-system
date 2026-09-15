@@ -494,10 +494,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (summaryMemberSince) {
             if (data.created_at) {
                 const dateObj = new Date(data.created_at);
-                summaryMemberSince.textContent = dateObj.toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric"
+                summaryMemberSince.textContent = dateObj.toLocaleDateString('en-GB', {
+                    day: '2-digit',
+                    month: 'short',
+                    year: 'numeric'
                 });
             } else {
                 summaryMemberSince.textContent = "Customer";

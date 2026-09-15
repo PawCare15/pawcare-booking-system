@@ -1892,21 +1892,32 @@ async function fetchNotificationsData() {
                 return;
             }
 
+            const dob = document.getElementById('petDob').value;
+            if (!dob) {
+                showValidationModal('Please select your pet\'s Date of Birth.');
+                return;
+            }
+
+            const weight = document.getElementById('petWeight').value;
+            if (!weight || parseFloat(weight) <= 0) {
+                showValidationModal('Please enter a valid Weight (kg).');
+                return;
+            }
+
             const breed = getSelectedBreed();
             if (!breed) {
                 showValidationModal('Please select or enter your pet\'s breed.');
                 return;
             }
 
-            // Get selected pet type
             const species = document.querySelector('input[name="petType"]:checked').value;
 
             const petData = {
                 name: name,
                 breed: breed,
-                dob: document.getElementById('petDob').value,
+                dob: dob,
                 gender: document.getElementById('petGender').value,
-                weight: document.getElementById('petWeight').value,
+                weight: weight,
                 notes: document.getElementById('petNotes').value.trim(),
                 photo_url: photoDataURL || null,
                 species: species
@@ -1932,7 +1943,6 @@ async function fetchNotificationsData() {
                 const data = await res.json();
 
                 if (data.success) {
-                    // 重置编辑状态
                     editIndex = -1;
                     document.getElementById('editIndex').value = '-1';
                     document.getElementById('formTitle').textContent = 'Add New Pet';
@@ -1940,7 +1950,7 @@ async function fetchNotificationsData() {
                     document.getElementById('submitBtn').innerHTML = '<i class="fa-solid fa-plus"></i> Add Pet';
                     document.getElementById('cancelBtn').style.display = 'none';
 
-                    await loadPets(); // 重新加载列表
+                    await loadPets();
                     resetForm();
                     showConfirmationModal('Pet saved successfully!');
                 } else {
@@ -1948,7 +1958,7 @@ async function fetchNotificationsData() {
                 }
             } catch (err) {
                 console.error('Error saving pet:', err);
-                showValidationModal('Unable to connect to server.');
+                showValidationModal('Unable to connect to server. Please try again.');
             }
         }
 

@@ -1839,14 +1839,51 @@ async function fetchNotificationsData() {
                 const capacity = Number(result.data?.capacity || 2);
                 const selectedValue = bookingTime.value;
 
+                const now = new Date();
+                const todayStr = now.toISOString().split('T')[0];
+                const isToday = selectedDate === todayStr;
+                const currentHour = now.getHours();
+                const currentMinute = now.getMinutes();
+
                 bookingTime.querySelectorAll('option').forEach(option => {
                     if (!option.value) return;
+
+                    let isTimePassed = false;
+                    if (isToday) {
+                        const timeMatch = option.value.match(/^(\d{1,2}):(\d{2})\s*(AM|PM)$/i);
+                        if (timeMatch) {
+                            let hour = Number(timeMatch[1]);
+                            const minute = Number(timeMatch[2]);
+                            const meridiem = timeMatch[3].toUpperCase();
+                            if (meridiem === 'PM' && hour < 12) hour += 12;
+                            if (meridiem === 'AM' && hour === 12) hour = 0;
+                            if (hour < currentHour || (hour === currentHour && minute <= currentMinute)) {
+                                isTimePassed = true;
+                            }
+                        }
+                    }
+
                     const count = Number(counts[option.value] || 0);
                     const remaining = Math.max(0, capacity - count);
                     const isFull = remaining === 0;
-                    option.disabled = isFull;
-                    option.textContent = option.textContent.replace(/ \((?:Full|已约满|剩余 \d+ 个名额|Fully booked|\d+ slot(?:s)? remaining)\)$/, '') + (isFull ? ' (Fully booked)' : ` (${remaining} slot${remaining === 1 ? '' : 's'} remaining)`);
+                    const originalText = option.value;
+
+                    option.disabled = isFull || isTimePassed;
+                    option.textContent = isTimePassed
+                        ? `${originalText} (Unavailable)`
+                        : isFull
+                            ? `${originalText} (Fully booked)`
+                            : `${originalText} (${remaining} slot${remaining === 1 ? '' : 's'} remaining)`;
                 });
+
+                if (bookingTime.options[bookingTime.selectedIndex]?.disabled) {
+                    const nextAvailable = [...bookingTime.options].find(option => !option.disabled);
+                    if (nextAvailable) {
+                        bookingTime.value = nextAvailable.value;
+                    } else {
+                        bookingTime.value = '';
+                    }
+                }
 
                 if (Number(counts[selectedValue] || 0) >= capacity) {
                     const nextAvailable = [...bookingTime.options].find(option => !option.disabled);

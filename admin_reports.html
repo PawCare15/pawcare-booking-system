@@ -1382,10 +1382,10 @@ async function showNotificationDetails() {
     const dateEl = document.getElementById('headerCurrentDate');
     if (dateEl) {
         const now = new Date();
-        dateEl.textContent = now.toLocaleDateString('en-US', {
+        dateEl.textContent = now.toLocaleDateString('en-GB', {
             weekday: 'long',
             day: '2-digit',
-            month: 'long',
+            month: 'short',
             year: 'numeric'
         });
     }
@@ -1623,7 +1623,7 @@ async function showNotificationDetails() {
     </script>
 
     <script>
-        document.getElementById('adminPageDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+        document.getElementById('adminPageDate').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' });
     </script>
     <script src="admin_notifications.js"></script>
 </body>

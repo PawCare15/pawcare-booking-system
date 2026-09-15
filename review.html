@@ -2242,7 +2242,7 @@
           let html = '';
           reviews.forEach(review => {
               const customerName = review.customer ? review.customer.full_name : 'Anonymous';
-              const dateStr = review.created_at ? new Date(review.created_at).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+              const dateStr = review.created_at ? new Date(review.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
               const serviceName = review.service_name || 'General';
               const photoHtml = review.review_photo ?
                   `<div style="margin-top:10px;"><img src="${review.review_photo}" alt="Review photo" style="max-width:100%; max-height:200px; border-radius:8px; border:1px solid #EFECE6;"></div>` :
@@ -2275,7 +2275,7 @@
                       let h = '';
                       replies.forEach(reply => {
                           const replierName = reply.customer ? reply.customer.full_name : 'User';
-                          const repDate = reply.created_at ? new Date(reply.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '';
+                          const repDate = reply.created_at ? new Date(reply.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
                           const isLiked = reply.reply_liked_by_me;
                           const likeColor = isLiked ? 'style="color:#5A361A;"' : '';
                           const likeIcon = isLiked ? 'fa-solid' : 'fa-regular';

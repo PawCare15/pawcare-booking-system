@@ -1847,7 +1847,7 @@
         const SUPABASE_URL = 'https://hrosrmkzzaqhuowrqegz.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhyb3NybWt6emFxaHVvd3JxZWd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU0OTQ1OTMsImV4cCI6MjEwMTA3MDU5M30.53e8JDMj0AId0zyFslIf9h1UmonG5zLJHyipzS28EKk';
 
-        const ADMIN_DATE_FORMAT = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
+        const ADMIN_DATE_FORMAT = { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' };
 
         // ===== STATE =====
         let allBookings = [];
@@ -2234,10 +2234,10 @@
             const dateEl = document.getElementById('headerCurrentDate');
             if (dateEl) {
                 const now = new Date();
-                dateEl.textContent = now.toLocaleDateString('en-US', {
+                dateEl.textContent = now.toLocaleDateString('en-GB', {
                     weekday: 'long',
                     day: '2-digit',
-                    month: 'long',
+                    month: 'short',
                     year: 'numeric'
                 });
             }
@@ -2435,7 +2435,7 @@ if (typeof bindUserMenuEvents === 'function') {
             if (!date) return 'N/A';
             try {
                 const d = new Date(date);
-                const dateStr = d.toLocaleDateString('en-US', {
+                const dateStr = d.toLocaleDateString('en-GB', {
                     day: '2-digit',
                     month: 'short',
                     year: 'numeric'
@@ -3094,7 +3094,7 @@ if (typeof bindUserMenuEvents === 'function') {
         function setCurrentDate() {
             const now = new Date();
             const el = document.getElementById('headerCurrentDate');
-            if (el) el.textContent = now.toLocaleDateString('en-US', ADMIN_DATE_FORMAT);
+            if (el) el.textContent = now.toLocaleDateString('en-GB', ADMIN_DATE_FORMAT);
         }
         setCurrentDate();
         loadAdminHeaderProfile();

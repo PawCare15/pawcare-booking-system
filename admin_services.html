@@ -2850,7 +2850,12 @@ document.addEventListener('DOMContentLoaded', function() {
     const dateEl = document.getElementById('headerCurrentDate');
     if (dateEl) {
         const now = new Date();
-        dateEl.textContent = now.toLocaleDateString('en-US', ADMIN_DATE_FORMAT);
+        dateEl.textContent = now.toLocaleDateString('en-GB', {
+            weekday: 'long',
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric'
+        });
     }
 
     // ===== 修复通知弹窗关闭 =====
@@ -2889,7 +2894,12 @@ if (notifModal) {
         function setCurrentDate() {
             const now = new Date();
             const el = document.getElementById('headerCurrentDate');
-            if (el) el.textContent = now.toLocaleDateString('en-US', ADMIN_DATE_FORMAT);
+            if (el) el.textContent = now.toLocaleDateString('en-GB', {
+                weekday: 'long',
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric'
+            });
         }
         setCurrentDate();
 

@@ -2044,10 +2044,10 @@ document.querySelectorAll('[data-close]').forEach(btn => {
         const dateEl = document.getElementById('headerCurrentDate');
         if (dateEl) {
             const now = new Date();
-            dateEl.textContent = now.toLocaleDateString('en-US', {
+            dateEl.textContent = now.toLocaleDateString('en-GB', {
                 weekday: 'long',
                 day: '2-digit',
-                month: 'long',
+                month: 'short',
                 year: 'numeric'
             });
         }
@@ -2607,7 +2607,7 @@ if (typeof bindUserMenuEvents === 'function') {
 </script>
 
     <script>
-        document.getElementById('adminPageDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' });
+        document.getElementById('adminPageDate').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' });
     </script>
     <script src="admin_notifications.js"></script>
     <script src="universal_highlight.js"></script>

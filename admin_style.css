@@ -2011,9 +2011,18 @@ body {
 
 .modal-btn-group {
     display: flex;
-    gap: 12px;
     justify-content: center;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
     flex-wrap: wrap;
+}
+
+.modal-btn-group .btn,
+.modal-btn-group .modal-btn {
+    width: auto;
+    min-width: 120px;
+    margin: 0 auto;
 }
 
 /* ============================================================ */
@@ -3652,6 +3661,28 @@ svg {
 }
 
 @media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .booking-table,
+    .data-table {
+        min-width: 600px;
+    }
+
+    .data-table th,
+    .booking-table th {
+        font-size: 11px;
+        white-space: nowrap;
+    }
+
+    .data-table td,
+    .booking-table td {
+        font-size: 12px;
+        white-space: nowrap;
+    }
+
     .top-header {
         min-height: 56px;
     }

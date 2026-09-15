@@ -567,10 +567,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const dateEl = document.getElementById('headerCurrentDate');
     if (dateEl) {
         const now = new Date();
-        dateEl.textContent = now.toLocaleDateString('en-US', {
+        dateEl.textContent = now.toLocaleDateString('en-GB', {
             weekday: 'long',
             day: '2-digit',
-            month: 'long',
+            month: 'short',
             year: 'numeric'
         });
     }
@@ -578,8 +578,8 @@ document.addEventListener('DOMContentLoaded', function() {
     // SET CURRENT DATE
     function setCurrentDate() {
         const now = new Date();
-        const options = { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' };
-        document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', options);
+        const options = { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' };
+        document.getElementById('currentDate').textContent = now.toLocaleDateString('en-GB', options);
     }
     setCurrentDate();
 
@@ -897,9 +897,9 @@ if (typeof bindUserMenuEvents === 'function') {
         const date = new Date(`${dateValue}T00:00:00`);
         if (Number.isNaN(date.getTime())) return `${dateValue} ${timeValue || ''}`.trim();
 
-        const formattedDate = date.toLocaleDateString('en-US', {
+        const formattedDate = date.toLocaleDateString('en-GB', {
+            day: '2-digit',
             month: 'short',
-            day: 'numeric',
             year: 'numeric'
         });
 
