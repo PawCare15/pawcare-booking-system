@@ -2164,6 +2164,14 @@ async function fetchNotificationsData() {
         // ================================================================
         // INIT
         // ================================================================
+        // 👇【新增】：限制出生日期不能选未来（明天及以后变灰）
+        const dobInput = document.getElementById('petDob');
+        if (dobInput) {
+            const today = new Date().toISOString().split('T')[0];
+            dobInput.setAttribute('max', today);
+        }
+        // 👆【结束】
+
         // Initially set dog as default and populate breeds
         document.querySelector('input[name="petType"][value="dog"]').checked = true;
         populateBreeds('dog');
