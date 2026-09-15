@@ -15,6 +15,149 @@
         review: ['review']
     };
 
+    const style = document.createElement('style');
+    style.textContent = `
+        .notif-card {
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid transparent;
+            box-shadow: 0 6px 18px rgba(33, 22, 12, 0.06);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            text-align: left;
+            animation: notifSlideIn 0.25s ease forwards;
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        .notif-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 24px rgba(33, 22, 12, 0.08);
+        }
+        .notif-card.unread {
+            background: #fffaf2;
+            border-left-color: #d97706;
+        }
+        .notif-card.read {
+            background: #ffffff;
+            border-left-color: #ece6df;
+            opacity: 0.9;
+        }
+        .notif-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        .notif-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+        .notif-icon.booking, .notif-icon.pet { background: #fff1de; color: #b56616; }
+        .notif-icon.reschedule { background: #f1eafe; color: #7654b8; }
+        .notif-icon.payment { background: #eaf4ff; color: #3173b8; }
+        .notif-icon.profile { background: #eaf5ee; color: #247a4a; }
+        .notif-icon.security { background: #fdecec; color: #b33a3a; }
+        .notif-icon.review { background: #fcecf1; color: #b33f68; }
+        .notif-icon.default { background: #f2f0ed; color: #6b625b; }
+        .notif-content {
+            flex: 1;
+            min-width: 0;
+        }
+        .notif-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #2f2a27;
+            margin-bottom: 4px;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        .notif-time {
+            display: block;
+            color: #998b7d;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+        .notif-message {
+            font-size: 12px;
+            color: #68615d;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .notif-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px dashed #efece6;
+        }
+        .notif-actions a,
+        .notif-actions button {
+            font-size: 12px;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+        .notif-actions a {
+            color: #8a4f1d;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .notif-actions a:hover {
+            color: #d97706;
+            text-decoration: underline;
+        }
+        .notif-actions button {
+            border: 1px solid #d8cab8;
+            background: transparent;
+            color: #6a5d52;
+            padding: 6px 12px;
+            cursor: pointer;
+        }
+        .notif-actions button:hover {
+            background: #f7f0ea;
+            border-color: #bda995;
+            color: #2f2a27;
+        }
+        .notif-unread-dot {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #d97706;
+            box-shadow: 0 0 0 3px rgba(217,119,6,0.12);
+            margin-left: 4px;
+            vertical-align: middle;
+        }
+        .notif-empty {
+            padding: 28px 16px;
+            text-align: center;
+            border: 1px dashed #e6d8c9;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #fffdf9, #faf3ea);
+        }
+        .notif-empty i {
+            display: block;
+            font-size: 42px;
+            color: #d97706;
+            margin-bottom: 10px;
+        }
+        @keyframes notifSlideIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    `;
+    document.head.appendChild(style);
+
     async function request(url, options = {}) {
         const response = await fetch(url, {
             ...options,
@@ -134,24 +277,34 @@
         const upcoming = includeBookingReminder
             ? getUpcomingBookings(bookings, null).filter(booking => !notifiedBookingIds.has(String(booking.booking_id)))
             : [];
-        let html = `<div style="padding:4px 0 14px; color:#5A361A; font-weight:700; font-size:15px;">${getContextLabel()}<span style="display:block; color:#A08F80; font-size:11px; font-weight:400; margin-top:3px;">Updates chosen for this page</span></div>`;
+
+        let html = `<div style="padding:4px 0 14px; color:#5a361a; font-weight:700; font-size:15px;">${getContextLabel()}<span style="display:block; color:#a08f80; font-size:11px; font-weight:400; margin-top:3px;">Updates chosen for this page</span></div>`;
 
         relevant.forEach(item => {
             const tone = getNotificationTone(item.type);
-            const senderInitial = escapeHtml(String(item.title || 'N').trim().charAt(0).toUpperCase());
-            html += `<div style="display:block; padding:13px 12px; margin:8px 0; border:1px solid ${tone[1]}22; border-left:4px solid ${tone[1]}; border-radius:13px; box-shadow:0 5px 14px rgba(74,51,39,0.06); text-align:left; ${item.is_read ? 'background:#FFFFFF;' : 'background:#FFFCF5;'}">
-                <div style="display:flex; gap:10px; align-items:flex-start;">
-                    <span title="${senderInitial}" style="display:grid; place-items:center; flex:0 0 34px; height:34px; border-radius:50%; background:${tone[0]}; color:${tone[1]}; box-shadow:inset 0 0 0 1px ${tone[1]}22;"><i class="fa-solid ${getNotificationIcon(item.type)}"></i></span>
-                    <span style="min-width:0; flex:1;"><strong style="display:block; color:#333; font-size:13px;">${escapeHtml(item.title)}</strong>
-                    <small style="display:block; color:#A08F80; margin-top:4px;">${formatNotificationDate(item.created_at)}</small>
-                    <span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(item.message)}</span>
-                    <span style="display:flex; gap:8px; margin-top:9px;">
-                      <a href="${getItemLink(item)}" style="color:#8A4F1D; font-size:12px; font-weight:600; text-decoration:none;">${item.type === 'reschedule' ? 'Review Reschedule' : 'View'}</a>
-                      ${!item.is_read ? `<button type="button" data-notification-read="${escapeHtml(item.notification_id)}" style="border:0; background:none; padding:0; color:#7A7A7A; font:inherit; font-size:12px; cursor:pointer;">Mark read</button>` : ''}
-                    </span></span>
+            const isUnread = !item.is_read;
+            const icon = getNotificationIcon(item.type);
+            html += `
+                <div class="notif-card ${isUnread ? 'unread' : 'read'}">
+                    <div class="notif-header">
+                        <div class="notif-icon ${item.type || 'default'}" style="background:${tone[0]}; color:${tone[1]};">
+                            <i class="fa-solid ${icon}"></i>
+                        </div>
+                        <div class="notif-content">
+                            <div class="notif-title">
+                                ${escapeHtml(item.title)}
+                                ${isUnread ? '<span class="notif-unread-dot" aria-label="Unread notification"></span>' : ''}
+                            </div>
+                            <span class="notif-time">${formatNotificationDate(item.created_at)}</span>
+                            <div class="notif-message">${escapeHtml(item.message)}</div>
+                        </div>
+                    </div>
+                    <div class="notif-actions">
+                        <a href="${getItemLink(item)}">${item.type === 'reschedule' ? 'Review reschedule' : 'View'}</a>
+                        ${isUnread ? `<button type="button" data-notification-read="${escapeHtml(item.notification_id)}">Mark read</button>` : ''}
+                    </div>
                 </div>
-                ${!item.is_read ? `<span style="display:block; width:6px; height:6px; margin:7px 0 0 44px; border-radius:50%; background:#C5221F;"></span>` : ''}
-            </div>`;
+            `;
         });
 
         upcoming.forEach(booking => {
@@ -169,17 +322,39 @@
             const statusHtml = statusMap[String(booking.status || '').toLowerCase()]
                 || `<span style="color:#B56616; font-weight:700;">${escapeHtml(booking.status || 'Updated')}</span>`;
             const bookingIdStr = booking.booking_id ? `#${escapeHtml(String(booking.booking_id).slice(0, 8))}` : '';
-            const bookingLink = booking.booking_id
-                ? `history.html?highlight=${encodeURIComponent(booking.booking_id)}`
-                : 'history.html';
-            html += `<a href="${bookingLink}" style="display:block; padding:13px 0; border-bottom:1px solid #EFECE6; text-align:left; text-decoration:none;">
-                <div style="display:flex; gap:10px; align-items:flex-start;"><span style="display:grid; place-items:center; flex:0 0 30px; height:30px; border-radius:9px; background:#EAF5EE; color:#247A4A;"><i class="fa-solid fa-clock"></i></span><span><strong style="display:block; color:#333; font-size:13px;">Booking ${bookingIdStr}${escapeHtml(petName)}</strong><div style="margin-top:4px; font-size:12px;">${statusHtml}</div><small style="display:block; color:#A08F80; margin-top:4px;">Updated ${escapeHtml(formatNotificationDate(updatedAt))}</small><span style="display:block; color:#7A7A7A; font-size:12px; line-height:1.5; margin-top:5px;">${escapeHtml(booking.booking_date)} at ${escapeHtml(time)}${escapeHtml(serviceName)}</span></span></div>
-            </a>`;
+            const bookingLink = booking.booking_id ? `history.html?highlight=${encodeURIComponent(booking.booking_id)}` : 'history.html';
+
+            html += `
+                <div class="notif-card unread">
+                    <div class="notif-header">
+                        <div class="notif-icon booking" style="background:#eaf5ee; color:#247a4a;">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div class="notif-content">
+                            <div class="notif-title">Upcoming appointment${petName}</div>
+                            <span class="notif-time">Updated ${escapeHtml(formatNotificationDate(updatedAt))}</span>
+                            <div class="notif-message">
+                                Booking ${bookingIdStr} · ${escapeHtml(booking.booking_date)} at ${escapeHtml(time)}${escapeHtml(serviceName)}<br>
+                                Status: ${statusHtml}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="notif-actions">
+                        <a href="${bookingLink}">View booking</a>
+                    </div>
+                </div>
+            `;
         });
 
         if (!relevant.length && !upcoming.length) {
             const emptyState = getEmptyState();
-            html += `<div style="margin:18px 0 8px; padding:22px 16px; border:1px dashed #E6D8C9; border-radius:14px; background:linear-gradient(135deg,#FFFDF9,#FAF3EA); text-align:center;"><span style="display:grid; place-items:center; width:42px; height:42px; margin:0 auto 10px; border-radius:13px; background:#FFF1DE; color:#B56616;"><i class="fa-regular fa-bell"></i></span><strong style="display:block; color:#5A361A; font-size:14px;">${emptyState[0]}</strong><span style="display:block; margin-top:5px; color:#8F8175; font-size:12px; line-height:1.5;">${emptyState[1]}</span></div>`;
+            html += `
+                <div class="notif-empty">
+                    <i class="fa-regular fa-bell"></i>
+                    <h3 style="font-size:16px; font-weight:700; color:#333; margin:0 0 6px;">${emptyState[0]}</h3>
+                    <p style="font-size:13px; max-width:280px; margin:0 auto; color:#7a7a7a; line-height:1.5;">${emptyState[1]}</p>
+                </div>
+            `;
         }
 
         content.innerHTML = html;
@@ -191,7 +366,7 @@
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const limit = new Date(today);
-        limit.setDate(limit.getDate() + 3);
+        limit.setDate(limit.getDate() + 7);
         return bookings.filter(booking => {
             if (booking.status === 'cancelled') return false;
             const date = new Date(booking.booking_date);
@@ -219,6 +394,7 @@
                         title: `${pet.name || 'Pet'} profile needs attention`,
                         message: 'Add the missing photo, birthday, weight, or basic details to keep this profile complete.',
                         type: 'pet',
+                        pet_id: pet.pet_id,
                         created_at: new Date().toISOString(),
                         is_read: false
                     });
