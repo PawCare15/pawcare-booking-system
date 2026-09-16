@@ -159,8 +159,11 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
         title: 'Account Deletion Request - PawCare',
         subject: 'Account Deletion Request - PawCare',
         description: `Dear ${customerName}, open this link to confirm account deletion: ${deleteLink}`,
+        validity_note: 'This link will expire in 24 hours.',
+        ignore_note: "If you didn't request this, please contact support immediately.",
         badgeText: 'ACCOUNT DELETION',
-        badgeClass: 'account-deletion'
+        badgeClass: 'badge-delete',
+        badgeMessage: 'This is an automated security message.'
       });
       console.log(`✅ Deletion email sent through EmailJS to ${customerEmail}`);
       return true;
@@ -269,8 +272,11 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
             title: 'Account Deletion Request - PawCare',
             subject: 'Account Deletion Request - PawCare',
             description: `Dear ${customerName}, open this link to confirm account deletion: ${deleteLink}`,
+            validity_note: 'This link will expire in 24 hours.',
+            ignore_note: "If you didn't request this, please contact support immediately.",
             badgeText: 'ACCOUNT DELETION',
-            badgeClass: 'account-deletion'
+            badgeClass: 'badge-delete',
+            badgeMessage: 'This is an automated security message.'
           }
         );
         console.log(`✅ Deletion email sent through EmailJS fallback to ${customerEmail}`);
@@ -612,8 +618,11 @@ app.post('/api/login', async (req, res) => {
                             title: '🔐 Two-Factor Authentication',
                             subject: 'Your 2FA Verification Code - PawCare',   // 新增
                             description: 'Your 2FA verification code is:',
+                            validity_note: 'This code is valid for 5 minutes.',
+                            ignore_note: "If you didn't request this, please ignore this email.",
                             badgeText: '2FA',
-                            badgeClass: 'badge-2fa'
+                            badgeClass: 'badge-2fa',
+                            badgeMessage: 'This is an automated security message.'
                         }
                     );
                 } catch (emailError) {
@@ -3293,17 +3302,30 @@ app.all('/api/delete-account', async (req, res) => {
             const actionUrl = `/api/delete-account?token=${encodeURIComponent(token)}&email=${encodeURIComponent(email)}`;
             return res.send(`
               <!DOCTYPE html>
-              <html>
-              <head><title>Confirm Account Deletion</title></head>
-              <body style="font-family:Arial;background:#f5f0eb;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:20px;">
-                <div style="max-width:460px;background:#fff;border-radius:16px;padding:36px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,.1);">
-                  <h1 style="color:#dc2626;">Confirm Account Deletion</h1>
+              <html><head>
+                <title>Confirm Account Deletion</title>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                  * { box-sizing: border-box; }
+                  body { font-family: Arial, sans-serif; background: rgba(0,0,0,.4); display:flex; justify-content:center; align-items:center; min-height:100vh; margin:0; padding:20px; }
+                  .overlay { position:fixed; inset:0; display:flex; justify-content:center; align-items:center; background:rgba(0,0,0,.46); }
+                  .modal-box { width:100%; max-width:420px; padding:32px 36px; background:#fff; border-radius:20px; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+                  .modal-box h2 { margin:0 0 10px; color:#dc2626; font-size:22px; }
+                  .modal-box p { margin:0 0 24px; color:#7A7A7A; font-size:14px; line-height:1.6; }
+                  .btn-delete { width:100%; padding:14px 32px; border:0; border-radius:10px; background:#DC2626; color:#fff; font-size:15px; font-weight:600; cursor:pointer; transition:background .2s; }
+                  .btn-delete:hover { background:#B91C1C; }
+                  .btn-cancel { display:inline-block; margin-top:16px; color:#7A7A7A; font-size:13px; font-weight:500; text-decoration:none; }
+                  .btn-cancel:hover { text-decoration:underline; }
+                </style>
+              </head><body>
+                <div class="overlay"><div class="modal-box">
+                  <h2>Confirm Account Deletion</h2>
                   <p>This will permanently delete your PawCare profile, pets, bookings, and reviews.</p>
                   <form method="post" action="${actionUrl}">
-                    <button type="submit" style="border:0;border-radius:8px;padding:13px 28px;background:#dc2626;color:#fff;font-weight:700;cursor:pointer;">Delete My Account</button>
+                    <button type="submit" class="btn-delete">Delete My Account</button>
                   </form>
-                  <p style="margin-top:18px;"><a href="/" style="color:#5a361a;">Back to Home</a></p>
-                </div>
+                  <a href="/" class="btn-cancel">Cancel</a>
+                </div></div>
               </body>
               </html>
             `);
@@ -3659,6 +3681,7 @@ app.get('/api/admin/bookings', isAdmin, async (req, res) => {
               pet_id,
                 booking_date,
                 booking_time,
+                updated_at,
                 status,
                 payment_status,
                 special_notes,
@@ -3673,6 +3696,7 @@ app.get('/api/admin/bookings', isAdmin, async (req, res) => {
                     service:service_id(service_name, category)
                 )
             `)
+            .order('updated_at', { ascending: false, nullsFirst: false })
             .order('booking_id', { ascending: false });
 
         if (status && status !== 'all') query = query.eq('status', status);

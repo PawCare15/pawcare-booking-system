@@ -1950,7 +1950,7 @@ async function fetchNotificationsData() {
                 const selectedValue = bookingTime.value;
 
                 const now = new Date();
-                const todayStr = now.toISOString().split('T')[0];
+                const todayStr = [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
                 const isToday = selectedDate === todayStr;
                 const currentHour = now.getHours();
                 const currentMinute = now.getMinutes();
@@ -1967,7 +1967,9 @@ async function fetchNotificationsData() {
                             const meridiem = timeMatch[3].toUpperCase();
                             if (meridiem === 'PM' && hour < 12) hour += 12;
                             if (meridiem === 'AM' && hour === 12) hour = 0;
-                            if (hour < currentHour || (hour === currentHour && minute <= currentMinute)) {
+                            const optionMinutes = hour * 60 + minute;
+                            const currentMinutes = currentHour * 60 + currentMinute;
+                            if (optionMinutes <= currentMinutes) {
                                 isTimePassed = true;
                             }
                         }
