@@ -728,6 +728,113 @@
             box-shadow: 0 10px 24px rgba(90, 54, 26, 0.08);
         }
 
+        /* Warm, receipt-inspired booking surface. */
+        #bookingForm {
+            counter-reset: booking-step;
+            position: relative;
+        }
+        #bookingForm > .card:not(.card-summary) {
+            position: relative;
+            overflow: visible;
+            border-radius: 16px;
+            padding: 26px 30px 28px;
+            background: rgba(255, 255, 255, 0.94);
+            box-shadow: 0 12px 28px rgba(74, 51, 39, 0.06);
+        }
+        #bookingForm > .card:not(.card-summary)::before {
+            content: '';
+            position: absolute;
+            left: 16px;
+            top: 56px;
+            bottom: -20px;
+            border-left: 2px dotted #E8D5BF;
+            z-index: 0;
+        }
+        #bookingForm > .card:not(.card-summary):last-of-type::before {
+            display: none;
+        }
+        #bookingForm > .card:not(.card-summary) > * {
+            position: relative;
+            z-index: 1;
+        }
+        #bookingForm > .card:not(.card-summary) .step-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-left: -6px;
+            color: #4A3327;
+        }
+        #bookingForm > .card:not(.card-summary) .step-label::before {
+            counter-increment: booking-step;
+            content: counter(booking-step);
+            width: 30px;
+            height: 30px;
+            flex: 0 0 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            color: #fff;
+            background: linear-gradient(145deg, #D97706, #A85512);
+            box-shadow: 0 4px 10px rgba(217, 119, 6, 0.22);
+            font-size: 12px;
+            font-weight: 700;
+        }
+        #bookingForm > .card:not(.card-summary) .step-label i {
+            color: #D97706;
+            margin-right: 0;
+        }
+        .card-summary {
+            position: relative;
+            overflow: hidden;
+            margin-top: 24px;
+            padding: 28px 30px 24px;
+            color: #FDF8F1;
+            background: linear-gradient(145deg, #35231C 0%, #4A3327 62%, #5A4032 100%);
+            border: 0;
+            border-radius: 18px;
+            box-shadow: 0 18px 38px rgba(53, 35, 28, 0.24);
+        }
+        .card-summary::before,
+        .card-summary::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 8px;
+            background: radial-gradient(circle at 8px -2px, transparent 8px, #FAF7F2 9px) 0 0 / 16px 8px repeat-x;
+        }
+        .card-summary::before { top: 0; transform: rotate(180deg); }
+        .card-summary::after { bottom: 0; }
+        .card-summary .step-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #FFE6B8 !important;
+            margin-bottom: 18px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-size: 12px;
+        }
+        .card-summary .step-label i { color: #FBBF68; margin-right: 0; }
+        .summary-grid { gap: 0 28px; }
+        .summary-grid .item {
+            min-height: 48px;
+            border-bottom-color: rgba(255, 230, 184, 0.2);
+        }
+        .summary-grid .item .label { color: #D9C3B1; }
+        .summary-grid .item .value { color: #FFF8EF; }
+        .card-summary .total-row {
+            margin-top: 12px;
+            padding: 16px 0 8px;
+            border-bottom: 0 !important;
+            border-top: 1px solid rgba(255, 230, 184, 0.28);
+        }
+        .card-summary .total-row .label { color: #FFE6B8; text-transform: uppercase; letter-spacing: 1px; }
+        .card-summary .total-row .value { color: #FFD27D; font-size: 25px; text-shadow: 0 2px 12px rgba(251, 191, 104, 0.22); }
+        .actions .btn { transition: transform .2s ease, box-shadow .2s ease; }
+        .actions .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(74, 51, 39, 0.14); }
+
         @media (max-width: 640px) {
             .booking-container { padding: 0 14px 24px; margin-top: 20px; }
             .card { padding: 18px 16px; }
@@ -1053,6 +1160,8 @@
             .summary-grid {
                 grid-template-columns: 1fr;
             }
+            #bookingForm > .card:not(.card-summary) { padding: 22px 20px 24px; }
+            .card-summary { padding: 26px 20px 22px; }
 
             .btn {
                 width: 100%;

@@ -2742,6 +2742,11 @@ if (typeof bindUserMenuEvents === 'function') {
             if (status) status.textContent = '';
         }
 
+        function isThursday(dateString) {
+            if (!dateString) return false;
+            return new Date(`${dateString}T00:00:00`).getDay() === 4;
+        }
+
         async function updateSuggestRescheduleAvailability(date) {
             const timeSelect = document.getElementById('suggestRescheduleTime');
             const status = document.getElementById('suggestRescheduleAvailability');
