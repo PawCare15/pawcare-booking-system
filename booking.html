@@ -1582,25 +1582,21 @@
     SUCCESS MODAL
     ================================================================ -->
     <div class="modal-overlay" id="successModal">
-        <div class="modal-box">
-            <div class="modal-icon-circle success">
-                <i class="fa-solid fa-check-circle"></i>
+        <div class="modal-box" style="border-radius:24px; padding:36px 32px; box-shadow:0 24px 60px rgba(74,51,39,0.18); border:1px solid #EFECE6;">
+            <div class="modal-icon-circle success" style="width:80px; height:80px; margin-bottom:20px; background:#E6F4EA; border:3px solid #A7D7B3;">
+                <i class="fa-solid fa-check-circle" style="font-size:40px; color:#137333;"></i>
             </div>
-            <h2 class="modal-title">Booking Successful! 🎉</h2>
-            <p class="modal-subtitle">
-                Your appointment has been booked successfully.<br />We'll send you a confirmation shortly.
-            </p>
-            <div class="modal-details" style="text-align:left; background:#FAF7F2; border-radius:10px; padding:14px 18px; margin-bottom:20px; font-size:13px;">
-                <div style="display:flex; justify-content:space-between; padding:4px 0;"><span style="color:#7A7A7A;">Species</span><span id="modalPetType">🐕 Dog</span></div>
-                <div style="display:flex; justify-content:space-between; padding:4px 0;"><span style="color:#7A7A7A;">Pet</span><span id="modalPet">—</span></div>
-                <div style="display:flex; justify-content:space-between; padding:4px 0;"><span style="color:#7A7A7A;">Services</span><span id="modalServices">—</span></div>
-                <div style="display:flex; justify-content:space-between; padding:4px 0;"><span style="color:#7A7A7A;">Date</span><span id="modalDate">—</span></div>
-                <div style="display:flex; justify-content:space-between; padding:4px 0;"><span style="color:#7A7A7A;">Time</span><span id="modalTime">—</span></div>
-                <div style="display:flex; justify-content:space-between; padding:4px 0; border-top:1px solid #EFECE6; margin-top:4px; padding-top:8px; font-weight:600;"><span>Total</span><span id="modalPrice">RM 0</span></div>
+            <h2 class="modal-title" style="font-size:26px; color:#4A3327; margin-bottom:8px;">Booking Successful! 🎉</h2>
+            <p class="modal-subtitle" style="font-size:14px; color:#7A7A7A; line-height:1.6; margin-bottom:24px;">Your appointment has been booked successfully.<br>We'll send you a confirmation shortly.</p>
+            <div class="modal-details" style="text-align:left; background:#FAF7F2; border-radius:16px; padding:20px 24px; margin-bottom:24px; border:1px solid #EFECE6;">
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #EFECE6;"><span style="color:#7A7A7A; font-size:13px;">Species</span><span id="modalPetType" style="font-weight:600; color:#333;">🐕 Dog</span></div>
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #EFECE6;"><span style="color:#7A7A7A; font-size:13px;">Pet</span><span id="modalPet" style="font-weight:600; color:#333;">—</span></div>
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #EFECE6;"><span style="color:#7A7A7A; font-size:13px;">Services</span><span id="modalServices" style="font-weight:600; color:#333; text-align:right;">—</span></div>
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #EFECE6;"><span style="color:#7A7A7A; font-size:13px;">Date</span><span id="modalDate" style="font-weight:600; color:#333;">—</span></div>
+                <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #EFECE6;"><span style="color:#7A7A7A; font-size:13px;">Time</span><span id="modalTime" style="font-weight:600; color:#333;">—</span></div>
+                <div style="display:flex; justify-content:space-between; padding:12px 0 0; font-weight:600; border-top:2px solid #E8DCC8; margin-top:4px;"><span style="color:#5A361A; font-size:15px;">Total</span><span id="modalPrice" style="color:#D97706; font-size:16px;">RM 0</span></div>
             </div>
-            <div class="modal-btn-group">
-                <button class="modal-btn modal-btn-primary" id="modalOkBtn">OK</button>
-            </div>
+            <div class="modal-btn-group"><button class="modal-btn modal-btn-primary" id="modalOkBtn" style="padding:14px 48px; font-size:15px; border-radius:12px; background:#5A361A; box-shadow:0 4px 12px rgba(90,54,26,0.2);">OK</button></div>
         </div>
     </div>
 

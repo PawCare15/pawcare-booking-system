@@ -222,13 +222,13 @@
 
     function getNotificationTone(type) {
         return {
-            booking: ['#FFF1DE', '#B56616'],
-            reschedule: ['#F1EAFE', '#7654B8'],
-            payment: ['#EAF4FF', '#3173B8'],
-            pet: ['#FFF1DE', '#B56616'],
-            profile: ['#EAF5EE', '#247A4A'],
-            security: ['#FDECEC', '#B33A3A'],
-            review: ['#FCECF1', '#B33F68']
+            booking: ['#FFF3E0', '#E65100'],
+            reschedule: ['#F3E5F5', '#7B1FA2'],
+            payment: ['#E3F2FD', '#0D47A1'],
+            pet: ['#FFF3E0', '#E65100'],
+            profile: ['#E8F5E9', '#2E7D32'],
+            security: ['#FFEBEE', '#C62828'],
+            review: ['#FCE4EC', '#C2185B']
         }[type] || ['#F2F0ED', '#6B625B'];
     }
 

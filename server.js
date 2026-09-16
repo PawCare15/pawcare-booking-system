@@ -154,7 +154,7 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
       await sendEmailJsTemplate({
         to_email: customerEmail,
         email: customerEmail,
-        otp_code: 'CONFIRM ACCOUNT DELETION',
+        otp_code: 'CONFIRM DELETION',
         delete_link: deleteLink,
         title: 'Account Deletion Request - PawCare',
         subject: 'Account Deletion Request - PawCare',
@@ -267,7 +267,7 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
           {
             to_email: customerEmail,
             email: customerEmail,
-            otp_code: 'CONFIRM ACCOUNT DELETION',
+            otp_code: 'CONFIRM DELETION',
             delete_link: deleteLink,
             title: 'Account Deletion Request - PawCare',
             subject: 'Account Deletion Request - PawCare',
@@ -300,11 +300,15 @@ async function sendDeletionConfirmedEmail(customerEmail, customerName) {
     await sendEmailJsTemplate({
       to_email: customerEmail,
       email: customerEmail,
+      otp_code: ' ',
       title: 'Account Deleted Successfully - PawCare',
       subject: 'Account Deleted Successfully - PawCare',
       description: `Dear ${customerName}, your PawCare account has been successfully deleted.`,
+      validity_note: '',
+      ignore_note: 'Thank you for using PawCare.',
       badgeText: 'ACCOUNT DELETED',
-      badgeClass: 'account-deleted'
+      badgeClass: 'account-deleted',
+      badgeMessage: 'This is an automated security message.'
     });
     console.log(`✅ Deletion confirmed email sent through EmailJS to ${customerEmail}`);
     return true;
@@ -3351,23 +3355,23 @@ app.all('/api/delete-account', async (req, res) => {
         const customerEmail = customer.email;
 
         // ============================================================
-        // DELETE ALL CUSTOMER DATA
+        // SOFT DELETE CUSTOMER DATA (preserve all historical records)
         // ============================================================
-
-        // Keep historical bookings and reviews. Their nullable customer/pet
-        // references are cleared by the database when the related record is removed.
-
-        // Delete pets belonging to the customer without deleting their bookings.
-        await supabaseAdmin
-            .from('pet')
-            .delete()
-            .eq('customer_id', customerId);
-
-        // Delete customer
+        const softDeletedEmail = `deleted_${customerId}@deleted.local`;
         const { error: deleteError } = await supabaseAdmin
-            .from('customer')
-            .delete()
-            .eq('customer_id', customerId);
+          .from('customer')
+          .update({
+            full_name: 'Deleted User',
+            email: softDeletedEmail,
+            phone_number: '',
+            address: '',
+            password: 'deleted_account_no_login',
+            profile_photo: null,
+            status: 'deleted',
+            delete_token: null,
+            delete_token_expiry: null
+          })
+          .eq('customer_id', customerId);
 
         if (deleteError) {
             throw deleteError;
