@@ -2075,9 +2075,9 @@ async function fetchNotificationsData() {
                             petPhoto: b.pet?.photo_url || null,
                             service: serviceNames || 'Unknown',
                             serviceDesc: serviceNames || 'Unknown',
-                            bookingDate: b.reschedule_status === 'pending' && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date,
-                            date: new Date(b.reschedule_status === 'pending' && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }),
-                            time: b.reschedule_status === 'pending' && b.reschedule_requested_time ? b.reschedule_requested_time : (b.booking_time || 'N/A'),
+                            bookingDate: ['pending', 'admin_pending'].includes(b.reschedule_status) && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date,
+                            date: new Date(['pending', 'admin_pending'].includes(b.reschedule_status) && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }),
+                            time: ['pending', 'admin_pending'].includes(b.reschedule_status) && b.reschedule_requested_time ? b.reschedule_requested_time : (b.booking_time || 'N/A'),
                             price: b.service_price_total ?? 0,
                             isFixed: false,
                             status: b.status === 'upcoming' ? 'confirmed' : (b.status || 'pending'),
@@ -2417,8 +2417,8 @@ async function fetchNotificationsData() {
                         priceDisplay = `From RM ${booking.price.toFixed(2)}`;
                     }
 
-                    const displayStatus = (booking.reschedule_status === 'pending' && booking.status !== 'cancelled') 
-                        ? 'Pending Approval' 
+                    const displayStatus = (['pending', 'admin_pending'].includes(booking.reschedule_status) && booking.status !== 'cancelled')
+                      ? (booking.reschedule_status === 'admin_pending' ? 'Admin Suggestion' : 'Pending Approval')
                         : booking.status;
 
                     const serviceNames = booking.services && booking.services.length > 0
@@ -2455,7 +2455,7 @@ async function fetchNotificationsData() {
                             </td>
                             <td class="price-cell">${priceDisplay}</td>
                             <td>
-                                <span class="status-badge ${booking.reschedule_status === 'pending' && booking.status !== 'cancelled' ? 'warning' : booking.statusClass}">
+                                <span class="status-badge ${['pending', 'admin_pending'].includes(booking.reschedule_status) && booking.status !== 'cancelled' ? 'warning' : booking.statusClass}">
                                     ${formattedStatus}
                                 </span>
                             </td>
@@ -2467,7 +2467,9 @@ async function fetchNotificationsData() {
                             </td>
                                 <td>
                                   <div class="action-cell">
-                                    ${booking.reschedule_status === 'pending'
+                                    ${booking.reschedule_status === 'admin_pending'
+                                      ? `<button class="btn-action btn-reschedule" onclick="acceptAdminSuggestion('${booking.booking_id}')"><i class="fa-regular fa-circle-check"></i> Accept New Time</button><button class="btn-action btn-reschedule" onclick="reschedule(${booking.id})"><i class="fa-regular fa-calendar-plus"></i> Choose Another Time</button><button class="btn-action btn-cancel" onclick="cancelBooking(${booking.id})"><i class="fa-regular fa-circle-xmark"></i> Cancel Booking</button>`
+                                      : booking.reschedule_status === 'pending'
                                         ? `<button class="btn-action btn-cancel" onclick="cancelRescheduleRequest(${booking.id})"><i class="fa-regular fa-circle-xmark"></i> Cancel Request</button>`
                                         : canReschedule
                                             ? `<button class="btn-action btn-reschedule" onclick="reschedule(${booking.id})" title="Only allowed if appointment is at least 24 hours away"><i class="fa-regular fa-calendar-plus"></i> Reschedule</button>`
@@ -2646,6 +2648,30 @@ async function fetchNotificationsData() {
             document.getElementById('newDateInput').addEventListener('change', function() {
               updateRescheduleTimeAvailability(this.value);
             });
+
+            window.acceptAdminSuggestion = async function(bookingId) {
+              try {
+                const res = await authFetch(`/api/bookings/${bookingId}/reschedule-approve`, {
+                  method: 'PUT',
+                  body: JSON.stringify({ action: 'approve' })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.success) throw new Error(data.message || 'Unable to accept suggestion.');
+                const booking = bookings.find(item => item.booking_id === bookingId);
+                if (booking) {
+                  booking.bookingDate = booking.reschedule_requested_date;
+                  booking.date = new Date(booking.bookingDate).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+                  booking.time = booking.reschedule_requested_time;
+                  booking.reschedule_status = 'approved';
+                  booking.reschedule_requested_date = null;
+                  booking.reschedule_requested_time = null;
+                }
+                renderBookings();
+                showConfirmationModal('✅ ' + data.message, 'success');
+              } catch (err) {
+                showConfirmationModal('❌ ' + err.message, 'error');
+              }
+            };
 
         window.cancelBooking = function(id) {
             const booking = bookings.find(b => b.id === id);

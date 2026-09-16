@@ -2899,7 +2899,7 @@
                         ${upcoming.reschedule_status === 'approved' ? '<span class="badge confirmed action-status">Reschedule Approved</span>' : ''}
                         ${upcoming.reschedule_status === 'rejected' ? '<span class="badge danger action-status">Reschedule Rejected</span>' : ''}
                         ${canReschedule ? `<button class="btn btn-secondary" onclick="showRescheduleModal('${upcoming.booking_id}')">Reschedule</button>` : ''}
-                        ${upcoming.reschedule_status === 'admin_pending' ? `<button class="btn btn-primary" onclick="respondToAdminReschedule('${upcoming.booking_id}', 'approve')">Accept New Time</button><button class="btn btn-danger" onclick="respondToAdminReschedule('${upcoming.booking_id}', 'reject')">Keep Current Time</button>` : ''}
+                        ${upcoming.reschedule_status === 'admin_pending' ? `<button class="btn btn-primary" onclick="respondToAdminReschedule('${upcoming.booking_id}', 'approve')">Accept New Time</button><button class="btn btn-secondary" onclick="showRescheduleModal('${upcoming.booking_id}', true)">Choose Another Time</button><button class="btn btn-danger" onclick="cancelBookingFromDashboard('${upcoming.booking_id}')">Cancel Booking</button>` : ''}
                         ${upcoming.reschedule_status === 'pending' ? `<button class="btn btn-danger" onclick="cancelRescheduleRequestFromDashboard('${upcoming.booking_id}')">Cancel Request</button>` : ''}
                         ${(upcoming.status === 'pending' && !['pending', 'admin_pending'].includes(upcoming.reschedule_status)) ? `<button class="btn btn-danger" onclick="cancelBookingFromDashboard('${upcoming.booking_id}')">Cancel</button>` : ''}
                     </div>
@@ -3104,7 +3104,7 @@
     // ================================================================
     let dashboardRescheduleBookingId = null;
 
-    function showRescheduleModal(bookingId = null) {
+    function showRescheduleModal(bookingId = null, replacingAdminSuggestion = false) {
         if (window.dashboardBookings && window.dashboardBookings.length > 0) {
         const upcoming = bookingId
           ? window.dashboardBookings.find(b => b.booking_id === bookingId)
@@ -3114,7 +3114,7 @@
                 return;
             }
 
-            if (['pending', 'admin_pending', 'approved'].includes(upcoming.reschedule_status)) {
+            if (!replacingAdminSuggestion && ['pending', 'admin_pending', 'approved'].includes(upcoming.reschedule_status)) {
                 showDashboardMessage('❌ You already have a pending reschedule request for this booking.', false);
                 return;
             }
@@ -3278,11 +3278,10 @@
 
     async function respondToAdminReschedule(bookingId, action) {
       const isApproval = action === 'approve';
-      const message = isApproval
-        ? 'Accept the new appointment date and time?'
-        : 'Reject the suggestion and keep the current appointment?';
+      if (!isApproval) return;
+      const message = 'Accept the new appointment date and time?';
       showConfirmActionModal(
-        isApproval ? 'Accept New Appointment Time' : 'Keep Current Appointment',
+        'Accept New Appointment Time',
         message,
         async function() {
           try {
@@ -3318,7 +3317,7 @@
           }
         },
         '',
-        { variant: isApproval ? 'approve' : 'reject', yesLabel: isApproval ? 'Accept New Time' : 'Keep Current Time', noLabel: 'Go Back' }
+        { variant: 'approve', yesLabel: 'Accept New Time', noLabel: 'Go Back' }
       );
     }
 

@@ -1012,12 +1012,26 @@ app.post('/api/pets', async (req, res) => {
 
     const { name, breed, dob, gender, weight, notes, photo_url, species, customer_id } = req.body;
 
+    const missingFields = [];
+    if (!name || !name.trim()) missingFields.push('Pet Name');
+    if (!breed || !breed.trim()) missingFields.push('Breed');
+    if (!dob) missingFields.push('Date of Birth');
+    if (!weight || isNaN(weight) || Number(weight) <= 0) missingFields.push('Weight');
+    if (!species) missingFields.push('Species');
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Please provide: ${missingFields.join(', ')}`
+      });
+    }
+
     let insertData = {
       pet_name: name,
       breed,
       date_of_birth: dob,
       gender,
-      weight,
+      weight: Number(weight),
       special_notes: notes,
       pet_photo: photo_url,
       species: species || 'dog'
@@ -1078,7 +1092,21 @@ app.put('/api/pets/:pet_id', async (req, res) => {
     const { pet_id } = req.params;
     const { name, breed, dob, gender, weight, notes, photo_url, species, customer_id } = req.body;
 
-    let updateData = { pet_name: name, breed, date_of_birth: dob, gender, weight, special_notes: notes, pet_photo: photo_url, species };
+    const missingFields = [];
+    if (!name || !name.trim()) missingFields.push('Pet Name');
+    if (!breed || !breed.trim()) missingFields.push('Breed');
+    if (!dob) missingFields.push('Date of Birth');
+    if (!weight || isNaN(weight) || Number(weight) <= 0) missingFields.push('Weight');
+    if (!species) missingFields.push('Species');
+
+    if (missingFields.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: `Please provide: ${missingFields.join(', ')}`
+      });
+    }
+
+    let updateData = { pet_name: name, breed, date_of_birth: dob, gender, weight: Number(weight), special_notes: notes, pet_photo: photo_url, species };
 
     let query = supabaseAdmin.from('pet').update(updateData).eq('pet_id', pet_id);
     if (role === 'customer') {
@@ -1784,7 +1812,19 @@ function normalizeBookingTime(value) {
   return `${String(hour).padStart(2, '0')}:${minute} ${suffix}`;
 }
 
+async function isBlockedSlot(date, time) {
+  const { data, error } = await supabaseAdmin
+    .from('blocked_slots')
+    .select('id')
+    .eq('date', String(date || '').slice(0, 10))
+    .eq('time_slot', normalizeBookingTime(time))
+    .maybeSingle();
+  if (error) throw error;
+  return Boolean(data);
+}
+
 async function getActiveSlotBookingCount(date, time, excludeBookingId = null) {
+  if (await isBlockedSlot(date, time)) return MAX_BOOKINGS_PER_SLOT;
   let query = supabaseAdmin
     .from('booking')
     .select('booking_id, booking_time, booking_date, reschedule_status, reschedule_requested_date, reschedule_requested_time')
@@ -1830,11 +1870,18 @@ app.get('/api/bookings/availability', async (req, res) => {
     const { date } = req.query;
     if (!date) return res.status(400).json({ success: false, message: 'Date is required.' });
 
-    const { data, error } = await supabaseAdmin
-      .from('booking')
-      .select('booking_id, booking_time, booking_date, status, reschedule_status, reschedule_requested_date, reschedule_requested_time')
-      .in('status', ACTIVE_BOOKING_STATUSES);
+    const [{ data, error }, { data: blockedSlots, error: blockedError }] = await Promise.all([
+      supabaseAdmin
+        .from('booking')
+        .select('booking_id, booking_time, booking_date, status, reschedule_status, reschedule_requested_date, reschedule_requested_time')
+        .in('status', ACTIVE_BOOKING_STATUSES),
+      supabaseAdmin
+        .from('blocked_slots')
+        .select('time_slot')
+        .eq('date', String(date).slice(0, 10))
+    ]);
     if (error) throw error;
+    if (blockedError) throw blockedError;
 
     const counts = {};
     (data || []).forEach(booking => {
@@ -1853,13 +1900,17 @@ app.get('/api/bookings/availability', async (req, res) => {
       });
     });
 
+    const blockedTimes = (blockedSlots || []).map(slot => normalizeBookingTime(slot.time_slot));
+    blockedTimes.forEach(time => { counts[time] = MAX_BOOKINGS_PER_SLOT; });
+
     res.json({
       success: true,
       data: {
         capacity: MAX_BOOKINGS_PER_SLOT,
         counts,
         remaining: Object.fromEntries(Object.keys(counts).map(time => [time, Math.max(0, MAX_BOOKINGS_PER_SLOT - counts[time])])),
-        fullSlots: Object.keys(counts).filter(time => counts[time] >= MAX_BOOKINGS_PER_SLOT)
+        fullSlots: Object.keys(counts).filter(time => counts[time] >= MAX_BOOKINGS_PER_SLOT),
+        blockedSlots: blockedTimes
       }
     });
   } catch (err) {
@@ -1927,6 +1978,12 @@ app.post('/api/bookings', async (req, res) => {
         }
 
         const normalizedBookingTime = normalizeBookingTime(booking_time);
+        if (await isBlockedSlot(booking_date, normalizedBookingTime)) {
+          return res.status(409).json({
+            success: false,
+            message: 'This time slot has been locked by the administrator. Please choose another time.'
+          });
+        }
         const activeSlotBookings = await getActiveSlotBookingCount(booking_date, normalizedBookingTime);
         if (activeSlotBookings >= MAX_BOOKINGS_PER_SLOT) {
           return res.status(409).json({
@@ -2072,7 +2129,7 @@ app.post('/api/bookings/:booking_id/reschedule-request', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Only pending or upcoming bookings can be rescheduled.' });
     }
 
-    if (booking.reschedule_status && booking.reschedule_status !== 'none' && booking.reschedule_status !== 'rejected') {
+    if (booking.reschedule_status && !['none', 'rejected', 'admin_pending'].includes(booking.reschedule_status)) {
       return res.status(400).json({ success: false, message: 'This booking already has a reschedule request.' });
     }
 
@@ -2163,6 +2220,12 @@ app.put('/api/bookings/:booking_id/reschedule-approve', async (req, res) => {
         .eq('booking_id', booking_id);
 
       if (updateError) throw updateError;
+      const { error: blockDeleteError } = await supabaseAdmin
+        .from('blocked_slots')
+        .delete()
+        .eq('date', booking.booking_date)
+        .eq('time_slot', normalizeBookingTime(booking.booking_time));
+      if (blockDeleteError) throw blockDeleteError;
       await replaceUnreadRescheduleNotification(
         booking.customer_id,
         booking_id,
@@ -2171,24 +2234,10 @@ app.put('/api/bookings/:booking_id/reschedule-approve', async (req, res) => {
       );
       res.json({ success: true, message: 'Reschedule request approved. Booking updated.' });
     } else {
-      const { error: updateError } = await supabaseAdmin
-        .from('booking')
-        .update({
-          reschedule_status: 'rejected',
-          reschedule_requested_date: null,
-          reschedule_requested_time: null,
-          updated_at: new Date().toISOString()
-        })
-        .eq('booking_id', booking_id);
-
-      if (updateError) throw updateError;
-      await replaceUnreadRescheduleNotification(
-        booking.customer_id,
-        booking_id,
-        'Reschedule rejected',
-        'Your reschedule request was rejected. Please contact PawCare if you need assistance.'
-      );
-      res.json({ success: true, message: 'Reschedule request rejected.' });
+      return res.status(409).json({
+        success: false,
+        message: 'The current time is no longer available because the administrator cannot provide service. Please cancel the booking or choose another time.'
+      });
     }
   } catch (err) {
     console.error(err);
@@ -3536,6 +3585,55 @@ app.get('/api/admin/customers/:id/bookings', isAdmin, async (req, res) => {
 });
 
 // 🆕 TAMBAHAN: ========== ADMIN BOOKING MANAGEMENT ==========
+app.get('/api/admin/blocked-slots', isAdmin, async (req, res) => {
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('blocked_slots')
+      .select('id, date, time_slot, reason, created_at, admin_id')
+      .order('date', { ascending: true })
+      .order('time_slot', { ascending: true });
+    if (error) throw error;
+    res.json({ success: true, data: data || [] });
+  } catch (err) {
+    console.error('Error fetching blocked slots:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.post('/api/admin/blocked-slots', isAdmin, async (req, res) => {
+  try {
+    const { date, time_slot, reason } = req.body;
+    if (!date || !time_slot) {
+      return res.status(400).json({ success: false, message: 'Date and time slot are required.' });
+    }
+    const normalizedTime = normalizeBookingTime(time_slot);
+    const { data, error } = await supabaseAdmin
+      .from('blocked_slots')
+      .insert({ date, time_slot: normalizedTime, reason: reason?.trim() || null, admin_id: req.user.customer_id })
+      .select('id, date, time_slot, reason, created_at, admin_id')
+      .single();
+    if (error) {
+      if (error.code === '23505') return res.status(409).json({ success: false, message: 'That time slot is already blocked.' });
+      throw error;
+    }
+    res.status(201).json({ success: true, data, message: 'Time slot blocked successfully.' });
+  } catch (err) {
+    console.error('Error creating blocked slot:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.delete('/api/admin/blocked-slots/:id', isAdmin, async (req, res) => {
+  try {
+    const { error } = await supabaseAdmin.from('blocked_slots').delete().eq('id', req.params.id);
+    if (error) throw error;
+    res.json({ success: true, message: 'Time slot unblocked successfully.' });
+  } catch (err) {
+    console.error('Error deleting blocked slot:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 app.get('/api/admin/bookings', isAdmin, async (req, res) => {
     try {
         const { status, start_date, end_date, search, reschedule_status, date, upcoming } = req.query;
@@ -3784,6 +3882,16 @@ app.post('/api/admin/bookings/:id/reschedule-suggestion', isAdmin, async (req, r
       })
       .eq('booking_id', id);
     if (updateError) throw updateError;
+
+    const { error: blockError } = await supabaseAdmin
+      .from('blocked_slots')
+      .upsert({
+        date: booking.booking_date,
+        time_slot: normalizeBookingTime(booking.booking_time),
+        reason: 'Admin suggested reschedule; original time slot locked.',
+        admin_id: req.user.customer_id
+      }, { onConflict: 'date,time_slot' });
+    if (blockError) throw blockError;
 
     const petName = booking.pet?.pet_name || 'Unknown pet';
     const serviceName = booking.booking_service?.map(item => item.service?.service_name).filter(Boolean).join(', ') || 'your service';

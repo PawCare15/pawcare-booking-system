@@ -1544,6 +1544,7 @@
 
                 <button class="btn-filter" id="applyFilterBtn"><i class="fa-solid fa-sliders"></i> Filter</button>
                 <button class="btn-clear" id="clearFilterBtn"><i class="fa-solid fa-undo"></i> Clear</button>
+                <button class="btn-filter" id="manageBlockedSlotsBtn"><i class="fa-solid fa-lock"></i> Manage Blocked Slots</button>
             </div>
 
             <!-- TABLE -->
@@ -1582,6 +1583,42 @@
                 </div>
             </div>
 
+        </div>
+
+        <div class="modal-overlay-base" id="blockedSlotsModal">
+            <div class="modal-box-base edit-modal-box" style="width:min(94vw,680px);">
+                <div class="modal-header">
+                    <h2><i class="fa-solid fa-lock" style="color:#D97706;"></i> Manage Blocked Slots</h2>
+                    <button class="close-modal" id="closeBlockedSlotsModal">&times;</button>
+                </div>
+                <div class="form-group">
+                    <label for="blockedSlotDate">Date</label>
+                    <input type="date" id="blockedSlotDate">
+                </div>
+                <div class="form-group">
+                    <label for="blockedSlotTime">Time slot</label>
+                    <select id="blockedSlotTime">
+                        <option value="10:00 AM">10:00 AM</option>
+                        <option value="10:30 AM">10:30 AM</option>
+                        <option value="11:30 AM">11:30 AM</option>
+                        <option value="01:00 PM">01:00 PM</option>
+                        <option value="02:00 PM">02:00 PM</option>
+                        <option value="03:00 PM">03:00 PM</option>
+                        <option value="04:00 PM">04:00 PM</option>
+                        <option value="05:00 PM">05:00 PM</option>
+                        <option value="06:00 PM">06:00 PM</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="blockedSlotReason">Reason (optional)</label>
+                    <input type="text" id="blockedSlotReason" maxlength="500" placeholder="e.g. Admin unavailable">
+                </div>
+                <div class="modal-actions">
+                    <button class="btn btn-secondary" id="closeBlockedSlotsBtn">Close</button>
+                    <button class="btn btn-primary" id="createBlockedSlotBtn">Confirm Block</button>
+                </div>
+                <div id="blockedSlotsList" style="margin-top:20px;"></div>
+            </div>
         </div>
 
         <!-- LOGOUT MODAL -->
@@ -2677,6 +2714,69 @@ if (typeof bindUserMenuEvents === 'function') {
             unlockBodyScroll();
         }
 
+        function closeBlockedSlotsModal() {
+            document.getElementById('blockedSlotsModal').classList.remove('active');
+            unlockBodyScroll();
+        }
+
+        function escapeBlockedSlotText(value) {
+            return String(value || '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character]));
+        }
+
+        async function loadBlockedSlots() {
+            const response = await authFetch('/api/admin/blocked-slots');
+            const result = await response.json();
+            if (!response.ok || !result.success) throw new Error(result.message || 'Unable to load blocked slots.');
+            const list = document.getElementById('blockedSlotsList');
+            const slots = result.data || [];
+            list.innerHTML = slots.length ? slots.map(slot => `
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid #EFECE6;">
+                    <div><strong>${escapeBlockedSlotText(slot.date)} · ${escapeBlockedSlotText(slot.time_slot)}</strong><br><small>${escapeBlockedSlotText(slot.reason || 'No reason provided')}</small></div>
+                    <button class="btn btn-danger unblock-slot-btn" data-id="${escapeBlockedSlotText(slot.id)}">Unblock</button>
+                </div>`).join('') : '<p style="color:#7A7A7A;text-align:center;padding:16px 0;">No blocked slots.</p>';
+            list.querySelectorAll('.unblock-slot-btn').forEach(button => {
+                button.addEventListener('click', async () => {
+                    try {
+                        const deleteResponse = await authFetch(`/api/admin/blocked-slots/${encodeURIComponent(button.dataset.id)}`, { method: 'DELETE' });
+                        const deleteResult = await deleteResponse.json();
+                        if (!deleteResponse.ok || !deleteResult.success) throw new Error(deleteResult.message || 'Unable to unblock slot.');
+                        await loadBlockedSlots();
+                    } catch (error) {
+                        alert(error.message);
+                    }
+                });
+            });
+        }
+
+        async function openBlockedSlotsModal() {
+            const dateInput = document.getElementById('blockedSlotDate');
+            dateInput.min = new Date().toISOString().split('T')[0];
+            dateInput.value = '';
+            document.getElementById('blockedSlotReason').value = '';
+            document.getElementById('blockedSlotsModal').classList.add('active');
+            lockBodyScroll();
+            try { await loadBlockedSlots(); } catch (error) { alert(error.message); }
+        }
+
+        async function createBlockedSlot() {
+            const date = document.getElementById('blockedSlotDate').value;
+            const time_slot = document.getElementById('blockedSlotTime').value;
+            const reason = document.getElementById('blockedSlotReason').value;
+            if (!date) return alert('Please select a date.');
+            try {
+                const response = await authFetch('/api/admin/blocked-slots', {
+                    method: 'POST',
+                    body: JSON.stringify({ date, time_slot, reason })
+                });
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.message || 'Unable to block slot.');
+                document.getElementById('blockedSlotReason').value = '';
+                await loadBlockedSlots();
+            } catch (error) {
+                alert(error.message);
+            }
+        }
+
         async function submitSuggestReschedule() {
             if (!currentSuggestRescheduleId) return;
             const newDate = document.getElementById('suggestRescheduleDate').value;
@@ -2698,6 +2798,7 @@ if (typeof bindUserMenuEvents === 'function') {
                 if (!response.ok || !result.success) throw new Error(result.message || 'Unable to send suggestion.');
                 closeSuggestRescheduleModal();
                 await fetchBookings();
+                document.querySelector('#rescheduleSentModal p').textContent = 'Suggestion sent. The original time slot has been automatically locked to prevent other customers from booking it.';
                 document.getElementById('rescheduleSentModal').classList.add('active');
                 lockBodyScroll();
             } catch (error) {
@@ -3134,6 +3235,13 @@ if (typeof bindUserMenuEvents === 'function') {
         document.getElementById('submitSuggestRescheduleBtn').addEventListener('click', submitSuggestReschedule);
         document.getElementById('suggestRescheduleModal').addEventListener('click', function(e) {
             if (e.target === this) closeSuggestRescheduleModal();
+        });
+        document.getElementById('manageBlockedSlotsBtn').addEventListener('click', openBlockedSlotsModal);
+        document.getElementById('closeBlockedSlotsModal').addEventListener('click', closeBlockedSlotsModal);
+        document.getElementById('closeBlockedSlotsBtn').addEventListener('click', closeBlockedSlotsModal);
+        document.getElementById('createBlockedSlotBtn').addEventListener('click', createBlockedSlot);
+        document.getElementById('blockedSlotsModal').addEventListener('click', function(e) {
+            if (e.target === this) closeBlockedSlotsModal();
         });
         document.getElementById('closeRescheduleSentBtn').addEventListener('click', function() {
             document.getElementById('rescheduleSentModal').classList.remove('active');
