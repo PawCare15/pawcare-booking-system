@@ -1009,7 +1009,7 @@ async function loadCustomersFromSupabase() {
         customersData = customers.map(customer => ({
             id: customer.customer_id || '#CUS-' + String(Math.floor(Math.random() * 10000)).padStart(4, '0'),
             customer_id: customer.customer_id,
-            name: customer.full_name || 'Unknown',
+            name: customer.status === 'deleted' ? 'Deleted User' : (customer.full_name || 'Unknown'),
             email: customer.email || '',
             phone: customer.phone_number || '',
             address: customer.address || '',
@@ -1029,7 +1029,7 @@ async function loadCustomersFromSupabase() {
 
         await loadCustomerBookingStats();
 
-        renderCustomerTable(customersData);
+        searchCustomers(document.getElementById('searchInput')?.value || '');
         loadCustomerStats();
         loadNotificationCount();
         
@@ -1202,6 +1202,7 @@ function renderCustomerTable(data) {
     if (countSpan) countSpan.textContent = data.length;
     
     tbody.innerHTML = data.map(customer => {
+        const isDeleted = customer.status === 'deleted';
         let statusClass = customer.status ? 
             (customer.status === 'pending_deletion' ? 'pending-deletion' : customer.status.toLowerCase()) 
             : 'active';
@@ -1230,7 +1231,7 @@ function renderCustomerTable(data) {
             `<img src="${customer.profile_photo}" alt="${customer.name}" style="width:28px; height:28px; border-radius:50%; object-fit:cover; flex-shrink:0;">` :
             `<div style="width:28px; height:28px; border-radius:50%; background:#FDF3E7; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:11px; color:#5A361A; flex-shrink:0;">${initials}</div>`;
         
-        return `<tr data-customer-id="${customer.customer_id}">
+        return `<tr data-customer-id="${customer.customer_id}"${isDeleted ? ' style="background-color:#f9f9f9; opacity:0.7;"' : ''}>
             <td><strong>${customer.id || customer.customer_id || 'N/A'}</strong></td>
             <td>
                 <div style="display:flex; align-items:center; gap:8px;">
@@ -1551,7 +1552,7 @@ async function saveEditCustomer(event) {
         customer.status = status;
         
         closeEditModal();
-        renderCustomerTable(customersData);
+        searchCustomers(document.getElementById('searchInput')?.value || '');
         loadCustomerStats();
         showSuccessModal('Customer Updated Successfully!', `Customer ${customer.name} (${customer.id}) has been updated successfully.`);
         
@@ -1679,7 +1680,7 @@ async function confirmDeleteCustomerWithEmail() {
             }
             
             closeDeleteModal();
-            renderCustomerTable(customersData);
+            searchCustomers(document.getElementById('searchInput')?.value || '');
             loadCustomerStats();
             
             showSuccessModal(
@@ -1763,11 +1764,16 @@ function hideValidationModal() {
 // SEARCH CUSTOMERS
 // ================================================================
 function searchCustomers(query) {
+    const statusFilter = document.getElementById('statusFilter')?.value || 'all';
     const filtered = customersData.filter(customer => {
         const searchTerm = query.toLowerCase().trim();
-        return customer.name.toLowerCase().includes(searchTerm) ||
+        const matchesSearch = customer.name.toLowerCase().includes(searchTerm) ||
                customer.email.toLowerCase().includes(searchTerm) ||
                customer.phone.includes(searchTerm);
+        if (!matchesSearch) return false;
+        if (statusFilter === 'deleted') return customer.status === 'deleted';
+        if (statusFilter === 'all' || statusFilter === 'Active') return customer.status !== 'deleted';
+        return customer.status === statusFilter && customer.status !== 'deleted';
     });
     renderCustomerTable(filtered);
 }
@@ -1918,6 +1924,12 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchInput) {
         searchInput.addEventListener('input', function(e) {
             searchCustomers(e.target.value);
+        });
+    }
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', function() {
+            searchCustomers(searchInput?.value || '');
         });
     }
 

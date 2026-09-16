@@ -2435,7 +2435,7 @@ if (typeof bindUserMenuEvents === 'function') {
                 // Transform the data for display
                 allBookings = data.map(b => ({
                     id: b.booking_id || 'N/A',
-                    customer: b.customer ? b.customer.full_name : 'Deleted Customer',
+                    customer: b.customer ? b.customer.full_name : 'Deleted User',
                     phone: b.customer ? b.customer.phone_number : 'N/A',
                     customerPhoto: b.customer?.profile_photo || '',
                     pet: b.pet ? b.pet.name : 'Deleted Pet',
@@ -2850,7 +2850,9 @@ if (typeof bindUserMenuEvents === 'function') {
                 document.getElementById('blockedSlotReason').value = '';
                 await loadBlockedSlots();
             } catch (error) {
-                alert(error.message);
+                document.getElementById('rescheduleErrorMessage').textContent = error.message;
+                document.getElementById('rescheduleErrorModal').classList.add('active');
+                lockBodyScroll();
             }
         }
 

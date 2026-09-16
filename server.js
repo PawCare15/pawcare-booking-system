@@ -154,13 +154,13 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
       await sendEmailJsTemplate({
         to_email: customerEmail,
         email: customerEmail,
-        otp_code: 'CONFIRM DELETION',
+        otp_code: '',
         delete_link: deleteLink,
         title: 'Account Deletion Request - PawCare',
         subject: 'Account Deletion Request - PawCare',
-        description: `Dear ${customerName}, open this link to confirm account deletion: ${deleteLink}`,
+        description: 'If you wish to delete your PawCare Booking System account, please click the link above.',
         validity_note: 'This link will expire in 24 hours.',
-        ignore_note: "If you didn't request this, please contact support immediately.",
+        ignore_note: '',
         badgeText: 'ACCOUNT DELETION',
         badgeClass: 'badge-delete',
         badgeMessage: 'This is an automated security message.'
@@ -300,14 +300,14 @@ async function sendDeletionConfirmedEmail(customerEmail, customerName) {
     await sendEmailJsTemplate({
       to_email: customerEmail,
       email: customerEmail,
-      otp_code: ' ',
+      otp_code: '',
       title: 'Account Deleted Successfully - PawCare',
       subject: 'Account Deleted Successfully - PawCare',
       description: `Dear ${customerName}, your PawCare account has been successfully deleted.`,
       validity_note: '',
-      ignore_note: 'Thank you for using PawCare.',
+      ignore_note: '',
       badgeText: 'ACCOUNT DELETED',
-      badgeClass: 'account-deleted',
+      badgeClass: 'badge-account-deleted',
       badgeMessage: 'This is an automated security message.'
     });
     console.log(`✅ Deletion confirmed email sent through EmailJS to ${customerEmail}`);

@@ -958,6 +958,13 @@
                 min-width: unset;
             }
 
+            .modal-btn, .btn, .btn-primary {
+                display: inline-flex !important;
+                justify-content: center !important;
+                align-items: center !important;
+                text-align: center !important;
+            }
+
             .modal-btn-group {
                 flex-direction: column;
                 width: 100%;
@@ -2169,6 +2176,12 @@ async function fetchNotificationsData() {
         if (dobInput) {
             const today = new Date().toISOString().split('T')[0];
             dobInput.setAttribute('max', today);
+            dobInput.addEventListener('change', function() {
+                if (this.value > today) {
+                    showValidationModal('Date of Birth cannot be in the future.');
+                    this.value = '';
+                }
+            });
         }
         // 👆【结束】
 
