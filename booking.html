@@ -1836,6 +1836,7 @@ async function fetchNotificationsData() {
                 if (!response.ok) return;
                 const result = await response.json();
                 const counts = result.data?.counts || {};
+                const blocked = new Set(result.data?.blocked || result.data?.blockedSlots || []);
                 const capacity = Number(result.data?.capacity || 2);
                 const selectedValue = bookingTime.value;
 
@@ -1865,12 +1866,15 @@ async function fetchNotificationsData() {
 
                     const count = Number(counts[option.value] || 0);
                     const remaining = Math.max(0, capacity - count);
+                    const isBlocked = blocked.has(option.value);
                     const isFull = remaining === 0;
                     const originalText = option.value;
 
-                    option.disabled = isFull || isTimePassed;
+                    option.disabled = isBlocked || isFull || isTimePassed;
                     option.textContent = isTimePassed
                         ? `${originalText} (Unavailable)`
+                        : isBlocked
+                            ? `${originalText} (Admin unavailable)`
                         : isFull
                             ? `${originalText} (Fully booked)`
                             : `${originalText} (${remaining} slot${remaining === 1 ? '' : 's'} remaining)`;

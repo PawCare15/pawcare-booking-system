@@ -302,6 +302,69 @@
             border-color: #D3C4B8;
         }
 
+        #blockedSlotsModal .edit-modal-box {
+            padding: 28px 30px 24px;
+            border: 1px solid #E8E2D8;
+            box-shadow: 0 18px 50px rgba(74, 51, 39, 0.18);
+        }
+        #blockedSlotsModal .form-group,
+        #suggestRescheduleModal .form-group {
+            margin-bottom: 16px;
+        }
+        #blockedSlotsModal .form-group label,
+        #suggestRescheduleModal .form-group label {
+            display: block;
+            margin-bottom: 7px;
+            color: #4A3327;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        #blockedSlotsModal input,
+        #blockedSlotsModal select,
+        #blockedSlotsModal textarea,
+        #suggestRescheduleModal input,
+        #suggestRescheduleModal select,
+        #suggestRescheduleModal textarea {
+            width: 100%;
+            border: 1px solid #E8E2D8;
+            border-radius: 10px;
+            background: #FCFAF7;
+            color: #4A3327;
+            padding: 11px 13px;
+            font: inherit;
+            font-size: 13px;
+            outline: none;
+            box-shadow: inset 0 1px 2px rgba(74, 51, 39, 0.04);
+            transition: border-color .2s, box-shadow .2s;
+        }
+        #blockedSlotsModal input:focus,
+        #blockedSlotsModal select:focus,
+        #blockedSlotsModal textarea:focus,
+        #suggestRescheduleModal input:focus,
+        #suggestRescheduleModal select:focus,
+        #suggestRescheduleModal textarea:focus {
+            border-color: #D97706;
+            box-shadow: 0 0 0 3px rgba(217, 119, 6, 0.12);
+        }
+        #blockedSlotsModal .modal-actions,
+        #suggestRescheduleModal .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 22px;
+        }
+        #blockedSlotsList {
+            max-height: 260px;
+            overflow-y: auto;
+            padding: 2px 12px;
+            border: 1px solid #EFECE6;
+            border-radius: 12px;
+            background: #FFFEFC;
+        }
+        #blockedSlotsList > div {
+            min-height: 58px;
+        }
+
         /* ===== TABLE ===== */
         .table-wrap {
             overflow-x: auto;
@@ -1771,6 +1834,10 @@
                     </select>
                     <small id="suggestRescheduleAvailability" style="display:block; margin-top:7px; color:#7A6252;"></small>
                 </div>
+                <div class="form-group">
+                    <label for="suggestRescheduleReason">Reason (optional)</label>
+                    <textarea id="suggestRescheduleReason" rows="3" maxlength="500" placeholder="Reason for reschedule (optional)"></textarea>
+                </div>
                 <div class="modal-actions">
                     <button class="btn btn-secondary" id="cancelSuggestRescheduleBtn">Cancel</button>
                     <button class="btn btn-primary" id="submitSuggestRescheduleBtn">Send Suggestion</button>
@@ -2657,6 +2724,7 @@ if (typeof bindUserMenuEvents === 'function') {
             const dateInput = document.getElementById('suggestRescheduleDate');
             dateInput.min = new Date().toISOString().split('T')[0];
             dateInput.value = '';
+            document.getElementById('suggestRescheduleReason').value = '';
             resetSuggestRescheduleTimes();
             document.getElementById('suggestRescheduleModal').classList.add('active');
             lockBodyScroll();
@@ -2668,7 +2736,7 @@ if (typeof bindUserMenuEvents === 'function') {
             if (!timeSelect) return;
             timeSelect.querySelectorAll('option').forEach(option => {
                 option.disabled = false;
-                option.textContent = option.textContent.replace(/ \((?:Fully booked|\d+ slot(?:s)? remaining)\)$/, '');
+                option.textContent = option.textContent.replace(/ \((?:Admin unavailable|Fully booked|\d+ slot(?:s)? remaining)\)$/, '');
             });
             timeSelect.value = '10:30 AM';
             if (status) status.textContent = '';
@@ -2687,13 +2755,15 @@ if (typeof bindUserMenuEvents === 'function') {
                 const result = await response.json();
                 if (!response.ok || !result.success) throw new Error(result.message || 'Unable to check availability.');
                 const counts = result.data?.counts || {};
+                const blocked = new Set(result.data?.blocked || result.data?.blockedSlots || []);
                 const capacity = Number(result.data?.capacity || 2);
                 timeSelect.querySelectorAll('option').forEach(option => {
                     const remaining = Math.max(0, capacity - Number(counts[option.value] || 0));
+                    const isBlocked = blocked.has(option.value);
                     const full = remaining === 0;
-                    option.disabled = full;
-                    option.textContent = option.textContent.replace(/ \((?:Fully booked|\d+ slot(?:s)? remaining)\)$/, '')
-                        + (full ? ' (Fully booked)' : ` (${remaining} slot${remaining === 1 ? '' : 's'} remaining)`);
+                    option.disabled = isBlocked || full;
+                    option.textContent = option.textContent.replace(/ \((?:Admin unavailable|Fully booked|\d+ slot(?:s)? remaining)\)$/, '')
+                        + (isBlocked ? ' (Admin unavailable)' : full ? ' (Fully booked)' : ` (${remaining} slot${remaining === 1 ? '' : 's'} remaining)`);
                 });
                 const selected = timeSelect.options[timeSelect.selectedIndex];
                 if (!selected || selected.disabled) {
@@ -2781,8 +2851,13 @@ if (typeof bindUserMenuEvents === 'function') {
             if (!currentSuggestRescheduleId) return;
             const newDate = document.getElementById('suggestRescheduleDate').value;
             const newTime = document.getElementById('suggestRescheduleTime').value;
+            const reason = document.getElementById('suggestRescheduleReason').value.trim();
             if (!newDate) {
                 alert('Please select a new date.');
+                return;
+            }
+            if (isThursday(newDate)) {
+                alert('We are closed on Thursdays. Please select another date.');
                 return;
             }
             if (!newTime) {
@@ -2792,7 +2867,7 @@ if (typeof bindUserMenuEvents === 'function') {
             try {
                 const response = await authFetch(`/api/admin/bookings/${encodeURIComponent(currentSuggestRescheduleId)}/reschedule-suggestion`, {
                     method: 'POST',
-                    body: JSON.stringify({ new_date: newDate, new_time: newTime })
+                    body: JSON.stringify({ new_date: newDate, new_time: newTime, reason })
                 });
                 const result = await response.json();
                 if (!response.ok || !result.success) throw new Error(result.message || 'Unable to send suggestion.');
@@ -2807,6 +2882,12 @@ if (typeof bindUserMenuEvents === 'function') {
         }
 
         document.getElementById('suggestRescheduleDate').addEventListener('change', function() {
+            if (isThursday(this.value)) {
+                this.value = '';
+                alert('We are closed on Thursdays. Please select another date.');
+                resetSuggestRescheduleTimes();
+                return;
+            }
             updateSuggestRescheduleAvailability(this.value);
         });
 

@@ -2894,6 +2894,7 @@
                         <li><i class="fa-regular fa-clock"></i> <span>Time</span> <strong>${time}</strong></li>
                         <li><i class="fa-solid fa-location-dot"></i> <span>Location</span> <strong>PAW WALKER GROOMING HOUSE</strong></li>
                     </ul>
+                      ${upcoming.reschedule_status === 'admin_pending' && upcoming.admin_reschedule_reason ? `<div style="margin:10px 0;padding:9px 11px;border-left:3px solid #D97706;background:#FFF8E1;color:#5A361A;font-size:12px;"><strong>Admin reason:</strong> ${upcoming.admin_reschedule_reason}</div>` : ''}
                     <div class="action-btns">
                         <button class="btn btn-primary" onclick="showAppointmentModal('${upcoming.booking_id}')">View Details</button>
                         ${upcoming.reschedule_status === 'approved' ? '<span class="badge confirmed action-status">Reschedule Approved</span>' : ''}
@@ -3151,7 +3152,7 @@
           timeSelect.querySelectorAll('option').forEach(option => {
             option.hidden = false;
             option.disabled = false;
-            option.textContent = option.textContent.replace(/ \((?:Fully booked|已约满|剩余 \d+ 个名额|\d+ slot(?:s)? remaining)\)$/, '');
+            option.textContent = option.textContent.replace(/ \((?:Admin unavailable|Fully booked|已约满|剩余 \d+ 个名额|\d+ slot(?:s)? remaining)\)$/, '');
           });
           timeSelect.value = '10:30 AM';
         }
@@ -3171,15 +3172,17 @@
             if (!result.success) throw new Error(result.message || 'Unable to check availability.');
 
             const counts = result.data?.counts || {};
+            const blocked = new Set(result.data?.blocked || result.data?.blockedSlots || []);
             const capacity = Number(result.data?.capacity || 2);
             timeSelect.querySelectorAll('option').forEach(option => {
               const count = Number(counts[option.value] || 0);
               const remaining = Math.max(0, capacity - count);
+              const isBlocked = blocked.has(option.value);
               const isFull = remaining === 0;
               option.hidden = false;
-              option.disabled = isFull;
-              option.textContent = option.textContent.replace(/ \((?:Fully booked|已约满|剩余 \d+ 个名额|\d+ slot(?:s)? remaining)\)$/, '')
-                + (isFull ? ' (Fully booked)' : ` (${remaining} slot${remaining === 1 ? '' : 's'} remaining)`);
+              option.disabled = isBlocked || isFull;
+              option.textContent = option.textContent.replace(/ \((?:Admin unavailable|Fully booked|已约满|剩余 \d+ 个名额|\d+ slot(?:s)? remaining)\)$/, '')
+                + (isBlocked ? ' (Admin unavailable)' : isFull ? ' (Fully booked)' : ` (${remaining} slot${remaining === 1 ? '' : 's'} remaining)`);
             });
 
             const availableOption = [...timeSelect.options].find(option => !option.disabled);

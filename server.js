@@ -1741,6 +1741,15 @@ app.get('/api/bookings', async (req, res) => {
       .select('service_id, species, starting_price');
     if (servicePriceError) throw servicePriceError;
 
+    const { data: blockedSlots, error: blockedSlotsError } = await supabaseAdmin
+      .from('blocked_slots')
+      .select('date, time_slot, reason');
+    if (blockedSlotsError) throw blockedSlotsError;
+    const blockedReasonMap = new Map((blockedSlots || []).map(slot => [
+      `${String(slot.date).slice(0, 10)}|${normalizeBookingTime(slot.time_slot)}`,
+      slot.reason || null
+    ]));
+
     // 映射数据（与原来相同）
     const bookings = data.map(b => {
       const services = b.booking_service || [];
@@ -1764,6 +1773,9 @@ app.get('/api/bookings', async (req, res) => {
         reschedule_status: b.reschedule_status || 'none',
         reschedule_requested_date: b.reschedule_requested_date || null,
         reschedule_requested_time: b.reschedule_requested_time || null,
+        admin_reschedule_reason: b.reschedule_status === 'admin_pending'
+          ? blockedReasonMap.get(`${String(b.booking_date).slice(0, 10)}|${normalizeBookingTime(b.booking_time)}`) || null
+          : null,
         total_price: (b.booking_service || []).reduce((sum, s) => sum + (s.estimated_price || 0), 0),
         service_price_total: servicePriceTotal,
         special_notes: b.special_notes,
@@ -1910,6 +1922,7 @@ app.get('/api/bookings/availability', async (req, res) => {
         counts,
         remaining: Object.fromEntries(Object.keys(counts).map(time => [time, Math.max(0, MAX_BOOKINGS_PER_SLOT - counts[time])])),
         fullSlots: Object.keys(counts).filter(time => counts[time] >= MAX_BOOKINGS_PER_SLOT),
+        blocked: blockedTimes,
         blockedSlots: blockedTimes
       }
     });
@@ -3660,7 +3673,7 @@ app.get('/api/admin/bookings', isAdmin, async (req, res) => {
                     service:service_id(service_name, category)
                 )
             `)
-            .order('booking_date', { ascending: false });
+            .order('booking_id', { ascending: false });
 
         if (status && status !== 'all') query = query.eq('status', status);
         if (reschedule_status) query = query.eq('reschedule_status', reschedule_status);
@@ -3842,7 +3855,7 @@ app.get('/api/admin/bookings/stats', isAdmin, async (req, res) => {
 app.post('/api/admin/bookings/:id/reschedule-suggestion', isAdmin, async (req, res) => {
   try {
     const { id } = req.params;
-    const { new_date, new_time } = req.body;
+    const { new_date, new_time, reason } = req.body;
 
     if (!new_date || !new_time) {
       return res.status(400).json({ success: false, message: 'New date and time are required.' });
@@ -3888,7 +3901,7 @@ app.post('/api/admin/bookings/:id/reschedule-suggestion', isAdmin, async (req, r
       .upsert({
         date: booking.booking_date,
         time_slot: normalizeBookingTime(booking.booking_time),
-        reason: 'Admin suggested reschedule; original time slot locked.',
+        reason: reason?.trim() || 'Admin suggested reschedule; original time slot locked.',
         admin_id: req.user.customer_id
       }, { onConflict: 'date,time_slot' });
     if (blockError) throw blockError;
@@ -3899,7 +3912,7 @@ app.post('/api/admin/bookings/:id/reschedule-suggestion', isAdmin, async (req, r
       booking.customer_id,
       booking.booking_id,
       'Admin Suggested a New Time',
-      `Admin suggested a new time for Booking ${booking.booking_id} (${petName} · ${serviceName}). Original: ${booking.booking_date} ${booking.booking_time}. Suggested: ${new_date} ${new_time}. Please review and accept or reject.`
+      `Admin suggested a new time for Booking ${booking.booking_id} (${petName} · ${serviceName}). Original: ${booking.booking_date} ${booking.booking_time}. Suggested: ${new_date} ${new_time}. Reason: ${reason?.trim() || 'Admin is unavailable at the original time.'} Please review and choose an option.`
     );
 
     res.json({ success: true, message: 'Reschedule suggestion sent to the customer.' });
