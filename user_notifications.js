@@ -208,27 +208,27 @@
 
     function getItemLink(item) {
         if (item.type === 'review') {
-            return `review.html?highlight=${encodeURIComponent(item.review_id || '')}`;
+            return item.review_id ? `review.html?highlight=${encodeURIComponent(item.review_id)}` : 'review.html';
         }
         if (item.type === 'pet') return `mypet.html?highlight=${encodeURIComponent(item.pet_id || '')}`;
         if (item.type === 'profile') return 'profile.html?highlight=profile-info';
         if (item.type === 'security') return 'profile.html?highlight=security-section';
         if (item.type === 'reschedule') {
-            return `dashboard.html?highlight=${encodeURIComponent(item.booking_id || '')}`;
+            return item.booking_id ? `history.html?highlight=${encodeURIComponent(item.booking_id)}` : 'history.html';
         }
         if (item.type === 'booking') return `history.html?highlight=${encodeURIComponent(item.booking_id || '')}`;
-        return `${getPageLink()}?highlight=${encodeURIComponent(item.notification_id || '')}`;
+        return getPageLink();
     }
 
     function getNotificationTone(type) {
         return {
-            booking: ['#FFF3E0', '#E65100'],
-            reschedule: ['#F3E5F5', '#7B1FA2'],
-            payment: ['#E3F2FD', '#0D47A1'],
-            pet: ['#FFF3E0', '#E65100'],
-            profile: ['#E8F5E9', '#2E7D32'],
-            security: ['#FFEBEE', '#C62828'],
-            review: ['#FCE4EC', '#C2185B']
+            booking: ['#FFF1DE', '#B56616'],
+            reschedule: ['#F1EAFE', '#7654B8'],
+            payment: ['#EAF4FF', '#3173B8'],
+            pet: ['#FFF1DE', '#B56616'],
+            profile: ['#EAF5EE', '#247A4A'],
+            security: ['#FDECEC', '#B33A3A'],
+            review: ['#FCECF1', '#B33F68']
         }[type] || ['#F2F0ED', '#6B625B'];
     }
 
@@ -284,10 +284,11 @@
             const tone = getNotificationTone(item.type);
             const isUnread = !item.is_read;
             const icon = getNotificationIcon(item.type);
+
             html += `
-                <div class="notif-card ${isUnread ? 'unread' : 'read'}">
+                <div class="notif-card ${isUnread ? 'unread' : 'read'}" style="border-left-color: ${tone[1]};">
                     <div class="notif-header">
-                        <div class="notif-icon ${item.type || 'default'}" style="background:${tone[0]}; color:${tone[1]};">
+                        <div class="notif-icon" style="background:${tone[0]}; color:${tone[1]};">
                             <i class="fa-solid ${icon}"></i>
                         </div>
                         <div class="notif-content">
@@ -325,9 +326,9 @@
             const bookingLink = booking.booking_id ? `history.html?highlight=${encodeURIComponent(booking.booking_id)}` : 'history.html';
 
             html += `
-                <div class="notif-card unread">
+                <div class="notif-card unread" style="border-left-color: #247A4A;">
                     <div class="notif-header">
-                        <div class="notif-icon booking" style="background:#eaf5ee; color:#247a4a;">
+                        <div class="notif-icon" style="background:#eaf5ee; color:#247a4a;">
                             <i class="fa-solid fa-clock"></i>
                         </div>
                         <div class="notif-content">
