@@ -132,6 +132,21 @@ async function ensureBucketExists(bucketName) {
 }   // <-- 到这里结束
 
 async function sendEmailJsTemplate(templateParams) {
+  const sanitizedParams = {
+    to_email: String(templateParams.to_email || ''),
+    email: String(templateParams.email || ''),
+    otp_code: String(templateParams.otp_code || ''),
+    delete_link: String(templateParams.delete_link || ''),
+    title: String(templateParams.title || 'PawCare Notification'),
+    subject: String(templateParams.subject || 'PawCare Notification'),
+    description: String(templateParams.description || ''),
+    validity_note: String(templateParams.validity_note || ''),
+    ignore_note: String(templateParams.ignore_note || ''),
+    badgeText: String(templateParams.badgeText || ''),
+    badgeClass: String(templateParams.badgeClass || ''),
+    badgeMessage: String(templateParams.badgeMessage || 'This is an automated security message.')
+  };
+
   emailjs.init({
     publicKey: process.env.EMAILJS_PUBLIC_KEY,
     privateKey: process.env.EMAILJS_PRIVATE_KEY
@@ -139,7 +154,7 @@ async function sendEmailJsTemplate(templateParams) {
   return emailjs.send(
     process.env.EMAILJS_SERVICE_ID,
     process.env.EMAILJS_TEMPLATE_ID,
-    templateParams
+    sanitizedParams
   );
 }
 
@@ -3287,6 +3302,10 @@ app.all('/api/delete-account', async (req, res) => {
             .from('customer')
             .update({ status: 'Active', delete_token: null, delete_token_expiry: null })
             .eq('customer_id', customer.customer_id);
+          await supabaseAdmin
+            .from('pet')
+            .update({ status: 'Active' })
+            .eq('customer_id', customer.customer_id);
 
             return res.status(400).send(`
                 <!DOCTYPE html>
@@ -3375,6 +3394,15 @@ app.all('/api/delete-account', async (req, res) => {
 
         if (deleteError) {
             throw deleteError;
+        }
+
+        const { error: petDeleteError } = await supabaseAdmin
+          .from('pet')
+          .update({ status: 'Inactive' })
+          .eq('customer_id', customerId);
+
+        if (petDeleteError) {
+          throw petDeleteError;
         }
 
         // Send confirmation email

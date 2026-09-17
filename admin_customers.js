@@ -1231,7 +1231,8 @@ function renderCustomerTable(data) {
             `<img src="${customer.profile_photo}" alt="${customer.name}" style="width:28px; height:28px; border-radius:50%; object-fit:cover; flex-shrink:0;">` :
             `<div style="width:28px; height:28px; border-radius:50%; background:#FDF3E7; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:11px; color:#5A361A; flex-shrink:0;">${initials}</div>`;
         
-        return `<tr data-customer-id="${customer.customer_id}"${isDeleted ? ' style="background-color:#f9f9f9; opacity:0.7;"' : ''}>
+        const disabledAction = isDeleted ? 'disabled aria-disabled="true" style="opacity:0.4; cursor:not-allowed;"' : '';
+        return `<tr class="${isDeleted ? 'deleted-row' : ''}" data-customer-id="${customer.customer_id}">
             <td><strong>${customer.id || customer.customer_id || 'N/A'}</strong></td>
             <td>
                 <div style="display:flex; align-items:center; gap:8px;">
@@ -1252,13 +1253,13 @@ function renderCustomerTable(data) {
             </td>
             <td>
                 <div class="action-btns">
-                    <button class="btn-action view" onclick="viewCustomerDetail('${customer.customer_id}')" title="View Details">
+                    <button class="btn-action view" ${disabledAction} ${isDeleted ? '' : `onclick="viewCustomerDetail('${customer.customer_id}')"`} title="View Details">
                         <i class="fa-regular fa-eye"></i>
                     </button>
-                    <button class="btn-action edit" onclick="openEditModal('${customer.customer_id}')" title="Edit">
+                    <button class="btn-action edit" ${disabledAction} ${isDeleted ? '' : `onclick="openEditModal('${customer.customer_id}')"`} title="Edit">
                         <i class="fa-regular fa-pen-to-square"></i>
                     </button>
-                    ${customer.status !== 'pending_deletion' ? 
+                    ${customer.status !== 'pending_deletion' && !isDeleted ? 
                         `<button class="btn-action delete" onclick="openDeleteModal('${customer.customer_id}')" title="Delete">
                             <i class="fa-regular fa-trash-can"></i>
                         </button>` : 
@@ -1776,6 +1777,18 @@ function searchCustomers(query) {
         return customer.status === statusFilter && customer.status !== 'deleted';
     });
     renderCustomerTable(filtered);
+}
+
+function applyFilters() {
+    searchCustomers(document.getElementById('searchInput')?.value || '');
+}
+
+function clearAllFilters() {
+    const searchInput = document.getElementById('searchInput');
+    const statusFilter = document.getElementById('statusFilter');
+    if (searchInput) searchInput.value = '';
+    if (statusFilter) statusFilter.value = 'all';
+    applyFilters();
 }
 
 // ================================================================

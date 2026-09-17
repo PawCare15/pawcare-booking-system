@@ -1277,6 +1277,7 @@ function viewPetDetail(id) {
         </div>
     `;
     
+    bindPetDobValidation();
     modal.classList.add('active');
     lockBodyScroll();
 }
@@ -1533,6 +1534,8 @@ function openAddPetModal() {
             </div>
         </form>
     `;
+
+    bindPetDobValidation();
     
     setTimeout(() => {
         const preview = document.getElementById('imagePreview');
@@ -1543,6 +1546,19 @@ function openAddPetModal() {
     
     modal.classList.add('active');
     lockBodyScroll();
+}
+
+function bindPetDobValidation() {
+    const dobInput = document.getElementById('petDob');
+    if (!dobInput) return;
+    const today = new Date().toISOString().split('T')[0];
+    dobInput.max = today;
+    dobInput.addEventListener('change', function() {
+        if (this.value > today) {
+            showValidationModal('Date of Birth cannot be in the future.');
+            this.value = '';
+        }
+    });
 }
 
 // ================================================================
@@ -1689,7 +1705,7 @@ function openEditPetModal(id) {
             </div>
         </form>
     `;
-    
+    bindPetDobValidation();
     modal.classList.add('active');
     lockBodyScroll();
 }
@@ -2008,6 +2024,20 @@ function applyFiltersAndRender() {
     });
     
     renderPetTable(filtered);
+}
+
+function applyFilters() {
+    applyFiltersAndRender();
+}
+
+function clearAllFilters() {
+    const searchInput = document.getElementById('searchInput');
+    const speciesFilter = document.getElementById('speciesFilter');
+    const statusFilter = document.getElementById('statusFilter');
+    if (searchInput) searchInput.value = '';
+    if (speciesFilter) speciesFilter.value = 'all';
+    if (statusFilter) statusFilter.value = 'all';
+    applyFiltersAndRender();
 }
 
 // ================================================================

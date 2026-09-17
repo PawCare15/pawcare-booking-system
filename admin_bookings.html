@@ -2628,6 +2628,7 @@ if (typeof bindUserMenuEvents === 'function') {
             const petColors = ['#FFF8E1', '#E8F5E9', '#E3F2FD', '#FCE4EC', '#F3E5F5', '#FFF3E0', '#E0F7FA'];
 
             tbody.innerHTML = pageData.map((b, index) => {
+                const isDeletedCustomer = b.customer === 'Deleted User';
                 const initials = getInitials(b.customer);
                 const cIdx = index % custColors.length;
                 const pIdx = index % petColors.length;
@@ -2641,7 +2642,7 @@ if (typeof bindUserMenuEvents === 'function') {
                     : b.petEmoji;
 
                 return `
-                <tr data-id="${b.id}" data-booking-id="${b.id}">
+                <tr class="${isDeletedCustomer ? 'deleted-row' : ''}" data-id="${b.id}" data-booking-id="${b.id}">
                     <td><strong>${b.id}</strong></td>
                     <td>
                         <div class="customer-cell">
