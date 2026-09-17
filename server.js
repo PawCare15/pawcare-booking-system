@@ -316,13 +316,14 @@ async function sendDeletionConfirmedEmail(customerEmail, customerName) {
       to_email: customerEmail,
       email: customerEmail,
       otp_code: '',
+      delete_link: '',
       title: 'Account Deleted Successfully - PawCare',
       subject: 'Account Deleted Successfully - PawCare',
       description: `Dear ${customerName}, your PawCare account has been successfully deleted.`,
       validity_note: '',
       ignore_note: '',
       badgeText: 'ACCOUNT DELETED',
-      badgeClass: 'badge-account-deleted',
+      badgeClass: 'badge-delete',
       badgeMessage: 'This is an automated security message.'
     });
     console.log(`✅ Deletion confirmed email sent through EmailJS to ${customerEmail}`);
@@ -628,12 +629,11 @@ app.post('/api/login', async (req, res) => {
                 });
 
                 try {
-                    await emailjs.send(
-                        process.env.EMAILJS_SERVICE_ID,
-                        process.env.EMAILJS_TEMPLATE_ID,
-                        {
+                    await sendEmailJsTemplate({
                             otp_code: code,
                             email: user.email,
+                        to_email: user.email,
+                        delete_link: '',
                             title: '🔐 Two-Factor Authentication',
                             subject: 'Your 2FA Verification Code - PawCare',   // 新增
                             description: 'Your 2FA verification code is:',
@@ -642,8 +642,7 @@ app.post('/api/login', async (req, res) => {
                             badgeText: '2FA',
                             badgeClass: 'badge-2fa',
                             badgeMessage: 'This is an automated security message.'
-                        }
-                    );
+                        });
                 } catch (emailError) {
                     console.error('Failed to send 2FA email:', emailError);
                 }
@@ -2726,19 +2725,19 @@ app.post('/api/send-otp', async (req, res) => {
       privateKey: process.env.EMAILJS_PRIVATE_KEY,
   });
   try {
-            await emailjs.send(
-          process.env.EMAILJS_SERVICE_ID,
-          process.env.EMAILJS_TEMPLATE_ID,
-          {
+            await sendEmailJsTemplate({
               otp_code: otp,
               email: email,
+              to_email: email,
+              delete_link: '',
               title: '🔑 Password Reset',
               subject: 'Password Reset OTP - PawCare',   // 新增
               description: 'We received a request to reset your password. Use the OTP below:',
+                validity_note: 'This code is valid for 5 minutes.',
+                ignore_note: "If you didn't request this, please ignore this email.",
               badgeText: 'Reset',
               badgeClass: 'badge-reset'
-          }
-      );
+              });
       res.json({ success: true, message: 'OTP sent.' });
   } catch (err) {
       console.error(err);
