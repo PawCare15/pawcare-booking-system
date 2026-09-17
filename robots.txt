@@ -1,0 +1,8 @@
+User-agent: *
+Disallow: /admin_
+Disallow: /dashboard.html
+Disallow: /history.html
+Disallow: /mypet.html
+Disallow: /booking.html
+Disallow: /profile.html
+Disallow: /review.html
