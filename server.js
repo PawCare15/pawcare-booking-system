@@ -147,7 +147,7 @@ async function sendEmailJsTemplate(templateParams) {
     badgeMessage: String(templateParams.badgeMessage || 'This is an automated security message.')
   };
 
-  emailjs.init({
+  await emailjs.init({
     publicKey: process.env.EMAILJS_PUBLIC_KEY,
     privateKey: process.env.EMAILJS_PRIVATE_KEY
   });
