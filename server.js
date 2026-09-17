@@ -272,14 +272,7 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
         message: error.message
       });
       try {
-        emailjs.init({
-          publicKey: process.env.EMAILJS_PUBLIC_KEY,
-          privateKey: process.env.EMAILJS_PRIVATE_KEY
-        });
-        await emailjs.send(
-          process.env.EMAILJS_SERVICE_ID,
-          process.env.EMAILJS_TEMPLATE_ID,
-          {
+        await sendEmailJsTemplate({
             to_email: customerEmail,
             email: customerEmail,
             otp_code: 'CONFIRM DELETION',
@@ -292,8 +285,7 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
             badgeText: 'ACCOUNT DELETION',
             badgeClass: 'badge-delete',
             badgeMessage: 'This is an automated security message.'
-          }
-        );
+        });
         console.log(`✅ Deletion email sent through EmailJS fallback to ${customerEmail}`);
         return true;
       } catch (fallbackError) {
@@ -629,11 +621,12 @@ app.post('/api/login', async (req, res) => {
                 });
 
                 try {
-                    await sendEmailJsTemplate({
+                    await emailjs.send(
+                        process.env.EMAILJS_SERVICE_ID,
+                        process.env.EMAILJS_TEMPLATE_ID,
+                        {
                             otp_code: code,
                             email: user.email,
-                        to_email: user.email,
-                        delete_link: '',
                             title: '🔐 Two-Factor Authentication',
                             subject: 'Your 2FA Verification Code - PawCare',   // 新增
                             description: 'Your 2FA verification code is:',
@@ -642,7 +635,8 @@ app.post('/api/login', async (req, res) => {
                             badgeText: '2FA',
                             badgeClass: 'badge-2fa',
                             badgeMessage: 'This is an automated security message.'
-                        });
+                        }
+                    );
                 } catch (emailError) {
                     console.error('Failed to send 2FA email:', emailError);
                 }
@@ -2727,13 +2721,14 @@ app.post('/api/send-otp', async (req, res) => {
               to_email: email,
               delete_link: '',
               title: '🔑 Password Reset',
-              subject: 'Password Reset OTP - PawCare',   // 新增
+              subject: 'Password Reset OTP - PawCare',
               description: 'We received a request to reset your password. Use the OTP below:',
-                validity_note: 'This code is valid for 5 minutes.',
-                ignore_note: "If you didn't request this, please ignore this email.",
+              validity_note: 'This code is valid for 5 minutes.',
+              ignore_note: "If you didn't request this, please ignore this email.",
               badgeText: 'Reset',
-              badgeClass: 'badge-reset'
-              });
+              badgeClass: 'badge-reset',
+              badgeMessage: 'This is an automated security message.'
+            });
       res.json({ success: true, message: 'OTP sent.' });
   } catch (err) {
       console.error(err);
@@ -3290,9 +3285,16 @@ app.all('/api/delete-account', async (req, res) => {
             `);
         }
 
-        // Check token expiry
-        const expiryDate = new Date(customer.delete_token_expiry);
-        if (new Date() > expiryDate) {
+        // Check token expiry defensively; GET must remain read-only.
+        let isExpired = false;
+        if (customer.delete_token_expiry) {
+            const expiryDate = new Date(customer.delete_token_expiry);
+            isExpired = !Number.isNaN(expiryDate.getTime()) && new Date() > expiryDate;
+        } else {
+            isExpired = true;
+        }
+
+        if (isExpired) {
           if (req.method !== 'GET') {
             await supabaseAdmin
               .from('customer')
