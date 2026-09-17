@@ -644,14 +644,18 @@
             background: #FAF7F2;
         }
 
-        #serviceTable thead th,
         #serviceTable thead th {
             text-align: center !important;
             vertical-align: middle;
         }
         #serviceTable tbody td {
-            text-align: center !important;
             vertical-align: middle;
+        }
+        #serviceTable tbody td:first-child {
+            text-align: left !important;
+        }
+        #serviceTable tbody td:not(:first-child) {
+            text-align: center !important;
         }
 
         /* Pet Type Badge */
@@ -3134,7 +3138,7 @@ async function loadServices() {
                 }) : '-';
 
                 row.innerHTML = `
-                    <td style="text-align:center; vertical-align:middle;">${escapeHtml(service.service_name)} <br><span style="font-size:10px;color:#7A7A7A;">${escapeHtml(service.description || 'No description')}</span></td>
+                    <td style="text-align:left; vertical-align:middle;">${escapeHtml(service.service_name)} <br><span style="font-size:10px;color:#7A7A7A;">${escapeHtml(service.description || 'No description')}</span></td>
                     <td>${escapeHtml(service.category)}</td>
                     <td><span class="pet-type-badge ${petClass}">${petLabel}</span></td>
                     <td class="price-cell"><span class="price-tag">RM ${parseFloat(service.price || 0).toFixed(2)}</span></td>
