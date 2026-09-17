@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f5f0eb; padding: 20px; }
+        .container { max-width: 500px; margin: 0 auto; background: #ffffff; border-radius: 12px; padding: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .header { text-align: center; padding-bottom: 20px; border-bottom: 2px solid #efebe6; }
+        .header h1 { color: #a75e31; margin: 0; }
+        .content { padding: 20px 0; }
+        .content p { color: #555; line-height: 1.6; }
+        .otp-box { background: #f8f4ee; border-radius: 8px; padding: 12px; text-align: center; font-size: 28px; letter-spacing: 6px; font-weight: 700; color: #a75e31; margin: 16px 0; }
+        .delete-btn-container { text-align: center; margin: 20px 0; }
+        .delete-btn { background-color: #DC2626; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; }
+        .footer { text-align: center; padding-top: 20px; border-top: 1px solid #efebe6; font-size: 12px; color: #999; }
+        .note { color: #7a7a7a; font-size: 13px; }
+        .badge { display: inline-block; padding: 2px 12px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+        .badge-2fa { background: #2e7d32; color: #fff; }
+        .badge-reset { background: #c5221f; color: #fff; }
+        .badge-delete { background: #b91c1c; color: #fff; }
+        .badge-account-deleted { background: #555; color: #fff; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>PawCare</h1>
+            <p style="color: #7a7a7a; margin: 0;">Booking System</p>
+        </div>
+        <div class="content">
+            <h2>{{title}}</h2>
+            <p>Hello,</p>
+            <p>{{description}}</p>
+            {{#if otp_code}}
+            <div class="otp-box">{{otp_code}}</div>
+            {{/if}}
+            {{#if delete_link}}
+            <div class="delete-btn-container">
+                <a href="{{delete_link}}" class="delete-btn">Delete My Account Now</a>
+            </div>
+            {{/if}}
+            {{#if validity_note}}
+            <p class="note">{{validity_note}}</p>
+            {{/if}}
+            {{#if ignore_note}}
+            <p class="note">{{ignore_note}}</p>
+            {{/if}}
+            <p style="margin-top: 16px; font-size: 13px; color: #7a7a7a;">
+                {{#if badgeText}}
+                <span class="badge {{badgeClass}}">{{badgeText}}</span>
+                {{/if}}
+                {{badgeMessage}}
+            </p>
+        </div>
+        <div class="footer">
+            <p>Copyright 2026 PawCare Booking System - Paw Walker Grooming House</p>
+            <p>Email sent via EmailJS.com</p>
+        </div>
+    </div>
+</body>
+</html>
