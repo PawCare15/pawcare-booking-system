@@ -144,7 +144,9 @@ async function sendEmailJsTemplate(templateParams) {
     ignore_note: String(templateParams.ignore_note || ''),
     badgeText: String(templateParams.badgeText || ''),
     badgeClass: String(templateParams.badgeClass || ''),
-    badgeMessage: String(templateParams.badgeMessage || 'This is an automated security message.')
+    badgeMessage: String(templateParams.badgeMessage || 'This is an automated security message.'),
+    notes_html: String(templateParams.notes_html || ''),
+    action_html: String(templateParams.action_html || '')
   };
 
   await emailjs.init({
@@ -174,11 +176,11 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
         title: 'Account Deletion Request - PawCare',
         subject: 'Account Deletion Request - PawCare',
         description: `Dear ${customerName}, an admin has requested deletion of your PawCare account. Please click the link below to confirm.`,
-        validity_note: 'This link will expire in 24 hours.',
-        ignore_note: "If you didn't request this, please ignore this email.",
         badgeText: 'ACCOUNT DELETION',
         badgeClass: 'badge-delete',
-        badgeMessage: 'This is an automated security message.'
+        badgeMessage: 'This is an automated security message.',
+        notes_html: '<div>This link will expire in 24 hours.</div><div>If you didn\'t request this, please ignore this email.</div>',
+        action_html: `<a href="${deleteLink}" class="delete-btn">Delete My Account</a>`
       });
       console.log(`✅ Deletion email sent through EmailJS to ${customerEmail}`);
       return true;
@@ -312,11 +314,11 @@ async function sendDeletionConfirmedEmail(customerEmail, customerName) {
       title: 'Account Deleted Successfully - PawCare',
       subject: 'Account Deleted Successfully - PawCare',
       description: `Dear ${customerName}, your PawCare account has been successfully deleted. All your data has been permanently removed from our system.`,
-      validity_note: '',
-      ignore_note: '',
       badgeText: 'ACCOUNT DELETED',
       badgeClass: 'badge-delete',
-      badgeMessage: 'This is an automated security message.'
+      badgeMessage: 'This is an automated security message.',
+      notes_html: '',
+      action_html: '<div class="hint-box">If you wish to use our services again, you can create a new account anytime.</div>'
     });
     console.log(`✅ Deletion confirmed email sent through EmailJS to ${customerEmail}`);
     return true;
@@ -615,28 +617,21 @@ app.post('/api/login', async (req, res) => {
                 await supabaseAdmin.from('admin_2fa_codes').insert({ email: user.email, code, expires_at: expiresAt });
 
                 // 3. 使用 EmailJS 发送验证码邮件
-                emailjs.init({
-                    publicKey: process.env.EMAILJS_PUBLIC_KEY,
-                    privateKey: process.env.EMAILJS_PRIVATE_KEY,
-                });
-
                 try {
-                    await emailjs.send(
-                        process.env.EMAILJS_SERVICE_ID,
-                        process.env.EMAILJS_TEMPLATE_ID,
-                        {
+                      await sendEmailJsTemplate({
                             otp_code: code,
                             email: user.email,
+                          to_email: user.email,
+                          delete_link: '',
                             title: '🔐 Two-Factor Authentication',
-                            subject: 'Your 2FA Verification Code - PawCare',   // 新增
+                          subject: 'Your 2FA Verification Code - PawCare',
                             description: 'Your 2FA verification code is:',
-                            validity_note: 'This code is valid for 5 minutes.',
-                            ignore_note: "If you didn't request this, please ignore this email.",
                             badgeText: '2FA',
                             badgeClass: 'badge-2fa',
-                            badgeMessage: 'This is an automated security message.'
-                        }
-                    );
+                          badgeMessage: 'This is an automated security message.',
+                          notes_html: '<div>This code is valid for 5 minutes.</div><div>If you didn\'t request this, please ignore this email.</div>',
+                          action_html: '<div class="hint-box">For your security, never share this code with anyone.</div>'
+                      });
                 } catch (emailError) {
                     console.error('Failed to send 2FA email:', emailError);
                 }
@@ -2723,11 +2718,11 @@ app.post('/api/send-otp', async (req, res) => {
               title: '🔑 Password Reset',
               subject: 'Password Reset OTP - PawCare',
               description: 'We received a request to reset your password. Use the OTP below:',
-              validity_note: 'This code is valid for 5 minutes.',
-              ignore_note: "If you didn't request this, please ignore this email.",
               badgeText: 'Reset',
               badgeClass: 'badge-reset',
-              badgeMessage: 'This is an automated security message.'
+              badgeMessage: 'This is an automated security message.',
+              notes_html: '<div>This code is valid for 5 minutes.</div><div>If you didn\'t request this, please ignore this email.</div>',
+              action_html: '<div class="hint-box">For your security, never share this code with anyone.</div>'
             });
       res.json({ success: true, message: 'OTP sent.' });
   } catch (err) {

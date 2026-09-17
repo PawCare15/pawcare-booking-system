@@ -3134,7 +3134,7 @@ async function loadServices() {
                 }) : '-';
 
                 row.innerHTML = `
-                    <td>${escapeHtml(service.service_name)} <br><span style="font-size:10px;color:#7A7A7A;">${escapeHtml(service.description || 'No description')}</span></td>
+                    <td style="text-align:center; vertical-align:middle;">${escapeHtml(service.service_name)} <br><span style="font-size:10px;color:#7A7A7A;">${escapeHtml(service.description || 'No description')}</span></td>
                     <td>${escapeHtml(service.category)}</td>
                     <td><span class="pet-type-badge ${petClass}">${petLabel}</span></td>
                     <td class="price-cell"><span class="price-tag">RM ${parseFloat(service.price || 0).toFixed(2)}</span></td>

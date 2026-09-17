@@ -1032,6 +1032,10 @@ async function loadPetsFromSupabase() {
             
             // 🆕 TAMBAHAN: Use pet data from API response
             const customer = pet.customer || {};
+            let finalStatus = pet.status || 'Active';
+            if (customer.status === 'deleted' || customer.full_name === 'Deleted User') {
+                finalStatus = 'Inactive';
+            }
             
             return {
                 id: pet.pet_id || '#PET-' + String(Math.floor(Math.random() * 10000)).padStart(4, '0'),
@@ -1044,7 +1048,7 @@ async function loadPetsFromSupabase() {
                 date_of_birth: pet.date_of_birth || '',
                 age: ageDisplay,
                 weight: pet.weight ? `${pet.weight} kg` : 'N/A',
-                status: pet.status || 'Active',
+                status: finalStatus,
                 gender: pet.gender || 'Male',
                 medicalNotes: pet.special_notes || '',
                 lastService: 'None scheduled',
@@ -1137,13 +1141,16 @@ function renderPetTable(data) {
     tbody.innerHTML = data.map(pet => {
         const statusClass = pet.status ? pet.status.toLowerCase() : 'active';
         const statusDisplay = pet.status || 'Active';
+        const isInactive = pet.status === 'Inactive';
         const speciesIcon = pet.species === 'Dog' ? 'fa-solid fa-dog' : 'fa-solid fa-cat';
+        const rowStyle = isInactive ? 'opacity: 0.6; background-color: #f9f9f9;' : '';
+        const btnDisabledStyle = isInactive ? 'opacity: 0.4; cursor: not-allowed; pointer-events: none;' : '';
         
         const avatarHtml = pet.image ? 
             `<img src="${pet.image}" alt="${pet.name}" style="width:28px; height:28px; border-radius:50%; object-fit:cover; flex-shrink:0;">` :
             `<div style="width:28px; height:28px; border-radius:50%; background:#FDF3E7; display:flex; align-items:center; justify-content:center; font-weight:600; font-size:11px; color:#5A361A; flex-shrink:0;">${pet.name.charAt(0).toUpperCase()}</div>`;
         
-        return `<tr data-pet-id="${pet.pet_id}">
+        return `<tr data-pet-id="${pet.pet_id}" style="${rowStyle}">
             <td><strong>${pet.id || pet.pet_id || 'N/A'}</strong></td>
             <td>
                 <div style="display:flex; align-items:center; gap:8px;">
@@ -1159,13 +1166,13 @@ function renderPetTable(data) {
             <td><span class="status-badge-sm ${statusClass}">${statusDisplay}</span></td>
             <td>
                 <div class="action-btns">
-                    <button class="btn-action view" onclick="viewPetDetail('${pet.pet_id}')" title="View Details">
+                    <button class="btn-action view" onclick="viewPetDetail('${pet.pet_id}')" title="View Details" ${isInactive ? 'disabled' : ''} style="${btnDisabledStyle}">
                         <i class="fa-regular fa-eye"></i>
                     </button>
-                    <button class="btn-action edit" onclick="openEditPetModal('${pet.pet_id}')" title="Edit">
+                    <button class="btn-action edit" onclick="openEditPetModal('${pet.pet_id}')" title="Edit" ${isInactive ? 'disabled' : ''} style="${btnDisabledStyle}">
                         <i class="fa-regular fa-pen-to-square"></i>
                     </button>
-                    <button class="btn-action delete" onclick="openDeleteModal('${pet.pet_id}')" title="Delete">
+                    <button class="btn-action delete" onclick="openDeleteModal('${pet.pet_id}')" title="Delete" ${isInactive ? 'disabled' : ''} style="${btnDisabledStyle}">
                         <i class="fa-regular fa-trash-can"></i>
                     </button>
                 </div>
