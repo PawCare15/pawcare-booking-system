@@ -319,7 +319,7 @@ async function sendDeletionConfirmedEmail(customerEmail, customerName) {
       delete_link: '',
       title: 'Account Deleted Successfully - PawCare',
       subject: 'Account Deleted Successfully - PawCare',
-      description: `Dear ${customerName}, your PawCare account has been successfully deleted.`,
+      description: `Dear ${customerName}, your PawCare account has been successfully deleted. All your data has been permanently removed from our system.`,
       validity_note: '',
       ignore_note: '',
       badgeText: 'ACCOUNT DELETED',
@@ -2720,10 +2720,6 @@ app.post('/api/send-otp', async (req, res) => {
     return res.status(500).json({ success: false, message: 'Failed to store OTP.' });
   }
 
-  emailjs.init({
-      publicKey: process.env.EMAILJS_PUBLIC_KEY,
-      privateKey: process.env.EMAILJS_PRIVATE_KEY,
-  });
   try {
             await sendEmailJsTemplate({
               otp_code: otp,
@@ -3297,14 +3293,16 @@ app.all('/api/delete-account', async (req, res) => {
         // Check token expiry
         const expiryDate = new Date(customer.delete_token_expiry);
         if (new Date() > expiryDate) {
-          await supabaseAdmin
-            .from('customer')
-            .update({ status: 'Active', delete_token: null, delete_token_expiry: null })
-            .eq('customer_id', customer.customer_id);
-          await supabaseAdmin
-            .from('pet')
-            .update({ status: 'Active' })
-            .eq('customer_id', customer.customer_id);
+          if (req.method !== 'GET') {
+            await supabaseAdmin
+              .from('customer')
+              .update({ status: 'Active', delete_token: null, delete_token_expiry: null })
+              .eq('customer_id', customer.customer_id);
+            await supabaseAdmin
+              .from('pet')
+              .update({ status: 'Active' })
+              .eq('customer_id', customer.customer_id);
+          }
 
             return res.status(400).send(`
                 <!DOCTYPE html>
