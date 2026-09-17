@@ -2241,7 +2241,7 @@
 
           let html = '';
           reviews.forEach(review => {
-              const customerName = review.customer ? review.customer.full_name : 'Anonymous';
+              const customerName = review.customer ? review.customer.full_name : 'Deleted User';
               const dateStr = review.created_at ? new Date(review.created_at).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : '';
               const serviceName = review.service_name || 'General';
               const photoHtml = review.review_photo ?

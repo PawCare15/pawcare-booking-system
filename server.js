@@ -173,9 +173,9 @@ async function sendDeleteConfirmationEmail(customerEmail, customerName, deleteTo
         delete_link: deleteLink,
         title: 'Account Deletion Request - PawCare',
         subject: 'Account Deletion Request - PawCare',
-        description: 'If you wish to delete your PawCare Booking System account, please click the link above.',
+        description: `Dear ${customerName}, an admin has requested deletion of your PawCare account. Please click the link below to confirm.`,
         validity_note: 'This link will expire in 24 hours.',
-        ignore_note: '',
+        ignore_note: "If you didn't request this, please ignore this email.",
         badgeText: 'ACCOUNT DELETION',
         badgeClass: 'badge-delete',
         badgeMessage: 'This is an automated security message.'
@@ -4074,7 +4074,7 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
         if (customerIds.length > 0) {
           const { data: customers, error: customerError } = await supabaseAdmin
             .from('customer')
-            .select('customer_id, full_name, email, phone_number')
+            .select('customer_id, full_name, email, phone_number, status')
             .in('customer_id', customerIds);
 
           if (customerError) throw customerError;
@@ -4097,7 +4097,8 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
             customer: customersById[pet.customer_id] ? {
               full_name: customersById[pet.customer_id].full_name,
               email: customersById[pet.customer_id].email,
-              phone_number: customersById[pet.customer_id].phone_number
+              phone_number: customersById[pet.customer_id].phone_number,
+              status: customersById[pet.customer_id].status
             } : null
         }));
 

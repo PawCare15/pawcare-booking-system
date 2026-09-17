@@ -1044,7 +1044,7 @@ async function loadPetsFromSupabase() {
                 date_of_birth: pet.date_of_birth || '',
                 age: ageDisplay,
                 weight: pet.weight ? `${pet.weight} kg` : 'N/A',
-                status: pet.status || 'Active',
+                status: (pet.customer && pet.customer.status === 'deleted') ? 'Inactive' : (pet.status || 'Active'),
                 gender: pet.gender || 'Male',
                 medicalNotes: pet.special_notes || '',
                 lastService: 'None scheduled',

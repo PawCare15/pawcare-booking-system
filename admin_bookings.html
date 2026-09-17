@@ -601,6 +601,11 @@
             min-height: 36px;
             white-space: nowrap;
         }
+        .action-unavailable {
+            color: #9A9A9A;
+            font-weight: 600;
+            font-size: 16px;
+        }
         .action-icons > i,
         .action-icons > .btn-action {
             flex: 0 0 36px;
@@ -2679,9 +2684,11 @@ if (typeof bindUserMenuEvents === 'function') {
                     </td>
                     <td class="reschedule-cell">
                         <div class="reschedule-icons">
-                            ${b.reschedule_status === 'pending' ? `<button class="btn-action approve-reschedule-btn" data-id="${b.id}" title="Approve customer request"><i class="fa-solid fa-check"></i></button><button class="btn-action reject-reschedule-btn" data-id="${b.id}" title="Reject customer request"><i class="fa-solid fa-xmark"></i></button>` : ''}
-                            ${b.reschedule_status === 'admin_pending' ? `<button class="btn-action admin-pending-btn" data-id="${b.id}" title="Waiting for customer approval"><i class="fa-solid fa-hourglass-half"></i></button>` : ''}
-                            ${String(b.statusClass || '').toLowerCase() === 'pending' ? `<button class="btn-action suggest-reschedule-btn" data-id="${b.id}" title="Suggest reschedule" style="display:inline-flex;background:#FFF3CD;color:#A16207;border:1px solid #F6D98B;"><i class="fa-regular fa-calendar-plus"></i></button>` : ''}
+                            ${isDeletedCustomer ? '<span class="action-unavailable">-</span>' : `
+                                ${b.reschedule_status === 'pending' ? `<button class="btn-action approve-reschedule-btn" data-id="${b.id}" title="Approve customer request"><i class="fa-solid fa-check"></i></button><button class="btn-action reject-reschedule-btn" data-id="${b.id}" title="Reject customer request"><i class="fa-solid fa-xmark"></i></button>` : ''}
+                                ${b.reschedule_status === 'admin_pending' ? `<button class="btn-action admin-pending-btn" data-id="${b.id}" title="Waiting for customer approval"><i class="fa-solid fa-hourglass-half"></i></button>` : ''}
+                                ${String(b.statusClass || '').toLowerCase() === 'pending' ? `<button class="btn-action suggest-reschedule-btn" data-id="${b.id}" title="Suggest reschedule" style="display:inline-flex;background:#FFF3CD;color:#A16207;border:1px solid #F6D98B;"><i class="fa-regular fa-calendar-plus"></i></button>` : ''}
+                            `}
                         </div>
                     </td>
                 </tr>
