@@ -759,28 +759,17 @@
     }
 
     .action-cell .btn-action {
-      flex: 0 0 78px;
-      width: 78px;
+      flex: 1 1 auto;
+      width: 100%;
+      max-width: 150px;
+      min-width: 120px;
+      height: 38px;
       justify-content: center;
-      min-width: 78px;
-      padding-left: 6px;
-      padding-right: 6px;
-    }
-
-    .action-cell .btn-view,
-    .action-cell .btn-cancel {
-      min-width: 78px;
-    }
-
-    .action-cell .btn-cancel {
-      flex: 0 0 auto;
-      width: auto;
-    }
-
-    .action-cell .btn-reschedule {
-      flex-basis: 105px;
-      width: 105px;
-      min-width: 105px;
+      text-align: center;
+      padding: 4px 6px;
+      white-space: normal;
+      line-height: 1.3;
+      box-sizing: border-box;
     }
 
     .action-unavailable {
@@ -1273,10 +1262,12 @@
         padding: 10px 10px;
       }
 
-      .btn-action {
+      .action-cell .btn-action {
+        min-width: 100px;
+        max-width: 120px;
+        height: 36px;
         font-size: 10px;
-        padding: 3px 8px;
-        gap: 3px;
+        padding: 3px 5px;
       }
       .btn-action i {
         font-size: 10px;
@@ -1372,11 +1363,12 @@
         gap: 3px;
       }
 
-      .btn-action {
+      .action-cell .btn-action {
+        min-width: 90px;
+        max-width: 110px;
+        height: 34px;
         font-size: 9px;
-        padding: 3px 6px;
-        gap: 2px;
-        border-radius: 4px;
+        padding: 3px 4px;
       }
       .btn-action i {
         font-size: 9px;
@@ -1409,10 +1401,12 @@
         height: 32px;
       }
 
-      .btn-action {
+      .action-cell .btn-action {
+        min-width: 80px;
+        max-width: 100px;
+        height: 32px;
         font-size: 8px;
-        padding: 2px 5px;
-        gap: 2px;
+        padding: 2px 3px;
       }
       .btn-action i {
         font-size: 8px;
@@ -2332,7 +2326,28 @@ async function fetchNotificationsData() {
         }
 
         function canRescheduleBooking(booking) {
-            const bookingDateTime = new Date(`${booking.bookingDate}T${booking.time}`);
+          if (!booking.bookingDate) return false;
+          let timeStr = booking.time || "00:00";
+          let formattedTime = timeStr;
+
+          const match = timeStr.match(/(\d+):(\d+)\s*(AM|PM)/i);
+          if (match) {
+            let hours = parseInt(match[1], 10);
+            const minutes = match[2];
+            const ampm = match[3].toUpperCase();
+            if (ampm === 'PM' && hours < 12) hours += 12;
+            if (ampm === 'AM' && hours === 12) hours = 0;
+            formattedTime = `${hours.toString().padStart(2, '0')}:${minutes}`;
+          } else {
+            const match24 = timeStr.match(/(\d+):(\d+)/);
+            if (match24) {
+              formattedTime = `${match24[1].padStart(2, '0')}:${match24[2]}`;
+            }
+          }
+
+          const bookingDateTime = new Date(`${booking.bookingDate}T${formattedTime}:00`);
+          if (isNaN(bookingDateTime.getTime())) return false;
+
             const diffHours = (bookingDateTime - new Date()) / (1000 * 60 * 60);
             return (booking.status === 'pending' || booking.status === 'upcoming' || booking.status === 'confirmed')
                 && diffHours >= 24
@@ -2386,7 +2401,7 @@ async function fetchNotificationsData() {
             const end = start + itemsPerPage;
             const pageItems = filtered.slice(start, end);
             const hasRescheduleContent = pageItems.some(booking =>
-              booking.reschedule_status === 'pending' || canRescheduleBooking(booking)
+              booking.reschedule_status === 'admin_pending' || canRescheduleBooking(booking)
             );
             document.getElementById('bookingTable').classList.toggle('hide-reschedule', !hasRescheduleContent);
 
