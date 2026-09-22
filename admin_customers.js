@@ -1772,9 +1772,12 @@ function searchCustomers(query) {
                customer.email.toLowerCase().includes(searchTerm) ||
                customer.phone.includes(searchTerm);
         if (!matchesSearch) return false;
+        if (statusFilter === 'all') return customer.status !== 'deleted';
         if (statusFilter === 'deleted') return customer.status === 'deleted';
-        if (statusFilter === 'all' || statusFilter === 'Active') return customer.status !== 'deleted';
-        return customer.status === statusFilter && customer.status !== 'deleted';
+        if (statusFilter === 'pending_deletion') return customer.status === 'pending_deletion';
+        if (statusFilter === 'Active') return customer.status === 'Active';
+        if (statusFilter === 'Inactive') return customer.status === 'Inactive';
+        return customer.status === statusFilter;
     });
     renderCustomerTable(filtered);
 }
@@ -1932,17 +1935,11 @@ document.addEventListener('DOMContentLoaded', function() {
         console.warn('⚠️ Notification button not found!');
     }
 
-    // Search input
+    // Filter only when the button is clicked or search is submitted with Enter
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            searchCustomers(e.target.value);
-        });
-    }
-    const statusFilter = document.getElementById('statusFilter');
-    if (statusFilter) {
-        statusFilter.addEventListener('change', function() {
-            searchCustomers(searchInput?.value || '');
+        searchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') applyFilters();
         });
     }
 

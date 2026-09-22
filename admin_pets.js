@@ -1142,7 +1142,7 @@ function renderPetTable(data) {
         const statusClass = pet.status ? pet.status.toLowerCase() : 'active';
         const statusDisplay = pet.status || 'Active';
         const isInactive = pet.status === 'Inactive';
-        const speciesIcon = pet.species === 'Dog' ? 'fa-solid fa-dog' : 'fa-solid fa-cat';
+        const speciesIcon = (pet.species || '').toLowerCase() === 'dog' ? 'fa-solid fa-dog' : 'fa-solid fa-cat';
         const rowStyle = isInactive ? 'opacity: 0.6; background-color: #f9f9f9;' : '';
         const btnDisabledStyle = isInactive ? 'opacity: 0.4; cursor: not-allowed; pointer-events: none;' : '';
         
@@ -1196,7 +1196,7 @@ function viewPetDetail(id) {
     const content = document.getElementById('petDetailContent');
     
     const statusClass = pet.status ? pet.status.toLowerCase() : 'active';
-    const speciesIcon = pet.species === 'Dog' ? 'fa-solid fa-dog' : 'fa-solid fa-cat';
+    const speciesIcon = (pet.species || '').toLowerCase() === 'dog' ? 'fa-solid fa-dog' : 'fa-solid fa-cat';
     
     const petImageHtml = pet.image ? 
         `<img src="${pet.image}" alt="${pet.name}" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:3px solid #EFE4D8;">` :
@@ -2024,8 +2024,10 @@ function applyFiltersAndRender() {
                               pet.owner.toLowerCase().includes(searchQuery) ||
                               pet.breed.toLowerCase().includes(searchQuery);
         
-        const matchesSpecies = speciesFilter === 'all' || pet.species === speciesFilter;
-        const matchesStatus = statusFilter === 'all' || pet.status === statusFilter;
+        const matchesSpecies = speciesFilter === 'all' ||
+            (pet.species || '').toLowerCase() === speciesFilter.toLowerCase();
+        const matchesStatus = statusFilter === 'all' ||
+            (pet.status || '').toLowerCase() === statusFilter.toLowerCase();
         
         return matchesSearch && matchesSpecies && matchesStatus;
     });
@@ -2150,25 +2152,11 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Search input
+    // Filter only when the button is clicked or search is submitted with Enter
     const searchInput = document.getElementById('searchInput');
     if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            applyFiltersAndRender();
-        });
-    }
-
-    const speciesFilter = document.getElementById('speciesFilter');
-    if (speciesFilter) {
-        speciesFilter.addEventListener('change', function() {
-            applyFiltersAndRender();
-        });
-    }
-
-    const statusFilter = document.getElementById('statusFilter');
-    if (statusFilter) {
-        statusFilter.addEventListener('change', function() {
-            applyFiltersAndRender();
+        searchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') applyFiltersAndRender();
         });
     }
 
