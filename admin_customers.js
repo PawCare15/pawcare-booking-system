@@ -1121,72 +1121,6 @@ async function loadRecentBookingsForCustomers() {
 }
 
 // ================================================================
-// GET PREVIOUS MONTH STATS
-// ================================================================
-async function getPreviousMonthStats() {
-    try {
-        const token = localStorage.getItem('token');
-        
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-        
-        let prevMonth = currentMonth - 1;
-        let prevYear = currentYear;
-        if (prevMonth < 0) {
-            prevMonth = 11;
-            prevYear = currentYear - 1;
-        }
-        
-        const firstDayPrev = new Date(prevYear, prevMonth, 1).toISOString();
-        const firstDayCurrent = new Date(currentYear, currentMonth, 1).toISOString();
-        
-        const response = await fetch(
-            `${SUPABASE_URL}/rest/v1/customer?select=customer_id&created_at=gte.${firstDayPrev}&created_at=lt.${firstDayCurrent}`,
-            {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'apikey': SUPABASE_ANON_KEY
-                }
-            }
-        );
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch previous month stats: ${response.status}`);
-        }
-
-        const prevMonthCustomers = await response.json();
-        
-        const totalResponse = await fetch(
-            `${SUPABASE_URL}/rest/v1/customer?select=customer_id&created_at=lt.${firstDayCurrent}`,
-            {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'apikey': SUPABASE_ANON_KEY
-                }
-            }
-        );
-
-        if (!totalResponse.ok) {
-            throw new Error(`Failed to fetch total customers: ${totalResponse.status}`);
-        }
-
-        const totalPrev = await totalResponse.json();
-
-        return {
-            newCustomers: prevMonthCustomers.length,
-            totalCustomers: totalPrev.length
-        };
-        
-    } catch (err) {
-        console.error('Error getting previous month stats:', err);
-        return { newCustomers: 0, totalCustomers: 0 };
-    }
-}
-
-// ================================================================
 // RENDER CUSTOMER TABLE
 // ================================================================
 function renderCustomerTable(data) {
@@ -1801,78 +1735,53 @@ function clearAllFilters() {
 // LOAD CUSTOMER STATS - REAL TIME CALCULATION
 // ================================================================
 async function loadCustomerStats() {
-    const total = customersData.length;
-    const active = customersData.filter(c => c.status === 'Active').length;
-    const inactive = customersData.filter(c => c.status === 'Inactive').length;
-    
-    const now = new Date();
-    const currentMonth = now.getMonth();
-    const currentYear = now.getFullYear();
-    const firstDayCurrent = new Date(currentYear, currentMonth, 1);
-    
-    let newCustomers = 0;
-    customersData.forEach(c => {
-        if (c.created_at) {
-            try {
-                const date = new Date(c.created_at);
-                if (date >= firstDayCurrent) {
-                    newCustomers++;
-                }
-            } catch (e) {}
-        }
-    });
-    
-    const prevStats = await getPreviousMonthStats();
-    
-    const totalChange = calculatePercentageChange(prevStats.totalCustomers, total);
-    const newChange = calculatePercentageChange(prevStats.newCustomers, newCustomers);
-    
-    const activePercent = total > 0 ? Math.round((active / total) * 100) : 0;
-    const inactivePercent = total > 0 ? Math.round((inactive / total) * 100) : 0;
-    
-    document.getElementById('totalCustomers').textContent = total;
-    document.getElementById('newCustomers').textContent = newCustomers;
-    document.getElementById('activeCustomers').textContent = active;
-    document.getElementById('inactiveCustomers').textContent = inactive;
-    
-    const totalChangeEl = document.querySelector('.stat-card-balance:nth-child(1) .stat-change');
-    const newChangeEl = document.querySelector('.stat-card-balance:nth-child(2) .stat-change');
-    const activePercentEl = document.querySelector('.stat-card-balance:nth-child(3) .stat-change');
-    const inactivePercentEl = document.querySelector('.stat-card-balance:nth-child(4) .stat-change');
-    
-    if (totalChangeEl) {
-        totalChangeEl.textContent = totalChange;
-        totalChangeEl.className = `stat-change ${totalChange.startsWith('+') ? 'positive' : totalChange.startsWith('-') ? 'negative' : ''}`;
-    }
-    
-    if (newChangeEl) {
-        newChangeEl.textContent = newChange;
-        newChangeEl.className = `stat-change ${newChange.startsWith('+') ? 'positive' : newChange.startsWith('-') ? 'negative' : ''}`;
-    }
-    
-    if (activePercentEl) {
-        activePercentEl.textContent = `${activePercent}% of total`;
-        activePercentEl.className = 'stat-change positive';
-    }
-    
-    if (inactivePercentEl) {
-        inactivePercentEl.textContent = `${inactivePercent}% of total`;
-        inactivePercentEl.className = inactivePercent > 0 ? 'stat-change negative' : 'stat-change';
-    }
-}
+    try {
+        const response = await authFetch('/api/admin/customers/stats');
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.message || 'Failed to load customer stats');
 
-// ================================================================
-// HELPER: CALCULATE PERCENTAGE CHANGE
-// ================================================================
-function calculatePercentageChange(prevValue, currentValue) {
-    if (prevValue === 0 && currentValue === 0) return '+0%';
-    if (prevValue === 0) return '+100%';
-    
-    const change = ((currentValue - prevValue) / prevValue) * 100;
-    const rounded = Math.round(change);
-    const sign = rounded >= 0 ? '+' : '';
-    
-    return `${sign}${rounded}%`;
+        const { total, active, inactive, newThisMonth, totalLastMonth, newLastMonth } = result.data;
+        const pct = (current, previous) => {
+            if (previous === 0 && current === 0) return '0%';
+            if (previous === 0) return '+100%';
+            const change = ((current - previous) / previous) * 100;
+            return `${change >= 0 ? '+' : ''}${change.toFixed(0)}%`;
+        };
+
+        document.getElementById('totalCustomers').textContent = total;
+        document.getElementById('newCustomers').textContent = newThisMonth;
+        document.getElementById('activeCustomers').textContent = active;
+        document.getElementById('inactiveCustomers').textContent = inactive;
+
+        const totalChangeEl = document.querySelector('.stat-card-balance:nth-child(1) .stat-change');
+        const newChangeEl = document.querySelector('.stat-card-balance:nth-child(2) .stat-change');
+        const activePercentEl = document.querySelector('.stat-card-balance:nth-child(3) .stat-change');
+        const inactivePercentEl = document.querySelector('.stat-card-balance:nth-child(4) .stat-change');
+        const totalChange = pct(total, totalLastMonth);
+        const newChange = pct(newThisMonth, newLastMonth);
+
+        if (totalChangeEl) {
+            totalChangeEl.textContent = `${totalChange} from last month`;
+            totalChangeEl.className = `stat-change ${totalChange.startsWith('-') ? 'negative' : 'positive'}`;
+        }
+        if (newChangeEl) {
+            newChangeEl.textContent = `${newChange} from last month`;
+            newChangeEl.className = `stat-change ${newChange.startsWith('-') ? 'negative' : 'positive'}`;
+        }
+
+        const activePercent = total > 0 ? Math.round((active / total) * 100) : 0;
+        const inactivePercent = total > 0 ? Math.round((inactive / total) * 100) : 0;
+        if (activePercentEl) {
+            activePercentEl.textContent = `${activePercent}% of total`;
+            activePercentEl.className = 'stat-change positive';
+        }
+        if (inactivePercentEl) {
+            inactivePercentEl.textContent = `${inactivePercent}% of total`;
+            inactivePercentEl.className = inactivePercent > 0 ? 'stat-change negative' : 'stat-change';
+        }
+    } catch (error) {
+        console.error('Error loading customer stats:', error);
+    }
 }
 
 // ================================================================

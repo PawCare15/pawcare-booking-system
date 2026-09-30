@@ -1,16 +1,41 @@
 // Universal notification target highlighting and modal opening.
 (function () {
+    'use strict';
+
+    function clearHighlightParam() {
+        const url = new URL(window.location.href);
+        if (!url.searchParams.has('highlight')) return;
+        url.searchParams.delete('highlight');
+        window.history.replaceState({}, '', url.toString());
+    }
+
     function highlightElement(element) {
         if (!element) return;
-        element.style.transition = 'all 0.4s ease';
-        element.style.boxShadow = '0 0 0 4px #D97706, 0 12px 30px rgba(74,51,39,0.2)';
-        element.style.transform = 'scale(1.02)';
-        element.style.zIndex = '10';
-        setTimeout(() => {
-            element.style.boxShadow = '';
-            element.style.transform = 'scale(1)';
-            element.style.zIndex = '';
-        }, 2800);
+        const style = element.style;
+        const original = {
+            transition: style.transition,
+            boxShadow: style.boxShadow,
+            transform: style.transform,
+            zIndex: style.zIndex,
+            background: style.background
+        };
+        style.transition = 'box-shadow 0.4s ease, background 0.4s ease';
+        style.boxShadow = '0 0 0 3px #D97706, 0 12px 30px rgba(74,51,39,0.18)';
+        style.background = '#FFF7E6';
+
+        let timer;
+        const clear = () => {
+            clearTimeout(timer);
+            style.boxShadow = original.boxShadow;
+            style.background = original.background;
+            style.transform = original.transform;
+            style.zIndex = original.zIndex;
+            setTimeout(() => { style.transition = original.transition; }, 400);
+            element.removeEventListener('click', clear);
+        };
+
+        timer = setTimeout(clear, 3000);
+        element.addEventListener('click', clear, { once: true });
     }
 
     function findHighlightTarget(highlightId) {
@@ -70,20 +95,23 @@
         if (!highlightId) return;
 
         let attempts = 0;
-        const maxAttempts = 40;
+        const maxAttempts = 10;
         const findAndHighlight = () => {
             const element = findHighlightTarget(highlightId);
             if (element) {
                 element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 highlightElement(element);
+                clearHighlightParam();
                 return;
             }
             if (attempts < maxAttempts) {
                 attempts += 1;
-                setTimeout(findAndHighlight, 250);
+                setTimeout(findAndHighlight, 300);
+            } else {
+                clearHighlightParam();
             }
         };
-        setTimeout(findAndHighlight, 100);
+        findAndHighlight();
     }
 
     window.applyUniversalHighlight = applyUniversalHighlight;

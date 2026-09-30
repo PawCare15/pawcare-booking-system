@@ -78,7 +78,7 @@ const supabaseAdmin = createClient(
   process.env.SUPABASE_SERVICE_KEY
 );
 
-async function createCustomerNotification(customerId, title, message, type = 'system', bookingId = null, reviewId = null) {
+async function createCustomerNotification(customerId, title, message, type = 'system', bookingId = null, reviewId = null, petId = null) {
   if (!customerId) {
     console.log('❌ Notification write skipped: customerId is empty');
     return;
@@ -86,6 +86,7 @@ async function createCustomerNotification(customerId, title, message, type = 'sy
   const notification = { customer_id: customerId, title, message, type };
   if (bookingId) notification.booking_id = bookingId;
   if (reviewId) notification.review_id = reviewId;
+  if (petId) notification.pet_id = petId;
   const { data, error } = await supabaseAdmin
     .from('customer_notifications')
     .insert(notification)
@@ -994,7 +995,7 @@ app.get('/api/pets', async (req, res) => {
     const userId = userInfo.customer_id;
     const role = userInfo.role || 'customer';
 
-    let query = supabaseAdmin.from('pet').select('*');
+    let query = supabaseAdmin.from('pet').select('*').neq('status', 'Deleted');
     if (role === 'customer') {
       query = query.eq('customer_id', userId);
     }
@@ -1136,8 +1137,20 @@ app.put('/api/pets/:pet_id', async (req, res) => {
     }
     // admin 不追加 customer_id 条件，可以修改任意宠物（也可以要求传入 customer_id 做双重验证）
 
-    const { error } = await query;
+    const { data: updatedPet, error } = await query.select('pet_id').maybeSingle();
     if (error) throw error;
+    if (!updatedPet) return res.status(404).json({ success: false, message: 'Pet not found.' });
+    if (role === 'customer') {
+      await createCustomerNotification(
+        userId,
+        'Pet Profile Updated',
+        `${name || 'Your pet'}'s profile has been updated successfully.`,
+        'pet',
+        null,
+        null,
+        pet_id
+      );
+    }
     res.json({ success: true, message: 'Pet updated.' });
   } catch (err) {
     console.error(err);
@@ -1410,9 +1423,14 @@ app.delete('/api/admin/services/:id', isAdmin, async (req, res) => {
 app.get('/api/admin/stats', isAdmin, async (req, res) => {
   try {
     await autoCancelExpiredPendingBookings();
+    const firstDayOfMonth = new Date();
+    firstDayOfMonth.setDate(1);
+    firstDayOfMonth.setHours(0, 0, 0, 0);
+    const firstDayOfLastMonth = new Date(firstDayOfMonth);
+    firstDayOfLastMonth.setMonth(firstDayOfLastMonth.getMonth() - 1);
     const { data: bookings, error: bookingError } = await supabaseAdmin
       .from('booking')
-      .select('status');
+      .select('status, booking_date, reschedule_status, reschedule_requested_date');
     if (bookingError) throw bookingError;
 
     const totalBookings = bookings.length;
@@ -1421,14 +1439,37 @@ app.get('/api/admin/stats', isAdmin, async (req, res) => {
     const confirmedBookings = bookingStatuses.filter(status => status === 'confirmed').length;
     const completedBookings = bookingStatuses.filter(status => status === 'completed').length;
     const cancelledBookings = bookingStatuses.filter(status => status === 'cancelled').length;
+    const currentMonthStart = firstDayOfMonth.toISOString().slice(0, 10);
+    const nextDay = new Date();
+    nextDay.setDate(nextDay.getDate() + 1);
+    const currentMonthEnd = nextDay.toISOString().slice(0, 10);
+    const getEffectiveBookingDate = booking => ['pending', 'admin_pending'].includes(booking.reschedule_status) && booking.reschedule_requested_date
+      ? String(booking.reschedule_requested_date).slice(0, 10)
+      : String(booking.booking_date || '').slice(0, 10);
+    const currentMonthBookings = bookings.filter(booking => {
+      const effectiveDate = getEffectiveBookingDate(booking);
+      return effectiveDate >= currentMonthStart && effectiveDate < currentMonthEnd;
+    });
+    const currentStatuses = currentMonthBookings.map(booking => String(booking.status || '').trim().toLowerCase());
 
-    const { count: totalCustomers } = await supabaseAdmin
-      .from('customer')
-      .select('*', { count: 'exact', head: true });
+    const [customersResult, previousCustomersResult, petsResult, previousPetsResult] = await Promise.all([
+      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).neq('status', 'deleted'),
+      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).lt('created_at', firstDayOfMonth.toISOString()).neq('status', 'deleted'),
+      supabaseAdmin.from('pet').select('*', { count: 'exact', head: true }).neq('status', 'Deleted'),
+      supabaseAdmin.from('pet').select('*', { count: 'exact', head: true }).lt('created_at', firstDayOfMonth.toISOString()).neq('status', 'Deleted')
+    ]);
+    for (const result of [customersResult, previousCustomersResult, petsResult, previousPetsResult]) {
+      if (result.error) throw result.error;
+    }
+    const totalCustomers = customersResult.count || 0;
+    const totalPets = petsResult.count || 0;
 
-    const { count: totalPets } = await supabaseAdmin
-      .from('pet')
-      .select('*', { count: 'exact', head: true });
+    const previousMonthBookings = bookings.filter(booking => {
+      const effectiveDate = getEffectiveBookingDate(booking);
+      return effectiveDate >= firstDayOfLastMonth.toISOString().slice(0, 10)
+        && effectiveDate < firstDayOfMonth.toISOString().slice(0, 10);
+    });
+    const previousStatuses = previousMonthBookings.map(booking => String(booking.status || '').trim().toLowerCase());
 
     const { data: reviews } = await supabaseAdmin
       .from('review')
@@ -1438,6 +1479,24 @@ app.get('/api/admin/stats', isAdmin, async (req, res) => {
       const sum = reviews.reduce((a, b) => a + b.rating, 0);
       avgRating = sum / reviews.length;
     }
+    const { data: previousReviews, error: previousReviewsError } = await supabaseAdmin
+      .from('review')
+      .select('rating')
+      .gte('review_date', firstDayOfLastMonth.toISOString())
+      .lt('review_date', firstDayOfMonth.toISOString());
+    if (previousReviewsError) throw previousReviewsError;
+    const previousAvgRating = previousReviews?.length
+      ? previousReviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / previousReviews.length
+      : 0;
+    const { data: currentReviews, error: currentReviewsError } = await supabaseAdmin
+      .from('review')
+      .select('rating')
+      .gte('review_date', firstDayOfMonth.toISOString())
+      .lt('review_date', nextDay.toISOString());
+    if (currentReviewsError) throw currentReviewsError;
+    const currentAvgRating = currentReviews?.length
+      ? currentReviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / currentReviews.length
+      : 0;
 
     res.json({
       success: true,
@@ -1449,7 +1508,21 @@ app.get('/api/admin/stats', isAdmin, async (req, res) => {
         totalCustomers,
         totalPets,
         completedBookings,
-        avgRating: parseFloat(avgRating.toFixed(1))
+        avgRating: parseFloat(avgRating.toFixed(1)),
+        currentMonthTotalBookings: currentMonthBookings.length,
+        currentMonthPendingBookings: currentStatuses.filter(status => status === 'pending').length,
+        currentMonthConfirmedBookings: currentStatuses.filter(status => ['confirmed', 'upcoming'].includes(status)).length,
+        currentMonthCompletedBookings: currentStatuses.filter(status => status === 'completed').length,
+        currentMonthCancelledBookings: currentStatuses.filter(status => status === 'cancelled').length,
+        currentMonthAvgRating: parseFloat(currentAvgRating.toFixed(1)),
+        previousMonthTotalBookings: previousMonthBookings.length,
+        previousMonthPendingBookings: previousStatuses.filter(status => status === 'pending').length,
+        previousMonthConfirmedBookings: previousStatuses.filter(status => ['confirmed', 'upcoming'].includes(status)).length,
+        previousMonthCompletedBookings: previousStatuses.filter(status => status === 'completed').length,
+        previousMonthCancelledBookings: previousStatuses.filter(status => status === 'cancelled').length,
+        previousMonthTotalCustomers: previousCustomersResult.count || 0,
+        previousMonthTotalPets: previousPetsResult.count || 0,
+        previousMonthAvgRating: parseFloat(previousAvgRating.toFixed(1))
       }
     });
   } catch (err) {
@@ -1551,21 +1624,23 @@ app.get('/api/admin/bookings-trend', async (req, res) => {
     for (let i = 29; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
-      dates.push(d.toISOString().split('T')[0]);
+      dates.push(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`);
     }
 
     const { data, error } = await supabaseAdmin
       .from('booking')
-      .select('booking_date, status')
-      .gte('booking_date', dates[0])
-      .lte('booking_date', dates[29]);
+      .select('booking_date, status, reschedule_status, reschedule_requested_date');
 
     if (error) throw error;
 
     const countMap = {};
     const completedMap = {};
     data.forEach(b => {
-      const date = b.booking_date;
+      const effectiveDate = ['pending', 'admin_pending'].includes(b.reschedule_status) && b.reschedule_requested_date
+        ? String(b.reschedule_requested_date).slice(0, 10)
+        : String(b.booking_date || '').slice(0, 10);
+      if (!dates.includes(effectiveDate)) return;
+      const date = effectiveDate;
       countMap[date] = (countMap[date] || 0) + 1;
       if (String(b.status || '').trim().toLowerCase() === 'completed') {
         completedMap[date] = (completedMap[date] || 0) + 1;
@@ -1624,16 +1699,23 @@ app.get('/api/admin/top-customers', async (req, res) => {
       .from('booking')
       .select(`
         customer_id,
-        customer:customer_id (full_name)
+        customer:customer_id (full_name, status)
       `);
 
     if (error) throw error;
 
     const countMap = {};
+    const completedMap = {};
     data.forEach(b => {
       const id = b.customer_id;
+      if (!id) return;
       if (!countMap[id]) {
-        countMap[id] = { name: b.customer?.full_name || 'Unknown', count: 0 };
+        countMap[id] = {
+          customer_id: id,
+          name: b.customer?.full_name || 'Unknown',
+          status: b.customer?.status || 'Active',
+          count: 0
+        };
       }
       countMap[id].count++;
     });
@@ -1664,54 +1746,30 @@ app.get('/api/admin/monthly-trend', async (req, res) => {
       months.push(`${year}-${month}`);
       labels.push(`${year}-${month}`);
     }
-    const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-      .toISOString()
-      .split('T')[0];
-
-    // 查询 booking 按月份分组计数
     const { data, error } = await supabaseAdmin
       .from('booking')
-      .select('booking_date')
-      .gte('booking_date', months[0] + '-01')
-      .lt('booking_date', nextMonth);
+      .select('booking_date, status, reschedule_status, reschedule_requested_date');
 
     if (error) throw error;
 
     const countMap = {};
     data.forEach(b => {
-      const date = b.booking_date;
-      if (date) {
-        const monthKey = date.substring(0, 7); // "YYYY-MM"
-        countMap[monthKey] = (countMap[monthKey] || 0) + 1;
+      const effectiveDate = ['pending', 'admin_pending'].includes(b.reschedule_status) && b.reschedule_requested_date
+        ? String(b.reschedule_requested_date).slice(0, 10)
+        : String(b.booking_date || '').slice(0, 10);
+      const monthKey = effectiveDate.slice(0, 7);
+      if (!months.includes(monthKey)) return;
+      countMap[monthKey] = (countMap[monthKey] || 0) + 1;
+      if (String(b.status || '').trim().toLowerCase() === 'completed') {
+        completedMap[monthKey] = (completedMap[monthKey] || 0) + 1;
       }
     });
 
     const trend = months.map(month => ({
       month,
-      count: countMap[month] || 0
+      count: countMap[month] || 0,
+      completed: completedMap[month] || 0
     }));
-
-    // 同时获取 completed 数据（可选）
-    const { data: completedData, error: completedError } = await supabaseAdmin
-      .from('booking')
-      .select('booking_date')
-      .eq('status', 'completed')
-      .gte('booking_date', months[0] + '-01')
-      .lt('booking_date', nextMonth);
-
-    if (!completedError) {
-      const completedMap = {};
-      completedData.forEach(b => {
-        const date = b.booking_date;
-        if (date) {
-          const monthKey = date.substring(0, 7);
-          completedMap[monthKey] = (completedMap[monthKey] || 0) + 1;
-        }
-      });
-      trend.forEach(item => {
-        item.completed = completedMap[item.month] || 0;
-      });
-    }
 
     res.json({ success: true, data: { labels, trend } });
   } catch (err) {
@@ -3530,28 +3588,34 @@ app.get('/api/admin/customers/:id', isAdmin, async (req, res) => {
 
 app.get('/api/admin/customers/stats', isAdmin, async (req, res) => {
   try {
-    const { count: total, error: totalError } = await supabaseAdmin
-      .from('customer')
-      .select('*', { count: 'exact', head: true });
-    if (totalError) throw totalError;
-
     const firstDayOfMonth = new Date();
     firstDayOfMonth.setDate(1);
     firstDayOfMonth.setHours(0, 0, 0, 0);
+    const firstDayOfLastMonth = new Date(firstDayOfMonth);
+    firstDayOfLastMonth.setMonth(firstDayOfLastMonth.getMonth() - 1);
 
-    const { count: newThisMonth, error: monthError } = await supabaseAdmin
-      .from('customer')
-      .select('*', { count: 'exact', head: true })
-      .gte('created_at', firstDayOfMonth.toISOString());
-    if (monthError) throw monthError;
+    const results = await Promise.all([
+      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).neq('status', 'deleted'),
+      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).eq('status', 'Active'),
+      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).in('status', ['Inactive', 'deleted', 'pending_deletion']),
+      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).gte('created_at', firstDayOfMonth.toISOString()).neq('status', 'deleted'),
+      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).lt('created_at', firstDayOfMonth.toISOString()).neq('status', 'deleted'),
+      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).gte('created_at', firstDayOfLastMonth.toISOString()).lt('created_at', firstDayOfMonth.toISOString()).neq('status', 'deleted')
+    ]);
+    const [totalRes, activeRes, inactiveRes, newThisMonthRes, totalLastMonthRes, newLastMonthRes] = results;
+    for (const result of results) {
+      if (result.error) throw result.error;
+    }
 
     res.json({
       success: true,
       data: {
-        total: total || 0,
-        active: total || 0,
-        inactive: 0,
-        newThisMonth: newThisMonth || 0
+        total: totalRes.count || 0,
+        active: activeRes.count || 0,
+        inactive: inactiveRes.count || 0,
+        newThisMonth: newThisMonthRes.count || 0,
+        totalLastMonth: totalLastMonthRes.count || 0,
+        newLastMonth: newLastMonthRes.count || 0
       }
     });
   } catch (err) {
@@ -4051,6 +4115,7 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
         let query = supabaseAdmin
           .from('pet')
           .select('*')
+          .neq('status', 'Deleted')
           .order('pet_id', { ascending: true });
 
         if (species && species !== 'all') query = query.eq('species', species);
@@ -4204,7 +4269,7 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
 
       const { data, error } = await supabaseAdmin
         .from('pet')
-        .delete()
+        .update({ status: 'Deleted' })
         .eq('pet_id', id)
         .select('pet_id')
         .maybeSingle();
@@ -4216,7 +4281,10 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
           petToDelete.customer_id,
           'Pet Profile Deleted',
           `Your pet "${petToDelete.pet_name}" has been removed by the admin.`,
-          'pet'
+          'pet',
+          null,
+          null,
+          id
         );
       }
 
@@ -4339,7 +4407,7 @@ app.get('/api/notifications', async (req, res) => {
     const types = requestedTypes || contextTypeList;
     let query = supabaseAdmin
       .from('customer_notifications')
-      .select('notification_id, booking_id, review_id, title, message, type, is_read, created_at')
+      .select('notification_id, booking_id, review_id, pet_id, title, message, type, is_read, created_at')
       .eq('customer_id', customerId)
       .order('created_at', { ascending: false })
       .limit(50);
@@ -4368,6 +4436,52 @@ app.put('/api/notifications/read', async (req, res) => {
     res.json({ success: true });
   } catch (err) {
     console.error('Error marking customer notifications as read:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+app.get('/api/admin/stats/previous-month', isAdmin, async (req, res) => {
+  try {
+    const firstDayOfMonth = new Date();
+    firstDayOfMonth.setDate(1);
+    firstDayOfMonth.setHours(0, 0, 0, 0);
+    const firstDayOfLastMonth = new Date(firstDayOfMonth);
+    firstDayOfLastMonth.setMonth(firstDayOfLastMonth.getMonth() - 1);
+    const previousStart = firstDayOfLastMonth.toISOString().slice(0, 10);
+    const currentStart = firstDayOfMonth.toISOString().slice(0, 10);
+
+    const [bookingResult, customerResult, petResult, reviewResult] = await Promise.all([
+      supabaseAdmin.from('booking').select('status, booking_date, reschedule_status, reschedule_requested_date'),
+      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).lt('created_at', firstDayOfMonth.toISOString()).neq('status', 'deleted'),
+      supabaseAdmin.from('pet').select('*', { count: 'exact', head: true }).lt('created_at', firstDayOfMonth.toISOString()).neq('status', 'Deleted'),
+      supabaseAdmin.from('review').select('rating').gte('review_date', firstDayOfLastMonth.toISOString()).lt('review_date', firstDayOfMonth.toISOString())
+    ]);
+    for (const result of [bookingResult, customerResult, petResult, reviewResult]) {
+      if (result.error) throw result.error;
+    }
+
+    const bookings = (bookingResult.data || []).filter(booking => {
+      const effectiveDate = ['pending', 'admin_pending'].includes(booking.reschedule_status) && booking.reschedule_requested_date
+        ? String(booking.reschedule_requested_date).slice(0, 10)
+        : String(booking.booking_date || '').slice(0, 10);
+      return effectiveDate >= previousStart && effectiveDate < currentStart;
+    });
+    const reviews = reviewResult.data || [];
+    const avgRating = reviews.length
+      ? reviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / reviews.length
+      : 0;
+
+    res.json({
+      success: true,
+      data: {
+        totalBookings: bookings.length,
+        completedBookings: bookings.filter(booking => String(booking.status || '').toLowerCase() === 'completed').length,
+        totalCustomers: customerResult.count || 0,
+        totalPets: petResult.count || 0,
+        avgRating: Number(avgRating.toFixed(1))
+      }
+    });
+  } catch (err) {
     res.status(500).json({ success: false, message: err.message });
   }
 });

@@ -1396,27 +1396,52 @@ async function showNotificationDetails() {
             // 加载统计数据
             async function loadStats() {
                 try {
-                    const res = await authFetch('/api/admin/stats');
+                    const [res, previousRes] = await Promise.all([
+                        authFetch('/api/admin/stats'),
+                        authFetch('/api/admin/stats/previous-month')
+                    ]);
                     const data = await res.json();
-                    if (data.success) {
-                        const s = data.data;
-                        const prevTotal = s.previousMonthTotalBookings || 0;
-                        const currentTotal = s.totalBookings || 0;
-                        const percentage = prevTotal === 0 ? 100 : ((currentTotal - prevTotal) / prevTotal) * 100;
-                        const changeText = `↑ ${percentage.toFixed(1)}% vs last month`;
+                    const previousData = await previousRes.json();
+                    if (!data.success) return;
 
-                        document.getElementById('rTotalBookings').textContent = currentTotal;
-                        document.getElementById('rTotalCustomers').textContent = s.totalCustomers || 0;
-                        document.getElementById('rTotalPets').textContent = s.totalPets || 0;
-                        document.getElementById('rCompleted').textContent = s.completedBookings || 0;
-                        const avg = s.avgRating || 0;
-                        document.querySelector('.stat-report-card:last-child h3').innerHTML = avg.toFixed(1) + ' ★';
-                        const firstChange = document.querySelector('.stat-report-card .change');
-                        if (firstChange) {
-                            firstChange.textContent = changeText;
-                            firstChange.classList.remove('down');
-                            firstChange.classList.add('up');
+                    const current = data.data || {};
+                    const previous = previousData.success ? previousData.data || {} : {};
+                    const pct = (value, prior) => {
+                        if (!prior || prior === 0) return value > 0 ? '+100%' : '0%';
+                        const change = ((value - prior) / prior) * 100;
+                        return `${change >= 0 ? '+' : ''}${change.toFixed(1)}%`;
+                    };
+                    const metrics = [
+                        ['rTotalBookings', current.totalBookings || 0, current.currentMonthTotalBookings || 0, previous.totalBookings || 0],
+                        ['rTotalCustomers', current.totalCustomers || 0, previous.totalCustomers || 0],
+                        ['rTotalPets', current.totalPets || 0, previous.totalPets || 0],
+                        ['rCompleted', current.completedBookings || 0, current.currentMonthCompletedBookings || 0, previous.completedBookings || 0]
+                    ];
+
+                    metrics.forEach((metric, index) => {
+                        const [id, value] = metric;
+                        const comparison = id === 'rTotalBookings' || id === 'rCompleted';
+                        const currentPeriod = comparison ? metric[2] : value;
+                        const priorPeriod = comparison ? metric[3] : metric[2];
+                        const valueElement = document.getElementById(id);
+                        if (valueElement) valueElement.textContent = value;
+                        const changeElement = document.querySelectorAll('.stat-report-card .change')[index];
+                        if (changeElement) {
+                            const change = pct(currentPeriod, priorPeriod);
+                            changeElement.textContent = `${change} vs last month`;
+                            changeElement.className = `change ${change.startsWith('-') ? 'down' : 'up'}`;
                         }
+                    });
+
+                    const average = current.avgRating || 0;
+                    const currentPeriodAverage = current.currentMonthAvgRating || 0;
+                    const averageElement = document.querySelector('.stat-report-card:last-child h3');
+                    if (averageElement) averageElement.textContent = `${average.toFixed(1)} ★`;
+                    const ratingChange = document.querySelectorAll('.stat-report-card .change')[4];
+                    if (ratingChange) {
+                        const change = pct(currentPeriodAverage, previous.avgRating || 0);
+                        ratingChange.textContent = `${change} vs last month`;
+                        ratingChange.className = `change ${change.startsWith('-') ? 'down' : 'up'}`;
                     }
                 } catch (err) { console.error('Stats error:', err); }
             }
@@ -1433,7 +1458,7 @@ async function showNotificationDetails() {
 
                     const s = statsData.data || {};
                     const prevTotal = s.previousMonthTotalBookings || 0;
-                    const currentTotal = s.totalBookings || 0;
+                    const currentTotal = s.currentMonthTotalBookings || 0;
                     const percentage = prevTotal === 0 ? 100 : ((currentTotal - prevTotal) / prevTotal) * 100;
 
                     const firstInsight = document.querySelector('.insight-item:nth-child(1) .insight-text strong');
@@ -1519,9 +1544,13 @@ async function showNotificationDetails() {
                         customers.forEach((c, idx) => {
                             const tr = document.createElement('tr');
                             const rankClass = idx === 0 ? 'gold' : idx === 1 ? 'silver' : idx === 2 ? 'bronze' : '';
+                            const isInactive = ['deleted', 'Inactive', 'pending_deletion'].includes(c.status);
+                            tr.dataset.customerId = c.customer_id || '';
+                            tr.style.opacity = isInactive ? '0.55' : '1';
+                            tr.style.color = isInactive ? '#8A8A8A' : '';
                             tr.innerHTML = `
                                 <td><span class="rank-badge ${rankClass}">${c.rank}</span></td>
-                                <td><strong>${c.name}</strong></td>
+                                <td><strong>${c.name}</strong>${isInactive ? ' <span style="font-size:11px; color:#B0A090;">(inactive)</span>' : ''}</td>
                                 <td>${c.count}</td>
                             `;
                             tbody.appendChild(tr);
@@ -1679,5 +1708,6 @@ async function showNotificationDetails() {
         document.getElementById('adminPageDate').textContent = new Date().toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'short', year: 'numeric' });
     </script>
     <script src="admin_notifications.js"></script>
+    <script src="universal_highlight.js"></script>
 </body>
 </html>

@@ -2593,7 +2593,7 @@
                 }
 
                 html += `
-                    <div class="pet-card">
+                    <div class="pet-card" data-pet-id="${pet.pet_id}">
                         <div class="pet-avatar">
                             ${avatarHTML}
                         </div>
@@ -2624,7 +2624,7 @@
             const data = await res.json();
             if (!data.success) {
                 tableBody.innerHTML = `
-                    <tr>
+                    <tr data-booking-id="${b.booking_id}">
                         <td colspan="5" style="text-align:center; color:#7A7A7A; padding:20px;">
                             Unable to load bookings.
                         </td>

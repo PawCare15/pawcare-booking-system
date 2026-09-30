@@ -973,6 +973,7 @@ async function loadCustomersForDropdown() {
             select.innerHTML = '<option value="">-- Select Existing Customer --</option>';
             customersData.forEach(customer => {
                 if (customer.status === 'deleted') return;
+                if (customer.status !== 'Active') return;
                 const option = document.createElement('option');
                 option.value = customer.customer_id;
                 option.textContent = `${customer.full_name} (${customer.customer_id})`;

@@ -732,6 +732,14 @@ if (typeof bindUserMenuEvents === 'function') {
             document.getElementById('totalCustomers').textContent = summary.totalCustomers || 0;
             document.getElementById('totalPets').textContent = summary.totalPets || 0;
 
+            updateStatChange('totalChange', summary.previousMonthTotalBookings || 0, summary.currentMonthTotalBookings || 0);
+            updateStatChange('pendingChange', summary.previousMonthPendingBookings || 0, summary.currentMonthPendingBookings || 0);
+            updateStatChange('confirmedChange', summary.previousMonthConfirmedBookings || 0, summary.currentMonthConfirmedBookings || 0);
+            updateStatChange('completedChange', summary.previousMonthCompletedBookings || 0, summary.currentMonthCompletedBookings || 0);
+            updateStatChange('customerChange', summary.previousMonthTotalCustomers || 0, summary.totalCustomers || 0);
+            updateStatChange('petChange', summary.previousMonthTotalPets || 0, summary.totalPets || 0);
+            updateStatChange('cancelledChange', summary.previousMonthCancelledBookings || 0, summary.currentMonthCancelledBookings || 0);
+
         } catch (err) {
             console.error('Error loading stats:', err);
         }
@@ -739,11 +747,19 @@ if (typeof bindUserMenuEvents === 'function') {
 
     // HELPER: CALCULATE PERCENTAGE CHANGE
     function calculateChange(prevValue, currentValue) {
-        if (!prevValue || prevValue === 0) return '+0% from last month';
+        if (!prevValue || prevValue === 0) return `${currentValue > 0 ? '+100%' : '0%'} from last month`;
         const change = ((currentValue - prevValue) / prevValue) * 100;
         const sign = change >= 0 ? '+' : '';
         const rounded = Math.round(change);
         return `${sign}${rounded}% from last month`;
+    }
+
+    function updateStatChange(id, previousValue, currentValue) {
+        const element = document.getElementById(id);
+        if (!element) return;
+        const change = calculateChange(previousValue, currentValue);
+        element.textContent = change;
+        element.className = `stat-change ${change.startsWith('-') ? 'negative' : 'positive'}`;
     }
 
     // LOAD STATUS CHART (PIE CHART) - FROM SUPABASE

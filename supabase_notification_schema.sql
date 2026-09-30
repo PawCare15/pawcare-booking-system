@@ -7,9 +7,17 @@ CREATE TABLE IF NOT EXISTS public.customer_notifications (
   type text NOT NULL DEFAULT 'system',
   booking_id text NULL,
   review_id text NULL,
+  pet_id text NULL,
   is_read boolean NOT NULL DEFAULT false,
   created_at timestamp with time zone NOT NULL DEFAULT now()
 );
+
+ALTER TABLE public.customer_notifications
+DROP CONSTRAINT IF EXISTS customer_notifications_type_check;
+
+ALTER TABLE public.customer_notifications
+ADD CONSTRAINT customer_notifications_type_check
+CHECK (type IN ('system', 'booking', 'reschedule', 'profile', 'security', 'review', 'pet', 'payment', 'account'));
 
 CREATE INDEX IF NOT EXISTS customer_notifications_customer_idx
 ON public.customer_notifications (customer_id, created_at DESC);
@@ -36,6 +44,9 @@ END $$;
 
 ALTER TABLE public.customer_notifications
 ADD COLUMN IF NOT EXISTS review_id text NULL;
+
+ALTER TABLE public.customer_notifications
+ADD COLUMN IF NOT EXISTS pet_id text NULL;
 
 CREATE INDEX IF NOT EXISTS customer_notifications_booking_idx
 ON public.customer_notifications (booking_id, created_at DESC);

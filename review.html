@@ -699,22 +699,22 @@
     /* ===== SERVICE STATS ===== */
     .service-stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 18px;
     }
 
     .service-stat-item {
-      background: linear-gradient(135deg, #FFFFFF, #FAF7F2);
-      border: 1px solid #EFECE6;
-      border-radius: 20px;
-      padding: 24px 16px;
+      position: relative;
+      background: linear-gradient(160deg, #FFFDF9 0%, #FFFFFF 60%, #FAF3EA 100%);
+      border: 1px solid #F0E5D6;
+      border-radius: 22px;
+      padding: 28px 20px 22px;
       text-align: center;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      box-shadow: 0 4px 12px rgba(90, 54, 26, 0.05);
+      transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      box-shadow: 0 6px 18px rgba(90, 54, 26, 0.06);
       display: flex;
       flex-direction: column;
       align-items: center;
-      position: relative;
       overflow: hidden;
     }
 
@@ -724,56 +724,74 @@
       top: 0;
       left: 0;
       right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #D97706, #F59E0B);
-      opacity: 0;
-      transition: opacity 0.3s;
+      height: 6px;
+      background: linear-gradient(90deg, #F59E0B, #D97706, #B45309);
+      opacity: 0.9;
     }
 
     .service-stat-item:hover {
       transform: translateY(-8px) scale(1.02);
-      box-shadow: 0 16px 32px rgba(90, 54, 26, 0.12);
-      border-color: #D97706;
+      box-shadow: 0 18px 40px rgba(90, 54, 26, 0.15);
+      border-color: #E8B85F;
     }
 
-    .service-stat-item:hover::before {
-      opacity: 1;
+    .service-stat-item .s-rating-hero {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 14px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .service-stat-item .s-score {
+      font-size: 40px;
+      font-weight: 800;
+      color: #B45309;
+      line-height: 1;
+      letter-spacing: 0;
+      text-shadow: 0 2px 6px rgba(245, 158, 11, 0.18);
+    }
+
+    .service-stat-item .s-stars {
+      display: inline-flex;
+      gap: 3px;
+      font-size: 14px;
+      color: #F59E0B;
+    }
+
+    .service-stat-item .s-stars i.fa-regular {
+      color: #E5D5C0;
     }
 
     .service-stat-item .s-name {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
-      color: #5A361A;
-      margin-bottom: 16px;
-      min-height: 48px;
+      color: #4A3327;
+      margin-bottom: 10px;
+      min-height: 40px;
       display: flex;
       align-items: center;
       justify-content: center;
       line-height: 1.3;
-    }
-
-    .service-stat-item .s-rating {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-size: 15px;
-      font-weight: 700;
-      color: #F59E0B;
-      background: #FFF8E7;
-      padding: 6px 14px;
-      border-radius: 20px;
-      margin-bottom: 12px;
-    }
-
-    .service-stat-item .s-rating i {
-      color: #F59E0B;
-      font-size: 14px;
+      padding: 0 6px;
+      position: relative;
+      z-index: 1;
     }
 
     .service-stat-item .s-count {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       font-size: 12px;
       color: #7A7A7A;
+      background: #FAF7F2;
+      padding: 5px 12px;
+      border-radius: 20px;
       font-weight: 500;
+      position: relative;
+      z-index: 1;
     }
 
     /* ===== REVIEW LIST - 与 admin_reviews 一致，无 Delete 按钮 ===== */
@@ -2458,18 +2476,22 @@
                   if (stats.length > 0) {
                       let html = '';
                       stats.forEach((item) => {
-                          const avgRating = item.avg_rating.toFixed(1);
-                          const fullStars = Math.floor(item.avg_rating);
-                          const hasHalf = item.avg_rating % 1 >= 0.5;
+                            const rating = Number(item.avg_rating) || 0;
+                            const avgRating = rating.toFixed(1);
+                            const fullStars = Math.floor(rating);
+                            const hasHalf = rating % 1 >= 0.5;
                           let starsHtml = '';
                           for (let i = 0; i < fullStars; i++) starsHtml += '<i class="fa-solid fa-star"></i>';
                           if (hasHalf) starsHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
-                          while (starsHtml.length < 5) starsHtml += '<i class="fa-regular fa-star"></i>';
+                            while ((starsHtml.match(/<i\b/g) || []).length < 5) starsHtml += '<i class="fa-regular fa-star"></i>';
                           html += `
                               <div class="service-stat-item">
-                                  <div class="s-name">${item.service_name}</div>
-                                  <div class="s-rating">${starsHtml} <span>${avgRating}</span></div>
-                                  <div class="s-count">${item.review_count} reviews</div>
+                                <div class="s-rating-hero">
+                                  <span class="s-score">${avgRating}</span>
+                                  <div class="s-stars">${starsHtml}</div>
+                                </div>
+                                <div class="s-name">${item.service_name}</div>
+                                <div class="s-count"><i class="fa-regular fa-comment-dots"></i> ${item.review_count} review${item.review_count === 1 ? '' : 's'}</div>
                               </div>
                           `;
                       });
