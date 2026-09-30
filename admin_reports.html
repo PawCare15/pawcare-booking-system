@@ -1559,28 +1559,28 @@ async function showNotificationDetails() {
                 } catch (err) { console.error('Top customers error:', err); }
             }
 
+            let monthlyComparisonChartInstance = null;
+
             // 加载月度比较图
             async function loadMonthlyComparison() {
             try {
                 const res = await authFetch('/api/admin/monthly-trend');
+                if (!res || !res.ok) throw new Error(`Failed to fetch monthly trend: ${res?.status || 'network error'}`);
                 const data = await res.json();
-                if (data.success) {
+                if (data.success && monthlyComparisonChartInstance) {
                 const { labels, trend } = data.data;
-                const chart = Chart.getChart('monthlyComparisonChart');
-                if (chart) {
                     // 更新 labels
-                    chart.data.labels = labels.map(label => {
+                    monthlyComparisonChartInstance.data.labels = labels.map(label => {
                     const parts = label.split('-');
                     return new Date(parts[0], parts[1]-1).toLocaleString('default', { month: 'short' });
                     });
                     // 更新 datasets
-                    chart.data.datasets[0].data = trend.map(item => item.count);
+                    monthlyComparisonChartInstance.data.datasets[0].data = trend.map(item => item.count);
                     // 如果有 completed 数据，更新第二个数据集
-                    if (chart.data.datasets.length > 1 && trend[0]?.completed !== undefined) {
-                    chart.data.datasets[1].data = trend.map(item => item.completed || 0);
+                    if (monthlyComparisonChartInstance.data.datasets.length > 1 && trend[0]?.completed !== undefined) {
+                    monthlyComparisonChartInstance.data.datasets[1].data = trend.map(item => item.completed || 0);
                     }
-                    chart.update();
-                }
+                    monthlyComparisonChartInstance.update();
                 }
             } catch (err) {
                 console.error('Monthly comparison error:', err);
@@ -1664,7 +1664,7 @@ async function showNotificationDetails() {
 
             // 2. Monthly Comparisons (Bar)
             const ctx4 = document.getElementById('monthlyComparisonChart').getContext('2d');
-            new Chart(ctx4, {
+            monthlyComparisonChartInstance = new Chart(ctx4, {
                 type: 'bar',
                 data: {
                     labels: [], // 清空初始标签

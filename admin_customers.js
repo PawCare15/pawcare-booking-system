@@ -1747,7 +1747,7 @@ async function loadCustomerStats() {
         const { total, active, inactive, newThisMonth, totalLastMonth, newLastMonth } = result.data;
         const pct = (current, previous) => {
             if (previous === 0 && current === 0) return '0%';
-            if (previous === 0) return '-';
+            if (previous === 0) return current > 0 ? '+100%' : '0%';
             const change = ((current - previous) / previous) * 100;
             return `${change >= 0 ? '+' : ''}${change.toFixed(0)}%`;
         };

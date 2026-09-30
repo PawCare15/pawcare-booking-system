@@ -1036,7 +1036,9 @@ async function loadPetsFromSupabase() {
             // 🆕 TAMBAHAN: Use pet data from API response
             const customer = pet.customer || {};
             let finalStatus = pet.status || 'Active';
-            if (customer.status === 'deleted' || customer.full_name === 'Deleted User') {
+            const customerStatus = String(customer.status || '').trim().toLowerCase();
+            const customerName = String(customer.full_name || '').trim().toLowerCase();
+            if (!pet.customer || customerStatus === 'deleted' || customerName === 'deleted user') {
                 finalStatus = 'Inactive';
             }
             
@@ -1051,7 +1053,7 @@ async function loadPetsFromSupabase() {
                 date_of_birth: pet.date_of_birth || '',
                 age: ageDisplay,
                 weight: pet.weight ? `${pet.weight} kg` : 'N/A',
-                status: pet.status || finalStatus,
+                status: finalStatus,
                 gender: pet.gender || 'Male',
                 medicalNotes: pet.special_notes || '',
                 lastService: 'None scheduled',

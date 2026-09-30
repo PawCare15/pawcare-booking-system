@@ -1426,11 +1426,13 @@ app.delete('/api/admin/services/:id', isAdmin, async (req, res) => {
 app.get('/api/admin/stats', isAdmin, async (req, res) => {
   try {
     await autoCancelExpiredPendingBookings();
-    const firstDayOfMonth = new Date();
-    firstDayOfMonth.setDate(1);
-    firstDayOfMonth.setHours(0, 0, 0, 0);
-    const firstDayOfLastMonth = new Date(firstDayOfMonth);
-    firstDayOfLastMonth.setMonth(firstDayOfLastMonth.getMonth() - 1);
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const formatLocalDate = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const currentMonthStart = formatLocalDate(firstDayOfMonth);
+    const currentMonthEnd = formatLocalDate(nextMonth);
     const { data: bookings, error: bookingError } = await supabaseAdmin
       .from('booking')
       .select('status, booking_date, reschedule_status, reschedule_requested_date');
@@ -1442,10 +1444,6 @@ app.get('/api/admin/stats', isAdmin, async (req, res) => {
     const confirmedBookings = bookingStatuses.filter(status => status === 'confirmed').length;
     const completedBookings = bookingStatuses.filter(status => status === 'completed').length;
     const cancelledBookings = bookingStatuses.filter(status => status === 'cancelled').length;
-    const currentMonthStart = firstDayOfMonth.toISOString().slice(0, 10);
-    const nextDay = new Date();
-    nextDay.setDate(nextDay.getDate() + 1);
-    const currentMonthEnd = nextDay.toISOString().slice(0, 10);
     const getEffectiveBookingDate = booking => ['pending', 'admin_pending'].includes(booking.reschedule_status) && booking.reschedule_requested_date
       ? String(booking.reschedule_requested_date).slice(0, 10)
       : String(booking.booking_date || '').slice(0, 10);
@@ -1478,8 +1476,8 @@ app.get('/api/admin/stats', isAdmin, async (req, res) => {
 
     const previousMonthBookings = bookings.filter(booking => {
       const effectiveDate = getEffectiveBookingDate(booking);
-      return effectiveDate >= firstDayOfLastMonth.toISOString().slice(0, 10)
-        && effectiveDate < firstDayOfMonth.toISOString().slice(0, 10);
+      return effectiveDate >= formatLocalDate(firstDayOfLastMonth)
+        && effectiveDate < currentMonthStart;
     });
     const previousStatuses = previousMonthBookings.map(booking => String(booking.status || '').trim().toLowerCase());
 
@@ -1504,7 +1502,7 @@ app.get('/api/admin/stats', isAdmin, async (req, res) => {
       .from('review')
       .select('rating')
       .gte('review_date', firstDayOfMonth.toISOString())
-      .lt('review_date', nextDay.toISOString());
+      .lt('review_date', nextMonth.toISOString());
     if (currentReviewsError) throw currentReviewsError;
     const currentAvgRating = currentReviews?.length
       ? currentReviews.reduce((sum, review) => sum + Number(review.rating || 0), 0) / currentReviews.length
@@ -1745,7 +1743,7 @@ app.get('/api/admin/top-customers', async (req, res) => {
 });
 
 // 5. 月度趋势（近12个月）
-app.get('/api/admin/monthly-trend', async (req, res) => {
+app.get('/api/admin/monthly-trend', isAdmin, async (req, res) => {
   try {
     const today = new Date();
     const months = [];
@@ -3602,9 +3600,9 @@ app.get('/api/admin/customers/:id', isAdmin, async (req, res) => {
 app.get('/api/admin/customers/stats', isAdmin, async (req, res) => {
   try {
     const now = new Date();
-    const firstDayOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-    const firstDayOfNextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
-    const firstDayOfLastMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const firstDayOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
     const { data: allCustomers, error } = await supabaseAdmin
       .from('customer')
@@ -3693,11 +3691,15 @@ app.delete('/api/admin/customers/:id', isAdmin, async (req, res) => {
             return res.status(404).json({ success: false, message: 'Customer not found' });
         }
         
-        await supabaseAdmin.from('pet').delete().eq('customer_id', id);
+        const { error: petsError } = await supabaseAdmin
+          .from('pet')
+          .update({ status: 'Inactive', customer_id: null })
+          .eq('customer_id', id);
+        if (petsError) throw petsError;
         
         const { error } = await supabaseAdmin
             .from('customer')
-            .delete()
+          .update({ status: 'deleted' })
             .eq('customer_id', id);
         
         if (error) throw error;
@@ -4481,13 +4483,12 @@ app.put('/api/notifications/read', async (req, res) => {
 
 app.get('/api/admin/stats/previous-month', isAdmin, async (req, res) => {
   try {
-    const firstDayOfMonth = new Date();
-    firstDayOfMonth.setDate(1);
-    firstDayOfMonth.setHours(0, 0, 0, 0);
-    const firstDayOfLastMonth = new Date(firstDayOfMonth);
-    firstDayOfLastMonth.setMonth(firstDayOfLastMonth.getMonth() - 1);
-    const previousStart = firstDayOfLastMonth.toISOString().slice(0, 10);
-    const currentStart = firstDayOfMonth.toISOString().slice(0, 10);
+    const now = new Date();
+    const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const firstDayOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const formatLocalDate = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const previousStart = formatLocalDate(firstDayOfLastMonth);
+    const currentStart = formatLocalDate(firstDayOfMonth);
 
     const [bookingResult, customerResult, petResult, reviewResult] = await Promise.all([
       supabaseAdmin.from('booking').select('status, booking_date, reschedule_status, reschedule_requested_date'),
