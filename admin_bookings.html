@@ -2732,7 +2732,9 @@ if (typeof bindUserMenuEvents === 'function') {
             if (!booking) return;
             currentSuggestRescheduleId = bookingId;
             const dateInput = document.getElementById('suggestRescheduleDate');
-            dateInput.min = new Date().toISOString().split('T')[0];
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            dateInput.min = tomorrow.toISOString().split('T')[0];
             dateInput.value = '';
             document.getElementById('suggestRescheduleReason').value = '';
             resetSuggestRescheduleTimes();

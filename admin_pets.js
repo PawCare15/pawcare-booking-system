@@ -1049,7 +1049,7 @@ async function loadPetsFromSupabase() {
                 date_of_birth: pet.date_of_birth || '',
                 age: ageDisplay,
                 weight: pet.weight ? `${pet.weight} kg` : 'N/A',
-                status: finalStatus,
+                status: pet.status || finalStatus,
                 gender: pet.gender || 'Male',
                 medicalNotes: pet.special_notes || '',
                 lastService: 'None scheduled',
@@ -1140,9 +1140,9 @@ function renderPetTable(data) {
     if (countSpan) countSpan.textContent = data.length;
     
     tbody.innerHTML = data.map(pet => {
-        const statusClass = pet.status ? pet.status.toLowerCase() : 'active';
         const statusDisplay = pet.status || 'Active';
-        const isInactive = pet.status === 'Inactive';
+        const statusClass = statusDisplay.toLowerCase();
+        const isInactive = statusDisplay.toLowerCase() === 'inactive';
         const speciesIcon = (pet.species || '').toLowerCase() === 'dog' ? 'fa-solid fa-dog' : 'fa-solid fa-cat';
         const rowStyle = isInactive ? 'opacity: 0.6; background-color: #f9f9f9;' : '';
         const btnDisabledStyle = isInactive ? 'opacity: 0.4; cursor: not-allowed; pointer-events: none;' : '';
@@ -1647,8 +1647,8 @@ function openEditPetModal(id) {
                     <div class="field">
                         <label>Species <span class="required">*</span></label>
                         <select id="petSpecies" required>
-                            <option value="Dog" ${pet.species === 'Dog' ? 'selected' : ''}>Dog</option>
-                            <option value="Cat" ${pet.species === 'Cat' ? 'selected' : ''}>Cat</option>
+                            <option value="Dog" ${species === 'dog' ? 'selected' : ''}>Dog</option>
+                            <option value="Cat" ${species === 'cat' ? 'selected' : ''}>Cat</option>
                         </select>
                     </div>
                     <div class="field">

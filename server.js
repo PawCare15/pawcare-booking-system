@@ -540,7 +540,7 @@ app.post('/api/login', async (req, res) => {
     // 1. 先查 customer 表
     let { data: customer, error } = await supabaseAdmin
       .from('customer')
-      .select('customer_id, full_name, email, password')
+      .select('customer_id, full_name, email, password, status')
       .eq('email', email)
       .maybeSingle();
 
@@ -556,6 +556,12 @@ app.post('/api/login', async (req, res) => {
     if (customer) {
       const match = await bcrypt.compare(password, customer.password);
       if (match) {
+        if (customer.status === 'deleted') {
+          return res.status(401).json({
+            success: false,
+            message: 'This account has been deleted. Please contact support.'
+          });
+        }
         // 登录成功，角色为 customer
         user = customer;
         role = 'customer';
@@ -4076,6 +4082,7 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
             pet_id: pet.pet_id,
             pet_name: pet.pet_name,
           customer_id: pet.customer_id,
+            status: pet.status || 'Active',
             species: pet.species,
             breed: pet.breed,
             date_of_birth: pet.date_of_birth,
@@ -4103,6 +4110,7 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
       const {
         name,
         customer_id,
+        status,
         species,
         breed,
         dob,
@@ -4129,6 +4137,7 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
         .insert([{
           customer_id,
           pet_name: name,
+          status: status || 'Active',
           species: String(species).toLowerCase(),
           breed,
           date_of_birth: dob,
@@ -4151,10 +4160,11 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
   app.put('/api/admin/pets/:id', isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, customer_id, species, breed, dob, gender, weight, notes, photo_url } = req.body;
+      const { name, customer_id, status, species, breed, dob, gender, weight, notes, photo_url } = req.body;
       const updateData = {
         pet_name: name,
         customer_id,
+        status: status || 'Active',
         species: String(species).toLowerCase(),
         breed,
         date_of_birth: dob,

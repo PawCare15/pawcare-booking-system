@@ -2552,6 +2552,7 @@
             if (!data.success) return;
 
             const pets = data.data || [];
+            pets.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
             if (pets.length === 0) {
                 container.innerHTML = `
                     <div class="empty-pets">

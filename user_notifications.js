@@ -443,6 +443,7 @@
     document.addEventListener('click', async function(event) {
         const viewLink = event.target.closest('.notif-view-link');
         if (viewLink) {
+            event.preventDefault();
             const notifId = viewLink.dataset.notifId;
             if (notifId) {
                 try {
@@ -455,6 +456,8 @@
                     console.error('Unable to mark notification as read on view:', error);
                 }
             }
+            window.location.href = viewLink.href;
+            return;
         }
 
         const markReadButton = event.target.closest('[data-notification-read]');
@@ -484,8 +487,7 @@
             ]);
             renderNotificationPanel([...(notificationResult.data || []), ...reminders], bookingResult.data || []);
             localStorage.setItem('pawcareUserNotificationsSeenAt', new Date().toISOString());
-            setBadge(0);
-            await request('/api/notifications/read', { method: 'PUT' });
+            await refreshBadge();
         } catch (error) {
             console.error('Unable to load user notifications:', error);
             const content = document.getElementById('notificationsModalContent');

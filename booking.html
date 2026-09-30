@@ -2742,6 +2742,7 @@ async function fetchNotificationsData() {
                     );
                     // 成功预约后清空表单
                     resetBookingForm();
+                    setTimeout(updateAvailableTimes, 300);
                 } else {
                     if (res.status === 409) await updateAvailableTimes();
                     showValidationModal(data.message || 'Failed to create booking. Please try again.');
