@@ -13,12 +13,16 @@
   <style>
     html {
         overflow-x: hidden;
-        overflow-y: hidden;
+        overflow-y: auto;
+        height: auto;
+        min-height: 100vh;
     }
 
     body {
-        overflow-x: hidden;
-        overflow-y: auto;
+        overflow-x: clip;
+        overflow-y: visible;
+        height: auto;
+        min-height: 100vh;
     }
 
     .service__section,
