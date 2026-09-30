@@ -972,7 +972,7 @@ async function loadCustomersForDropdown() {
             const currentValue = select.value;
             select.innerHTML = '<option value="">-- Select Existing Customer --</option>';
             customersData.forEach(customer => {
-                const status = (customer.status || '').toLowerCase();
+                const status = (customer.status || '').trim().toLowerCase();
                 if (status === 'deleted') return;
                 if (status !== 'active') return;
                 const option = document.createElement('option');

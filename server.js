@@ -3863,6 +3863,17 @@ app.get('/api/admin/bookings', isAdmin, async (req, res) => {
         const { data, error } = await query;
         if (error) throw error;
 
+        const petIds = [...new Set((data || []).map(booking => booking.pet_id).filter(Boolean))];
+        const petNamesById = new Map();
+        if (petIds.length > 0) {
+          const { data: pets, error: petsError } = await supabaseAdmin
+            .from('pet')
+            .select('pet_id, pet_name')
+            .in('pet_id', petIds);
+          if (petsError) throw petsError;
+          (pets || []).forEach(pet => petNamesById.set(pet.pet_id, pet.pet_name));
+        }
+
         const bookings = data.map(b => ({
             booking_id: b.booking_id,
             customer_id: b.customer_id,
@@ -3882,11 +3893,11 @@ app.get('/api/admin/bookings', isAdmin, async (req, res) => {
               phone_number: b.customer.phone_number,
               profile_photo: b.customer.profile_photo
             } : null,
-            pet: b.pet ? {
-                name: b.pet.pet_name,
-                breed: b.pet.breed,
-                species: b.pet.species,
-                photo_url: b.pet.pet_photo
+            pet: b.pet || petNamesById.has(b.pet_id) ? {
+              name: b.pet?.pet_name || petNamesById.get(b.pet_id),
+              breed: b.pet?.breed,
+              species: b.pet?.species,
+              photo_url: b.pet?.pet_photo
             } : null,
             services: (b.booking_service || []).map(s => ({
                 service_id: s.service_id,

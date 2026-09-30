@@ -1030,7 +1030,6 @@ async function loadCustomersFromSupabase() {
         await loadCustomerBookingStats();
 
         searchCustomers(document.getElementById('searchInput')?.value || '');
-        loadCustomerStats();
         loadNotificationCount();
         
         return customersData;
@@ -1741,6 +1740,7 @@ function clearAllFilters() {
 async function loadCustomerStats() {
     try {
         const response = await authFetch('/api/admin/customers/stats');
+        if (!response) throw new Error('Unable to connect to customer stats API');
         const result = await response.json();
         if (!response.ok || !result.success) throw new Error(result.message || 'Failed to load customer stats');
 
@@ -1785,6 +1785,14 @@ async function loadCustomerStats() {
         }
     } catch (error) {
         console.error('Error loading customer stats:', error);
+        ['totalCustomers', 'newCustomers', 'activeCustomers', 'inactiveCustomers'].forEach(id => {
+            const element = document.getElementById(id);
+            if (element) element.textContent = '-';
+        });
+        document.querySelectorAll('.stat-card-balance .stat-change').forEach(element => {
+            element.textContent = '-';
+            element.className = 'stat-change';
+        });
     }
 }
 
@@ -1877,6 +1885,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // ================================================================
     // THEN LOAD CUSTOMER DATA
     // ================================================================
+    loadCustomerStats();
     loadCustomersFromSupabase();
     setInterval(() => {
         if (document.visibilityState === 'visible') {
