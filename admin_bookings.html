@@ -2446,7 +2446,7 @@ if (typeof bindUserMenuEvents === 'function') {
                     customer: b.customer ? b.customer.full_name : 'Deleted User',
                     phone: b.customer ? b.customer.phone_number : 'N/A',
                     customerPhoto: b.customer?.profile_photo || '',
-                    pet: b.pet ? b.pet.name : 'Deleted Pet',
+                    pet: b.pet ? b.pet.name : (b.pet_id ? `Pet #${b.pet_id}` : 'Deleted Pet'),
                     breed: b.pet ? b.pet.breed || 'N/A' : 'N/A',
                     petPhoto: b.pet?.photo_url || '',
                     petEmoji: getPetEmoji(b.pet ? b.pet.species : ''),

@@ -1180,18 +1180,21 @@ app.delete('/api/pets/:pet_id', async (req, res) => {
       return res.status(400).json({ success: false, message: 'Cannot delete pet with pending or upcoming bookings.' });
     }
 
-    let query = supabaseAdmin.from('pet').delete().eq('pet_id', pet_id);
+    let query = supabaseAdmin
+      .from('pet')
+      .update({ status: 'Deleted' })
+      .eq('pet_id', pet_id);
     if (role === 'customer') {
       query = query.eq('customer_id', userId);
     }
-    // admin 不加 customer_id 条件
 
-        const { error } = await query;
+    const { data, error } = await query.select('pet_id').maybeSingle();
     if (error) throw error;
-    
-    // 添加日志
-    console.log(`✅ Pet ${pet_id} deleted by user ${userId} (role: ${role})`);
-    
+    if (!data) {
+      return res.status(404).json({ success: false, message: 'Pet not found.' });
+    }
+
+    console.log(`✅ Pet ${pet_id} soft-deleted by ${userId} (role: ${role})`);
     res.json({ success: true, message: 'Pet deleted.' });
   } catch (err) {
     console.error(err);
@@ -1753,7 +1756,8 @@ app.get('/api/admin/monthly-trend', async (req, res) => {
     if (error) throw error;
 
     const countMap = {};
-    data.forEach(b => {
+    const completedMap = {};
+    (data || []).forEach(b => {
       const effectiveDate = ['pending', 'admin_pending'].includes(b.reschedule_status) && b.reschedule_requested_date
         ? String(b.reschedule_requested_date).slice(0, 10)
         : String(b.booking_date || '').slice(0, 10);
@@ -3591,31 +3595,47 @@ app.get('/api/admin/customers/stats', isAdmin, async (req, res) => {
     const firstDayOfMonth = new Date();
     firstDayOfMonth.setDate(1);
     firstDayOfMonth.setHours(0, 0, 0, 0);
+
     const firstDayOfLastMonth = new Date(firstDayOfMonth);
     firstDayOfLastMonth.setMonth(firstDayOfLastMonth.getMonth() - 1);
 
-    const results = await Promise.all([
-      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).neq('status', 'deleted'),
-      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).eq('status', 'Active'),
-      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).in('status', ['Inactive', 'deleted', 'pending_deletion']),
-      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).gte('created_at', firstDayOfMonth.toISOString()).neq('status', 'deleted'),
-      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).lt('created_at', firstDayOfMonth.toISOString()).neq('status', 'deleted'),
-      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).gte('created_at', firstDayOfLastMonth.toISOString()).lt('created_at', firstDayOfMonth.toISOString()).neq('status', 'deleted')
-    ]);
-    const [totalRes, activeRes, inactiveRes, newThisMonthRes, totalLastMonthRes, newLastMonthRes] = results;
-    for (const result of results) {
-      if (result.error) throw result.error;
-    }
+    const { data: allCustomers, error } = await supabaseAdmin
+      .from('customer')
+      .select('customer_id, status, created_at');
+    if (error) throw error;
+
+    const normalizeStatus = status => String(status || '').trim().toLowerCase();
+    const activeRows = (allCustomers || []).filter(customer => normalizeStatus(customer.status) !== 'deleted');
+
+    const total = activeRows.length;
+    const active = activeRows.filter(customer => normalizeStatus(customer.status) === 'active').length;
+    const inactive = activeRows.filter(customer => ['inactive', 'pending_deletion'].includes(normalizeStatus(customer.status))).length;
+
+    const newThisMonth = activeRows.filter(customer => {
+      if (!customer.created_at) return false;
+      return new Date(customer.created_at) >= firstDayOfMonth;
+    }).length;
+
+    const totalLastMonth = activeRows.filter(customer => {
+      if (!customer.created_at) return false;
+      return new Date(customer.created_at) < firstDayOfMonth;
+    }).length;
+
+    const newLastMonth = activeRows.filter(customer => {
+      if (!customer.created_at) return false;
+      const createdDate = new Date(customer.created_at);
+      return createdDate >= firstDayOfLastMonth && createdDate < firstDayOfMonth;
+    }).length;
 
     res.json({
       success: true,
       data: {
-        total: totalRes.count || 0,
-        active: activeRes.count || 0,
-        inactive: inactiveRes.count || 0,
-        newThisMonth: newThisMonthRes.count || 0,
-        totalLastMonth: totalLastMonthRes.count || 0,
-        newLastMonth: newLastMonthRes.count || 0
+        total,
+        active,
+        inactive,
+        newThisMonth,
+        totalLastMonth,
+        newLastMonth
       }
     });
   } catch (err) {

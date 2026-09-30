@@ -1,126 +1,259 @@
-// Universal notification target highlighting and modal opening.
+// universal_highlight.js
+// Robust notification target highlighting with auto-cleanup.
 (function () {
     'use strict';
 
-    function clearHighlightParam() {
-        const url = new URL(window.location.href);
-        if (!url.searchParams.has('highlight')) return;
-        url.searchParams.delete('highlight');
-        window.history.replaceState({}, '', url.toString());
+    const HIGHLIGHT_PARAM = 'highlight';
+    const HIGHLIGHT_CLASS = 'universal-highlight-target';
+    const STYLE_ID = 'universal-highlight-style';
+    const MAX_WAIT_MS = 15000;
+    const AUTO_CLEAR_MS = 3500;
+
+    function ensureStyles() {
+        if (document.getElementById(STYLE_ID)) return;
+        const style = document.createElement('style');
+        style.id = STYLE_ID;
+        style.textContent = `
+            .${HIGHLIGHT_CLASS} {
+                position: relative !important;
+                box-shadow: 0 0 0 3px #D97706, 0 12px 30px rgba(74, 51, 39, 0.18) !important;
+                background-color: #FFF7E6 !important;
+                transition: box-shadow 0.3s ease, background-color 0.3s ease !important;
+                animation: universalHighlightPulse 1.4s ease-in-out 2 !important;
+                z-index: 5;
+            }
+            @keyframes universalHighlightPulse {
+                0%, 100% { box-shadow: 0 0 0 3px #D97706, 0 12px 30px rgba(74, 51, 39, 0.18); }
+                50%      { box-shadow: 0 0 0 6px #F59E0B, 0 14px 34px rgba(74, 51, 39, 0.26); }
+            }
+        `;
+        document.head.appendChild(style);
     }
 
-    function highlightElement(element) {
-        if (!element) return;
-        const style = element.style;
-        const original = {
-            transition: style.transition,
-            boxShadow: style.boxShadow,
-            transform: style.transform,
-            zIndex: style.zIndex,
-            background: style.background
-        };
-        style.transition = 'box-shadow 0.4s ease, background 0.4s ease';
-        style.boxShadow = '0 0 0 3px #D97706, 0 12px 30px rgba(74,51,39,0.18)';
-        style.background = '#FFF7E6';
+    function clearHighlightParam() {
+        try {
+            const url = new URL(window.location.href);
+            if (!url.searchParams.has(HIGHLIGHT_PARAM)) return;
+            url.searchParams.delete(HIGHLIGHT_PARAM);
+            url.searchParams.delete('open');
+            window.history.replaceState({}, '', url.toString());
+        } catch (e) {
+            /* ignore */
+        }
+    }
 
-        let timer;
-        const clear = () => {
-            clearTimeout(timer);
-            style.boxShadow = original.boxShadow;
-            style.background = original.background;
-            style.transform = original.transform;
-            style.zIndex = original.zIndex;
-            setTimeout(() => { style.transition = original.transition; }, 400);
-            element.removeEventListener('click', clear);
-        };
-
-        timer = setTimeout(clear, 3000);
-        element.addEventListener('click', clear, { once: true });
+    function escapeSelector(value) {
+        if (typeof CSS !== 'undefined' && CSS.escape) return CSS.escape(String(value));
+        return String(value).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
     }
 
     function findHighlightTarget(highlightId) {
         if (!highlightId) return null;
-        const escapedId = typeof CSS !== 'undefined' && CSS.escape
-            ? CSS.escape(highlightId)
-            : String(highlightId).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
+        const raw = String(highlightId).trim();
+        const escaped = escapeSelector(raw);
         const selectors = [
-            `#review-${escapedId}`, `[data-review-id="${escapedId}"]`,
-            `#history-booking-${escapedId}`, `[data-booking-id="${escapedId}"]`,
-            `#appointment-${escapedId}`,
-            `[data-customer-id="${escapedId}"]`, `#customer-${escapedId}`,
-            `[data-pet-id="${escapedId}"]`, `#pet-${escapedId}`,
-            `[data-actual-service-id="${escapedId}"]`,
-            `[data-service-id="${escapedId}"]`, `#service-${escapedId}`,
-            `[data-id="${escapedId}"]`, `#${escapedId}`
+            `#review-${escaped}`,
+            `[data-review-id="${escaped}"]`,
+            `#history-booking-${escaped}`,
+            `#appointment-${escaped}`,
+            `[data-booking-id="${escaped}"]`,
+            `[data-customer-id="${escaped}"]`,
+            `#customer-${escaped}`,
+            `[data-pet-id="${escaped}"]`,
+            `#pet-${escaped}`,
+            `[data-actual-service-id="${escaped}"]`,
+            `[data-service-id="${escaped}"]`,
+            `#service-${escaped}`,
+            `[data-id="${escaped}"]`,
+            `#${escaped}`
         ];
+
         for (const selector of selectors) {
             try {
                 const element = document.querySelector(selector);
                 if (element) return element;
-            } catch (error) {
-                // Ignore an invalid data selector and continue with the remaining targets.
+            } catch (_) {
+                /* skip invalid selector */
             }
         }
 
-        // Fallback: match an exact ID string inside a table cell.
         const tables = document.querySelectorAll('table');
         for (const table of tables) {
-            const rows = table.querySelectorAll('tbody tr');
-            for (const row of rows) {
-                const cells = row.querySelectorAll('td');
-                for (const cell of cells) {
+            for (const row of table.querySelectorAll('tbody tr')) {
+                for (const cell of row.querySelectorAll('td')) {
                     const text = (cell.textContent || '').trim();
-                    if (text === highlightId || text === `#${highlightId}`) {
-                        return row;
-                    }
+                    if (text === raw || text === `#${raw}`) return row;
                 }
             }
         }
         return null;
     }
 
+    function applyHighlightClass(element) {
+        if (!element) return;
+        ensureStyles();
+        element.classList.add(HIGHLIGHT_CLASS);
+
+        const removeOnClick = () => {
+            element.classList.remove(HIGHLIGHT_CLASS);
+            element.removeEventListener('click', removeOnClick);
+        };
+        element.addEventListener('click', removeOnClick);
+
+        clearTimeout(element.__highlightTimer);
+        element.__highlightTimer = setTimeout(() => {
+            element.classList.remove(HIGHLIGHT_CLASS);
+        }, AUTO_CLEAR_MS);
+    }
+
+    function highlightAndScroll(element) {
+        if (!element) return;
+        try {
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        } catch (_) {
+            element.scrollIntoView();
+        }
+        applyHighlightClass(element);
+    }
+
+    function waitForElement(selector, callback, timeoutMs = MAX_WAIT_MS) {
+        const started = Date.now();
+        const tryOnce = () => {
+            const el = document.querySelector(selector);
+            if (el) {
+                callback(el);
+                return true;
+            }
+            return false;
+        };
+
+        if (tryOnce()) return;
+
+        const observer = new MutationObserver(() => {
+            if (tryOnce()) {
+                try { observer.disconnect(); } catch (_) {}
+            } else if (Date.now() - started > timeoutMs) {
+                try { observer.disconnect(); } catch (_) {}
+            }
+        });
+
+        try {
+            observer.observe(document.body, { childList: true, subtree: true });
+        } catch (_) {}
+
+        const id = setInterval(() => {
+            if (tryOnce()) {
+                clearInterval(id);
+                try { observer.disconnect(); } catch (_) {}
+            } else if (Date.now() - started > timeoutMs) {
+                clearInterval(id);
+                try { observer.disconnect(); } catch (_) {}
+            }
+        }, 300);
+    }
+
     function applyUniversalHighlight() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const highlightId = urlParams.get('highlight');
-        const openTarget = urlParams.get('open');
+        ensureStyles();
+
+        const params = new URLSearchParams(window.location.search);
+        const highlightId = params.get(HIGHLIGHT_PARAM);
+        const openTarget = params.get('open');
 
         if (openTarget === '2fa' && typeof window.openModal === 'function') {
             setTimeout(() => {
-                window.openModal('twoFactorModal');
-                highlightElement(document.querySelector('.security-card'));
+                try {
+                    window.openModal('twoFactorModal');
+                    const card = document.querySelector('.security-card');
+                    if (card) {
+                        highlightAndScroll(card);
+                        clearHighlightParam();
+                    }
+                } catch (e) {
+                    /* ignore */
+                }
             }, 600);
+            return;
+        }
+
+        if (highlightId === 'profile-info') {
+            waitForElement('.profile-overview', (el) => {
+                highlightAndScroll(el);
+                clearHighlightParam();
+            });
+            return;
+        }
+
+        if (highlightId === 'security-section') {
+            waitForElement('.security-card', (el) => {
+                highlightAndScroll(el);
+                clearHighlightParam();
+            });
+            return;
+        }
+
+        if (highlightId === 'activity-summary') {
+            waitForElement('#activity-summary', (el) => {
+                highlightAndScroll(el);
+                clearHighlightParam();
+            });
             return;
         }
 
         if (!highlightId) return;
 
-        let attempts = 0;
-        const maxAttempts = 10;
-        const findAndHighlight = () => {
-            const element = findHighlightTarget(highlightId);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                highlightElement(element);
-                clearHighlightParam();
-                return;
-            }
-            if (attempts < maxAttempts) {
-                attempts += 1;
-                setTimeout(findAndHighlight, 300);
-            } else {
-                clearHighlightParam();
-            }
+        const startedAt = Date.now();
+        let observer = null;
+        let intervalId = null;
+        let done = false;
+
+        const finish = () => {
+            done = true;
+            if (observer) { try { observer.disconnect(); } catch (_) {} }
+            if (intervalId) { clearInterval(intervalId); }
         };
-        findAndHighlight();
+
+        const tryFind = () => {
+            if (done) return true;
+            const el = findHighlightTarget(highlightId);
+            if (el) {
+                highlightAndScroll(el);
+                clearHighlightParam();
+                finish();
+                return true;
+            }
+            return false;
+        };
+
+        if (tryFind()) return;
+
+        try {
+            observer = new MutationObserver(() => {
+                tryFind();
+                if (Date.now() - startedAt > MAX_WAIT_MS) finish();
+            });
+            observer.observe(document.body, { childList: true, subtree: true });
+        } catch (_) {
+            /* older browsers */
+        }
+
+        intervalId = setInterval(() => {
+            if (tryFind()) return;
+            if (Date.now() - startedAt > MAX_WAIT_MS) {
+                finish();
+                clearHighlightParam();
+            }
+        }, 300);
     }
 
     window.applyUniversalHighlight = applyUniversalHighlight;
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', applyUniversalHighlight, { once: true });
     } else {
         applyUniversalHighlight();
     }
-    window.addEventListener('pageshow', event => {
+
+    window.addEventListener('pageshow', (event) => {
         if (event.persisted) applyUniversalHighlight();
     });
 })();
