@@ -1400,14 +1400,66 @@ async function showNotificationDetails() {
                     const data = await res.json();
                     if (data.success) {
                         const s = data.data;
-                        document.getElementById('rTotalBookings').textContent = s.totalBookings || 0;
+                        const prevTotal = s.previousMonthTotalBookings || 0;
+                        const currentTotal = s.totalBookings || 0;
+                        const percentage = prevTotal === 0 ? 100 : ((currentTotal - prevTotal) / prevTotal) * 100;
+                        const changeText = `↑ ${percentage.toFixed(1)}% vs last month`;
+
+                        document.getElementById('rTotalBookings').textContent = currentTotal;
                         document.getElementById('rTotalCustomers').textContent = s.totalCustomers || 0;
                         document.getElementById('rTotalPets').textContent = s.totalPets || 0;
                         document.getElementById('rCompleted').textContent = s.completedBookings || 0;
                         const avg = s.avgRating || 0;
                         document.querySelector('.stat-report-card:last-child h3').innerHTML = avg.toFixed(1) + ' ★';
+                        const firstChange = document.querySelector('.stat-report-card .change');
+                        if (firstChange) {
+                            firstChange.textContent = changeText;
+                            firstChange.classList.remove('down');
+                            firstChange.classList.add('up');
+                        }
                     }
                 } catch (err) { console.error('Stats error:', err); }
+            }
+
+            async function loadInsights() {
+                try {
+                    const [statsRes, servicesRes] = await Promise.all([
+                        authFetch('/api/admin/stats'),
+                        authFetch('/api/admin/popular-services')
+                    ]);
+                    const statsData = await statsRes.json();
+                    const servicesData = await servicesRes.json();
+                    if (!statsData.success) return;
+
+                    const s = statsData.data || {};
+                    const prevTotal = s.previousMonthTotalBookings || 0;
+                    const currentTotal = s.totalBookings || 0;
+                    const percentage = prevTotal === 0 ? 100 : ((currentTotal - prevTotal) / prevTotal) * 100;
+
+                    const firstInsight = document.querySelector('.insight-item:nth-child(1) .insight-text strong');
+                    if (firstInsight) {
+                        firstInsight.textContent = `Bookings ${percentage >= 0 ? 'increased' : 'decreased'} by ${Math.abs(percentage).toFixed(1)}%`;
+                    }
+
+                    const secondInsight = document.querySelector('.insight-item:nth-child(2) .insight-text strong');
+                    if (secondInsight) {
+                        secondInsight.textContent = `${s.pendingBookings || 0} bookings pending`;
+                    }
+
+                    if (servicesData.success && Array.isArray(servicesData.data) && servicesData.data.length > 0) {
+                        const topService = servicesData.data[0];
+                        const thirdInsight = document.querySelector('.insight-item:nth-child(3) .insight-text strong');
+                        if (thirdInsight) {
+                            thirdInsight.textContent = `${topService.service_name} is the top service`;
+                        }
+                        const thirdText = document.querySelector('.insight-item:nth-child(3) .insight-text');
+                        if (thirdText) {
+                            thirdText.innerHTML = `<strong>${topService.service_name} is the top service</strong> — ${Number(topService.percentage || 0).toFixed(1)}% of total bookings.`;
+                        }
+                    }
+                } catch (err) {
+                    console.error('Insights error:', err);
+                }
             }
 
             // 加载预约趋势图
@@ -1508,6 +1560,7 @@ async function showNotificationDetails() {
 
             // 调用这些函数
             loadStats();
+            loadInsights();
             loadNotificationCount();
             loadPopularServices();
             loadTopCustomers();

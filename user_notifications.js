@@ -7,7 +7,7 @@
     if (!token) return;
     const context = document.body.dataset.notificationContext || 'dashboard';
     const contextTypes = {
-        dashboard: null,
+        dashboard: ['booking', 'payment', 'reschedule', 'pet', 'profile', 'security', 'review'],
         pets: ['pet'],
         booking: ['booking', 'payment', 'reschedule'],
         history: ['booking', 'reschedule', 'payment'],
@@ -271,7 +271,8 @@
         const modal = document.getElementById('notificationsModal');
         if (!content || !modal) return;
 
-        const relevant = relevantNotifications(notifications).slice(0, 20);
+        const unreadNotifications = notifications.filter(item => !item.is_read);
+        const relevant = relevantNotifications(unreadNotifications).slice(0, 20);
         const includeBookingReminder = ['dashboard', 'booking', 'history', 'pets'].includes(context);
         const notifiedBookingIds = new Set(relevant.filter(item => item.booking_id).map(item => String(item.booking_id)));
         const upcoming = includeBookingReminder
@@ -301,7 +302,7 @@
                         </div>
                     </div>
                     <div class="notif-actions">
-                        <a href="${getItemLink(item)}">${item.type === 'reschedule' ? 'Review reschedule' : 'View'}</a>
+                        <a href="${getItemLink(item)}" class="notif-view-link" data-notif-id="${escapeHtml(item.notification_id)}">${item.type === 'reschedule' ? 'Review reschedule' : 'View'}</a>
                         ${isUnread ? `<button type="button" data-notification-read="${escapeHtml(item.notification_id)}">Mark read</button>` : ''}
                     </div>
                 </div>
@@ -440,6 +441,22 @@
     }
 
     document.addEventListener('click', async function(event) {
+        const viewLink = event.target.closest('.notif-view-link');
+        if (viewLink) {
+            const notifId = viewLink.dataset.notifId;
+            if (notifId) {
+                try {
+                    await request('/api/notifications/read', {
+                        method: 'PUT',
+                        body: JSON.stringify({ notification_id: notifId })
+                    });
+                    setBadge(Math.max(0, Number(badge.dataset.unreadCount || 0) - 1));
+                } catch (error) {
+                    console.error('Unable to mark notification as read on view:', error);
+                }
+            }
+        }
+
         const markReadButton = event.target.closest('[data-notification-read]');
         if (markReadButton) {
             event.preventDefault();

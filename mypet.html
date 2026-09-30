@@ -1809,6 +1809,7 @@ async function fetchNotificationsData() {
                 const data = await res.json();
                 if (data.success) {
                     pets = data.data || [];
+                    pets.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
                     renderPets();
                 } else {
                     console.error('Failed to load pets:', data.message);

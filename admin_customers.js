@@ -1009,7 +1009,7 @@ async function loadCustomersFromSupabase() {
         customersData = customers.map(customer => ({
             id: customer.customer_id || '#CUS-' + String(Math.floor(Math.random() * 10000)).padStart(4, '0'),
             customer_id: customer.customer_id,
-            name: customer.status === 'deleted' ? 'Deleted User' : (customer.full_name || 'Unknown'),
+            name: customer.full_name || 'Unknown',
             email: customer.email || '',
             phone: customer.phone_number || '',
             address: customer.address || '',
@@ -1206,9 +1206,14 @@ function renderCustomerTable(data) {
         let statusClass = customer.status ? 
             (customer.status === 'pending_deletion' ? 'pending-deletion' : customer.status.toLowerCase()) 
             : 'active';
+        if (isDeleted) {
+            statusClass = 'inactive';
+        }
         
         let statusDisplay = customer.status || 'Active';
-        if (customer.status === 'pending_deletion') {
+        if (isDeleted) {
+            statusDisplay = 'Inactive';
+        } else if (customer.status === 'pending_deletion') {
             statusDisplay = '⏳ Pending Deletion';
         }
         
@@ -1772,11 +1777,9 @@ function searchCustomers(query) {
                customer.email.toLowerCase().includes(searchTerm) ||
                customer.phone.includes(searchTerm);
         if (!matchesSearch) return false;
-        if (statusFilter === 'all') return customer.status !== 'deleted';
-        if (statusFilter === 'deleted') return customer.status === 'deleted';
-        if (statusFilter === 'pending_deletion') return customer.status === 'pending_deletion';
+        if (statusFilter === 'all') return true;
         if (statusFilter === 'Active') return customer.status === 'Active';
-        if (statusFilter === 'Inactive') return customer.status === 'Inactive';
+        if (statusFilter === 'Inactive') return customer.status === 'Inactive' || customer.status === 'deleted';
         return customer.status === statusFilter;
     });
     renderCustomerTable(filtered);

@@ -699,38 +699,39 @@
     /* ===== SERVICE STATS ===== */
     .service-stats-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 16px;
     }
 
     .service-stat-item {
-      background: #FAF7F2;
-      padding: 16px 12px;
-      border-radius: 12px;
+      background: #FFFFFF;
       border: 1px solid #EFECE6;
+      border-radius: 16px;
+      padding: 24px 16px;
       text-align: center;
-      transition: all 0.2s ease;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 4px;
+      justify-content: center;
     }
 
     .service-stat-item:hover {
       transform: translateY(-4px);
-      box-shadow: 0 6px 20px rgba(0,0,0,0.04);
+      box-shadow: 0 12px 24px rgba(167, 94, 49, 0.08);
       border-color: #D3C4B8;
     }
 
-    .service-stat-item .s-icon {
-      font-size: 28px;
-      line-height: 1.2;
-    }
-
     .service-stat-item .s-name {
+      font-size: 15px;
       font-weight: 600;
-      font-size: 14px;
       color: #333333;
+      margin-bottom: 12px;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     .service-stat-item .s-rating {
@@ -739,15 +740,21 @@
       gap: 6px;
       font-size: 14px;
       color: #F59E0B;
+      margin-bottom: 12px;
     }
 
     .service-stat-item .s-rating i {
       color: #F59E0B;
+      font-size: 16px;
     }
 
     .service-stat-item .s-count {
       font-size: 12px;
       color: #7A7A7A;
+      background: #F5F0EA;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-weight: 500;
     }
 
     /* ===== REVIEW LIST - 与 admin_reviews 一致，无 Delete 按钮 ===== */
@@ -2432,7 +2439,7 @@
                   if (stats.length > 0) {
                       const icons = ['🐾', '✂️', '💇', '🧴', '✂️', '🏠', '🚐', '🌸'];
                       let html = '';
-                      stats.forEach((item, index) => {
+                      stats.forEach((item) => {
                           const avgRating = item.avg_rating.toFixed(1);
                           const fullStars = Math.floor(item.avg_rating);
                           const hasHalf = item.avg_rating % 1 >= 0.5;
@@ -2440,12 +2447,10 @@
                           for (let i = 0; i < fullStars; i++) starsHtml += '<i class="fa-solid fa-star"></i>';
                           if (hasHalf) starsHtml += '<i class="fa-solid fa-star-half-stroke"></i>';
                           while (starsHtml.length < 5) starsHtml += '<i class="fa-regular fa-star"></i>';
-                          const icon = icons[index % icons.length];
                           html += `
                               <div class="service-stat-item">
-                                  <div class="s-icon">${icon}</div>
                                   <div class="s-name">${item.service_name}</div>
-                                  <div class="s-rating">${starsHtml} ${avgRating}</div>
+                                  <div class="s-rating">${starsHtml} <span>${avgRating}</span></div>
                                   <div class="s-count">${item.review_count} reviews</div>
                               </div>
                           `;

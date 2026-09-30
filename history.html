@@ -546,12 +546,12 @@
     }
 
     .booking-table .col-pet { width: 12%; }
-    .booking-table .col-service { width: 12%; }
-    .booking-table .col-date { width: 12%; }
+    .booking-table .col-service { width: 22%; }
+    .booking-table .col-date { width: 15%; }
     .booking-table .col-price { width: 10%; }
-    .booking-table .col-status { width: 17%; }
-    .booking-table .col-action { width: 21%; }
-    .booking-table .col-reschedule { width: 16%; }
+    .booking-table .col-status { width: 15%; }
+    .booking-table .col-action { width: 16%; }
+    .booking-table .col-reschedule { width: 10%; }
 
     .booking-table.hide-reschedule .col-reschedule,
     .booking-table.hide-reschedule th:nth-child(7),
@@ -562,9 +562,11 @@
     .pet-cell {
       display: flex;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-start;
       flex-direction: row;
-      gap: 10px;
+      gap: 12px;
+      min-width: 0;
+      padding-left: 4px;
     }
 
     .pet-avatar {
@@ -613,6 +615,7 @@
 
     .pet-info {
       min-width: 0;
+      text-align: left;
     }
 
     .service-cell .service-name {
@@ -633,7 +636,8 @@
       border-radius: 5px;
       background: #FAF7F2;
       line-height: 1.35;
-      white-space: nowrap;
+      white-space: normal;
+      word-break: break-word;
     }
 
     .service-cell .service-name i {
@@ -2505,24 +2509,31 @@ async function fetchNotificationsData() {
             renderPagination(totalPages);
 
             const highlightId = new URLSearchParams(window.location.search).get('highlight');
-            if (highlightId) {
+            if (highlightId && !window.hasAppliedHistoryHighlight) {
+              window.hasAppliedHistoryHighlight = true;
               const highlightIndex = filtered.findIndex(booking => String(booking.booking_id) === String(highlightId));
-              const highlightPage = highlightIndex >= 0 ? Math.floor(highlightIndex / itemsPerPage) + 1 : currentPage;
-              if (highlightIndex >= 0 && highlightPage !== currentPage) {
-                currentPage = highlightPage;
-                renderBookings();
-                return;
+              if (highlightIndex >= 0) {
+                const highlightPage = Math.floor(highlightIndex / itemsPerPage) + 1;
+                if (highlightPage !== currentPage) {
+                  currentPage = highlightPage;
+                  renderBookings();
+                  return;
+                }
+                const highlightedRow = document.getElementById(`history-booking-${highlightId}`);
+                if (highlightedRow) {
+                  highlightedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  highlightedRow.style.background = '#FFF3D6';
+                  highlightedRow.style.boxShadow = 'inset 4px 0 0 #D97706';
+                  setTimeout(() => {
+                    highlightedRow.style.background = '';
+                    highlightedRow.style.boxShadow = '';
+                  }, 2000);
+                }
               }
-              const highlightedRow = document.getElementById(`history-booking-${highlightId}`);
-              if (highlightedRow) {
-                highlightedRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                highlightedRow.style.background = '#FFF3D6';
-                highlightedRow.style.boxShadow = 'inset 4px 0 0 #D97706';
-                setTimeout(() => {
-                  highlightedRow.style.background = '';
-                  highlightedRow.style.boxShadow = '';
-                }, 2000);
-              }
+
+              const url = new URL(window.location);
+              url.searchParams.delete('highlight');
+              window.history.replaceState({}, '', url);
             }
         }
 
@@ -2653,9 +2664,11 @@ async function fetchNotificationsData() {
             const modal = document.getElementById('rescheduleRequestModal');
             if (modal) {
                 const dateInput = document.getElementById('newDateInput');
-                // ====== 设置 min = 今天 ======
-                const today = new Date().toISOString().split('T')[0];
-                dateInput.setAttribute('min', today);
+                const today = new Date();
+                const tomorrow = new Date(today);
+                tomorrow.setDate(tomorrow.getDate() + 1);
+                const minDate = tomorrow.toISOString().split('T')[0];
+                dateInput.setAttribute('min', minDate);
                 dateInput.value = '';
                 resetRescheduleTimeOptions();
                 lockBodyScroll();

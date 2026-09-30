@@ -3374,15 +3374,10 @@ app.all('/api/delete-account', async (req, res) => {
         const { error: deleteError } = await supabaseAdmin
           .from('customer')
           .update({
-            full_name: 'Deleted User',
-            email: softDeletedEmail,
-            phone_number: '',
-            address: '',
-            password: 'deleted_account_no_login',
-            profile_photo: null,
             status: 'deleted',
             delete_token: null,
-            delete_token_expiry: null
+            delete_token_expiry: null,
+            profile_photo: null
           })
           .eq('customer_id', customerId);
 
@@ -4189,6 +4184,14 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
 
+      const { data: petToDelete, error: petLookupError } = await supabaseAdmin
+        .from('pet')
+        .select('pet_name, customer_id')
+        .eq('pet_id', id)
+        .single();
+      if (petLookupError) throw petLookupError;
+      if (!petToDelete) return res.status(404).json({ success: false, message: 'Pet not found.' });
+
       const { data, error } = await supabaseAdmin
         .from('pet')
         .delete()
@@ -4197,6 +4200,15 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
         .maybeSingle();
       if (error) throw error;
       if (!data) return res.status(404).json({ success: false, message: 'Pet not found.' });
+
+      if (petToDelete.customer_id) {
+        await createCustomerNotification(
+          petToDelete.customer_id,
+          'Pet Profile Deleted',
+          `Your pet "${petToDelete.pet_name}" has been removed by the admin.`,
+          'pet'
+        );
+      }
 
       res.json({ success: true, message: 'Pet deleted.' });
     } catch (err) {

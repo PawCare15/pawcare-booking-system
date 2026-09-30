@@ -972,6 +972,7 @@ async function loadCustomersForDropdown() {
             const currentValue = select.value;
             select.innerHTML = '<option value="">-- Select Existing Customer --</option>';
             customersData.forEach(customer => {
+                if (customer.status === 'deleted') return;
                 const option = document.createElement('option');
                 option.value = customer.customer_id;
                 option.textContent = `${customer.full_name} (${customer.customer_id})`;
@@ -1585,9 +1586,15 @@ function openEditPetModal(id) {
     
     const modal = document.getElementById('petFormModal');
     const content = document.getElementById('petFormContent');
-    
+
+    const species = (pet.species || 'dog').toLowerCase();
     const weightNum = pet.weight.replace(' kg', '').trim();
     const hasImage = pet.image && pet.image.length > 0;
+
+    const speciesRadio = document.querySelector(`input[name="petType"][value="${species}"]`);
+    if (speciesRadio) {
+        speciesRadio.checked = true;
+    }
     
     content.innerHTML = `
         <div class="edit-header">

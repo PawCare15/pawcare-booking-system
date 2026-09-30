@@ -2447,7 +2447,7 @@ if (typeof bindUserMenuEvents === 'function') {
                     breed: b.pet ? b.pet.breed || 'N/A' : 'N/A',
                     petPhoto: b.pet?.photo_url || '',
                     petEmoji: getPetEmoji(b.pet ? b.pet.species : ''),
-                    service: b.services?.[0]?.service_name || 'N/A',
+                    service: b.services?.map(s => s.service_name).join(', ') || 'N/A',
                     date: formatBookingDate(
                         ['pending', 'admin_pending'].includes(b.reschedule_status) && b.reschedule_requested_date ? b.reschedule_requested_date : b.booking_date,
                         ['pending', 'admin_pending'].includes(b.reschedule_status) && b.reschedule_requested_time ? b.reschedule_requested_time : b.booking_time
@@ -2827,7 +2827,7 @@ if (typeof bindUserMenuEvents === 'function') {
                         if (!deleteResponse.ok || !deleteResult.success) throw new Error(deleteResult.message || 'Unable to unblock slot.');
                         await loadBlockedSlots();
                     } catch (error) {
-                        alert(error.message);
+                        showRescheduleError(error.message);
                     }
                 });
             });
@@ -2840,14 +2840,14 @@ if (typeof bindUserMenuEvents === 'function') {
             document.getElementById('blockedSlotReason').value = '';
             document.getElementById('blockedSlotsModal').classList.add('active');
             lockBodyScroll();
-            try { await loadBlockedSlots(); } catch (error) { alert(error.message); }
+            try { await loadBlockedSlots(); } catch (error) { showRescheduleError(error.message); }
         }
 
         async function createBlockedSlot() {
             const date = document.getElementById('blockedSlotDate').value;
             const time_slot = document.getElementById('blockedSlotTime').value;
             const reason = document.getElementById('blockedSlotReason').value;
-            if (!date) return alert('Please select a date.');
+            if (!date) return showRescheduleError('Please select a date.');
             try {
                 const response = await authFetch('/api/admin/blocked-slots', {
                     method: 'POST',
@@ -2870,15 +2870,15 @@ if (typeof bindUserMenuEvents === 'function') {
             const newTime = document.getElementById('suggestRescheduleTime').value;
             const reason = document.getElementById('suggestRescheduleReason').value.trim();
             if (!newDate) {
-                alert('Please select a new date.');
+                showRescheduleError('Please select a new date.');
                 return;
             }
             if (isThursday(newDate)) {
-                alert('We are closed on Thursdays. Please select another date.');
+                showRescheduleError('We are closed on Thursdays. Please select another date.');
                 return;
             }
             if (!newTime) {
-                alert('Please choose an available time slot.');
+                showRescheduleError('Please choose an available time slot.');
                 return;
             }
             try {
@@ -2894,14 +2894,14 @@ if (typeof bindUserMenuEvents === 'function') {
                 document.getElementById('rescheduleSentModal').classList.add('active');
                 lockBodyScroll();
             } catch (error) {
-                alert(error.message);
+                showRescheduleError(error.message);
             }
         }
 
         document.getElementById('suggestRescheduleDate').addEventListener('change', function() {
             if (isThursday(this.value)) {
                 this.value = '';
-                alert('We are closed on Thursdays. Please select another date.');
+                showRescheduleError('We are closed on Thursdays. Please select another date.');
                 resetSuggestRescheduleTimes();
                 return;
             }
@@ -3117,7 +3117,7 @@ if (typeof bindUserMenuEvents === 'function') {
 
             } catch (error) {
                 console.error('Error updating booking:', error);
-                alert(`Failed to update booking: ${error.message}`);
+                showRescheduleError(`Failed to update booking: ${error.message}`);
             }
         }
 
@@ -3210,7 +3210,7 @@ if (typeof bindUserMenuEvents === 'function') {
 
             } catch (error) {
                 console.error('Error deleting booking:', error);
-                alert(`Failed to delete booking: ${error.message}`);
+                showRescheduleError(`Failed to delete booking: ${error.message}`);
             }
         }
 

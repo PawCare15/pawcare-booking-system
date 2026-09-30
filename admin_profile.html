@@ -117,32 +117,6 @@
             margin-top: 10px !important;
         }
 
-        body.dark {
-            --cream: #29231e;
-            --line: #463b32;
-            --text: #f4eee7;
-            --muted: #b9afa5;
-            --white: #332b24;
-            background: #211c18;
-        }
-        body.dark .top-header,
-        body.dark .card {
-            background: #2c2621;
-        }
-        body.dark .form-control,
-        body.dark .theme-option {
-            background: #241f1b;
-            color: #f4eee7;
-            border-color: #4b4036;
-        }
-        body.dark .sidebar {
-            background: #241b13;
-        }
-        body.dark .modal-box {
-            background: #302820;
-            color: #f4eee7;
-        }
-
         .page-heading {
             display: flex;
             justify-content: space-between;
@@ -507,30 +481,6 @@
             background: #F1EFEC;
             color: #777;
         }
-        .edit-card .theme-group {
-            display: flex;
-            gap: 8px;
-            margin-top: 2px;
-        }
-        .edit-card .theme-option {
-            padding: 6px 20px;
-            border: 1.5px solid #E4DDD5;
-            border-radius: 8px;
-            background: #FAFAFA;
-            color: #777;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 500;
-            transition: all 0.2s;
-            font-family: 'Poppins', sans-serif;
-        }
-        .edit-card .theme-option.active {
-            border-color: #4A3327;
-            background: #F7EADB;
-            color: #4A3327;
-            font-weight: 600;
-        }
-        .edit-card .theme-option:hover { border-color: #4A3327; }
         .edit-card .action-row {
             display: flex;
             gap: 12px;
@@ -1192,13 +1142,6 @@
                                             <label><i class="fa-solid fa-building"></i>Department</label>
                                             <input class="form-control" id="editDepartment" value="Management" disabled>
                                         </div>
-                                        <div class="form-group" style="margin-top:4px;">
-                                            <label><i class="fa-solid fa-palette"></i>Theme</label>
-                                            <div class="theme-group">
-                                                <span class="theme-option active" data-theme="light">Light</span>
-                                                <span class="theme-option" data-theme="dark">Dark</span>
-                                            </div>
-                                        </div>
                                     </div>
                                     <div class="action-row">
                                         <button type="submit" class="btn btn-primary"><i class="fa-regular fa-floppy-disk"></i> Save Changes</button>
@@ -1572,8 +1515,7 @@ document.querySelectorAll('[data-close]').forEach(btn => {
         totalLogins: 0,
         pwdChanged: 'N/A',
         profileUpdated: 'N/A',
-        twoFactor: true,
-        theme: 'light'
+        twoFactor: true
     };
 
     const $ = id => document.getElementById(id);
@@ -1642,9 +1584,6 @@ document.querySelectorAll('[data-close]').forEach(btn => {
         if (editPhoneEl) editPhoneEl.value = data.phone;
         const editDeptEl = $('editDepartment');
         if (editDeptEl) editDeptEl.value = data.department;
-
-        document.querySelectorAll('.theme-option').forEach(o => o.classList.toggle('active', o.dataset.theme === data.theme));
-        document.body.classList.toggle('dark', data.theme === 'dark');
 
         const badge = $('twoFactorBadge');
         if (badge) {
@@ -2271,18 +2210,6 @@ if (typeof bindUserMenuEvents === 'function') {
                 }
             });
         }
-
-        // ================================================================
-        // THEME SWITCHING
-        // ================================================================
-        document.querySelectorAll('.theme-option').forEach(option => {
-            option.addEventListener('click', function() {
-                data.theme = this.dataset.theme;
-                saveData();
-                render();
-                toast('Theme switched to ' + (data.theme === 'dark' ? 'Dark' : 'Light'));
-            });
-        });
 
         // ================================================================
         // 2FA — 修复按钮点击
