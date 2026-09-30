@@ -1456,16 +1456,25 @@ app.get('/api/admin/stats', isAdmin, async (req, res) => {
     const currentStatuses = currentMonthBookings.map(booking => String(booking.status || '').trim().toLowerCase());
 
     const [customersResult, previousCustomersResult, petsResult, previousPetsResult] = await Promise.all([
-      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).neq('status', 'deleted'),
-      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).lt('created_at', firstDayOfMonth.toISOString()).neq('status', 'deleted'),
-      supabaseAdmin.from('pet').select('*', { count: 'exact', head: true }).neq('status', 'Deleted'),
-      supabaseAdmin.from('pet').select('*', { count: 'exact', head: true }).lt('created_at', firstDayOfMonth.toISOString()).neq('status', 'Deleted')
+      supabaseAdmin.from('customer').select('customer_id, status, created_at'),
+      supabaseAdmin.from('customer').select('customer_id, status, created_at').lt('created_at', firstDayOfMonth.toISOString()),
+      supabaseAdmin.from('pet').select('pet_id, status, created_at'),
+      supabaseAdmin.from('pet').select('pet_id, status, created_at').lt('created_at', firstDayOfMonth.toISOString())
     ]);
     for (const result of [customersResult, previousCustomersResult, petsResult, previousPetsResult]) {
       if (result.error) throw result.error;
     }
-    const totalCustomers = customersResult.count || 0;
-    const totalPets = petsResult.count || 0;
+
+    const normalizeStatus = value => String(value || '').trim().toLowerCase();
+    const validCustomers = (customersResult.data || []).filter(customer => normalizeStatus(customer.status) !== 'deleted');
+    const validPets = (petsResult.data || []).filter(pet => normalizeStatus(pet.status) !== 'deleted');
+    const previousCustomers = (previousCustomersResult.data || []).filter(customer => normalizeStatus(customer.status) !== 'deleted');
+    const previousPets = (previousPetsResult.data || []).filter(pet => normalizeStatus(pet.status) !== 'deleted');
+
+    const totalCustomers = validCustomers.length;
+    const totalPets = validPets.length;
+    const previousMonthTotalCustomers = previousCustomers.length;
+    const previousMonthTotalPets = previousPets.length;
 
     const previousMonthBookings = bookings.filter(booking => {
       const effectiveDate = getEffectiveBookingDate(booking);
@@ -1523,8 +1532,8 @@ app.get('/api/admin/stats', isAdmin, async (req, res) => {
         previousMonthConfirmedBookings: previousStatuses.filter(status => ['confirmed', 'upcoming'].includes(status)).length,
         previousMonthCompletedBookings: previousStatuses.filter(status => status === 'completed').length,
         previousMonthCancelledBookings: previousStatuses.filter(status => status === 'cancelled').length,
-        previousMonthTotalCustomers: previousCustomersResult.count || 0,
-        previousMonthTotalPets: previousPetsResult.count || 0,
+        previousMonthTotalCustomers: previousMonthTotalCustomers,
+        previousMonthTotalPets: previousMonthTotalPets,
         previousMonthAvgRating: parseFloat(previousAvgRating.toFixed(1))
       }
     });
@@ -4472,13 +4481,17 @@ app.get('/api/admin/stats/previous-month', isAdmin, async (req, res) => {
 
     const [bookingResult, customerResult, petResult, reviewResult] = await Promise.all([
       supabaseAdmin.from('booking').select('status, booking_date, reschedule_status, reschedule_requested_date'),
-      supabaseAdmin.from('customer').select('*', { count: 'exact', head: true }).lt('created_at', firstDayOfMonth.toISOString()).neq('status', 'deleted'),
-      supabaseAdmin.from('pet').select('*', { count: 'exact', head: true }).lt('created_at', firstDayOfMonth.toISOString()).neq('status', 'Deleted'),
+      supabaseAdmin.from('customer').select('customer_id, status, created_at').lt('created_at', firstDayOfMonth.toISOString()),
+      supabaseAdmin.from('pet').select('pet_id, status, created_at').lt('created_at', firstDayOfMonth.toISOString()),
       supabaseAdmin.from('review').select('rating').gte('review_date', firstDayOfLastMonth.toISOString()).lt('review_date', firstDayOfMonth.toISOString())
     ]);
     for (const result of [bookingResult, customerResult, petResult, reviewResult]) {
       if (result.error) throw result.error;
     }
+
+    const normalizeStatus = value => String(value || '').trim().toLowerCase();
+    const validCustomers = (customerResult.data || []).filter(customer => normalizeStatus(customer.status) !== 'deleted');
+    const validPets = (petResult.data || []).filter(pet => normalizeStatus(pet.status) !== 'deleted');
 
     const bookings = (bookingResult.data || []).filter(booking => {
       const effectiveDate = ['pending', 'admin_pending'].includes(booking.reschedule_status) && booking.reschedule_requested_date
@@ -4496,8 +4509,8 @@ app.get('/api/admin/stats/previous-month', isAdmin, async (req, res) => {
       data: {
         totalBookings: bookings.length,
         completedBookings: bookings.filter(booking => String(booking.status || '').toLowerCase() === 'completed').length,
-        totalCustomers: customerResult.count || 0,
-        totalPets: petResult.count || 0,
+        totalCustomers: validCustomers.length,
+        totalPets: validPets.length,
         avgRating: Number(avgRating.toFixed(1))
       }
     });

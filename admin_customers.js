@@ -1136,18 +1136,20 @@ function renderCustomerTable(data) {
     if (countSpan) countSpan.textContent = data.length;
     
     tbody.innerHTML = data.map(customer => {
-        const isDeleted = customer.status === 'deleted';
-        let statusClass = customer.status ? 
-            (customer.status === 'pending_deletion' ? 'pending-deletion' : customer.status.toLowerCase()) 
+        const normalizedStatus = String(customer.status || '').trim();
+        const statusKey = normalizedStatus.toLowerCase();
+        const isDeleted = statusKey === 'deleted';
+        let statusClass = statusKey ? 
+            (statusKey === 'pending_deletion' ? 'pending-deletion' : statusKey) 
             : 'active';
         if (isDeleted) {
             statusClass = 'inactive';
         }
         
-        let statusDisplay = customer.status || 'Active';
+        let statusDisplay = normalizedStatus || 'Active';
         if (isDeleted) {
             statusDisplay = 'Inactive';
-        } else if (customer.status === 'pending_deletion') {
+        } else if (statusKey === 'pending_deletion') {
             statusDisplay = '⏳ Pending Deletion';
         }
         
@@ -1707,14 +1709,16 @@ function searchCustomers(query) {
     const statusFilter = document.getElementById('statusFilter')?.value || 'all';
     const filtered = customersData.filter(customer => {
         const searchTerm = query.toLowerCase().trim();
-        const matchesSearch = customer.name.toLowerCase().includes(searchTerm) ||
-               customer.email.toLowerCase().includes(searchTerm) ||
-               customer.phone.includes(searchTerm);
+        const normalizedStatus = String(customer.status || '').trim();
+        const statusKey = normalizedStatus.toLowerCase();
+        const matchesSearch = (customer.name || '').toLowerCase().includes(searchTerm) ||
+               (customer.email || '').toLowerCase().includes(searchTerm) ||
+               (customer.phone || '').includes(searchTerm);
         if (!matchesSearch) return false;
         if (statusFilter === 'all') return true;
-        if (statusFilter === 'Active') return customer.status === 'Active';
-        if (statusFilter === 'Inactive') return customer.status === 'Inactive' || customer.status === 'deleted';
-        return customer.status === statusFilter;
+        if (statusFilter === 'Active') return statusKey === 'active';
+        if (statusFilter === 'Inactive') return statusKey === 'inactive' || statusKey === 'deleted';
+        return statusKey === String(statusFilter).toLowerCase();
     });
     renderCustomerTable(filtered);
 }
