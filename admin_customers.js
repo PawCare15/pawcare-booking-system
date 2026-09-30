@@ -1747,7 +1747,7 @@ async function loadCustomerStats() {
         const { total, active, inactive, newThisMonth, totalLastMonth, newLastMonth } = result.data;
         const pct = (current, previous) => {
             if (previous === 0 && current === 0) return '0%';
-            if (previous === 0) return '+100%';
+            if (previous === 0) return '-';
             const change = ((current - previous) / previous) * 100;
             return `${change >= 0 ? '+' : ''}${change.toFixed(0)}%`;
         };
@@ -1766,11 +1766,11 @@ async function loadCustomerStats() {
 
         if (totalChangeEl) {
             totalChangeEl.textContent = `${totalChange} from last month`;
-            totalChangeEl.className = `stat-change ${totalChange.startsWith('-') ? 'negative' : 'positive'}`;
+            totalChangeEl.className = totalChange === '-' ? 'stat-change' : `stat-change ${totalChange.startsWith('-') ? 'negative' : 'positive'}`;
         }
         if (newChangeEl) {
             newChangeEl.textContent = `${newChange} from last month`;
-            newChangeEl.className = `stat-change ${newChange.startsWith('-') ? 'negative' : 'positive'}`;
+            newChangeEl.className = newChange === '-' ? 'stat-change' : `stat-change ${newChange.startsWith('-') ? 'negative' : 'positive'}`;
         }
 
         const activePercent = total > 0 ? Math.round((active / total) * 100) : 0;

@@ -3601,12 +3601,10 @@ app.get('/api/admin/customers/:id', isAdmin, async (req, res) => {
 
 app.get('/api/admin/customers/stats', isAdmin, async (req, res) => {
   try {
-    const firstDayOfMonth = new Date();
-    firstDayOfMonth.setDate(1);
-    firstDayOfMonth.setHours(0, 0, 0, 0);
-
-    const firstDayOfLastMonth = new Date(firstDayOfMonth);
-    firstDayOfLastMonth.setMonth(firstDayOfLastMonth.getMonth() - 1);
+    const now = new Date();
+    const firstDayOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+    const firstDayOfNextMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1));
+    const firstDayOfLastMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1));
 
     const { data: allCustomers, error } = await supabaseAdmin
       .from('customer')
@@ -3622,7 +3620,8 @@ app.get('/api/admin/customers/stats', isAdmin, async (req, res) => {
 
     const newThisMonth = activeRows.filter(customer => {
       if (!customer.created_at) return false;
-      return new Date(customer.created_at) >= firstDayOfMonth;
+      const createdDate = new Date(customer.created_at);
+      return createdDate >= firstDayOfMonth && createdDate < firstDayOfNextMonth;
     }).length;
 
     const totalLastMonth = activeRows.filter(customer => {
