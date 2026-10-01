@@ -1464,14 +1464,12 @@ app.get('/api/admin/stats', isAdmin, async (req, res) => {
     }
 
     const normalizeStatus = value => String(value || '').trim().toLowerCase();
-    const validCustomers = (customersResult.data || []).filter(customer => normalizeStatus(customer.status) !== 'deleted');
     const validPets = (petsResult.data || []).filter(pet => normalizeStatus(pet.status) !== 'deleted');
-    const previousCustomers = (previousCustomersResult.data || []).filter(customer => normalizeStatus(customer.status) !== 'deleted');
     const previousPets = (previousPetsResult.data || []).filter(pet => normalizeStatus(pet.status) !== 'deleted');
 
-    const totalCustomers = validCustomers.length;
+    const totalCustomers = (customersResult.data || []).length;
     const totalPets = validPets.length;
-    const previousMonthTotalCustomers = previousCustomers.length;
+    const previousMonthTotalCustomers = (previousCustomersResult.data || []).length;
     const previousMonthTotalPets = previousPets.length;
 
     const previousMonthBookings = bookings.filter(booking => {
@@ -3580,23 +3578,6 @@ app.get('/api/admin/customers', isAdmin, async (req, res) => {
     }
 });
 
-app.get('/api/admin/customers/:id', isAdmin, async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { data, error } = await supabaseAdmin
-            .from('customer')
-            .select('*')
-            .eq('customer_id', id)
-            .single();
-
-        if (error) throw error;
-        res.json({ success: true, data });
-    } catch (err) {
-        console.error('Error fetching customer:', err);
-        res.status(500).json({ success: false, message: err.message });
-    }
-});
-
 app.get('/api/admin/customers/stats', isAdmin, async (req, res) => {
   try {
     const now = new Date();
@@ -3610,24 +3591,24 @@ app.get('/api/admin/customers/stats', isAdmin, async (req, res) => {
     if (error) throw error;
 
     const normalizeStatus = status => String(status || '').trim().toLowerCase();
-    const activeRows = (allCustomers || []).filter(customer => normalizeStatus(customer.status) !== 'deleted');
+    const customerRows = allCustomers || [];
 
-    const total = activeRows.length;
-    const active = activeRows.filter(customer => normalizeStatus(customer.status) === 'active').length;
-    const inactive = activeRows.filter(customer => ['inactive', 'pending_deletion'].includes(normalizeStatus(customer.status))).length;
+    const total = customerRows.length;
+    const active = customerRows.filter(customer => normalizeStatus(customer.status) === 'active').length;
+    const inactive = customerRows.filter(customer => ['inactive', 'pending_deletion', 'deleted'].includes(normalizeStatus(customer.status))).length;
 
-    const newThisMonth = activeRows.filter(customer => {
+    const newThisMonth = customerRows.filter(customer => {
       if (!customer.created_at) return false;
       const createdDate = new Date(customer.created_at);
       return createdDate >= firstDayOfMonth && createdDate < firstDayOfNextMonth;
     }).length;
 
-    const totalLastMonth = activeRows.filter(customer => {
+    const totalLastMonth = customerRows.filter(customer => {
       if (!customer.created_at) return false;
       return new Date(customer.created_at) < firstDayOfMonth;
     }).length;
 
-    const newLastMonth = activeRows.filter(customer => {
+    const newLastMonth = customerRows.filter(customer => {
       if (!customer.created_at) return false;
       const createdDate = new Date(customer.created_at);
       return createdDate >= firstDayOfLastMonth && createdDate < firstDayOfMonth;
@@ -3648,6 +3629,23 @@ app.get('/api/admin/customers/stats', isAdmin, async (req, res) => {
     console.error('Error fetching customer stats:', err);
     res.status(500).json({ success: false, message: err.message });
   }
+});
+
+app.get('/api/admin/customers/:id', isAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { data, error } = await supabaseAdmin
+            .from('customer')
+            .select('*')
+            .eq('customer_id', id)
+            .single();
+
+        if (error) throw error;
+        res.json({ success: true, data });
+    } catch (err) {
+        console.error('Error fetching customer:', err);
+        res.status(500).json({ success: false, message: err.message });
+    }
 });
 
 app.put('/api/admin/customers/:id', isAdmin, async (req, res) => {

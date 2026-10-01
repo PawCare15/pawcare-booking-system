@@ -724,21 +724,27 @@ if (typeof bindUserMenuEvents === 'function') {
             const summary = summaryResult.data || {};
             const bookingStats = bookingResult.data || {};
 
-            document.getElementById('totalBookings').textContent = bookingStats.total || 0;
-            document.getElementById('pendingBookings').textContent = bookingStats.pending || 0;
-            document.getElementById('confirmedBookings').textContent = bookingStats.confirmed || 0;
-            document.getElementById('completedBookings').textContent = bookingStats.completed || 0;
-            document.getElementById('cancelledBookings').textContent = bookingStats.cancelled || 0;
+            const totalBookings = Number(bookingStats.total) || 0;
+            const pendingBookings = Number(bookingStats.pending) || 0;
+            const confirmedBookings = Number(bookingStats.confirmed) || 0;
+            const completedBookings = Number(bookingStats.completed) || 0;
+            const cancelledBookings = Number(bookingStats.cancelled) || 0;
+
+            document.getElementById('totalBookings').textContent = totalBookings;
+            document.getElementById('pendingBookings').textContent = pendingBookings;
+            document.getElementById('confirmedBookings').textContent = confirmedBookings;
+            document.getElementById('completedBookings').textContent = completedBookings;
+            document.getElementById('cancelledBookings').textContent = cancelledBookings;
             document.getElementById('totalCustomers').textContent = summary.totalCustomers || 0;
             document.getElementById('totalPets').textContent = summary.totalPets || 0;
 
-            updateStatChange('totalChange', summary.previousMonthTotalBookings || 0, summary.currentMonthTotalBookings || 0);
-            updateStatChange('pendingChange', summary.previousMonthPendingBookings || 0, summary.currentMonthPendingBookings || 0);
-            updateStatChange('confirmedChange', summary.previousMonthConfirmedBookings || 0, summary.currentMonthConfirmedBookings || 0);
-            updateStatChange('completedChange', summary.previousMonthCompletedBookings || 0, summary.currentMonthCompletedBookings || 0);
+            updateStatShare('totalChange', totalBookings, totalBookings);
+            updateStatShare('pendingChange', pendingBookings, totalBookings);
+            updateStatShare('confirmedChange', confirmedBookings, totalBookings);
+            updateStatShare('completedChange', completedBookings, totalBookings);
             updateStatChange('customerChange', summary.previousMonthTotalCustomers || 0, summary.totalCustomers || 0);
             updateStatChange('petChange', summary.previousMonthTotalPets || 0, summary.totalPets || 0);
-            updateStatChange('cancelledChange', summary.previousMonthCancelledBookings || 0, summary.currentMonthCancelledBookings || 0);
+            updateStatShare('cancelledChange', cancelledBookings, totalBookings);
 
         } catch (err) {
             console.error('Error loading stats:', err);
@@ -762,16 +768,49 @@ if (typeof bindUserMenuEvents === 'function') {
         element.className = `stat-change ${change.startsWith('-') ? 'negative' : 'positive'}`;
     }
 
+    function updateStatShare(id, value, total) {
+        const element = document.getElementById(id);
+        if (!element) return;
+        const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+        element.textContent = `${percentage}% of total`;
+        element.className = 'stat-change share';
+    }
+
     // LOAD STATUS CHART (PIE CHART) - FROM SUPABASE
     let statusChartInstance = null;
 
     async function loadStatusChart() {
         try {
-            // 🆕 FIX: Use /api/admin/stats which returns current month data
-            const response = await authFetch('/api/admin/stats');
+            const response = await authFetch('/api/admin/bookings/stats');
             if (!response || !response.ok) return;
             const result = await response.json();
             const stats = result.data || {};
+            const labels = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
+            const values = [
+                Number(stats.pending) || 0,
+                (Number(stats.confirmed) || 0) + (Number(stats.upcoming) || 0),
+                Number(stats.completed) || 0,
+                Number(stats.cancelled) || 0
+            ];
+            const total = values.reduce((sum, value) => sum + value, 0);
+            const percentages = values.map(() => 0);
+
+            if (total > 0) {
+                const remainders = values.map((value, index) => ({
+                    index,
+                    fraction: (value * 100) % total
+                }));
+                let assigned = 0;
+                values.forEach((value, index) => {
+                    percentages[index] = Math.floor((value * 100) / total);
+                    assigned += percentages[index];
+                });
+                remainders.sort((first, second) => second.fraction - first.fraction || first.index - second.index);
+                for (let index = 0; index < 100 - assigned; index++) {
+                    percentages[remainders[index].index]++;
+                }
+            }
+            const colors = ['#F59E0B', '#3B82F6', '#22C55E', '#EF4444'];
             
             const ctx = document.getElementById('statusChart').getContext('2d');
             
@@ -779,19 +818,13 @@ if (typeof bindUserMenuEvents === 'function') {
                 statusChartInstance.destroy();
             }
             
-            // 🆕 FIX: Use currentMonth fields
-            const pending = stats.currentMonthPendingBookings || 0;
-            const confirmed = stats.currentMonthConfirmedBookings || 0;
-            const completed = stats.currentMonthCompletedBookings || 0;
-            const cancelled = stats.currentMonthCancelledBookings || 0;
-            
             statusChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
+                    labels,
                     datasets: [{
-                        data: [pending, confirmed, completed, cancelled],
-                        backgroundColor: ['#F59E0B', '#3B82F6', '#22C55E', '#EF4444'],
+                        data: values,
+                        backgroundColor: colors,
                         borderWidth: 0,
                         hoverOffset: 8
                     }]
@@ -808,38 +841,15 @@ if (typeof bindUserMenuEvents === 'function') {
                 }
             });
 
-            // UPDATE LEGEND - FIXED TO ENSURE 100% TOTAL
+            // UPDATE LEGEND
             const legend = document.getElementById('statusLegend');
-            const total = pending + confirmed + completed + cancelled;
-            const colors = ['#F59E0B', '#3B82F6', '#22C55E', '#EF4444'];
-            const labels = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
-            const values = [pending, confirmed, completed, cancelled];
             
-            if (total === 0) {
-                legend.innerHTML = '<span style="color:#7A7A7A; font-size:13px;">No bookings this month</span>';
-            } else {
-                // Calculate exact percentages
-                const exactPercentages = values.map(v => (v / total) * 100);
-                // Round down to get base integers
-                let roundedPercentages = exactPercentages.map(p => Math.floor(p));
-                let sumRounded = roundedPercentages.reduce((a, b) => a + b, 0);
-                
-                // Distribute the remaining 1% (or more) based on the largest decimal remainders
-                if (sumRounded < 100) {
-                    const remainders = exactPercentages.map((p, i) => ({ index: i, remainder: p - roundedPercentages[i] }));
-                    remainders.sort((a, b) => b.remainder - a.remainder);
-                    for (let i = 0; i < 100 - sumRounded; i++) {
-                        roundedPercentages[remainders[i % values.length].index]++;
-                    }
-                }
-                
-                legend.innerHTML = labels.map((label, i) => {
-                    return `<span class="legend-item">
-                        <span class="dot" style="background:${colors[i]}"></span>
-                        ${label} ${values[i]} (${roundedPercentages[i]}%)
-                    </span>`;
-                }).join('');
-            }
+            legend.innerHTML = labels.map((label, i) => {
+                return `<span class="legend-item">
+                    <span class="dot" style="background:${colors[i]}"></span>
+                    ${label} ${values[i]} (${percentages[i]}%)
+                </span>`;
+            }).join('');
 
         } catch (err) {
             console.error('Error loading status chart:', err);
@@ -862,9 +872,9 @@ if (typeof bindUserMenuEvents === 'function') {
                 trendChartInstance.destroy();
             }
             
-            // 🆕 FIX: Remove fake fallback data. If no data, show empty chart.
-            let labels = [];
-            let values = [];
+            // DEFAULT FALLBACK IF NO DATA
+            let labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+            let values = [0, 0, 0, 0, 0, 0];
             
             if (trendData.length > 0) {
                 labels = trendData.map(d => d.date);
@@ -906,7 +916,7 @@ if (typeof bindUserMenuEvents === 'function') {
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: Math.max(1, Math.ceil(Math.max(...values, 1) / 5))
+                                stepSize: Math.max(1, Math.ceil(Math.max(...values) / 5))
                             }
                         },
                         x: {

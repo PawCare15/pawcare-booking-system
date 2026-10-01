@@ -2,6 +2,9 @@
 ALTER TABLE public.pet
 ADD COLUMN IF NOT EXISTS status character varying(20) NOT NULL DEFAULT 'Active';
 
+ALTER TABLE public.pet
+ALTER COLUMN customer_id DROP NOT NULL;
+
 UPDATE public.pet
 SET status = 'Inactive'
 WHERE customer_id IN (

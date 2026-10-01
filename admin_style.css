@@ -696,6 +696,46 @@ body {
     background: #FCE8E6;
 }
 
+.stat-change.share {
+    color: #5F6368;
+    background: #F1F3F4;
+}
+
+#totalChange.stat-change.share {
+    color: #E65100;
+    background: #FFF3E0;
+}
+
+#pendingChange.stat-change.share {
+    color: #B06000;
+    background: #FEF7E0;
+}
+
+#confirmedChange.stat-change.share {
+    color: #0D47A1;
+    background: #E3F2FD;
+}
+
+#completedChange.stat-change.share {
+    color: #2E7D32;
+    background: #E8F5E9;
+}
+
+#cancelledChange.stat-change.share {
+    color: #C62828;
+    background: #FCE8E6;
+}
+
+#customerChange.stat-change {
+    color: #880E4F;
+    background: #FCE4EC;
+}
+
+#petChange.stat-change {
+    color: #4A148C;
+    background: #F3E5F5;
+}
+
 /* ============================================================ */
 /* DASHBOARD GRID                                                */
 /* ============================================================ */

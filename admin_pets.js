@@ -973,11 +973,8 @@ async function loadCustomersForDropdown() {
             select.innerHTML = '<option value="">-- Select Existing Customer --</option>';
             customersData.forEach(customer => {
                 const status = (customer.status || '').trim().toLowerCase();
-                const name = (customer.full_name || '').trim().toLowerCase();
-                
-                // 🆕 FIX: Strictly only show active customers, and exclude any name containing "deleted"
-                if (status !== 'active' || name.includes('deleted')) return;
-
+                if (status === 'deleted') return;
+                if (status !== 'active') return;
                 const option = document.createElement('option');
                 option.value = customer.customer_id;
                 option.textContent = `${customer.full_name} (${customer.customer_id})`;
@@ -1381,10 +1378,20 @@ function removeImage() {
 // GET CUSTOMER DROPDOWN OPTIONS
 // ================================================================
 function getCustomerOptions(selectedId) {
-    return customersData.map(customer => {
+    const activeCustomers = customersData.filter(customer =>
+        String(customer.status || '').trim().toLowerCase() === 'active'
+    );
+    const options = activeCustomers.map(customer => {
         const selected = customer.customer_id === selectedId ? 'selected' : '';
         return `<option value="${customer.customer_id}" ${selected}>${customer.full_name} (${customer.customer_id})</option>`;
-    }).join('');
+    });
+
+    const selectedCustomer = customersData.find(customer => customer.customer_id === selectedId);
+    if (selectedCustomer && String(selectedCustomer.status || '').trim().toLowerCase() !== 'active') {
+        options.unshift(`<option value="${selectedCustomer.customer_id}" selected disabled>${selectedCustomer.full_name} (${selectedCustomer.customer_id}) - inactive/deleted current owner</option>`);
+    }
+
+    return options.join('');
 }
 
 // ================================================================
