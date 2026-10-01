@@ -1861,15 +1861,13 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ================================================================
-    // LOAD ADMIN PROFILE FIRST
+    // 🆕 FIX: CHAIN THE DATA LOADING
+    // Fetch customers first, THEN calculate stats.
     // ================================================================
-    loadAdminProfile();
-
-    // ================================================================
-    // THEN LOAD CUSTOMER DATA
-    // ================================================================
-    loadCustomerStats();
-    loadCustomersFromSupabase();
+    loadCustomersFromSupabase().then(() => {
+        loadCustomerStats();
+    });
+    
     setInterval(() => {
         if (document.visibilityState === 'visible') {
             loadCustomersFromSupabase();
@@ -1879,7 +1877,6 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('PAWCARE ADMIN CUSTOMERS LOADED SUCCESSFULLY!');
     console.log('Connected to Supabase customer table.');
     
-    // 🆕 TAMBAHAN: Log environment info for debugging
     console.log('🔧 Environment:');
     console.log('  - SUPABASE_URL:', SUPABASE_URL);
     console.log('  - Token exists:', !!localStorage.getItem('token'));

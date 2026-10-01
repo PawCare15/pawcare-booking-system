@@ -808,20 +808,38 @@ if (typeof bindUserMenuEvents === 'function') {
                 }
             });
 
-            // UPDATE LEGEND
+            // UPDATE LEGEND - FIXED TO ENSURE 100% TOTAL
             const legend = document.getElementById('statusLegend');
             const total = pending + confirmed + completed + cancelled;
             const colors = ['#F59E0B', '#3B82F6', '#22C55E', '#EF4444'];
             const labels = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
             const values = [pending, confirmed, completed, cancelled];
             
-            legend.innerHTML = labels.map((label, i) => {
-                const pct = total > 0 ? Math.round((values[i] / total) * 100) : 0;
-                return `<span class="legend-item">
-                    <span class="dot" style="background:${colors[i]}"></span>
-                    ${label} ${values[i]} (${pct}%)
-                </span>`;
-            }).join('');
+            if (total === 0) {
+                legend.innerHTML = '<span style="color:#7A7A7A; font-size:13px;">No bookings this month</span>';
+            } else {
+                // Calculate exact percentages
+                const exactPercentages = values.map(v => (v / total) * 100);
+                // Round down to get base integers
+                let roundedPercentages = exactPercentages.map(p => Math.floor(p));
+                let sumRounded = roundedPercentages.reduce((a, b) => a + b, 0);
+                
+                // Distribute the remaining 1% (or more) based on the largest decimal remainders
+                if (sumRounded < 100) {
+                    const remainders = exactPercentages.map((p, i) => ({ index: i, remainder: p - roundedPercentages[i] }));
+                    remainders.sort((a, b) => b.remainder - a.remainder);
+                    for (let i = 0; i < 100 - sumRounded; i++) {
+                        roundedPercentages[remainders[i % values.length].index]++;
+                    }
+                }
+                
+                legend.innerHTML = labels.map((label, i) => {
+                    return `<span class="legend-item">
+                        <span class="dot" style="background:${colors[i]}"></span>
+                        ${label} ${values[i]} (${roundedPercentages[i]}%)
+                    </span>`;
+                }).join('');
+            }
 
         } catch (err) {
             console.error('Error loading status chart:', err);

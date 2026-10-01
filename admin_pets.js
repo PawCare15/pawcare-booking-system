@@ -975,8 +975,8 @@ async function loadCustomersForDropdown() {
                 const status = (customer.status || '').trim().toLowerCase();
                 const name = (customer.full_name || '').trim().toLowerCase();
                 
-                // 🆕 FIX: Strictly only show active customers, and exclude "Deleted User" names
-                if (status !== 'active' || name === 'deleted user') return;
+                // 🆕 FIX: Strictly only show active customers, and exclude any name containing "deleted"
+                if (status !== 'active' || name.includes('deleted')) return;
 
                 const option = document.createElement('option');
                 option.value = customer.customer_id;
