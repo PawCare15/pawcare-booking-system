@@ -4154,7 +4154,6 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
         let query = supabaseAdmin
           .from('pet')
           .select('*')
-          .neq('status', 'Deleted')
           .order('pet_id', { ascending: true });
 
         if (species && species !== 'all') query = query.eq('species', species);
@@ -4306,6 +4305,13 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
       if (petLookupError) throw petLookupError;
       if (!petToDelete) return res.status(404).json({ success: false, message: 'Pet not found.' });
 
+      const { error: bookingError } = await supabaseAdmin
+        .from('booking')
+        .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+        .eq('pet_id', id)
+        .eq('status', 'pending');
+      if (bookingError) throw bookingError;
+
       const { data, error } = await supabaseAdmin
         .from('pet')
         .update({ status: 'Deleted' })
@@ -4319,7 +4325,7 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
         await createCustomerNotification(
           petToDelete.customer_id,
           'Pet Profile Deleted',
-          `Your pet "${petToDelete.pet_name}" has been removed by the admin.`,
+          `Your pet "${petToDelete.pet_name}" has been removed by the admin, and any pending bookings have been cancelled.`,
           'pet',
           null,
           null,
@@ -4327,7 +4333,7 @@ app.get('/api/admin/pets', isAdmin, async (req, res) => {
         );
       }
 
-      res.json({ success: true, message: 'Pet deleted.' });
+      res.json({ success: true, message: 'Pet deleted and pending bookings cancelled.' });
     } catch (err) {
       console.error('Error deleting pet:', err);
       res.status(500).json({ success: false, message: err.message });

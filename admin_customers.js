@@ -1147,7 +1147,7 @@ function renderCustomerTable(data) {
         
         let statusDisplay = normalizedStatus || 'Active';
         if (isDeleted) {
-            statusDisplay = 'Inactive';
+            statusDisplay = 'Deleted';
         } else if (statusKey === 'pending_deletion') {
             statusDisplay = '⏳ Pending Deletion';
         }
@@ -1716,7 +1716,8 @@ function searchCustomers(query) {
         if (!matchesSearch) return false;
         if (statusFilter === 'all') return true;
         if (statusFilter === 'Active') return statusKey === 'active';
-        if (statusFilter === 'Inactive') return statusKey === 'inactive' || statusKey === 'deleted';
+        if (statusFilter === 'Inactive') return statusKey === 'inactive';
+        if (statusFilter === 'Deleted') return statusKey === 'deleted';
         return statusKey === String(statusFilter).toLowerCase();
     });
     renderCustomerTable(filtered);

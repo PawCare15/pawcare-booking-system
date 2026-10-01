@@ -1146,10 +1146,10 @@ function renderPetTable(data) {
     tbody.innerHTML = data.map(pet => {
         const statusDisplay = pet.status || 'Active';
         const statusClass = statusDisplay.toLowerCase();
-        const isInactive = statusDisplay.toLowerCase() === 'inactive';
+        const isDeleted = statusClass === 'deleted';
         const speciesIcon = (pet.species || '').toLowerCase() === 'dog' ? 'fa-solid fa-dog' : 'fa-solid fa-cat';
-        const rowStyle = isInactive ? 'opacity: 0.6; background-color: #f9f9f9;' : '';
-        const btnDisabledStyle = isInactive ? 'opacity: 0.4; cursor: not-allowed; pointer-events: none;' : '';
+        const rowStyle = isDeleted ? 'opacity: 0.6; background-color: #f9f9f9;' : '';
+        const btnDisabledStyle = isDeleted ? 'opacity: 0.4; cursor: not-allowed; pointer-events: none;' : '';
         
         const avatarHtml = pet.image ? 
             `<img src="${pet.image}" alt="${pet.name}" style="width:28px; height:28px; border-radius:50%; object-fit:cover; flex-shrink:0;">` :
@@ -1171,13 +1171,13 @@ function renderPetTable(data) {
             <td><span class="status-badge-sm ${statusClass}">${statusDisplay}</span></td>
             <td>
                 <div class="action-btns">
-                    <button class="btn-action view" onclick="viewPetDetail('${pet.pet_id}')" title="View Details" ${isInactive ? 'disabled' : ''} style="${btnDisabledStyle}">
+                    <button class="btn-action view" onclick="viewPetDetail('${pet.pet_id}')" title="View Details" ${isDeleted ? 'disabled' : ''} style="${btnDisabledStyle}">
                         <i class="fa-regular fa-eye"></i>
                     </button>
-                    <button class="btn-action edit" onclick="openEditPetModal('${pet.pet_id}')" title="Edit" ${isInactive ? 'disabled' : ''} style="${btnDisabledStyle}">
+                    <button class="btn-action edit" onclick="openEditPetModal('${pet.pet_id}')" title="Edit" ${isDeleted ? 'disabled' : ''} style="${btnDisabledStyle}">
                         <i class="fa-regular fa-pen-to-square"></i>
                     </button>
-                    <button class="btn-action delete" onclick="openDeleteModal('${pet.pet_id}')" title="Delete" ${isInactive ? 'disabled' : ''} style="${btnDisabledStyle}">
+                    <button class="btn-action delete" onclick="openDeleteModal('${pet.pet_id}')" title="Delete" ${isDeleted ? 'disabled' : ''} style="${btnDisabledStyle}">
                         <i class="fa-regular fa-trash-can"></i>
                     </button>
                 </div>
@@ -2047,8 +2047,9 @@ function applyFiltersAndRender() {
         
         const matchesSpecies = speciesFilter === 'all' ||
             (pet.species || '').toLowerCase() === speciesFilter.toLowerCase();
+        const statusKey = (pet.status || '').toLowerCase();
         const matchesStatus = statusFilter === 'all' ||
-            (pet.status || '').toLowerCase() === statusFilter.toLowerCase();
+            (statusFilter === 'Deleted' ? statusKey === 'deleted' : statusKey === statusFilter.toLowerCase());
         
         return matchesSearch && matchesSpecies && matchesStatus;
     });
