@@ -1036,10 +1036,12 @@ async function loadPetsFromSupabase() {
             // 🆕 TAMBAHAN: Use pet data from API response
             const customer = pet.customer || {};
             let finalStatus = pet.status || 'Active';
-            const customerStatus = String(customer.status || '').trim().toLowerCase();
-            const customerName = String(customer.full_name || '').trim().toLowerCase();
-            if (!pet.customer || customerStatus === 'deleted' || customerName === 'deleted user') {
-                finalStatus = 'Inactive';
+            if (finalStatus.toLowerCase() !== 'deleted') {
+                const customerStatus = String(customer.status || '').trim().toLowerCase();
+                const customerName = String(customer.full_name || '').trim().toLowerCase();
+                if (!pet.customer || customerStatus === 'deleted' || customerName === 'deleted user') {
+                    finalStatus = 'Inactive';
+                }
             }
             
             return {
@@ -1145,8 +1147,9 @@ function renderPetTable(data) {
     
     tbody.innerHTML = data.map(pet => {
         const statusDisplay = pet.status || 'Active';
-        const statusClass = statusDisplay.toLowerCase();
-        const isDeleted = statusClass === 'deleted';
+        const statusKey = statusDisplay.toLowerCase();
+        const isDeleted = statusKey === 'deleted';
+        const statusClass = isDeleted ? 'inactive' : statusKey;
         const speciesIcon = (pet.species || '').toLowerCase() === 'dog' ? 'fa-solid fa-dog' : 'fa-solid fa-cat';
         const rowStyle = isDeleted ? 'opacity: 0.6; background-color: #f9f9f9;' : '';
         const btnDisabledStyle = isDeleted ? 'opacity: 0.4; cursor: not-allowed; pointer-events: none;' : '';
@@ -1948,14 +1951,13 @@ async function confirmDeletePetWithNotification() {
             throw new Error(result.message || 'Failed to delete pet');
         }
 
-        // Remove from local data
-        const index = petsData.findIndex(p => p.pet_id === id);
-        if (index !== -1) {
-            petsData.splice(index, 1);
+        const petIndex = petsData.findIndex(p => p.pet_id === id);
+        if (petIndex !== -1) {
+            petsData[petIndex].status = 'Deleted';
         }
         
         closeDeleteModal();
-        renderPetTable(petsData);
+        applyFiltersAndRender();
         loadPetStats();
         loadNotificationCount();
         
