@@ -973,8 +973,11 @@ async function loadCustomersForDropdown() {
             select.innerHTML = '<option value="">-- Select Existing Customer --</option>';
             customersData.forEach(customer => {
                 const status = (customer.status || '').trim().toLowerCase();
-                if (status === 'deleted') return;
-                if (status !== 'active') return;
+                const name = (customer.full_name || '').trim().toLowerCase();
+                
+                // 🆕 FIX: Strictly only show active customers, and exclude "Deleted User" names
+                if (status !== 'active' || name === 'deleted user') return;
+
                 const option = document.createElement('option');
                 option.value = customer.customer_id;
                 option.textContent = `${customer.full_name} (${customer.customer_id})`;

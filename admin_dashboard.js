@@ -767,7 +767,8 @@ if (typeof bindUserMenuEvents === 'function') {
 
     async function loadStatusChart() {
         try {
-            const response = await authFetch('/api/admin/bookings/stats');
+            // 🆕 FIX: Use /api/admin/stats which returns current month data
+            const response = await authFetch('/api/admin/stats');
             if (!response || !response.ok) return;
             const result = await response.json();
             const stats = result.data || {};
@@ -778,17 +779,18 @@ if (typeof bindUserMenuEvents === 'function') {
                 statusChartInstance.destroy();
             }
             
+            // 🆕 FIX: Use currentMonth fields
+            const pending = stats.currentMonthPendingBookings || 0;
+            const confirmed = stats.currentMonthConfirmedBookings || 0;
+            const completed = stats.currentMonthCompletedBookings || 0;
+            const cancelled = stats.currentMonthCancelledBookings || 0;
+            
             statusChartInstance = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Pending', 'Confirmed', 'Completed', 'Cancelled'],
                     datasets: [{
-                        data: [
-                            stats.pending || 0,
-                            stats.confirmed || 0,
-                            stats.completed || 0,
-                            stats.cancelled || 0
-                        ],
+                        data: [pending, confirmed, completed, cancelled],
                         backgroundColor: ['#F59E0B', '#3B82F6', '#22C55E', '#EF4444'],
                         borderWidth: 0,
                         hoverOffset: 8
@@ -808,10 +810,10 @@ if (typeof bindUserMenuEvents === 'function') {
 
             // UPDATE LEGEND
             const legend = document.getElementById('statusLegend');
-            const total = (stats.pending || 0) + (stats.confirmed || 0) + (stats.completed || 0) + (stats.cancelled || 0);
+            const total = pending + confirmed + completed + cancelled;
             const colors = ['#F59E0B', '#3B82F6', '#22C55E', '#EF4444'];
             const labels = ['Pending', 'Confirmed', 'Completed', 'Cancelled'];
-            const values = [stats.pending || 0, stats.confirmed || 0, stats.completed || 0, stats.cancelled || 0];
+            const values = [pending, confirmed, completed, cancelled];
             
             legend.innerHTML = labels.map((label, i) => {
                 const pct = total > 0 ? Math.round((values[i] / total) * 100) : 0;
@@ -842,9 +844,9 @@ if (typeof bindUserMenuEvents === 'function') {
                 trendChartInstance.destroy();
             }
             
-            // DEFAULT FALLBACK IF NO DATA
-            let labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
-            let values = [0, 0, 0, 0, 0, 0];
+            // 🆕 FIX: Remove fake fallback data. If no data, show empty chart.
+            let labels = [];
+            let values = [];
             
             if (trendData.length > 0) {
                 labels = trendData.map(d => d.date);
@@ -886,7 +888,7 @@ if (typeof bindUserMenuEvents === 'function') {
                         y: {
                             beginAtZero: true,
                             ticks: {
-                                stepSize: Math.max(1, Math.ceil(Math.max(...values) / 5))
+                                stepSize: Math.max(1, Math.ceil(Math.max(...values, 1) / 5))
                             }
                         },
                         x: {

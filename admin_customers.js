@@ -1745,54 +1745,37 @@ async function loadCustomerStats() {
         if (!response.ok || !result.success) throw new Error(result.message || 'Failed to load customer stats');
 
         const { total, active, inactive, newThisMonth, totalLastMonth, newLastMonth } = result.data;
-        const pct = (current, previous) => {
-            if (previous === 0 && current === 0) return '0%';
-            if (previous === 0) return current > 0 ? '+100%' : '0%';
-            const change = ((current - previous) / previous) * 100;
-            return `${change >= 0 ? '+' : ''}${change.toFixed(0)}%`;
-        };
+        updateCustomerStatsUI(total, active, inactive, newThisMonth, totalLastMonth, newLastMonth);
 
-        document.getElementById('totalCustomers').textContent = total;
-        document.getElementById('newCustomers').textContent = newThisMonth;
-        document.getElementById('activeCustomers').textContent = active;
-        document.getElementById('inactiveCustomers').textContent = inactive;
-
-        const totalChangeEl = document.querySelector('.stat-card-balance:nth-child(1) .stat-change');
-        const newChangeEl = document.querySelector('.stat-card-balance:nth-child(2) .stat-change');
-        const activePercentEl = document.querySelector('.stat-card-balance:nth-child(3) .stat-change');
-        const inactivePercentEl = document.querySelector('.stat-card-balance:nth-child(4) .stat-change');
-        const totalChange = pct(total, totalLastMonth);
-        const newChange = pct(newThisMonth, newLastMonth);
-
-        if (totalChangeEl) {
-            totalChangeEl.textContent = `${totalChange} from last month`;
-            totalChangeEl.className = totalChange === '-' ? 'stat-change' : `stat-change ${totalChange.startsWith('-') ? 'negative' : 'positive'}`;
-        }
-        if (newChangeEl) {
-            newChangeEl.textContent = `${newChange} from last month`;
-            newChangeEl.className = newChange === '-' ? 'stat-change' : `stat-change ${newChange.startsWith('-') ? 'negative' : 'positive'}`;
-        }
-
-        const activePercent = total > 0 ? Math.round((active / total) * 100) : 0;
-        const inactivePercent = total > 0 ? Math.round((inactive / total) * 100) : 0;
-        if (activePercentEl) {
-            activePercentEl.textContent = `${activePercent}% of total`;
-            activePercentEl.className = 'stat-change positive';
-        }
-        if (inactivePercentEl) {
-            inactivePercentEl.textContent = `${inactivePercent}% of total`;
-            inactivePercentEl.className = inactivePercent > 0 ? 'stat-change negative' : 'stat-change';
-        }
     } catch (error) {
-        console.error('Error loading customer stats:', error);
-        ['totalCustomers', 'newCustomers', 'activeCustomers', 'inactiveCustomers'].forEach(id => {
-            const element = document.getElementById(id);
-            if (element) element.textContent = '-';
-        });
-        document.querySelectorAll('.stat-card-balance .stat-change').forEach(element => {
-            element.textContent = '-';
-            element.className = 'stat-change';
-        });
+        console.error('Error loading customer stats from API, falling back to local calculation:', error);
+        
+        // 🆕 FIX: Fallback calculation from customersData array
+        const total = customersData.length;
+        const active = customersData.filter(c => (c.status || '').toLowerCase() === 'active').length;
+        const inactive = customersData.filter(c => ['inactive', 'deleted'].includes((c.status || '').toLowerCase())).length;
+        const now = new Date();
+        const newThisMonth = customersData.filter(c => {
+            if (!c.created_at) return false;
+            const d = new Date(c.created_at);
+            return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        }).length;
+        
+        const totalLastMonth = customersData.filter(c => {
+            if (!c.created_at) return false;
+            const d = new Date(c.created_at);
+            return d < new Date(now.getFullYear(), now.getMonth(), 1);
+        }).length;
+        
+        const newLastMonth = customersData.filter(c => {
+            if (!c.created_at) return false;
+            const d = new Date(c.created_at);
+            const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+            return d >= lastMonth && d < thisMonth;
+        }).length;
+
+        updateCustomerStatsUI(total, active, inactive, newThisMonth, totalLastMonth, newLastMonth);
     }
 }
 
